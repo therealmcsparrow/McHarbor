@@ -71,3 +71,66 @@ The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.0
 ```bash
 docker compose --profile agent up -d
 ```
+
+## Install From The Command Line
+
+McHarbor needs access to the host Docker socket. Without the `/var/run/docker.sock` bind mount, container management, events, and health checks against the local Docker environment will fail.
+
+Run McHarbor directly with Docker:
+
+```bash
+docker run -d \
+  --name mcharbor \
+  --restart unless-stopped \
+  -p 8705:5474 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v mcharbor-data:/app/data \
+  ghcr.io/therealmcsparrow/mcharbor:latest
+```
+
+Or use Docker Compose:
+
+```yaml
+services:
+  mcharbor:
+    image: ghcr.io/therealmcsparrow/mcharbor:latest
+    container_name: mcharbor
+    restart: unless-stopped
+    ports:
+      - "8705:5474"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - mcharbor-data:/app/data
+
+volumes:
+  mcharbor-data:
+```
+
+Start it with:
+
+```bash
+docker compose up -d
+```
+
+Then open:
+
+```text
+http://<your-server-ip>:8705
+```
+
+To install the optional remote agent on another machine:
+
+```bash
+docker run -d \
+  --name mcharbor-agent \
+  --restart unless-stopped \
+  -e MCHARBOR_URL=wss://your-mcharbor-domain:8705 \
+  -e MCHARBOR_AGENT_TOKEN=your_agent_token \
+  -e DOCKER_HOST=unix:///var/run/docker.sock \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  ghcr.io/therealmcsparrow/mcharbor-agent:latest
+```
+
+If you see an error like `Cannot connect to the Docker daemon at unix:///var/run/docker.sock`, check that Docker is running on the host and that the socket mount is present.
+
+Note: `ghcr.io/therealmcsparrow/mcharbor:latest` and `ghcr.io/therealmcsparrow/mcharbor-agent:latest` require the GitHub Container Registry publish step to succeed before these commands will pull successfully.
