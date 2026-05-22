@@ -1,0 +1,15 @@
+{
+  "label": "Join",
+  "description": "Join multiple incoming branches into a single message",
+  "config": {
+    "input_count": "Aantal invoeren",
+    "combine_mode": "Combinatiemodus"
+  },
+  "options": {
+    "combine_mode": {
+      "last": "Last Message",
+      "merge": "Merge Objects",
+      "array": "Array"
+    }
+  }
+}

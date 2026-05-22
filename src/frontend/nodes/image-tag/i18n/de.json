@@ -1,0 +1,9 @@
+{
+  "label": "Image Tag",
+  "description": "Tag an image with a new target reference",
+  "config": {
+    "environment": "Umgebung",
+    "source": "Quell-Image",
+    "target": "Ziel-Image"
+  }
+}

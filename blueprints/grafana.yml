@@ -1,0 +1,43 @@
+x-mcharbor:
+  name: grafana
+  title: Grafana
+  description: Feature-rich observability dashboards for metrics, logs, and traces from any data source.
+  category: infrastructure
+  icon: chart-bar
+  website: https://grafana.com
+  tags: [monitoring, dashboards, metrics, observability, visualization]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "3000"
+      required: true
+    - name: ADMIN_USER
+      label: Admin Username
+      type: string
+      default: admin
+      required: true
+    - name: ADMIN_PASSWORD
+      label: Admin Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/grafana
+
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: "{{ADMIN_USER}}"
+      GF_SECURITY_ADMIN_PASSWORD: "{{ADMIN_PASSWORD}}"
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    volumes:
+      - "{{DATA_PATH}}:/var/lib/grafana"

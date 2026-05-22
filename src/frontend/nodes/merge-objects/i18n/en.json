@@ -1,0 +1,8 @@
+{
+  "label": "Merge Objects",
+  "description": "Merge multiple source objects into one output",
+  "config": {
+    "sources": "Sources",
+    "output_property": "Output Property"
+  }
+}

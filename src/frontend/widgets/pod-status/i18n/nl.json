@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "podStatus": {
+      "label": "Pod-status",
+      "description": "Overzicht van Kubernetes pod-fasen"
+    }
+  },
+  "podStatusWidget": {
+    "title": "Pod-status",
+    "pods": "pods",
+    "noPods": "Geen pods gevonden",
+    "notAvailable": "Kubernetes niet beschikbaar"
+  }
+}

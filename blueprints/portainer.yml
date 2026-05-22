@@ -1,0 +1,31 @@
+x-mcharbor:
+  name: portainer
+  title: Portainer
+  description: Container management UI. Manage Docker environments through an intuitive web interface.
+  category: monitoring
+  icon: monitor
+  website: https://portainer.io
+  tags: [docker, management, ui, monitoring]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "9000"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/portainer
+
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{DATA_PATH}}:/data"

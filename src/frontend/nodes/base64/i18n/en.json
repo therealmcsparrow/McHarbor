@@ -1,0 +1,14 @@
+{
+  "label": "Base64",
+  "description": "Encode or decode a value with Base64",
+  "config": {
+    "property": "Property",
+    "action": "Action"
+  },
+  "options": {
+    "action": {
+      "encode": "Encode",
+      "decode": "Decode"
+    }
+  }
+}

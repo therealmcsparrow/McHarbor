@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "containerStates": {
+      "label": "Container-Zustände",
+      "description": "Donut-Diagramm der Container-Zustände"
+    }
+  },
+  "containerStatesWidget": {
+    "title": "Container-Zustände",
+    "noContainers": "Keine Container gefunden",
+    "total": "gesamt"
+  }
+}

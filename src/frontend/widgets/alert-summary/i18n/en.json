@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "alertSummary": {
+      "label": "Alert Summary",
+      "description": "Configured alert rules grouped by severity"
+    }
+  },
+  "alertSummaryWidget": {
+    "title": "Alert Summary",
+    "noAlerts": "No enabled alert rules",
+    "notConfigured": "Alert rules unavailable",
+    "disabledRules": "Disabled rules: {{count}}",
+    "severity": {
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Info"
+    }
+  }
+}

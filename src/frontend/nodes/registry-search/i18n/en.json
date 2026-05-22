@@ -1,0 +1,9 @@
+{
+  "label": "Registry Search",
+  "description": "Search a container registry for images",
+  "config": {
+    "environment": "Environment",
+    "term": "Search Term",
+    "limit": "Limit"
+  }
+}

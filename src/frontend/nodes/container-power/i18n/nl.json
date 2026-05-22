@@ -1,0 +1,16 @@
+{
+  "label": "Container Power",
+  "description": "Enable or disable a container using the power helper action",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container",
+    "action": "Actie",
+    "timeout": "Timeout (seconden)"
+  },
+  "options": {
+    "action": {
+      "enable": "Inschakelen",
+      "disable": "Uitschakelen"
+    }
+  }
+}

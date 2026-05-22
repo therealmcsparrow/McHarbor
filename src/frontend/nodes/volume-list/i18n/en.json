@@ -1,0 +1,8 @@
+{
+  "label": "Volume List",
+  "description": "List Docker volumes",
+  "config": {
+    "environment": "Environment",
+    "filter_dangling": "Only Dangling"
+  }
+}

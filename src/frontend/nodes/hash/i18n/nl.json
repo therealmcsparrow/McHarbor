@@ -1,0 +1,17 @@
+{
+  "label": "Hash",
+  "description": "Hash a value using a selected algorithm",
+  "config": {
+    "property": "Eigenschap",
+    "algorithm": "Algorithm",
+    "output_property": "Uitvoerpad"
+  },
+  "options": {
+    "algorithm": {
+      "md5": "MD5",
+      "sha1": "SHA1",
+      "sha256": "SHA256",
+      "sha512": "SHA512"
+    }
+  }
+}

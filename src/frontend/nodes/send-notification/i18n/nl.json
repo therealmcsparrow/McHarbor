@@ -1,0 +1,8 @@
+{
+  "label": "Interne melding verzenden",
+  "description": "Verstuur een in-app melding binnen McHarbor",
+  "config": {
+    "title": "Titel",
+    "message": "Bericht"
+  }
+}

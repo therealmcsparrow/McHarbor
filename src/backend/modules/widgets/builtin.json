@@ -1,0 +1,752 @@
+[
+  {
+    "key": "containers",
+    "label": "Containers",
+    "category": "resources",
+    "description": "Total containers with running/stopped counts",
+    "icon": "IconBoxMultiple",
+    "source": "builtin",
+    "component": "ResourceSummaryWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "Containers",
+        "description": "Total containers with running/stopped counts"
+      },
+      "nl": {
+        "label": "Containers",
+        "description": "Totaal aantal containers met draaiend/gestopt"
+      },
+      "de": {
+        "label": "Container",
+        "description": "Gesamtanzahl der Container mit laufend/gestoppt"
+      }
+    }
+  },
+  {
+    "key": "images",
+    "label": "Images",
+    "category": "resources",
+    "description": "Total number of images",
+    "icon": "IconPhoto",
+    "source": "builtin",
+    "component": "ResourceSummaryWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "Images",
+        "description": "Total number of images"
+      },
+      "nl": {
+        "label": "Images",
+        "description": "Totaal aantal images"
+      },
+      "de": {
+        "label": "Images",
+        "description": "Gesamtanzahl der Images"
+      }
+    }
+  },
+  {
+    "key": "volumes",
+    "label": "Volumes",
+    "category": "resources",
+    "description": "Total number of volumes",
+    "icon": "IconDeviceFloppy",
+    "source": "builtin",
+    "component": "ResourceSummaryWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "Volumes",
+        "description": "Total number of volumes"
+      },
+      "nl": {
+        "label": "Volumes",
+        "description": "Totaal aantal volumes"
+      },
+      "de": {
+        "label": "Volumes",
+        "description": "Gesamtanzahl der Volumes"
+      }
+    }
+  },
+  {
+    "key": "networks",
+    "label": "Networks",
+    "category": "resources",
+    "description": "Total number of networks",
+    "icon": "IconNetwork",
+    "source": "builtin",
+    "component": "ResourceSummaryWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "Networks",
+        "description": "Total number of networks"
+      },
+      "nl": {
+        "label": "Netwerken",
+        "description": "Totaal aantal netwerken"
+      },
+      "de": {
+        "label": "Netzwerke",
+        "description": "Gesamtanzahl der Netzwerke"
+      }
+    }
+  },
+  {
+    "key": "cpu-cores",
+    "label": "CPU Cores",
+    "category": "host",
+    "description": "Host CPU core count and architecture",
+    "icon": "IconCpu",
+    "source": "builtin",
+    "component": "HostInfoWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "CPU Cores",
+        "description": "Host CPU core count and architecture"
+      },
+      "nl": {
+        "label": "CPU-kernen",
+        "description": "Aantal CPU-kernen en architectuur van de host"
+      },
+      "de": {
+        "label": "CPU-Kerne",
+        "description": "Host-CPU-Kernanzahl und Architektur"
+      }
+    }
+  },
+  {
+    "key": "total-memory",
+    "label": "Total Memory",
+    "category": "host",
+    "description": "Host total memory",
+    "icon": "IconCpu2",
+    "source": "builtin",
+    "component": "HostInfoWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "Total Memory",
+        "description": "Host total memory"
+      },
+      "nl": {
+        "label": "Totaal geheugen",
+        "description": "Totaal geheugen van de host"
+      },
+      "de": {
+        "label": "Gesamtspeicher",
+        "description": "Gesamtspeicher des Hosts"
+      }
+    }
+  },
+  {
+    "key": "docker-version",
+    "label": "Docker Version",
+    "category": "host",
+    "description": "Docker engine version and hostname",
+    "icon": "IconServer",
+    "source": "builtin",
+    "component": "HostInfoWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "Docker Version",
+        "description": "Docker engine version and hostname"
+      },
+      "nl": {
+        "label": "Docker-versie",
+        "description": "Docker-engineversie en hostnaam"
+      },
+      "de": {
+        "label": "Docker-Version",
+        "description": "Docker-Engine-Version und Hostname"
+      }
+    }
+  },
+  {
+    "key": "disk-usage",
+    "label": "Disk Usage",
+    "category": "host",
+    "description": "Total disk usage breakdown",
+    "icon": "IconDatabase",
+    "source": "builtin",
+    "component": "HostInfoWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "Disk Usage",
+        "description": "Total disk usage breakdown"
+      },
+      "nl": {
+        "label": "Schijfgebruik",
+        "description": "Uitsplitsing totaal schijfgebruik"
+      },
+      "de": {
+        "label": "Festplattennutzung",
+        "description": "Gesamtaufschlüsselung der Festplattennutzung"
+      }
+    }
+  },
+  {
+    "key": "cpu-chart",
+    "label": "CPU Usage",
+    "category": "metrics",
+    "description": "Live CPU usage chart",
+    "icon": "IconActivity",
+    "source": "builtin",
+    "component": "MetricChartWidget",
+    "defaultSize": { "w": 3, "h": 2 },
+    "minSize": { "w": 2, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "CPU Usage",
+        "description": "Live CPU usage chart"
+      },
+      "nl": {
+        "label": "CPU-gebruik",
+        "description": "Live CPU-gebruikgrafiek"
+      },
+      "de": {
+        "label": "CPU-Auslastung",
+        "description": "Live-CPU-Auslastungsdiagramm"
+      }
+    }
+  },
+  {
+    "key": "memory-chart",
+    "label": "Memory Usage",
+    "category": "metrics",
+    "description": "Live memory usage chart",
+    "icon": "IconChartArea",
+    "source": "builtin",
+    "component": "MetricChartWidget",
+    "defaultSize": { "w": 3, "h": 2 },
+    "minSize": { "w": 2, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Memory Usage",
+        "description": "Live memory usage chart"
+      },
+      "nl": {
+        "label": "Geheugengebruik",
+        "description": "Live geheugengebruikgrafiek"
+      },
+      "de": {
+        "label": "Speicherauslastung",
+        "description": "Live-Speicherauslastungsdiagramm"
+      }
+    }
+  },
+  {
+    "key": "network-io-chart",
+    "label": "Network I/O",
+    "category": "metrics",
+    "description": "Network receive/transmit chart",
+    "icon": "IconArrowBarDown",
+    "source": "builtin",
+    "component": "MetricChartWidget",
+    "defaultSize": { "w": 3, "h": 2 },
+    "minSize": { "w": 2, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Network I/O",
+        "description": "Network receive/transmit chart"
+      },
+      "nl": {
+        "label": "Netwerk I/O",
+        "description": "Grafiek netwerk ontvangen/verzenden"
+      },
+      "de": {
+        "label": "Netzwerk-I/O",
+        "description": "Netzwerk-Empfangs-/Sendediagramm"
+      }
+    }
+  },
+  {
+    "key": "disk-io-chart",
+    "label": "Disk I/O",
+    "category": "metrics",
+    "description": "Disk read/write chart",
+    "icon": "IconTimeline",
+    "source": "builtin",
+    "component": "MetricChartWidget",
+    "defaultSize": { "w": 3, "h": 2 },
+    "minSize": { "w": 2, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Disk I/O",
+        "description": "Disk read/write chart"
+      },
+      "nl": {
+        "label": "Schijf I/O",
+        "description": "Grafiek schijf lezen/schrijven"
+      },
+      "de": {
+        "label": "Festplatten-I/O",
+        "description": "Festplatten-Lese-/Schreibdiagramm"
+      }
+    }
+  },
+  {
+    "key": "activity-feed",
+    "label": "Activity Feed",
+    "category": "monitoring",
+    "description": "Recent container events",
+    "icon": "IconList",
+    "source": "builtin",
+    "component": "ActivityFeedWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Activity Feed",
+        "description": "Recent container events"
+      },
+      "nl": {
+        "label": "Activiteitenfeed",
+        "description": "Recente containergebeurtenissen"
+      },
+      "de": {
+        "label": "Aktivitätsfeed",
+        "description": "Neueste Container-Ereignisse"
+      }
+    }
+  },
+  {
+    "key": "container-list",
+    "label": "Container List",
+    "category": "monitoring",
+    "description": "Compact list of containers with status",
+    "icon": "IconBoxMultiple",
+    "source": "builtin",
+    "component": "ContainerListWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Container List",
+        "description": "Compact list of containers with status"
+      },
+      "nl": {
+        "label": "Containerlijst",
+        "description": "Compacte lijst van containers met status"
+      },
+      "de": {
+        "label": "Containerliste",
+        "description": "Kompakte Liste der Container mit Status"
+      }
+    }
+  },
+  {
+    "key": "stack-status",
+    "label": "Stack Status",
+    "category": "monitoring",
+    "description": "Overview of compose stacks",
+    "icon": "IconStack2",
+    "source": "builtin",
+    "component": "StackStatusWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Stack Status",
+        "description": "Overview of compose stacks"
+      },
+      "nl": {
+        "label": "Stack-status",
+        "description": "Overzicht van compose-stacks"
+      },
+      "de": {
+        "label": "Stack-Status",
+        "description": "Übersicht der Compose-Stacks"
+      }
+    }
+  },
+  {
+    "key": "resource-donut",
+    "label": "Resource Donut",
+    "category": "monitoring",
+    "description": "Pie chart of resource distribution",
+    "icon": "IconChartDonut",
+    "source": "builtin",
+    "component": "ResourceDonutWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Resource Donut",
+        "description": "Pie chart of resource distribution"
+      },
+      "nl": {
+        "label": "Resourcedonut",
+        "description": "Cirkeldiagram van resourceverdeling"
+      },
+      "de": {
+        "label": "Ressourcen-Donut",
+        "description": "Kreisdiagramm der Ressourcenverteilung"
+      }
+    }
+  },
+  {
+    "key": "top-cpu-consumers",
+    "label": "Top CPU Consumers",
+    "category": "resources",
+    "description": "Containers with highest CPU usage",
+    "icon": "IconFlame",
+    "source": "builtin",
+    "component": "TopConsumersWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Top CPU Consumers",
+        "description": "Containers with highest CPU usage"
+      },
+      "nl": {
+        "label": "Hoogste CPU-verbruikers",
+        "description": "Containers met het hoogste CPU-gebruik"
+      },
+      "de": {
+        "label": "Top CPU-Verbraucher",
+        "description": "Container mit höchster CPU-Auslastung"
+      }
+    }
+  },
+  {
+    "key": "top-memory-consumers",
+    "label": "Top Memory Consumers",
+    "category": "resources",
+    "description": "Containers with highest memory usage",
+    "icon": "IconDeviceDesktopAnalytics",
+    "source": "builtin",
+    "component": "TopConsumersWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Top Memory Consumers",
+        "description": "Containers with highest memory usage"
+      },
+      "nl": {
+        "label": "Hoogste geheugenverbruikers",
+        "description": "Containers met het hoogste geheugengebruik"
+      },
+      "de": {
+        "label": "Top Speicherverbraucher",
+        "description": "Container mit höchstem Speicherverbrauch"
+      }
+    }
+  },
+  {
+    "key": "container-states",
+    "label": "Container States",
+    "category": "resources",
+    "description": "Donut chart of container states",
+    "icon": "IconChartPie",
+    "source": "builtin",
+    "component": "ContainerStatesWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Container States",
+        "description": "Donut chart of container states"
+      },
+      "nl": {
+        "label": "Containerstatussen",
+        "description": "Donutdiagram van containerstatussen"
+      },
+      "de": {
+        "label": "Container-Zustände",
+        "description": "Donut-Diagramm der Container-Zustände"
+      }
+    }
+  },
+  {
+    "key": "restart-tracker",
+    "label": "Restart Tracker",
+    "category": "monitoring",
+    "description": "Containers with the most restarts",
+    "icon": "IconRefresh",
+    "source": "builtin",
+    "component": "RestartTrackerWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Restart Tracker",
+        "description": "Containers with the most restarts"
+      },
+      "nl": {
+        "label": "Herstart-tracker",
+        "description": "Containers met de meeste herstarts"
+      },
+      "de": {
+        "label": "Neustart-Tracker",
+        "description": "Container mit den meisten Neustarts"
+      }
+    }
+  },
+  {
+    "key": "port-map",
+    "label": "Port Map",
+    "category": "resources",
+    "description": "Host-to-container port mappings",
+    "icon": "IconPlug",
+    "source": "builtin",
+    "component": "PortMapWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Port Map",
+        "description": "Host-to-container port mappings"
+      },
+      "nl": {
+        "label": "Poorttoewijzingen",
+        "description": "Host-naar-container poorttoewijzingen"
+      },
+      "de": {
+        "label": "Port-Zuordnung",
+        "description": "Host-zu-Container Port-Zuordnungen"
+      }
+    }
+  },
+  {
+    "key": "container-age",
+    "label": "Container Age",
+    "category": "resources",
+    "description": "Oldest containers by creation date",
+    "icon": "IconClock",
+    "source": "builtin",
+    "component": "ContainerAgeWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Container Age",
+        "description": "Oldest containers by creation date"
+      },
+      "nl": {
+        "label": "Containerleeftijd",
+        "description": "Oudste containers op aanmaakdatum"
+      },
+      "de": {
+        "label": "Container-Alter",
+        "description": "Älteste Container nach Erstellungsdatum"
+      }
+    }
+  },
+  {
+    "key": "storage-breakdown",
+    "label": "Storage Breakdown",
+    "category": "resources",
+    "description": "Disk usage by category",
+    "icon": "IconDevices",
+    "source": "builtin",
+    "component": "StorageBreakdownWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Storage Breakdown",
+        "description": "Disk usage by category"
+      },
+      "nl": {
+        "label": "Opslagverdeling",
+        "description": "Schijfgebruik per categorie"
+      },
+      "de": {
+        "label": "Speicheraufschlüsselung",
+        "description": "Festplattennutzung nach Kategorie"
+      }
+    }
+  },
+  {
+    "key": "uptime",
+    "label": "Uptime",
+    "category": "host",
+    "description": "Host system uptime",
+    "icon": "IconClock",
+    "source": "builtin",
+    "component": "HostInfoWidget",
+    "defaultSize": { "w": 3, "h": 1 },
+    "minSize": { "w": 2, "h": 1 },
+    "translations": {
+      "en": {
+        "label": "Uptime",
+        "description": "Host system uptime"
+      },
+      "nl": {
+        "label": "Uptime",
+        "description": "Uptime van het hostsysteem"
+      },
+      "de": {
+        "label": "Betriebszeit",
+        "description": "Betriebszeit des Hostsystems"
+      }
+    }
+  },
+  {
+    "key": "workflow-runs",
+    "label": "Workflow Runs",
+    "category": "operations",
+    "description": "Recent workflow execution history",
+    "icon": "IconPlayerPlay",
+    "source": "builtin",
+    "component": "WorkflowRunsWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Workflow Runs",
+        "description": "Recent workflow execution history"
+      },
+      "nl": {
+        "label": "Workflow-uitvoeringen",
+        "description": "Recente workflow-uitvoeringsgeschiedenis"
+      },
+      "de": {
+        "label": "Workflow-Ausführungen",
+        "description": "Letzte Workflow-Ausführungen"
+      }
+    }
+  },
+  {
+    "key": "quick-actions",
+    "label": "Quick Actions",
+    "category": "operations",
+    "description": "Common maintenance operations",
+    "icon": "IconBolt",
+    "source": "builtin",
+    "component": "QuickActionsWidget",
+    "defaultSize": { "w": 3, "h": 2 },
+    "minSize": { "w": 2, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Quick Actions",
+        "description": "Common maintenance operations"
+      },
+      "nl": {
+        "label": "Snelle acties",
+        "description": "Veelgebruikte onderhoudsbewerkingen"
+      },
+      "de": {
+        "label": "Schnellaktionen",
+        "description": "Häufige Wartungsvorgänge"
+      }
+    }
+  },
+  {
+    "key": "alert-summary",
+    "label": "Alert Summary",
+    "category": "monitoring",
+    "description": "Active alerts grouped by severity",
+    "icon": "IconAlertTriangle",
+    "source": "builtin",
+    "component": "AlertSummaryWidget",
+    "defaultSize": { "w": 4, "h": 2 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Alert Summary",
+        "description": "Active alerts grouped by severity"
+      },
+      "nl": {
+        "label": "Waarschuwingsoverzicht",
+        "description": "Actieve waarschuwingen gegroepeerd op ernst"
+      },
+      "de": {
+        "label": "Warnungsübersicht",
+        "description": "Aktive Warnungen nach Schweregrad gruppiert"
+      }
+    }
+  },
+  {
+    "key": "vulnerability-summary",
+    "label": "Vulnerability Summary",
+    "category": "monitoring",
+    "description": "Security scan results by severity",
+    "icon": "IconShieldCheck",
+    "source": "builtin",
+    "component": "VulnerabilitySummaryWidget",
+    "defaultSize": { "w": 4, "h": 2 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Vulnerability Summary",
+        "description": "Security scan results by severity"
+      },
+      "nl": {
+        "label": "Kwetsbaarheidsoverzicht",
+        "description": "Beveiligingsscanresultaten op ernst"
+      },
+      "de": {
+        "label": "Schwachstellenübersicht",
+        "description": "Sicherheitsscan-Ergebnisse nach Schweregrad"
+      }
+    }
+  },
+  {
+    "key": "pod-status",
+    "label": "Pod Status",
+    "category": "kubernetes",
+    "description": "Kubernetes pod phases overview",
+    "icon": "IconCube",
+    "source": "builtin",
+    "component": "PodStatusWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Pod Status",
+        "description": "Kubernetes pod phases overview"
+      },
+      "nl": {
+        "label": "Pod-status",
+        "description": "Overzicht van Kubernetes pod-fasen"
+      },
+      "de": {
+        "label": "Pod-Status",
+        "description": "Übersicht der Kubernetes-Pod-Phasen"
+      }
+    }
+  },
+  {
+    "key": "deployment-status",
+    "label": "Deployment Status",
+    "category": "kubernetes",
+    "description": "Kubernetes deployment replica status",
+    "icon": "IconRocket",
+    "source": "builtin",
+    "component": "DeploymentStatusWidget",
+    "defaultSize": { "w": 4, "h": 3 },
+    "minSize": { "w": 3, "h": 2 },
+    "translations": {
+      "en": {
+        "label": "Deployment Status",
+        "description": "Kubernetes deployment replica status"
+      },
+      "nl": {
+        "label": "Deployment-status",
+        "description": "Kubernetes deployment replica-status"
+      },
+      "de": {
+        "label": "Deployment-Status",
+        "description": "Kubernetes Deployment Replica-Status"
+      }
+    }
+  }
+]

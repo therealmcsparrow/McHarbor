@@ -1,0 +1,24 @@
+x-mcharbor:
+  name: excalidraw
+  title: Excalidraw
+  description: Virtual whiteboard for sketching diagrams and illustrations with hand-drawn style.
+  category: productivity
+  icon: pencil
+  website: https://excalidraw.com
+  tags: [whiteboard, drawing, diagrams, collaboration]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "3000"
+      required: true
+
+services:
+  excalidraw:
+    image: excalidraw/excalidraw:latest
+    container_name: excalidraw
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:80"

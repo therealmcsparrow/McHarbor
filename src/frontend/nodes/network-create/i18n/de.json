@@ -1,0 +1,11 @@
+{
+  "label": "Network Create",
+  "description": "Create a Docker network",
+  "config": {
+    "environment": "Umgebung",
+    "name": "Name",
+    "driver": "Treiber",
+    "internal": "Internal",
+    "subnet": "Subnetz"
+  }
+}

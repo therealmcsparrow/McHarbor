@@ -1,0 +1,8 @@
+{
+  "label": "Volume Inspect",
+  "description": "Inspect a Docker volume",
+  "config": {
+    "environment": "Environment",
+    "name": "Name"
+  }
+}

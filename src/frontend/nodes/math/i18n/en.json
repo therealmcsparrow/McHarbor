@@ -1,0 +1,25 @@
+{
+  "label": "Math",
+  "description": "Apply a math operation to a numeric value",
+  "config": {
+    "property": "Property",
+    "operation": "Operation",
+    "operand": "Operand",
+    "output_property": "Output Property"
+  },
+  "options": {
+    "operation": {
+      "add": "Add",
+      "subtract": "Subtract",
+      "multiply": "Multiply",
+      "divide": "Divide",
+      "round": "Round",
+      "floor": "Floor",
+      "ceil": "Ceil",
+      "abs": "Absolute",
+      "min": "Min",
+      "max": "Max",
+      "modulo": "Modulo"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+x-mcharbor:
+  name: ollama
+  title: Ollama + Open WebUI
+  description: Run large language models locally with a ChatGPT-style web interface.
+  category: development
+  icon: brain
+  website: https://ollama.ai
+  tags: [ai, llm, machine-learning, chat, ollama]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEBUI_PORT
+      label: Web UI Port
+      type: port
+      default: "3000"
+      required: true
+    - name: OLLAMA_PORT
+      label: Ollama API Port
+      type: port
+      default: "11434"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/ollama
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "{{OLLAMA_PORT}}:11434"
+    volumes:
+      - "{{DATA_PATH}}/ollama:/root/.ollama"
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "{{WEBUI_PORT}}:8080"
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+    volumes:
+      - "{{DATA_PATH}}/webui:/app/backend/data"
+    depends_on:
+      - ollama

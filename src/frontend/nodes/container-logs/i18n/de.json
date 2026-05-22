@@ -1,0 +1,10 @@
+{
+  "label": "Container Logs",
+  "description": "Read recent logs from a container",
+  "config": {
+    "environment": "Umgebung",
+    "container": "Container",
+    "tail": "Letzte Zeilen",
+    "since": "Seit"
+  }
+}

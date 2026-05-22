@@ -1,0 +1,48 @@
+x-mcharbor:
+  name: pihole
+  title: Pi-hole
+  description: Network-wide ad blocking DNS server. Block ads and trackers for your entire network.
+  category: networking
+  icon: shield
+  website: https://pi-hole.net
+  tags: [dns, adblock, privacy, networking]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Interface Port
+      type: port
+      default: "8053"
+      required: true
+    - name: WEBPASSWORD
+      label: Web Password
+      type: password
+      required: true
+    - name: PIHOLE_DNS
+      label: Upstream DNS
+      type: string
+      default: "1.1.1.1;8.8.8.8"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/pihole
+
+services:
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    restart: unless-stopped
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "{{WEB_PORT}}:80/tcp"
+    environment:
+      TZ: UTC
+      WEBPASSWORD: "{{WEBPASSWORD}}"
+      PIHOLE_DNS_: "{{PIHOLE_DNS}}"
+    volumes:
+      - "{{DATA_PATH}}/etc-pihole:/etc/pihole"
+      - "{{DATA_PATH}}/etc-dnsmasq.d:/etc/dnsmasq.d"
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1

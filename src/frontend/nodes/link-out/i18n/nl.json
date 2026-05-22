@@ -1,0 +1,7 @@
+{
+  "label": "Link Out",
+  "description": "Store the current message for another workflow to consume",
+  "config": {
+    "name": "Naam"
+  }
+}

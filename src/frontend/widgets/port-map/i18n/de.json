@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "portMap": {
+      "label": "Port-Zuordnung",
+      "description": "Host-zu-Container Port-Zuordnungen"
+    }
+  },
+  "portMapWidget": {
+    "title": "Port-Zuordnung",
+    "container": "Container",
+    "mapping": "Host → Container",
+    "protocol": "Protokoll",
+    "noPorts": "Keine veröffentlichten Ports gefunden"
+  }
+}

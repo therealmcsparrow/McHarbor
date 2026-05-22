@@ -1,0 +1,18 @@
+{
+  "label": "Container Status Trigger",
+  "description": "Start a workflow when a container changes state",
+  "config": {
+    "environment": "Environment",
+    "container": "Container",
+    "status": "Status Event"
+  },
+  "options": {
+    "status": {
+      "any": "Any",
+      "start": "Start",
+      "stop": "Stop",
+      "die": "Die",
+      "health_status": "Health Status"
+    }
+  }
+}

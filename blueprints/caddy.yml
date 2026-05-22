@@ -1,0 +1,37 @@
+x-mcharbor:
+  name: caddy
+  title: Caddy
+  description: Modern web server with automatic HTTPS. Zero-config TLS certificate management.
+  category: networking
+  icon: shield
+  website: https://caddyserver.com
+  tags: [web-server, https, proxy, ssl, automatic]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "80"
+      required: true
+    - name: HTTPS_PORT
+      label: HTTPS Port
+      type: port
+      default: "443"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/caddy
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:80"
+      - "{{HTTPS_PORT}}:443"
+    volumes:
+      - "{{DATA_PATH}}/Caddyfile:/etc/caddy/Caddyfile"
+      - "{{DATA_PATH}}/data:/data"
+      - "{{DATA_PATH}}/config:/config"

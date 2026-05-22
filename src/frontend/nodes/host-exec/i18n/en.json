@@ -1,0 +1,9 @@
+{
+  "label": "Host Exec",
+  "description": "Run a host command through a temporary container",
+  "config": {
+    "environment": "Environment",
+    "command": "Command",
+    "timeout": "Timeout (seconds)"
+  }
+}

@@ -1,0 +1,42 @@
+x-mcharbor:
+  name: syncthing
+  title: Syncthing
+  description: Continuous file synchronization across devices. Peer-to-peer, no cloud required.
+  category: storage
+  icon: refresh-cw
+  website: https://syncthing.net
+  tags: [sync, files, p2p, backup, storage]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web UI Port
+      type: port
+      default: "8384"
+      required: true
+    - name: SYNC_PORT
+      label: Sync Port
+      type: port
+      default: "22000"
+    - name: DATA_PATH
+      label: Sync Directory
+      type: path
+      default: ./data/syncthing
+
+services:
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8384"
+      - "{{SYNC_PORT}}:22000/tcp"
+      - "{{SYNC_PORT}}:22000/udp"
+      - "21027:21027/udp"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+    volumes:
+      - "{{DATA_PATH}}/config:/config"
+      - "{{DATA_PATH}}/data:/data"

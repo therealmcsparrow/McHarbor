@@ -1,0 +1,47 @@
+x-mcharbor:
+  name: postgres
+  title: PostgreSQL
+  description: Powerful open-source relational database with advanced features and excellent performance.
+  category: database
+  icon: database
+  website: https://postgresql.org
+  tags: [database, sql, relational, postgresql]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: DB_PORT
+      label: Database Port
+      type: port
+      default: "5432"
+      required: true
+    - name: POSTGRES_USER
+      label: Username
+      type: string
+      default: postgres
+      required: true
+    - name: POSTGRES_PASSWORD
+      label: Password
+      type: password
+      required: true
+    - name: POSTGRES_DB
+      label: Database Name
+      type: string
+      default: postgres
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/postgres
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    ports:
+      - "{{DB_PORT}}:5432"
+    environment:
+      POSTGRES_USER: "{{POSTGRES_USER}}"
+      POSTGRES_PASSWORD: "{{POSTGRES_PASSWORD}}"
+      POSTGRES_DB: "{{POSTGRES_DB}}"
+    volumes:
+      - "{{DATA_PATH}}:/var/lib/postgresql/data"

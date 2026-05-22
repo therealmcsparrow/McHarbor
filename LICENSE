@@ -1,0 +1,74 @@
+McHarbor License
+
+Copyright (c) 2026 McSparrow. All rights reserved.
+
+This software is dual-licensed. Your use of McHarbor is governed by one of
+the two licenses below, depending on how you use it.
+
+
+1. FREE LICENSE — Personal, Homelab & Non-Commercial Use
+
+You may use, copy, modify, and run McHarbor at no cost for:
+
+  - Personal use on your own machines
+  - Homelab and self-hosting (Proxmox, Raspberry Pi, NAS, etc.)
+  - Education, research, and learning
+  - Non-profit organizations
+  - Evaluating whether McHarbor fits your needs
+
+Under the free license, you may NOT:
+
+  - Use McHarbor to provide a paid or commercial service
+  - Use McHarbor in a business or revenue-generating environment
+  - Remove or alter copyright notices or license text
+  - Sell, sublicense, or redistribute McHarbor as part of a commercial product
+
+
+2. COMMERCIAL LICENSE — Business & Commercial Use
+
+A commercial license is required if you use McHarbor:
+
+  - Within a company, agency, or for-profit organization
+  - To manage infrastructure that generates revenue
+  - As part of a product or service you sell
+  - In any environment where McHarbor supports commercial operations
+
+Contact info@mcsparrow.eu for commercial licensing.
+
+
+3. ATTRIBUTION
+
+All copies and deployments of McHarbor — free or commercial — must retain
+the original copyright notice and this license file. Attribution in the
+application UI (e.g., "Powered by McHarbor") is appreciated but not required.
+
+
+4. CONTRIBUTIONS
+
+By submitting code, documentation, or other contributions to this project,
+you agree that your contributions are licensed under the same terms as this
+license and that you have the right to make the contribution.
+
+
+5. NO WARRANTY
+
+THIS SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR
+OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE
+USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+6. ENFORCEMENT
+
+If you are found using McHarbor commercially without a valid commercial
+license, you will be given 30 days to either purchase a license or stop
+using the software.
+
+
+---
+
+Questions? info@mcsparrow.eu

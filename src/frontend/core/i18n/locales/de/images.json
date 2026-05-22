@@ -1,0 +1,90 @@
+{
+  "title": "Images",
+  "description": "{{count}} Images",
+  "searchPlaceholder": "Images suchen...",
+  "emptyMessage": "Keine Images gefunden",
+  "tableView": "Tabellenansicht",
+  "cardView": "Kartenansicht",
+  "notFound": "Image nicht gefunden.",
+  "columns": {
+    "repoTag": "Repository:Tag",
+    "status": "Status",
+    "repository": "Repository",
+    "tag": "Tag",
+    "id": "ID",
+    "size": "Größe",
+    "created": "Erstellt",
+    "actions": "Aktionen"
+  },
+  "badges": {
+    "inUse": "in Verwendung",
+    "unused": "ungenutzt"
+  },
+  "pull": {
+    "title": "Image herunterladen",
+    "description": "Geben Sie den Image-Namen und Tag zum Herunterladen ein.",
+    "imageName": "Image-Name",
+    "placeholder": "z.B. nginx:latest",
+    "submit": "Herunterladen",
+    "pulling": "Wird heruntergeladen..."
+  },
+  "toast": {
+    "removed": "Image entfernt",
+    "pulled": "Image erfolgreich heruntergeladen",
+    "tagged": "Image getaggt",
+    "pruned": "Unbenutzte Images bereinigt",
+    "exported": "Image-Export gestartet",
+    "imported": "Image erfolgreich importiert"
+  },
+  "export": {
+    "title": "Image exportieren"
+  },
+  "import": {
+    "title": "Image importieren",
+    "description": "Von einer Registry pullen oder ein Tar-Archiv hochladen.",
+    "registryTab": "Registry",
+    "fileTab": "Datei",
+    "selectFile": ".tar-Datei auswählen",
+    "selectedFile": "Ausgewählt: {{name}}",
+    "submit": "Importieren",
+    "importing": "Importieren..."
+  },
+  "confirm": {
+    "removeTitle": "Image entfernen",
+    "removeDescription": "Dies entfernt dieses Image vom Docker-Host."
+  },
+  "detail": {
+    "back": "Zurück",
+    "imageDetails": "Image-Details",
+    "config": "Konfiguration",
+    "labels": "Labels",
+    "layerHistory": "Ebenen-Verlauf",
+    "noLayerHistory": "Kein Ebenen-Verlauf",
+    "noLabels": "Keine Labels",
+    "noEnvVars": "Keine Umgebungsvariablen",
+    "fields": {
+      "id": "ID",
+      "tags": "Tags",
+      "size": "Größe",
+      "created": "Erstellt",
+      "architecture": "Architektur",
+      "os": "BS",
+      "dockerVersion": "Docker-Version",
+      "author": "Autor",
+      "digests": "Digests",
+      "cmd": "Cmd",
+      "entrypoint": "Entrypoint",
+      "workingDir": "Arbeitsverzeichnis",
+      "user": "Benutzer",
+      "stopSignal": "Stoppsignal",
+      "exposedPorts": "Freigegebene Ports",
+      "volumes": "Volumes",
+      "environment": "Umgebungsvariablen"
+    },
+    "history": {
+      "instruction": "Anweisung",
+      "size": "Größe",
+      "created": "Erstellt"
+    }
+  }
+}

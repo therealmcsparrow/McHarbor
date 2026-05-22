@@ -1,0 +1,40 @@
+x-mcharbor:
+  name: calibre-web
+  title: Calibre-Web
+  description: Web-based ebook library with a clean interface for browsing, reading, and downloading books.
+  category: media
+  icon: book
+  website: https://github.com/janeczku/calibre-web
+  tags: [books, ebooks, library, reading, media]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "8083"
+      required: true
+    - name: BOOKS_PATH
+      label: Books Directory
+      type: path
+      default: ./data/calibre-web/books
+      required: true
+    - name: DATA_PATH
+      label: Config Directory
+      type: path
+      default: ./data/calibre-web/config
+
+services:
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:8083"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+    volumes:
+      - "{{DATA_PATH}}:/config"
+      - "{{BOOKS_PATH}}:/books"

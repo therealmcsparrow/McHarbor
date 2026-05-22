@@ -1,0 +1,38 @@
+{
+  "title": "Volumes",
+  "description": "{{count}} Volumes",
+  "searchPlaceholder": "Volumes suchen...",
+  "emptyMessage": "Keine Volumes gefunden",
+  "tableView": "Tabellenansicht",
+  "cardView": "Kartenansicht",
+  "columns": {
+    "name": "Name",
+    "driver": "Treiber",
+    "usage": "Nutzung",
+    "mountpoint": "Einhängepunkt",
+    "created": "Erstellt",
+    "actions": "Aktionen"
+  },
+  "badges": {
+    "inUse": "in Verwendung",
+    "unused": "ungenutzt"
+  },
+  "create": {
+    "title": "Volume erstellen",
+    "description": "Geben Sie den Volumenamen und Treiber an.",
+    "name": "Volumename",
+    "driver": "Treiber",
+    "driverPlaceholder": "Treiber (Standard: local)",
+    "submit": "Erstellen",
+    "creating": "Wird erstellt..."
+  },
+  "toast": {
+    "created": "Volume erstellt",
+    "removed": "Volume entfernt",
+    "pruned": "Unbenutzte Volumes bereinigt"
+  },
+  "confirm": {
+    "removeTitle": "Volume entfernen",
+    "removeDescription": "Dies entfernt dieses Volume dauerhaft, einschließlich aller darin gespeicherten Daten."
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "pods": {
+    "title": "Pods",
+    "description": "{{count}} pods",
+    "searchPlaceholder": "Search pods...",
+    "emptyMessage": "No pods found",
+    "columns": {
+      "name": "Name",
+      "namespace": "Namespace",
+      "status": "Status",
+      "ready": "Ready",
+      "restarts": "Restarts",
+      "age": "Age",
+      "node": "Node",
+      "ip": "IP",
+      "actions": "Actions"
+    },
+    "detail": {
+      "notFound": "Pod not found",
+      "status": "Status",
+      "ready": "Ready",
+      "node": "Node",
+      "ip": "IP",
+      "containers": "Containers",
+      "restartCount": "{{count}} restarts"
+    },
+    "toast": {
+      "deleted": "Pod deleted"
+    },
+    "confirm": {
+      "deleteTitle": "Delete Pod",
+      "deleteDescription": "Are you sure you want to delete this pod?"
+    }
+  },
+  "deployments": {
+    "title": "Deployments",
+    "description": "{{count}} deployments",
+    "searchPlaceholder": "Search deployments...",
+    "emptyMessage": "No deployments found",
+    "columns": {
+      "name": "Name",
+      "namespace": "Namespace",
+      "ready": "Ready",
+      "upToDate": "Up-to-date",
+      "available": "Available",
+      "images": "Images",
+      "replicas": "Replicas",
+      "age": "Age",
+      "actions": "Actions"
+    },
+    "detail": {
+      "notFound": "Deployment not found",
+      "ready": "Ready",
+      "upToDate": "Up-to-date",
+      "available": "Available",
+      "strategy": "Strategy",
+      "conditions": "Conditions"
+    },
+    "toast": {
+      "scaled": "Deployment scaled",
+      "restarted": "Deployment restarted",
+      "deleted": "Deployment deleted"
+    },
+    "confirm": {
+      "deleteTitle": "Delete Deployment",
+      "deleteDescription": "Are you sure you want to delete this deployment?"
+    }
+  },
+  "services": {
+    "title": "Services",
+    "description": "{{count}} services",
+    "searchPlaceholder": "Search services...",
+    "emptyMessage": "No services found",
+    "columns": {
+      "name": "Name",
+      "namespace": "Namespace",
+      "type": "Type",
+      "clusterIP": "Cluster IP",
+      "ports": "Ports",
+      "age": "Age"
+    }
+  },
+  "namespaces": {
+    "title": "Namespaces",
+    "description": "{{count}} namespaces",
+    "searchPlaceholder": "Search namespaces...",
+    "emptyMessage": "No namespaces found",
+    "columns": {
+      "name": "Name",
+      "status": "Status",
+      "age": "Age"
+    }
+  }
+}

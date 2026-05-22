@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "stackStatus": {
+      "label": "Stack Status",
+      "description": "Overview of compose stacks"
+    }
+  },
+  "stackStatusWidget": {
+    "title": "Stacks",
+    "loadingStacks": "Loading stacks...",
+    "noStacksFound": "No stacks found",
+    "service_one": "{{count}} service",
+    "service_other": "{{count}} services",
+    "viewAll": "View All"
+  }
+}

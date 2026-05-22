@@ -1,0 +1,17 @@
+{
+  "label": "Parse HTML",
+  "description": "Extract text, HTML, or attributes from HTML content",
+  "config": {
+    "property": "Eigenschap",
+    "selector": "Selector",
+    "output_type": "Uitvoertype",
+    "attribute": "Attribuut"
+  },
+  "options": {
+    "output_type": {
+      "text": "Text",
+      "html": "HTML",
+      "attribute": "Attribuut"
+    }
+  }
+}

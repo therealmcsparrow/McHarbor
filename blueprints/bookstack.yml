@@ -1,0 +1,58 @@
+x-mcharbor:
+  name: bookstack
+  title: BookStack
+  description: Simple wiki and documentation platform for organizing and storing knowledge.
+  category: productivity
+  icon: book
+  website: https://bookstackapp.com
+  tags: [wiki, docs, knowledge, documentation]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "6875"
+      required: true
+    - name: DB_PASSWORD
+      label: Database Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/bookstack
+
+services:
+  bookstack:
+    image: lscr.io/linuxserver/bookstack:latest
+    container_name: bookstack
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:80"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+      APP_URL: "http://localhost:{{WEB_PORT}}"
+      DB_HOST: bookstack-db
+      DB_PORT: "3306"
+      DB_USER: bookstack
+      DB_PASS: "{{DB_PASSWORD}}"
+      DB_DATABASE: bookstack
+    volumes:
+      - "{{DATA_PATH}}/config:/config"
+    depends_on:
+      - bookstack-db
+
+  bookstack-db:
+    image: mariadb:11
+    container_name: bookstack-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "{{DB_PASSWORD}}"
+      MYSQL_DATABASE: bookstack
+      MYSQL_USER: bookstack
+      MYSQL_PASSWORD: "{{DB_PASSWORD}}"
+    volumes:
+      - "{{DATA_PATH}}/db:/var/lib/mysql"

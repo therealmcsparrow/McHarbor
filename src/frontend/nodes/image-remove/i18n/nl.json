@@ -1,0 +1,10 @@
+{
+  "label": "Image Remove",
+  "description": "Remove a Docker image",
+  "config": {
+    "environment": "Omgeving",
+    "image": "Image",
+    "force": "Forceren",
+    "prune_children": "Prune Children"
+  }
+}

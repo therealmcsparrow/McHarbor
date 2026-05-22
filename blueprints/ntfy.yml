@@ -1,0 +1,32 @@
+x-mcharbor:
+  name: ntfy
+  title: ntfy
+  description: Push notification service that lets you send notifications to your phone via HTTP.
+  category: communication
+  icon: bell
+  website: https://ntfy.sh
+  tags: [notifications, push, messaging, alerts]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8080"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/ntfy
+
+services:
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:80"
+    command: serve
+    volumes:
+      - "{{DATA_PATH}}/cache:/var/cache/ntfy"
+      - "{{DATA_PATH}}/etc:/etc/ntfy"

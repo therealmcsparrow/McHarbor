@@ -1,0 +1,17 @@
+{
+  "label": "Docker Action",
+  "description": "Run a basic Docker container action",
+  "config": {
+    "environment": "Environment",
+    "container": "Container",
+    "action": "Action"
+  },
+  "options": {
+    "action": {
+      "start": "Start",
+      "stop": "Stop",
+      "restart": "Restart",
+      "remove": "Remove"
+    }
+  }
+}

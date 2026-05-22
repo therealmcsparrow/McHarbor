@@ -1,0 +1,37 @@
+x-mcharbor:
+  name: dashy
+  title: Dashy
+  description: Highly customizable self-hosted dashboard with status checking, widgets, and theming.
+  category: infrastructure
+  icon: layout-dashboard
+  website: https://dashy.to
+  tags: [dashboard, homepage, startpage, monitoring, links]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "4000"
+      required: true
+    - name: DATA_PATH
+      label: Config Directory
+      type: path
+      default: ./data/dashy
+
+services:
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:8080"
+    environment:
+      NODE_ENV: production
+    volumes:
+      - "{{DATA_PATH}}/conf.yml:/app/user-data/conf.yml"
+    healthcheck:
+      test: ["CMD", "node", "/app/services/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

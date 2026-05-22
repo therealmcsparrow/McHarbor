@@ -1,0 +1,62 @@
+x-mcharbor:
+  name: plausible
+  title: Plausible Analytics
+  description: Privacy-friendly web analytics. Lightweight alternative to Google Analytics.
+  category: monitoring
+  icon: bar-chart
+  website: https://plausible.io
+  tags: [analytics, privacy, web, statistics]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8000"
+      required: true
+    - name: SECRET_KEY_BASE
+      label: Secret Key
+      type: password
+      required: true
+    - name: BASE_URL
+      label: Base URL
+      type: string
+      default: "http://localhost:8000"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/plausible
+
+services:
+  plausible:
+    image: ghcr.io/plausible/community-edition:latest
+    container_name: plausible
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8000"
+    environment:
+      BASE_URL: "{{BASE_URL}}"
+      SECRET_KEY_BASE: "{{SECRET_KEY_BASE}}"
+      DATABASE_URL: "postgres://plausible:plausible@plausible-db:5432/plausible"
+      CLICKHOUSE_DATABASE_URL: "http://plausible-events:8123/plausible_events_db"
+    depends_on:
+      - plausible-db
+      - plausible-events
+
+  plausible-db:
+    image: postgres:16-alpine
+    container_name: plausible-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: plausible
+      POSTGRES_PASSWORD: plausible
+      POSTGRES_DB: plausible
+    volumes:
+      - "{{DATA_PATH}}/postgres:/var/lib/postgresql/data"
+
+  plausible-events:
+    image: clickhouse/clickhouse-server:latest
+    container_name: plausible-events
+    restart: unless-stopped
+    volumes:
+      - "{{DATA_PATH}}/clickhouse:/var/lib/clickhouse"

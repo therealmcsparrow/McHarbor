@@ -1,0 +1,18 @@
+{
+  "label": "Webhook Trigger",
+  "description": "Start a workflow from an incoming webhook request",
+  "config": {
+    "method": "Methode",
+    "path": "Pad",
+    "secret": "Geheim"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

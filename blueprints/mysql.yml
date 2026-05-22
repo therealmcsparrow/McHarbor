@@ -1,0 +1,41 @@
+x-mcharbor:
+  name: mysql
+  title: MySQL
+  description: Popular open-source relational database management system for web applications.
+  category: database
+  icon: database
+  website: https://mysql.com
+  tags: [database, sql, relational, mysql]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: DB_PORT
+      label: Database Port
+      type: port
+      default: "3306"
+      required: true
+    - name: MYSQL_ROOT_PASSWORD
+      label: Root Password
+      type: password
+      required: true
+    - name: MYSQL_DATABASE
+      label: Database Name
+      type: string
+      default: mydb
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/mysql
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: unless-stopped
+    ports:
+      - "{{DB_PORT}}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "{{MYSQL_ROOT_PASSWORD}}"
+      MYSQL_DATABASE: "{{MYSQL_DATABASE}}"
+    volumes:
+      - "{{DATA_PATH}}:/var/lib/mysql"

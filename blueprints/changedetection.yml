@@ -1,0 +1,30 @@
+x-mcharbor:
+  name: changedetection
+  title: Change Detection
+  description: Monitor websites for changes and get notified. Track price drops, content updates, and more.
+  category: automation
+  icon: eye
+  website: https://changedetection.io
+  tags: [monitoring, web, scraping, notifications, automation]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "5000"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/changedetection
+
+services:
+  changedetection:
+    image: ghcr.io/dgtlmoon/changedetection.io:latest
+    container_name: changedetection
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:5000"
+    volumes:
+      - "{{DATA_PATH}}:/datastore"

@@ -1,0 +1,7 @@
+{
+  "label": "Parse YAML",
+  "description": "Parse YAML into a nested object",
+  "config": {
+    "property": "Eigenschaft"
+  }
+}

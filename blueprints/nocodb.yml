@@ -1,0 +1,30 @@
+x-mcharbor:
+  name: nocodb
+  title: NocoDB
+  description: Open-source Airtable alternative. Turn any database into a smart spreadsheet.
+  category: productivity
+  icon: table
+  website: https://nocodb.com
+  tags: [database, spreadsheet, airtable, no-code]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8080"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/nocodb
+
+services:
+  nocodb:
+    image: nocodb/nocodb:latest
+    container_name: nocodb
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8080"
+    volumes:
+      - "{{DATA_PATH}}:/usr/app/data"

@@ -1,0 +1,41 @@
+x-mcharbor:
+  name: navidrome
+  title: Navidrome
+  description: Modern music server and streamer compatible with Subsonic and Airsonic clients.
+  category: media
+  icon: music
+  website: https://www.navidrome.org
+  tags: [music, streaming, subsonic, media]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "4533"
+      required: true
+    - name: MUSIC_PATH
+      label: Music Directory
+      type: path
+      default: ./data/navidrome/music
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/navidrome/data
+
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:4533"
+    environment:
+      ND_SCANSCHEDULE: 1h
+      ND_LOGLEVEL: info
+      ND_SESSIONTIMEOUT: 24h
+      ND_ENABLETRANSCODINGCONFIG: "true"
+    volumes:
+      - "{{DATA_PATH}}:/data"
+      - "{{MUSIC_PATH}}:/music:ro"

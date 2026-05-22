@@ -1,0 +1,9 @@
+{
+  "label": "KV Set",
+  "description": "Write a value to the workflow key-value store",
+  "config": {
+    "key": "Sleutel",
+    "property": "Eigenschap",
+    "ttl": "TTL (seconds)"
+  }
+}

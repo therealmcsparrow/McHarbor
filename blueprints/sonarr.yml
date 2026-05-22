@@ -1,0 +1,44 @@
+x-mcharbor:
+  name: sonarr
+  title: Sonarr
+  description: TV series management and download automation with calendar and quality management.
+  category: media
+  icon: tv
+  website: https://sonarr.tv
+  tags: [media, tv, automation, pvr]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8989"
+      required: true
+    - name: CONFIG_PATH
+      label: Config Directory
+      type: path
+      default: ./data/sonarr/config
+    - name: MEDIA_PATH
+      label: Media Directory
+      type: path
+      default: ./data/sonarr/media
+    - name: DOWNLOADS_PATH
+      label: Downloads Directory
+      type: path
+      default: ./data/sonarr/downloads
+
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8989"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+    volumes:
+      - "{{CONFIG_PATH}}:/config"
+      - "{{MEDIA_PATH}}:/tv"
+      - "{{DOWNLOADS_PATH}}:/downloads"

@@ -1,0 +1,7 @@
+{
+  "label": "Parse XML",
+  "description": "Parse XML into a nested object",
+  "config": {
+    "property": "Eigenschaft"
+  }
+}

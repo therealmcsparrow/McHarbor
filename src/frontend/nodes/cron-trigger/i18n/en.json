@@ -1,0 +1,8 @@
+{
+  "label": "Cron Trigger",
+  "description": "Emit a message from a cron expression and timezone",
+  "config": {
+    "cron": "Cron Expression",
+    "timezone": "Timezone"
+  }
+}

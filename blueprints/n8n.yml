@@ -1,0 +1,30 @@
+x-mcharbor:
+  name: n8n
+  title: n8n
+  description: Workflow automation platform with 400+ integrations. Connect apps and automate tasks.
+  category: automation
+  icon: zap
+  website: https://n8n.io
+  tags: [automation, workflow, integration, no-code]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "5678"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/n8n
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:5678"
+    volumes:
+      - "{{DATA_PATH}}:/home/node/.n8n"

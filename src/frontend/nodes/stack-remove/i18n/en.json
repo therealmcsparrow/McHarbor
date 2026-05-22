@@ -1,0 +1,9 @@
+{
+  "label": "Stack Remove",
+  "description": "Remove containers that belong to a compose stack",
+  "config": {
+    "environment": "Environment",
+    "stack_name": "Stack Name",
+    "remove_volumes": "Remove Volumes"
+  }
+}

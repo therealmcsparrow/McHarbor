@@ -1,0 +1,31 @@
+x-mcharbor:
+  name: gitea-actions-runner
+  title: Gitea Actions Runner
+  description: CI/CD runner for Gitea Actions. Execute workflows with Docker-based pipelines.
+  category: development
+  icon: play
+  website: https://gitea.io
+  tags: [ci, cd, gitea, actions, runner]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: GITEA_INSTANCE_URL
+      label: Gitea Instance URL
+      type: string
+      required: true
+      placeholder: "http://gitea:3000"
+    - name: RUNNER_TOKEN
+      label: Runner Registration Token
+      type: password
+      required: true
+
+services:
+  gitea-runner:
+    image: gitea/act_runner:latest
+    container_name: gitea-runner
+    restart: unless-stopped
+    environment:
+      GITEA_INSTANCE_URL: "{{GITEA_INSTANCE_URL}}"
+      GITEA_RUNNER_REGISTRATION_TOKEN: "{{RUNNER_TOKEN}}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

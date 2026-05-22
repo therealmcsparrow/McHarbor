@@ -1,0 +1,39 @@
+x-mcharbor:
+  name: duplicati
+  title: Duplicati
+  description: Free backup solution with encryption, deduplication, and cloud storage support.
+  category: storage
+  icon: archive
+  website: https://duplicati.com
+  tags: [backup, encryption, cloud, storage, restore]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8200"
+      required: true
+    - name: SOURCE_PATH
+      label: Source Directory (to backup)
+      type: path
+      default: /data
+    - name: DATA_PATH
+      label: Config Directory
+      type: path
+      default: ./data/duplicati
+
+services:
+  duplicati:
+    image: lscr.io/linuxserver/duplicati:latest
+    container_name: duplicati
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8200"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+    volumes:
+      - "{{DATA_PATH}}:/config"
+      - "{{SOURCE_PATH}}:/source:ro"

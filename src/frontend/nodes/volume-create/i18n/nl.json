@@ -1,0 +1,10 @@
+{
+  "label": "Volume Create",
+  "description": "Create a Docker volume",
+  "config": {
+    "environment": "Omgeving",
+    "name": "Naam",
+    "driver": "Driver",
+    "labels": "Labels"
+  }
+}

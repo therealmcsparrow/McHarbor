@@ -1,0 +1,7 @@
+{
+  "label": "Link In",
+  "description": "Receive the latest message from a link output in another workflow",
+  "config": {
+    "source": "Bronuitvoer"
+  }
+}

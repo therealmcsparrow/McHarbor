@@ -1,0 +1,9 @@
+{
+  "label": "Parse CSV",
+  "description": "Parse CSV or TSV text into structured rows",
+  "config": {
+    "property": "Property",
+    "delimiter": "Delimiter",
+    "has_headers": "Has Headers"
+  }
+}

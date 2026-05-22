@@ -1,0 +1,33 @@
+{
+  "widgets": {
+    "cpuUsage": {
+      "label": "CPU-gebruik",
+      "description": "Live CPU-gebruikgrafiek"
+    },
+    "memoryUsage": {
+      "label": "Geheugengebruik",
+      "description": "Live geheugengebruikgrafiek"
+    },
+    "networkIO": {
+      "label": "Netwerk I/O",
+      "description": "Grafiek netwerk ontvangen/verzenden"
+    },
+    "diskIO": {
+      "label": "Schijf I/O",
+      "description": "Grafiek schijf lezen/schrijven"
+    }
+  },
+  "metricChartWidget": {
+    "cpuUsage": "CPU-gebruik",
+    "memoryUsage": "Geheugengebruik",
+    "networkIO": "Netwerk I/O",
+    "diskIO": "Schijf I/O",
+    "ofTotal": "van {{total}}",
+    "tx": "Tx: {{value}}",
+    "write": "Schrijven: {{value}}",
+    "rxLabel": "Rx",
+    "txLabel": "Tx",
+    "readLabel": "Lezen",
+    "writeLabel": "Schrijven"
+  }
+}

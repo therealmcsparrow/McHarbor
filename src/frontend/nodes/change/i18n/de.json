@@ -1,0 +1,21 @@
+{
+  "label": "Change",
+  "description": "Set or delete a value on msg, flow, or global scope",
+  "config": {
+    "action_type": "Aktion",
+    "scope": "Scope",
+    "property": "Eigenschaft",
+    "value": "Wert"
+  },
+  "options": {
+    "action_type": {
+      "set": "Set",
+      "delete": "Delete"
+    },
+    "scope": {
+      "msg": "msg",
+      "flow": "flow",
+      "global": "global"
+    }
+  }
+}

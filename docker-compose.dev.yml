@@ -1,0 +1,50 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+
+services:
+  backend:
+    image: golang:1.23-alpine
+    container_name: mcharbor-backend-dev
+    working_dir: /app
+    ports:
+      - "5474:5474"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./src/backend:/app
+      - go-cache:/root/go
+      - mcharbor-data:/app/data
+    environment:
+      - PORT=5474
+      - AUTH_DISABLE=true
+      - STATIC_DIR=/app/static
+    command: ["sh", "-c", "go mod tidy && go run ./main.go"]
+
+  frontend:
+    image: node:22-alpine
+    container_name: mcharbor-frontend-dev
+    working_dir: /app
+    ports:
+      - "8173:8173"
+    volumes:
+      - ./src/frontend:/app
+      - frontend-modules:/app/node_modules
+    command: ["sh", "-c", "npm install && npm run dev -- --host"]
+
+  agent:
+    profiles: ["agent"]
+    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-1.1.1}
+    container_name: mcharbor-agent-dev
+    restart: unless-stopped
+    environment:
+      - MCHARBOR_URL=${MCHARBOR_URL:-ws://host.docker.internal:5474}
+      - MCHARBOR_AGENT_TOKEN=${MCHARBOR_AGENT_TOKEN:-}
+      - DOCKER_HOST=${MCHARBOR_AGENT_DOCKER_HOST:-unix:///var/run/docker.sock}
+      - LOG_LEVEL=${MCHARBOR_AGENT_LOG_LEVEL:-info}
+      - MCHARBOR_INSECURE=${MCHARBOR_AGENT_INSECURE:-false}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  mcharbor-data:
+  go-cache:
+  frontend-modules:

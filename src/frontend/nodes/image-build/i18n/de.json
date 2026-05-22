@@ -1,0 +1,13 @@
+{
+  "label": "Image Build",
+  "description": "Build a Docker image from a workflow-managed build context",
+  "config": {
+    "environment": "Environment",
+    "tag": "Tag",
+    "dockerfile": "Dockerfile",
+    "context_path": "Context Path",
+    "target": "Target Stage",
+    "build_args": "Build Args",
+    "no_cache": "No Cache"
+  }
+}

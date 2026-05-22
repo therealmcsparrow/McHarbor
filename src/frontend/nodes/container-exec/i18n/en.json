@@ -1,0 +1,10 @@
+{
+  "label": "Container Exec",
+  "description": "Execute a command inside a running container",
+  "config": {
+    "environment": "Environment",
+    "container": "Container",
+    "command": "Command",
+    "workdir": "Working Directory"
+  }
+}

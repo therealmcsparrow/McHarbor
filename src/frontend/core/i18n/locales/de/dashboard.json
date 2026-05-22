@@ -1,0 +1,21 @@
+{
+  "title": "Dashboard",
+  "description": "Übersicht über Ihre Docker-Umgebung",
+  "addWidget": "Widget hinzufügen",
+  "editDashboard": "Dashboard bearbeiten",
+  "doneEditing": "Bearbeitung abschließen",
+  "edit": "Bearbeiten",
+  "done": "Fertig",
+  "reset": "Zurücksetzen",
+  "loading": "Laden...",
+  "addWidgets": "Widgets hinzufügen",
+  "addWidgetsDescription": "Wählen Sie Widgets aus, um sie Ihrem Dashboard hinzuzufügen",
+  "categories": {
+    "resources": "Ressourcen",
+    "host": "Host",
+    "metrics": "Metriken",
+    "monitoring": "Überwachung",
+    "operations": "Operationen",
+    "kubernetes": "Kubernetes"
+  }
+}

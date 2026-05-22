@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "storageBreakdown": {
+      "label": "Opslagverdeling",
+      "description": "Schijfgebruik per categorie"
+    }
+  },
+  "storageBreakdownWidget": {
+    "title": "Opslagverdeling",
+    "images": "Images",
+    "volumes": "Volumes",
+    "containers": "Containers",
+    "buildCache": "Build-cache",
+    "total": "totaal",
+    "noData": "Geen opslaggegevens beschikbaar"
+  }
+}

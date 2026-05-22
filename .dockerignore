@@ -1,0 +1,29 @@
+# Project-wide Docker ignore for builds that use `context: .`.
+# Docker does not support a true global dockerignore file, so these rules stay
+# in-repo even if Git editor/OS noise is handled by a global Git ignore.
+
+node_modules
+src/frontend/node_modules
+src/frontend/dist
+src/frontend/tsconfig.tsbuildinfo
+data
+.env
+.env.*
+!.env.example
+*.log
+.git
+.gitignore
+.gitignore.global.example
+.agents
+.documentation
+.instructions
+.references
+.results
+.vscode
+.idea
+.store
+
+website
+*.md
+!README.md
+images

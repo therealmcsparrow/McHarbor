@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "containerStates": {
+      "label": "Containerstatussen",
+      "description": "Donutdiagram van containerstatussen"
+    }
+  },
+  "containerStatesWidget": {
+    "title": "Containerstatussen",
+    "noContainers": "Geen containers gevonden",
+    "total": "totaal"
+  }
+}

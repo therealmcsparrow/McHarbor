@@ -1,0 +1,31 @@
+x-mcharbor:
+  name: watchtower
+  title: Watchtower
+  description: Automatic container image updates. Monitors running containers and pulls new images.
+  category: automation
+  icon: refresh-cw
+  website: https://containrrr.dev/watchtower
+  tags: [updates, automation, containers, monitoring]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: POLL_INTERVAL
+      label: Check Interval (seconds)
+      type: number
+      default: "86400"
+    - name: CLEANUP
+      label: Cleanup Old Images
+      type: select
+      options: ["true", "false"]
+      default: "true"
+
+services:
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    environment:
+      WATCHTOWER_POLL_INTERVAL: "{{POLL_INTERVAL}}"
+      WATCHTOWER_CLEANUP: "{{CLEANUP}}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

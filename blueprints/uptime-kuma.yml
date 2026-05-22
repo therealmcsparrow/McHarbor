@@ -1,0 +1,30 @@
+x-mcharbor:
+  name: uptime-kuma
+  title: Uptime Kuma
+  description: Self-hosted monitoring tool with beautiful status pages and notification integrations.
+  category: monitoring
+  icon: activity
+  website: https://github.com/louislam/uptime-kuma
+  tags: [monitoring, uptime, status-page, alerts]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "3001"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/uptime-kuma
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:3001"
+    volumes:
+      - "{{DATA_PATH}}:/app/data"

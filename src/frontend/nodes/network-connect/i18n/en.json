@@ -1,0 +1,16 @@
+{
+  "label": "Network Connect",
+  "description": "Connect or disconnect a container from a network",
+  "config": {
+    "environment": "Environment",
+    "network": "Network",
+    "container": "Container",
+    "action": "Action"
+  },
+  "options": {
+    "action": {
+      "connect": "Connect",
+      "disconnect": "Disconnect"
+    }
+  }
+}

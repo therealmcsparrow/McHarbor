@@ -1,0 +1,9 @@
+{
+  "label": "Date Format",
+  "description": "Parse and reformat a date or timestamp",
+  "config": {
+    "property": "Eigenschap",
+    "output_format": "Output Format",
+    "timezone": "Tijdzone"
+  }
+}

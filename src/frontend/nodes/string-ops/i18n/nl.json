@@ -1,0 +1,22 @@
+{
+  "label": "String Ops",
+  "description": "Apply common string operations to a value",
+  "config": {
+    "property": "Eigenschap",
+    "operation": "Bewerking",
+    "arg1": "Arg 1",
+    "arg2": "Arg 2"
+  },
+  "options": {
+    "operation": {
+      "uppercase": "Uppercase",
+      "lowercase": "Lowercase",
+      "trim": "Trim",
+      "replace": "Replace",
+      "split": "Split",
+      "join": "Join",
+      "substring": "Substring",
+      "reverse": "Reverse"
+    }
+  }
+}

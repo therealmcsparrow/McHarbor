@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "quickActions": {
+      "label": "Schnellaktionen",
+      "description": "Häufige Wartungsvorgänge"
+    }
+  },
+  "quickActionsWidget": {
+    "title": "Schnellaktionen",
+    "pruneImages": "Images bereinigen",
+    "pruneImagesDesc": "Alle unbenutzten Images entfernen. Dies kann nicht rückgängig gemacht werden.",
+    "pruneVolumes": "Volumes bereinigen",
+    "pruneVolumesDesc": "Alle unbenutzten Volumes entfernen. Dies kann nicht rückgängig gemacht werden.",
+    "confirm": "Bestätigen"
+  }
+}

@@ -1,0 +1,40 @@
+x-mcharbor:
+  name: gitea
+  title: Gitea
+  description: Lightweight self-hosted Git service. Private code hosting with issue tracking and CI/CD.
+  category: development
+  icon: git-branch
+  website: https://gitea.io
+  tags: [git, code, development, ci-cd]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "3000"
+      required: true
+    - name: SSH_PORT
+      label: SSH Port
+      type: port
+      default: "2222"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/gitea
+
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:3000"
+      - "{{SSH_PORT}}:22"
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+    volumes:
+      - "{{DATA_PATH}}:/data"
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro

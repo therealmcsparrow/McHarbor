@@ -1,0 +1,90 @@
+{
+  "title": "Images",
+  "description": "{{count}} images",
+  "searchPlaceholder": "Images zoeken...",
+  "emptyMessage": "Geen images gevonden",
+  "tableView": "Tabelweergave",
+  "cardView": "Kaartweergave",
+  "notFound": "Image niet gevonden.",
+  "columns": {
+    "repoTag": "Repository:Tag",
+    "status": "Status",
+    "repository": "Repository",
+    "tag": "Tag",
+    "id": "ID",
+    "size": "Grootte",
+    "created": "Aangemaakt",
+    "actions": "Acties"
+  },
+  "badges": {
+    "inUse": "in gebruik",
+    "unused": "ongebruikt"
+  },
+  "pull": {
+    "title": "Image downloaden",
+    "description": "Voer de image-naam en tag in om te downloaden.",
+    "imageName": "Image-naam",
+    "placeholder": "bijv. nginx:latest",
+    "submit": "Downloaden",
+    "pulling": "Downloaden..."
+  },
+  "toast": {
+    "removed": "Image verwijderd",
+    "pulled": "Image succesvol gedownload",
+    "tagged": "Image getagd",
+    "pruned": "Ongebruikte images opgeschoond",
+    "exported": "Image-export gestart",
+    "imported": "Image succesvol geïmporteerd"
+  },
+  "export": {
+    "title": "Image exporteren"
+  },
+  "import": {
+    "title": "Image importeren",
+    "description": "Pull van een registry of upload een tar-archief.",
+    "registryTab": "Registry",
+    "fileTab": "Bestand",
+    "selectFile": "Selecteer .tar-bestand",
+    "selectedFile": "Geselecteerd: {{name}}",
+    "submit": "Importeren",
+    "importing": "Importeren..."
+  },
+  "confirm": {
+    "removeTitle": "Image verwijderen",
+    "removeDescription": "Dit verwijdert deze image van de Docker-host."
+  },
+  "detail": {
+    "back": "Terug",
+    "imageDetails": "Image-details",
+    "config": "Configuratie",
+    "labels": "Labels",
+    "layerHistory": "Laaggeschiedenis",
+    "noLayerHistory": "Geen laaggeschiedenis",
+    "noLabels": "Geen labels",
+    "noEnvVars": "Geen omgevingsvariabelen",
+    "fields": {
+      "id": "ID",
+      "tags": "Tags",
+      "size": "Grootte",
+      "created": "Aangemaakt",
+      "architecture": "Architectuur",
+      "os": "OS",
+      "dockerVersion": "Docker-versie",
+      "author": "Auteur",
+      "digests": "Digests",
+      "cmd": "Cmd",
+      "entrypoint": "Entrypoint",
+      "workingDir": "Werkmap",
+      "user": "Gebruiker",
+      "stopSignal": "Stopsignaal",
+      "exposedPorts": "Opengestelde poorten",
+      "volumes": "Volumes",
+      "environment": "Omgevingsvariabelen"
+    },
+    "history": {
+      "instruction": "Instructie",
+      "size": "Grootte",
+      "created": "Aangemaakt"
+    }
+  }
+}

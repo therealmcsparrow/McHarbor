@@ -1,0 +1,8 @@
+{
+  "label": "File Watch Trigger",
+  "description": "Start a workflow when a watched file path changes",
+  "config": {
+    "path": "Pad",
+    "event_types": "Event Types"
+  }
+}

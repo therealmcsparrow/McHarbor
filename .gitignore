@@ -1,0 +1,65 @@
+# Project-specific Git ignore rules.
+# Put editor/OS noise in a user-level global ignore file instead:
+# git config --global core.excludesFile "$HOME/.gitignore_global"
+
+# Dependencies
+node_modules/
+src/frontend/node_modules/
+
+# Build output
+src/frontend/dist/
+*.exe
+mcharbor
+
+# Go
+src/backend/vendor/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+
+# Database
+/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Testing
+coverage/
+test-results/
+
+# Logs
+*.log
+
+# Docker build cache
+.docker/
+
+# Temp
+tmp/
+.tmp/
+*.tsbuildinfo
+
+
+# Marketing
+# The standalone website is excluded from the app build context, but the site
+# pages and assets themselves are versioned.
+website/*
+!website/index.html
+!website/styles.css
+!website/assets/
+!website/assets/favicon.svg
+!website/assets/logo_McHarbor.svg
+!website/pricing/
+!website/pricing/index.html
+!website/compare/
+!website/compare/portainer/
+!website/compare/portainer/index.html
+!website/api/
+!website/api/index.html
+website/README.md

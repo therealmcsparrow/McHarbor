@@ -1,0 +1,18 @@
+{
+  "label": "DNS Lookup",
+  "description": "Resolve DNS records for a hostname",
+  "config": {
+    "hostname": "Hostname",
+    "record_type": "Record-Typ"
+  },
+  "options": {
+    "record_type": {
+      "A": "A",
+      "AAAA": "AAAA",
+      "MX": "MX",
+      "TXT": "TXT",
+      "CNAME": "CNAME",
+      "NS": "NS"
+    }
+  }
+}

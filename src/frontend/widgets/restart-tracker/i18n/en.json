@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "restartTracker": {
+      "label": "Restart Tracker",
+      "description": "Containers with the most restarts"
+    }
+  },
+  "restartTrackerWidget": {
+    "title": "Restart Tracker",
+    "container": "Container",
+    "restarts": "Restarts",
+    "state": "State",
+    "noRestarts": "No container restarts detected"
+  }
+}

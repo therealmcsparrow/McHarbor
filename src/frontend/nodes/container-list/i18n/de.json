@@ -1,0 +1,9 @@
+{
+  "label": "Container List",
+  "description": "List containers in an environment",
+  "config": {
+    "environment": "Umgebung",
+    "show_all": "Alle anzeigen",
+    "name_filter": "Namensfilter"
+  }
+}

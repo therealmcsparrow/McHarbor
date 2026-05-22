@@ -1,0 +1,28 @@
+x-mcharbor:
+  name: gotenberg
+  title: Gotenberg
+  description: Docker-powered stateless API for converting HTML, Markdown, and Office documents to PDF.
+  category: development
+  icon: file-type-pdf
+  website: https://gotenberg.dev
+  tags: [pdf, documents, conversion, api, development]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: API Port
+      type: port
+      default: "3000"
+      required: true
+
+services:
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: gotenberg
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:3000"
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--api-timeout=120s"

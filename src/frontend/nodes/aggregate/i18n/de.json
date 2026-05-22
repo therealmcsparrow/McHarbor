@@ -1,0 +1,15 @@
+{
+  "label": "Aggregate",
+  "description": "Collect items for later aggregation in the executor",
+  "config": {
+    "group_by": "Group By",
+    "mode": "Modus"
+  },
+  "options": {
+    "mode": {
+      "list": "List",
+      "count": "Count",
+      "sum": "Sum"
+    }
+  }
+}

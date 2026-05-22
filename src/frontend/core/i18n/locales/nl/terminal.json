@@ -1,0 +1,13 @@
+{
+  "title": "Terminal",
+  "description": "Interactieve shell in actieve containers",
+  "selectContainer": "Selecteer een container",
+  "selectContainerPlaceholder": "Selecteer een container...",
+  "selectShell": "Shell",
+  "connect": "Verbinden",
+  "disconnect": "Verbreken",
+  "connecting": "Verbinden...",
+  "connected": "Verbonden",
+  "disconnected": "Niet verbonden",
+  "reconnect": "Opnieuw verbinden"
+}

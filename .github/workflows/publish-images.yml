@@ -1,0 +1,100 @@
+name: Publish Images
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish-mcharbor:
+    runs-on: ubuntu-latest
+    outputs:
+      app_version: ${{ steps.versions.outputs.app_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read versions
+        id: versions
+        shell: bash
+        run: |
+          app_version="$(sed -n 's/.*"version": "\(.*\)".*/\1/p' src/frontend/package.json | head -n1)"
+          agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
+          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
+          echo "agent_version=$agent_version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract mcharbor metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/mcharbor
+          tags: |
+            type=raw,value=${{ steps.versions.outputs.app_version }}
+            type=raw,value=latest
+
+      - name: Build and push mcharbor
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  publish-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read agent version
+        id: version
+        shell: bash
+        run: |
+          agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
+          echo "agent_version=$agent_version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract agent metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/mcharbor-agent
+          tags: |
+            type=raw,value=${{ steps.version.outputs.agent_version }}
+            type=raw,value=latest
+
+      - name: Build and push mcharbor-agent
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.agent
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

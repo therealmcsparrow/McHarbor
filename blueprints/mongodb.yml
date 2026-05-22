@@ -1,0 +1,42 @@
+x-mcharbor:
+  name: mongodb
+  title: MongoDB
+  description: NoSQL document database for modern applications with flexible schema and horizontal scaling.
+  category: database
+  icon: database
+  website: https://mongodb.com
+  tags: [database, nosql, document, mongodb]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: MONGO_PORT
+      label: MongoDB Port
+      type: port
+      default: "27017"
+      required: true
+    - name: MONGO_ROOT_USERNAME
+      label: Root Username
+      type: string
+      default: admin
+      required: true
+    - name: MONGO_ROOT_PASSWORD
+      label: Root Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/mongodb
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "{{MONGO_PORT}}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "{{MONGO_ROOT_USERNAME}}"
+      MONGO_INITDB_ROOT_PASSWORD: "{{MONGO_ROOT_PASSWORD}}"
+    volumes:
+      - "{{DATA_PATH}}:/data/db"

@@ -1,0 +1,8 @@
+{
+  "label": "SQL Query",
+  "description": "Run a read-only SQL query against the workflow database",
+  "config": {
+    "query": "Query",
+    "output_property": "Ausgabe-Eigenschaft"
+  }
+}

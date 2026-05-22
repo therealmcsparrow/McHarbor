@@ -1,0 +1,31 @@
+x-mcharbor:
+  name: homepage
+  title: Homepage
+  description: Modern application dashboard with service health checking and widget integrations.
+  category: productivity
+  icon: layout-grid
+  website: https://gethomepage.dev
+  tags: [dashboard, homepage, widgets, startpage]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "3000"
+      required: true
+    - name: DATA_PATH
+      label: Config Directory
+      type: path
+      default: ./data/homepage
+
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:3000"
+    volumes:
+      - "{{DATA_PATH}}:/app/config"
+      - /var/run/docker.sock:/var/run/docker.sock:ro

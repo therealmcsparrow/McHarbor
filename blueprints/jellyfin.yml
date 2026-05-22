@@ -1,0 +1,36 @@
+x-mcharbor:
+  name: jellyfin
+  title: Jellyfin
+  description: Free and open-source media server. Stream your movies, TV shows, and music anywhere.
+  category: media
+  icon: film
+  website: https://jellyfin.org
+  tags: [media, streaming, movies, tv, music, open-source]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8096"
+      required: true
+    - name: MEDIA_PATH
+      label: Media Directory
+      type: path
+      default: ./data/jellyfin/media
+      required: true
+    - name: CONFIG_PATH
+      label: Config Directory
+      type: path
+      default: ./data/jellyfin/config
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8096"
+    volumes:
+      - "{{CONFIG_PATH}}:/config"
+      - "{{MEDIA_PATH}}:/media"

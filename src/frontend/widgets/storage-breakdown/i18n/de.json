@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "storageBreakdown": {
+      "label": "Speicheraufschlüsselung",
+      "description": "Festplattennutzung nach Kategorie"
+    }
+  },
+  "storageBreakdownWidget": {
+    "title": "Speicheraufschlüsselung",
+    "images": "Images",
+    "volumes": "Volumes",
+    "containers": "Container",
+    "buildCache": "Build-Cache",
+    "total": "gesamt",
+    "noData": "Keine Speicherdaten verfügbar"
+  }
+}

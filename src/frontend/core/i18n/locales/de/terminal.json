@@ -1,0 +1,13 @@
+{
+  "title": "Terminal",
+  "description": "Interaktive Shell in laufende Container",
+  "selectContainer": "Container auswählen",
+  "selectContainerPlaceholder": "Container auswählen...",
+  "selectShell": "Shell",
+  "connect": "Verbinden",
+  "disconnect": "Trennen",
+  "connecting": "Verbindung wird hergestellt...",
+  "connected": "Verbunden",
+  "disconnected": "Getrennt",
+  "reconnect": "Erneut verbinden"
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Volumes",
+  "description": "{{count}} volumes",
+  "searchPlaceholder": "Search volumes...",
+  "emptyMessage": "No volumes found",
+  "tableView": "Table view",
+  "cardView": "Card view",
+  "columns": {
+    "name": "Name",
+    "driver": "Driver",
+    "usage": "Usage",
+    "mountpoint": "Mountpoint",
+    "created": "Created",
+    "actions": "Actions"
+  },
+  "badges": {
+    "inUse": "in use",
+    "unused": "unused"
+  },
+  "create": {
+    "title": "Create Volume",
+    "description": "Specify the volume name and driver.",
+    "name": "Volume name",
+    "driver": "Driver",
+    "driverPlaceholder": "Driver (default: local)",
+    "submit": "Create",
+    "creating": "Creating..."
+  },
+  "toast": {
+    "created": "Volume created",
+    "removed": "Volume removed",
+    "pruned": "Unused volumes pruned"
+  },
+  "confirm": {
+    "removeTitle": "Remove Volume",
+    "removeDescription": "This will permanently remove this volume and all its data."
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "label": "JSON Path",
+  "description": "Read a value from structured data with a simple JSONPath expression",
+  "config": {
+    "expression": "Ausdruck",
+    "property": "Eigenschaft",
+    "output_property": "Ausgabe-Eigenschaft"
+  }
+}

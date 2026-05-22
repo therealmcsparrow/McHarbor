@@ -1,0 +1,27 @@
+{
+  "widgets": {
+    "containers": {
+      "label": "Containers",
+      "description": "Totaal aantal containers met draaiend/gestopt"
+    },
+    "images": {
+      "label": "Images",
+      "description": "Totaal aantal images"
+    },
+    "volumes": {
+      "label": "Volumes",
+      "description": "Totaal aantal volumes"
+    },
+    "networks": {
+      "label": "Netwerken",
+      "description": "Totaal aantal netwerken"
+    }
+  },
+  "resourceSummaryWidget": {
+    "containers": "Containers",
+    "images": "Images",
+    "volumes": "Volumes",
+    "networks": "Netwerken",
+    "runningStoppedDescription": "{{running}} draaiend, {{stopped}} gestopt"
+  }
+}

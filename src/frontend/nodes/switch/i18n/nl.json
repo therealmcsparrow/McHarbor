@@ -1,0 +1,15 @@
+{
+  "label": "Switch",
+  "description": "Route a message to dynamic case outputs",
+  "config": {
+    "property": "Eigenschap",
+    "check_type": "Check Type"
+  },
+  "options": {
+    "check_type": {
+      "value": "Waarde",
+      "type": "Type",
+      "regex": "Regex"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "title": "Dashboard",
+  "description": "Overview of your Docker environment",
+  "addWidget": "Add Widget",
+  "editDashboard": "Edit Dashboard",
+  "doneEditing": "Done Editing",
+  "edit": "Edit",
+  "done": "Done",
+  "reset": "Reset",
+  "loading": "Loading...",
+  "addWidgets": "Add Widgets",
+  "addWidgetsDescription": "Select widgets to add to your dashboard",
+  "categories": {
+    "resources": "Resources",
+    "host": "Host",
+    "metrics": "Metrics",
+    "monitoring": "Monitoring",
+    "operations": "Operations",
+    "kubernetes": "Kubernetes"
+  }
+}

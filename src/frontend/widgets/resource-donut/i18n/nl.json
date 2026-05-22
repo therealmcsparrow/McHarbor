@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "resourceDonut": {
+      "label": "Resourcedonut",
+      "description": "Cirkeldiagram van resourceverdeling"
+    }
+  },
+  "resourceDonutWidget": {
+    "title": "Resources",
+    "noResources": "Geen resources",
+    "running": "Draaiend",
+    "stopped": "Gestopt",
+    "images": "Images",
+    "volumes": "Volumes",
+    "networks": "Netwerken",
+    "total": "totaal"
+  }
+}

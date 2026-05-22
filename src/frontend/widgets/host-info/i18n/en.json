@@ -1,0 +1,33 @@
+{
+  "widgets": {
+    "cpuCores": {
+      "label": "CPU Cores",
+      "description": "Host CPU core count and architecture"
+    },
+    "totalMemory": {
+      "label": "Total Memory",
+      "description": "Host total memory"
+    },
+    "dockerVersion": {
+      "label": "Docker Version",
+      "description": "Docker engine version and hostname"
+    },
+    "diskUsage": {
+      "label": "Disk Usage",
+      "description": "Total disk usage breakdown"
+    },
+    "uptime": {
+      "label": "Uptime",
+      "description": "Host system uptime"
+    }
+  },
+  "hostInfoWidget": {
+    "cpuCores": "CPU Cores",
+    "totalMemory": "Total Memory",
+    "dockerVersion": "Docker Version",
+    "diskUsage": "Disk Usage",
+    "uptime": "Uptime",
+    "cores": "cores",
+    "imagesVolumes": "Images: {{images}}, Volumes: {{volumes}}"
+  }
+}

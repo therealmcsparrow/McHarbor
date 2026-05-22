@@ -1,0 +1,20 @@
+{
+  "label": "Assert",
+  "description": "Assert that a condition is true and branch on the result",
+  "config": {
+    "field": "Feld",
+    "operator": "Operator",
+    "value": "Wert",
+    "message": "Fehlermeldung"
+  },
+  "options": {
+    "operator": {
+      "==": "Gleich",
+      "!=": "Ungleich",
+      "contains": "Contains",
+      "regex": "Entspricht Regex",
+      "is_empty": "Ist leer",
+      "is_not_empty": "Ist nicht leer"
+    }
+  }
+}

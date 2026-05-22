@@ -1,0 +1,37 @@
+x-mcharbor:
+  name: adguard-home
+  title: AdGuard Home
+  description: Network-wide ad and tracker blocking DNS server with parental controls.
+  category: networking
+  icon: shield
+  website: https://adguard.com/adguard-home.html
+  tags: [dns, adblock, privacy, parental-controls]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "3000"
+      required: true
+    - name: DNS_PORT
+      label: DNS Port
+      type: port
+      default: "53"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/adguard
+
+services:
+  adguard:
+    image: adguard/adguardhome:latest
+    container_name: adguard-home
+    restart: unless-stopped
+    ports:
+      - "{{DNS_PORT}}:53/tcp"
+      - "{{DNS_PORT}}:53/udp"
+      - "{{WEB_PORT}}:3000/tcp"
+    volumes:
+      - "{{DATA_PATH}}/work:/opt/adguardhome/work"
+      - "{{DATA_PATH}}/conf:/opt/adguardhome/conf"

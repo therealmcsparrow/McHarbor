@@ -1,0 +1,15 @@
+{
+  "label": "Sort",
+  "description": "Sort an array on the current message",
+  "config": {
+    "property": "Eigenschap",
+    "sort_by": "Sort By",
+    "direction": "Richting"
+  },
+  "options": {
+    "direction": {
+      "asc": "Oplopend",
+      "desc": "Descending"
+    }
+  }
+}

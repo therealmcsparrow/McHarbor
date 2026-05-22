@@ -1,0 +1,9 @@
+{
+  "label": "Image List",
+  "description": "List images in an environment",
+  "config": {
+    "environment": "Omgeving",
+    "show_all": "Alles tonen",
+    "filter_dangling": "Alleen dangling"
+  }
+}

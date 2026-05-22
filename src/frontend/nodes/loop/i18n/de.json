@@ -1,0 +1,7 @@
+{
+  "label": "Loop",
+  "description": "Iterate over an array from the current message",
+  "config": {
+    "items_field": "Items Field"
+  }
+}

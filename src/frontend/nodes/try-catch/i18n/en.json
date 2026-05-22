@@ -1,0 +1,7 @@
+{
+  "label": "Try Catch",
+  "description": "Guard downstream execution and route failures into a catch branch",
+  "config": {
+    "error_property": "Error Property"
+  }
+}

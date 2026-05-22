@@ -1,0 +1,34 @@
+x-mcharbor:
+  name: overseerr
+  title: Overseerr
+  description: Media request and discovery tool that integrates with Plex, Sonarr, and Radarr.
+  category: media
+  icon: movie
+  website: https://overseerr.dev
+  tags: [media, requests, plex, sonarr, radarr, movies, tv]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "5055"
+      required: true
+    - name: DATA_PATH
+      label: Config Directory
+      type: path
+      default: ./data/overseerr
+
+services:
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:5055"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+    volumes:
+      - "{{DATA_PATH}}:/config"

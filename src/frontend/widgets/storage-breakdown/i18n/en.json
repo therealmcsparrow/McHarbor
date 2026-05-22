@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "storageBreakdown": {
+      "label": "Storage Breakdown",
+      "description": "Disk usage by category"
+    }
+  },
+  "storageBreakdownWidget": {
+    "title": "Storage Breakdown",
+    "images": "Images",
+    "volumes": "Volumes",
+    "containers": "Containers",
+    "buildCache": "Build Cache",
+    "total": "total",
+    "noData": "No storage data available"
+  }
+}

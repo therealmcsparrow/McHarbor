@@ -1,0 +1,90 @@
+{
+  "title": "Images",
+  "description": "{{count}} images",
+  "searchPlaceholder": "Search images...",
+  "emptyMessage": "No images found",
+  "tableView": "Table view",
+  "cardView": "Card view",
+  "notFound": "Image not found.",
+  "columns": {
+    "repoTag": "Repository:Tag",
+    "status": "Status",
+    "repository": "Repository",
+    "tag": "Tag",
+    "id": "ID",
+    "size": "Size",
+    "created": "Created",
+    "actions": "Actions"
+  },
+  "badges": {
+    "inUse": "in use",
+    "unused": "unused"
+  },
+  "pull": {
+    "title": "Pull Image",
+    "description": "Enter the image name and tag to pull.",
+    "imageName": "Image name",
+    "placeholder": "e.g. nginx:latest",
+    "submit": "Pull",
+    "pulling": "Pulling..."
+  },
+  "toast": {
+    "removed": "Image removed",
+    "pulled": "Image pulled successfully",
+    "tagged": "Image tagged",
+    "pruned": "Unused images pruned",
+    "exported": "Image export started",
+    "imported": "Image imported successfully"
+  },
+  "export": {
+    "title": "Export Image"
+  },
+  "import": {
+    "title": "Import Image",
+    "description": "Pull from a registry or upload a tar archive.",
+    "registryTab": "Registry",
+    "fileTab": "File",
+    "selectFile": "Select .tar file",
+    "selectedFile": "Selected: {{name}}",
+    "submit": "Import",
+    "importing": "Importing..."
+  },
+  "confirm": {
+    "removeTitle": "Remove Image",
+    "removeDescription": "This will remove this image from the Docker host."
+  },
+  "detail": {
+    "back": "Back",
+    "imageDetails": "Image Details",
+    "config": "Config",
+    "labels": "Labels",
+    "layerHistory": "Layer History",
+    "noLayerHistory": "No layer history",
+    "noLabels": "No labels",
+    "noEnvVars": "No environment variables",
+    "fields": {
+      "id": "ID",
+      "tags": "Tags",
+      "size": "Size",
+      "created": "Created",
+      "architecture": "Architecture",
+      "os": "OS",
+      "dockerVersion": "Docker Version",
+      "author": "Author",
+      "digests": "Digests",
+      "cmd": "Cmd",
+      "entrypoint": "Entrypoint",
+      "workingDir": "Working Dir",
+      "user": "User",
+      "stopSignal": "Stop Signal",
+      "exposedPorts": "Exposed Ports",
+      "volumes": "Volumes",
+      "environment": "Environment"
+    },
+    "history": {
+      "instruction": "Instruction",
+      "size": "Size",
+      "created": "Created"
+    }
+  }
+}

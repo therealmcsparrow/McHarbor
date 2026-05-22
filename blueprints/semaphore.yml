@@ -1,0 +1,40 @@
+x-mcharbor:
+  name: semaphore
+  title: Ansible Semaphore
+  description: Modern UI for Ansible. Run playbooks, manage inventory, and track deployment history.
+  category: automation
+  icon: terminal
+  website: https://semaphoreui.com
+  tags: [ansible, automation, devops, deployment]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "3000"
+      required: true
+    - name: ADMIN_PASSWORD
+      label: Admin Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/semaphore
+
+services:
+  semaphore:
+    image: semaphoreui/semaphore:latest
+    container_name: semaphore
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:3000"
+    environment:
+      SEMAPHORE_DB_DIALECT: bolt
+      SEMAPHORE_ADMIN: admin
+      SEMAPHORE_ADMIN_PASSWORD: "{{ADMIN_PASSWORD}}"
+      SEMAPHORE_ADMIN_NAME: Admin
+      SEMAPHORE_ADMIN_EMAIL: admin@localhost
+    volumes:
+      - "{{DATA_PATH}}:/var/lib/semaphore"

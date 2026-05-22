@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "quickActions": {
+      "label": "Snelle acties",
+      "description": "Veelgebruikte onderhoudsbewerkingen"
+    }
+  },
+  "quickActionsWidget": {
+    "title": "Snelle acties",
+    "pruneImages": "Images opschonen",
+    "pruneImagesDesc": "Verwijder alle ongebruikte images. Dit kan niet ongedaan worden gemaakt.",
+    "pruneVolumes": "Volumes opschonen",
+    "pruneVolumesDesc": "Verwijder alle ongebruikte volumes. Dit kan niet ongedaan worden gemaakt.",
+    "confirm": "Bevestigen"
+  }
+}

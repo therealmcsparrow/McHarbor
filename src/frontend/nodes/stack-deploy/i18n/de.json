@@ -1,0 +1,18 @@
+{
+  "label": "Stack Deploy",
+  "description": "Deploy a Docker Compose stack from workflow data, inline YAML, or a saved file",
+  "config": {
+    "environment": "Environment",
+    "stack_name": "Stack Name",
+    "compose_source": "Compose Source",
+    "compose_content": "Compose Content",
+    "compose_path": "Compose Path"
+  },
+  "options": {
+    "compose_source": {
+      "message": "Message",
+      "inline": "Inline YAML",
+      "file": "File Path"
+    }
+  }
+}

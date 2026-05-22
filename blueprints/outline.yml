@@ -1,0 +1,69 @@
+x-mcharbor:
+  name: outline
+  title: Outline
+  description: Fast wiki and knowledge base for teams. Beautiful docs with real-time collaboration.
+  category: productivity
+  icon: book-open
+  website: https://getoutline.com
+  tags: [wiki, docs, knowledge-base, collaboration]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "3000"
+      required: true
+    - name: SECRET_KEY
+      label: Secret Key
+      type: password
+      required: true
+    - name: UTILS_SECRET
+      label: Utils Secret
+      type: password
+      required: true
+    - name: POSTGRES_PASSWORD
+      label: Database Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/outline
+
+services:
+  outline:
+    image: outlinewiki/outline:latest
+    container_name: outline
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:3000"
+    environment:
+      SECRET_KEY: "{{SECRET_KEY}}"
+      UTILS_SECRET: "{{UTILS_SECRET}}"
+      DATABASE_URL: "postgres://outline:{{POSTGRES_PASSWORD}}@outline-db:5432/outline"
+      REDIS_URL: redis://outline-redis:6379
+      URL: "http://localhost:{{WEB_PORT}}"
+      FILE_STORAGE: local
+      FILE_STORAGE_LOCAL_ROOT_DIR: /var/lib/outline/data
+    volumes:
+      - "{{DATA_PATH}}/storage:/var/lib/outline/data"
+    depends_on:
+      - outline-db
+      - outline-redis
+
+  outline-db:
+    image: postgres:16-alpine
+    container_name: outline-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: outline
+      POSTGRES_PASSWORD: "{{POSTGRES_PASSWORD}}"
+      POSTGRES_DB: outline
+    volumes:
+      - "{{DATA_PATH}}/postgres:/var/lib/postgresql/data"
+
+  outline-redis:
+    image: redis:7-alpine
+    container_name: outline-redis
+    restart: unless-stopped

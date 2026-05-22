@@ -1,0 +1,48 @@
+x-mcharbor:
+  name: traefik
+  title: Traefik
+  description: Cloud-native reverse proxy and load balancer with automatic HTTPS and service discovery.
+  category: networking
+  icon: globe
+  website: https://traefik.io
+  tags: [proxy, load-balancer, ssl, letsencrypt, cloud-native]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "80"
+      required: true
+    - name: HTTPS_PORT
+      label: HTTPS Port
+      type: port
+      default: "443"
+    - name: DASHBOARD_PORT
+      label: Dashboard Port
+      type: port
+      default: "8080"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/traefik
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:80"
+      - "{{HTTPS_PORT}}:443"
+      - "{{DASHBOARD_PORT}}:8080"
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - "{{DATA_PATH}}:/etc/traefik"

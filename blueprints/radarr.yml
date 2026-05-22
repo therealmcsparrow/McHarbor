@@ -1,0 +1,44 @@
+x-mcharbor:
+  name: radarr
+  title: Radarr
+  description: Movie collection management and download automation with quality profiles.
+  category: media
+  icon: film
+  website: https://radarr.video
+  tags: [media, movies, automation, pvr]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "7878"
+      required: true
+    - name: CONFIG_PATH
+      label: Config Directory
+      type: path
+      default: ./data/radarr/config
+    - name: MEDIA_PATH
+      label: Movies Directory
+      type: path
+      default: ./data/radarr/movies
+    - name: DOWNLOADS_PATH
+      label: Downloads Directory
+      type: path
+      default: ./data/radarr/downloads
+
+services:
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:7878"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+    volumes:
+      - "{{CONFIG_PATH}}:/config"
+      - "{{MEDIA_PATH}}:/movies"
+      - "{{DOWNLOADS_PATH}}:/downloads"

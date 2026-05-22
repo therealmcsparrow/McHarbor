@@ -1,0 +1,30 @@
+x-mcharbor:
+  name: homer
+  title: Homer
+  description: Simple static homepage for your server with a clean dashboard layout.
+  category: productivity
+  icon: layout-dashboard
+  website: https://github.com/bastienwirtz/homer
+  tags: [dashboard, homepage, links, startpage]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8080"
+      required: true
+    - name: DATA_PATH
+      label: Config Directory
+      type: path
+      default: ./data/homer
+
+services:
+  homer:
+    image: b4bz/homer:latest
+    container_name: homer
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8080"
+    volumes:
+      - "{{DATA_PATH}}:/www/assets"

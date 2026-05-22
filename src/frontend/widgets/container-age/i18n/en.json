@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "containerAge": {
+      "label": "Container Age",
+      "description": "Oldest containers by creation date"
+    }
+  },
+  "containerAgeWidget": {
+    "title": "Container Age",
+    "container": "Container",
+    "age": "Age",
+    "state": "State",
+    "noContainers": "No containers found"
+  }
+}

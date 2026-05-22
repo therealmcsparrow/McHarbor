@@ -1,0 +1,54 @@
+x-mcharbor:
+  name: elasticsearch
+  title: Elasticsearch + Kibana
+  description: Search and analytics engine with Kibana visualization dashboard.
+  category: database
+  icon: search
+  website: https://elastic.co
+  tags: [search, analytics, logging, elk]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: ES_PORT
+      label: Elasticsearch Port
+      type: port
+      default: "9200"
+      required: true
+    - name: KIBANA_PORT
+      label: Kibana Port
+      type: port
+      default: "5601"
+    - name: ELASTIC_PASSWORD
+      label: Elastic Password
+      type: password
+      default: changeme
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/elasticsearch
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: elasticsearch
+    restart: unless-stopped
+    ports:
+      - "{{ES_PORT}}:9200"
+    environment:
+      discovery.type: single-node
+      ELASTIC_PASSWORD: "{{ELASTIC_PASSWORD}}"
+      xpack.security.enabled: "false"
+    volumes:
+      - "{{DATA_PATH}}/data:/usr/share/elasticsearch/data"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: kibana
+    restart: unless-stopped
+    ports:
+      - "{{KIBANA_PORT}}:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch

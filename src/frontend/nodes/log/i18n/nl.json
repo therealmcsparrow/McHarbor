@@ -1,0 +1,15 @@
+{
+  "label": "Log",
+  "description": "Write a message to the workflow log stream",
+  "config": {
+    "level": "Level",
+    "message": "Bericht"
+  },
+  "options": {
+    "level": {
+      "info": "Info",
+      "warn": "Warn",
+      "error": "Error"
+    }
+  }
+}

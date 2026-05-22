@@ -1,0 +1,20 @@
+{
+  "label": "Assert",
+  "description": "Assert that a condition is true and branch on the result",
+  "config": {
+    "field": "Veld",
+    "operator": "Operator",
+    "value": "Waarde",
+    "message": "Foutmelding"
+  },
+  "options": {
+    "operator": {
+      "==": "Gelijk aan",
+      "!=": "Niet gelijk aan",
+      "contains": "Contains",
+      "regex": "Komt overeen met regex",
+      "is_empty": "Is leeg",
+      "is_not_empty": "Is niet leeg"
+    }
+  }
+}

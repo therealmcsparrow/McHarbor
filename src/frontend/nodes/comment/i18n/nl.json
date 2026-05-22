@@ -1,0 +1,7 @@
+{
+  "label": "Opmerking",
+  "description": "Annotate a workflow without changing execution",
+  "config": {
+    "text": "Opmerking"
+  }
+}

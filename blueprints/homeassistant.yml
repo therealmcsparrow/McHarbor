@@ -1,0 +1,32 @@
+x-mcharbor:
+  name: homeassistant
+  title: Home Assistant
+  description: Open-source home automation platform. Control smart home devices from a unified dashboard.
+  category: automation
+  icon: home
+  website: https://home-assistant.io
+  tags: [home, automation, iot, smart-home]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8123"
+      required: true
+    - name: CONFIG_PATH
+      label: Config Directory
+      type: path
+      default: ./data/homeassistant
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      TZ: UTC
+    volumes:
+      - "{{CONFIG_PATH}}:/config"
+    privileged: true

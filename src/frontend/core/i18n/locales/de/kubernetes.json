@@ -1,0 +1,94 @@
+{
+  "pods": {
+    "title": "Pods",
+    "description": "{{count}} Pods",
+    "searchPlaceholder": "Pods suchen...",
+    "emptyMessage": "Keine Pods gefunden",
+    "columns": {
+      "name": "Name",
+      "namespace": "Namespace",
+      "status": "Status",
+      "ready": "Bereit",
+      "restarts": "Neustarts",
+      "age": "Alter",
+      "node": "Node",
+      "ip": "IP",
+      "actions": "Aktionen"
+    },
+    "detail": {
+      "notFound": "Pod nicht gefunden",
+      "status": "Status",
+      "ready": "Bereit",
+      "node": "Node",
+      "ip": "IP",
+      "containers": "Container",
+      "restartCount": "{{count}} Neustarts"
+    },
+    "toast": {
+      "deleted": "Pod gelöscht"
+    },
+    "confirm": {
+      "deleteTitle": "Pod löschen",
+      "deleteDescription": "Sind Sie sicher, dass Sie diesen Pod löschen möchten?"
+    }
+  },
+  "deployments": {
+    "title": "Deployments",
+    "description": "{{count}} Deployments",
+    "searchPlaceholder": "Deployments suchen...",
+    "emptyMessage": "Keine Deployments gefunden",
+    "columns": {
+      "name": "Name",
+      "namespace": "Namespace",
+      "ready": "Bereit",
+      "upToDate": "Aktuell",
+      "available": "Verfügbar",
+      "images": "Images",
+      "replicas": "Replikate",
+      "age": "Alter",
+      "actions": "Aktionen"
+    },
+    "detail": {
+      "notFound": "Deployment nicht gefunden",
+      "ready": "Bereit",
+      "upToDate": "Aktuell",
+      "available": "Verfügbar",
+      "strategy": "Strategie",
+      "conditions": "Bedingungen"
+    },
+    "toast": {
+      "scaled": "Deployment skaliert",
+      "restarted": "Deployment neugestartet",
+      "deleted": "Deployment gelöscht"
+    },
+    "confirm": {
+      "deleteTitle": "Deployment löschen",
+      "deleteDescription": "Sind Sie sicher, dass Sie dieses Deployment löschen möchten?"
+    }
+  },
+  "services": {
+    "title": "Services",
+    "description": "{{count}} Services",
+    "searchPlaceholder": "Services suchen...",
+    "emptyMessage": "Keine Services gefunden",
+    "columns": {
+      "name": "Name",
+      "namespace": "Namespace",
+      "type": "Typ",
+      "clusterIP": "Cluster-IP",
+      "ports": "Ports",
+      "age": "Alter"
+    }
+  },
+  "namespaces": {
+    "title": "Namespaces",
+    "description": "{{count}} Namespaces",
+    "searchPlaceholder": "Namespaces suchen...",
+    "emptyMessage": "Keine Namespaces gefunden",
+    "columns": {
+      "name": "Name",
+      "status": "Status",
+      "age": "Alter"
+    }
+  }
+}

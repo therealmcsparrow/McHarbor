@@ -1,0 +1,53 @@
+x-mcharbor:
+  name: wireguard
+  title: WireGuard VPN
+  description: Fast, modern VPN tunnel with easy peer configuration and web UI management.
+  category: networking
+  icon: shield
+  website: https://wireguard.com
+  tags: [vpn, networking, security, tunnel]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: VPN_PORT
+      label: VPN Port
+      type: port
+      default: "51820"
+      required: true
+    - name: WEB_PORT
+      label: Web UI Port
+      type: port
+      default: "51821"
+    - name: WG_HOST
+      label: Server Hostname
+      type: string
+      required: true
+      placeholder: "vpn.example.com or public IP"
+    - name: PASSWORD
+      label: Web UI Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/wireguard
+
+services:
+  wireguard:
+    image: ghcr.io/wg-easy/wg-easy:latest
+    container_name: wireguard
+    restart: unless-stopped
+    ports:
+      - "{{VPN_PORT}}:51820/udp"
+      - "{{WEB_PORT}}:51821/tcp"
+    environment:
+      WG_HOST: "{{WG_HOST}}"
+      PASSWORD: "{{PASSWORD}}"
+    volumes:
+      - "{{DATA_PATH}}:/etc/wireguard"
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1

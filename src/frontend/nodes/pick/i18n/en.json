@@ -1,0 +1,8 @@
+{
+  "label": "Pick",
+  "description": "Keep only selected fields on an object",
+  "config": {
+    "property": "Property",
+    "fields": "Fields"
+  }
+}

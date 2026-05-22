@@ -1,0 +1,33 @@
+{
+  "widgets": {
+    "cpuCores": {
+      "label": "CPU-kernen",
+      "description": "Aantal CPU-kernen en architectuur van de host"
+    },
+    "totalMemory": {
+      "label": "Totaal geheugen",
+      "description": "Totaal geheugen van de host"
+    },
+    "dockerVersion": {
+      "label": "Docker-versie",
+      "description": "Docker-engineversie en hostnaam"
+    },
+    "diskUsage": {
+      "label": "Schijfgebruik",
+      "description": "Uitsplitsing totaal schijfgebruik"
+    },
+    "uptime": {
+      "label": "Uptime",
+      "description": "Uptime van het hostsysteem"
+    }
+  },
+  "hostInfoWidget": {
+    "cpuCores": "CPU-kernen",
+    "totalMemory": "Totaal geheugen",
+    "dockerVersion": "Docker-versie",
+    "diskUsage": "Schijfgebruik",
+    "uptime": "Uptime",
+    "cores": "kernen",
+    "imagesVolumes": "Images: {{images}}, Volumes: {{volumes}}"
+  }
+}

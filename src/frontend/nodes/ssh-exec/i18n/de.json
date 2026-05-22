@@ -1,0 +1,12 @@
+{
+  "label": "SSH Exec",
+  "description": "Run a remote command over SSH with password or key authentication",
+  "config": {
+    "host": "Host",
+    "port": "Port",
+    "user": "User",
+    "password": "Password",
+    "private_key": "Private Key",
+    "command": "Command"
+  }
+}

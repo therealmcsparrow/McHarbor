@@ -1,0 +1,195 @@
+/* Copyright (c) 2026 McSparrow. All rights reserved. */
+/* McHarbor is licensed under the McHarbor License. See LICENSE for details. */
+
+@import 'tailwindcss';
+@import "./node_modules/preline/variants.css";
+
+@source "./node_modules/preline/dist/*.js";
+@plugin "@tailwindcss/forms";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius: 0.625rem;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Preline semantic tokens */
+  --color-layer: var(--card);
+  --color-surface: var(--background);
+  --color-overlay: var(--popover);
+  --color-card-line: var(--border);
+  --color-table-line: var(--border);
+}
+
+/* McHarbor Brand Theme
+   Primary: teal rgb(38, 176, 198) = oklch(0.698 0.114 211.4)
+   Secondary: deep blue rgb(39, 106, 162) = oklch(0.510 0.111 247.6) */
+
+:root {
+  --background: oklch(0.986 0.008 207);
+  --foreground: oklch(0.252 0.045 253);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.252 0.045 253);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.252 0.045 253);
+  --primary: oklch(0.698 0.114 211.4);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.963 0.015 207);
+  --secondary-foreground: oklch(0.311 0.048 252);
+  --muted: oklch(0.963 0.015 207);
+  --muted-foreground: oklch(0.555 0.040 244);
+  --accent: oklch(0.956 0.018 214);
+  --accent-foreground: oklch(0.311 0.048 252);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.906 0.033 216);
+  --input: oklch(0.906 0.033 216);
+  --ring: oklch(0.698 0.114 211.4);
+
+  --sidebar: oklch(0.978 0.011 211);
+  --sidebar-foreground: oklch(0.252 0.045 253);
+  --sidebar-primary: oklch(0.698 0.114 211.4);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.956 0.018 214);
+  --sidebar-accent-foreground: oklch(0.311 0.048 252);
+  --sidebar-border: oklch(0.906 0.033 216);
+  --sidebar-ring: oklch(0.698 0.114 211.4);
+}
+
+.dark {
+  --background: oklch(0.233 0.033 258);
+  --foreground: oklch(0.949 0.013 229);
+  --card: oklch(0.275 0.038 258);
+  --card-foreground: oklch(0.949 0.013 229);
+  --popover: oklch(0.275 0.038 258);
+  --popover-foreground: oklch(0.949 0.013 229);
+  --primary: oklch(0.754 0.118 211);
+  --primary-foreground: oklch(0.185 0.025 258);
+  --secondary: oklch(0.313 0.041 256);
+  --secondary-foreground: oklch(0.949 0.013 229);
+  --muted: oklch(0.313 0.041 256);
+  --muted-foreground: oklch(0.640 0.040 242);
+  --accent: oklch(0.305 0.042 254);
+  --accent-foreground: oklch(0.949 0.013 229);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.949 0.013 229);
+  --border: oklch(0.360 0.046 256);
+  --input: oklch(0.360 0.046 256);
+  --ring: oklch(0.754 0.118 211);
+
+  --sidebar: oklch(0.213 0.033 260);
+  --sidebar-foreground: oklch(0.860 0.025 229);
+  --sidebar-primary: oklch(0.754 0.118 211);
+  --sidebar-primary-foreground: oklch(0.949 0.013 229);
+  --sidebar-accent: oklch(0.294 0.042 256);
+  --sidebar-accent-foreground: oklch(0.949 0.013 229);
+  --sidebar-border: oklch(0.360 0.046 256);
+  --sidebar-ring: oklch(0.754 0.118 211);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    @apply bg-background text-foreground;
+  }
+
+  /* Pointer cursor on all interactive elements */
+  button,
+  [role="button"],
+  a,
+  select,
+  input[type="checkbox"],
+  input[type="radio"],
+  label[for],
+  summary,
+  [tabindex]:not([tabindex="-1"]) {
+    cursor: pointer;
+  }
+
+  /* Subtle glow on button hover */
+  button:not(:disabled):hover,
+  [role="button"]:not(:disabled):hover {
+    box-shadow: 0 0 8px 0 oklch(from var(--primary) l c h / 0.3);
+  }
+
+  /* Themed scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+/* react-grid-layout */
+.react-grid-placeholder {
+  background: var(--primary) !important;
+  opacity: 0.15 !important;
+  border-radius: 0.5rem !important;
+}
+.react-resizable-handle::after {
+  border-color: var(--muted-foreground) !important;
+}
+
+/* Workflow edge traversal animation */
+@keyframes edge-dash {
+  to {
+    stroke-dashoffset: -12;
+  }
+}

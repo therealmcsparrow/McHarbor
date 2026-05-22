@@ -1,0 +1,10 @@
+{
+  "label": "Send Email",
+  "description": "Send an email through a configured email server",
+  "config": {
+    "server_id": "E-Mail-Server",
+    "to": "An",
+    "subject": "Betreff",
+    "body": "Body"
+  }
+}

@@ -1,0 +1,63 @@
+x-mcharbor:
+  name: immich
+  title: Immich
+  description: Self-hosted photo and video management with AI-powered search and mobile apps.
+  category: media
+  icon: image
+  website: https://immich.app
+  tags: [photos, videos, backup, ai, gallery]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "2283"
+      required: true
+    - name: DB_PASSWORD
+      label: Database Password
+      type: password
+      required: true
+    - name: UPLOAD_PATH
+      label: Upload Directory
+      type: path
+      default: ./data/immich/upload
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/immich
+
+services:
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:release
+    container_name: immich-server
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:2283"
+    environment:
+      DB_HOSTNAME: immich-postgres
+      DB_USERNAME: postgres
+      DB_PASSWORD: "{{DB_PASSWORD}}"
+      DB_DATABASE_NAME: immich
+      REDIS_HOSTNAME: immich-redis
+    volumes:
+      - "{{UPLOAD_PATH}}:/usr/src/app/upload"
+    depends_on:
+      - immich-redis
+      - immich-postgres
+
+  immich-redis:
+    image: redis:7-alpine
+    container_name: immich-redis
+    restart: unless-stopped
+
+  immich-postgres:
+    image: tensorchord/pgvecto-rs:pg16-v0.2.0
+    container_name: immich-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: "{{DB_PASSWORD}}"
+      POSTGRES_USER: postgres
+      POSTGRES_DB: immich
+    volumes:
+      - "{{DATA_PATH}}/postgres:/var/lib/postgresql/data"

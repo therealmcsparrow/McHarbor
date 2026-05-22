@@ -1,0 +1,8 @@
+{
+  "label": "Container Stats",
+  "description": "Read one-shot runtime metrics for a container",
+  "config": {
+    "environment": "Environment",
+    "container": "Container"
+  }
+}

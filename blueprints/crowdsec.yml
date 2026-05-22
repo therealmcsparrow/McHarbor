@@ -1,0 +1,34 @@
+x-mcharbor:
+  name: crowdsec
+  title: CrowdSec
+  description: Collaborative security engine. Detect and block malicious IPs using crowd-sourced intelligence.
+  category: security
+  icon: shield-check
+  website: https://crowdsec.net
+  tags: [security, firewall, ids, intrusion-detection]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: API_PORT
+      label: API Port
+      type: port
+      default: "8080"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/crowdsec
+
+services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: unless-stopped
+    ports:
+      - "{{API_PORT}}:8080"
+    environment:
+      COLLECTIONS: "crowdsecurity/linux crowdsecurity/nginx"
+    volumes:
+      - "{{DATA_PATH}}/config:/etc/crowdsec"
+      - "{{DATA_PATH}}/data:/var/lib/crowdsec/data"
+      - /var/log:/var/log:ro

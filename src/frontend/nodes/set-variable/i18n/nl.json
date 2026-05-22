@@ -1,0 +1,8 @@
+{
+  "label": "Set Variable",
+  "description": "Store a value on the flow context",
+  "config": {
+    "name": "Variable Name",
+    "value": "Waarde"
+  }
+}

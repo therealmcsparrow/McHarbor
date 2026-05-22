@@ -1,0 +1,10 @@
+{
+  "label": "Container Logs",
+  "description": "Read recent logs from a container",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container",
+    "tail": "Laatste regels",
+    "since": "Sinds"
+  }
+}

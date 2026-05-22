@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "activityFeed": {
+      "label": "Activity Feed",
+      "description": "Recent container events"
+    }
+  },
+  "activityFeedWidget": {
+    "title": "Activity Feed",
+    "loadingActivity": "Loading activity...",
+    "noRecentActivity": "No recent activity"
+  }
+}

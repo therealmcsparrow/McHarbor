@@ -1,0 +1,8 @@
+{
+  "label": "Image Push",
+  "description": "Push an image to its configured registry",
+  "config": {
+    "environment": "Umgebung",
+    "image": "Image"
+  }
+}

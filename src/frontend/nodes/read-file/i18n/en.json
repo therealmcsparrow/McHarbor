@@ -1,0 +1,15 @@
+{
+  "label": "Read File",
+  "description": "Read a file from the workflow data directory",
+  "config": {
+    "path": "Path",
+    "encoding": "Encoding",
+    "output_property": "Output Property"
+  },
+  "options": {
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    }
+  }
+}

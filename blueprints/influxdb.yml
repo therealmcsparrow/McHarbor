@@ -1,0 +1,55 @@
+x-mcharbor:
+  name: influxdb
+  title: InfluxDB
+  description: High-performance time-series database designed for metrics, events, and real-time analytics.
+  category: database
+  icon: database
+  website: https://www.influxdata.com
+  tags: [database, time-series, metrics, iot, monitoring]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "8086"
+      required: true
+    - name: ADMIN_USER
+      label: Admin Username
+      type: string
+      default: admin
+      required: true
+    - name: ADMIN_PASSWORD
+      label: Admin Password
+      type: password
+      required: true
+    - name: ORG_NAME
+      label: Organization Name
+      type: string
+      default: mcharbor
+      required: true
+    - name: BUCKET_NAME
+      label: Default Bucket
+      type: string
+      default: default
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/influxdb
+
+services:
+  influxdb:
+    image: influxdb:2-alpine
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: "{{ADMIN_USER}}"
+      DOCKER_INFLUXDB_INIT_PASSWORD: "{{ADMIN_PASSWORD}}"
+      DOCKER_INFLUXDB_INIT_ORG: "{{ORG_NAME}}"
+      DOCKER_INFLUXDB_INIT_BUCKET: "{{BUCKET_NAME}}"
+    volumes:
+      - "{{DATA_PATH}}/data:/var/lib/influxdb2"
+      - "{{DATA_PATH}}/config:/etc/influxdb2"

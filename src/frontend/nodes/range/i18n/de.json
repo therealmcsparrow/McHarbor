@@ -1,0 +1,7 @@
+{
+  "label": "Range",
+  "description": "Read an array property and attach range metadata",
+  "config": {
+    "property": "Eigenschaft"
+  }
+}

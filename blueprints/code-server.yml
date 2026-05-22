@@ -1,0 +1,39 @@
+x-mcharbor:
+  name: code-server
+  title: Code Server (VS Code)
+  description: Run VS Code in the browser. Full IDE experience accessible from anywhere.
+  category: development
+  icon: code
+  website: https://coder.com
+  tags: [ide, vscode, development, code, editor]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8443"
+      required: true
+    - name: PASSWORD
+      label: Access Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Project Directory
+      type: path
+      default: ./data/code-server
+
+services:
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: code-server
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8443"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+      PASSWORD: "{{PASSWORD}}"
+    volumes:
+      - "{{DATA_PATH}}:/config"

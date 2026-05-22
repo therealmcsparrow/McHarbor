@@ -1,0 +1,19 @@
+{
+  "label": "Conditie",
+  "description": "Route a message based on a condition",
+  "config": {
+    "field": "Veld",
+    "operator": "Operator",
+    "value": "Waarde"
+  },
+  "options": {
+    "operator": {
+      "==": "Gelijk aan",
+      "!=": "Niet gelijk aan",
+      "contains": "Contains",
+      "regex": "Komt overeen met regex",
+      "is_empty": "Is leeg",
+      "is_not_empty": "Is niet leeg"
+    }
+  }
+}

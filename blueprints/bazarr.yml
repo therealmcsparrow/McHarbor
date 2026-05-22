@@ -1,0 +1,44 @@
+x-mcharbor:
+  name: bazarr
+  title: Bazarr
+  description: Automated subtitle manager that integrates with Sonarr and Radarr for movies and TV shows.
+  category: media
+  icon: subtitles
+  website: https://www.bazarr.media
+  tags: [subtitles, media, sonarr, radarr, movies, tv]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "6767"
+      required: true
+    - name: MOVIES_PATH
+      label: Movies Directory
+      type: path
+      default: ./data/media/movies
+    - name: TV_PATH
+      label: TV Shows Directory
+      type: path
+      default: ./data/media/tv
+    - name: DATA_PATH
+      label: Config Directory
+      type: path
+      default: ./data/bazarr
+
+services:
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:6767"
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+    volumes:
+      - "{{DATA_PATH}}:/config"
+      - "{{MOVIES_PATH}}:/movies"
+      - "{{TV_PATH}}:/tv"

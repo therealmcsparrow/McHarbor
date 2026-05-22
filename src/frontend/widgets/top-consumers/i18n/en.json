@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "topCpuConsumers": {
+      "label": "Top CPU Consumers",
+      "description": "Containers with highest CPU usage"
+    },
+    "topMemoryConsumers": {
+      "label": "Top Memory Consumers",
+      "description": "Containers with highest memory usage"
+    }
+  },
+  "topConsumersWidget": {
+    "cpuTitle": "Top CPU Consumers",
+    "memoryTitle": "Top Memory Consumers",
+    "noData": "No container stats available"
+  }
+}

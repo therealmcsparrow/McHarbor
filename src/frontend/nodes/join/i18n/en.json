@@ -1,0 +1,15 @@
+{
+  "label": "Join",
+  "description": "Join multiple incoming branches into a single message",
+  "config": {
+    "input_count": "Input Count",
+    "combine_mode": "Combine Mode"
+  },
+  "options": {
+    "combine_mode": {
+      "last": "Last Message",
+      "merge": "Merge Objects",
+      "array": "Array"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Volumes",
+  "description": "{{count}} volumes",
+  "searchPlaceholder": "Volumes zoeken...",
+  "emptyMessage": "Geen volumes gevonden",
+  "tableView": "Tabelweergave",
+  "cardView": "Kaartweergave",
+  "columns": {
+    "name": "Naam",
+    "driver": "Driver",
+    "usage": "Gebruik",
+    "mountpoint": "Koppelpunt",
+    "created": "Aangemaakt",
+    "actions": "Acties"
+  },
+  "badges": {
+    "inUse": "in gebruik",
+    "unused": "ongebruikt"
+  },
+  "create": {
+    "title": "Volume aanmaken",
+    "description": "Geef de volumenaam en driver op.",
+    "name": "Volumenaam",
+    "driver": "Driver",
+    "driverPlaceholder": "Driver (standaard: local)",
+    "submit": "Aanmaken",
+    "creating": "Aanmaken..."
+  },
+  "toast": {
+    "created": "Volume aangemaakt",
+    "removed": "Volume verwijderd",
+    "pruned": "Ongebruikte volumes opgeschoond"
+  },
+  "confirm": {
+    "removeTitle": "Volume verwijderen",
+    "removeDescription": "Dit verwijdert dit volume permanent, inclusief alle gegevens."
+  }
+}

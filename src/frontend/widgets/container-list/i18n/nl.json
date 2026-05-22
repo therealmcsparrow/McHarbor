@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "containerList": {
+      "label": "Containerlijst",
+      "description": "Compacte lijst van containers met status"
+    }
+  },
+  "containerListWidget": {
+    "title": "Containers",
+    "loadingContainers": "Containers laden...",
+    "noContainersFound": "Geen containers gevonden",
+    "name": "Naam",
+    "image": "Image",
+    "state": "Status",
+    "viewAll": "Alles bekijken ({{count}})",
+    "viewAllArrow": "Alles bekijken"
+  }
+}

@@ -1,0 +1,33 @@
+x-mcharbor:
+  name: mealie
+  title: Mealie
+  description: Recipe management app with meal planning, shopping lists, and recipe importing.
+  category: productivity
+  icon: utensils-crossed
+  website: https://mealie.io
+  tags: [recipes, meal-planning, cooking, food]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "9925"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/mealie
+
+services:
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:latest
+    container_name: mealie
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:9000"
+    environment:
+      ALLOW_SIGNUP: "true"
+      TZ: UTC
+    volumes:
+      - "{{DATA_PATH}}:/app/data"

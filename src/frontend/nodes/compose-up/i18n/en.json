@@ -1,0 +1,8 @@
+{
+  "label": "Compose Up",
+  "description": "Start containers that belong to a compose stack",
+  "config": {
+    "environment": "Environment",
+    "stack_name": "Stack Name"
+  }
+}

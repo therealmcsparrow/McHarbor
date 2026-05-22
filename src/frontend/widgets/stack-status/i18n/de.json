@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "stackStatus": {
+      "label": "Stack-Status",
+      "description": "Übersicht der Compose-Stacks"
+    }
+  },
+  "stackStatusWidget": {
+    "title": "Stacks",
+    "loadingStacks": "Stacks werden geladen...",
+    "noStacksFound": "Keine Stacks gefunden",
+    "service_one": "{{count}} Dienst",
+    "service_other": "{{count}} Dienste",
+    "viewAll": "Alle anzeigen"
+  }
+}

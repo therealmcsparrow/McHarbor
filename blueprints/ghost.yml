@@ -1,0 +1,37 @@
+x-mcharbor:
+  name: ghost
+  title: Ghost
+  description: Professional publishing platform for creating newsletters, blogs, and membership sites.
+  category: productivity
+  icon: edit
+  website: https://ghost.org
+  tags: [blog, newsletter, cms, publishing]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "2368"
+      required: true
+    - name: SITE_URL
+      label: Site URL
+      type: string
+      default: "http://localhost:2368"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/ghost
+
+services:
+  ghost:
+    image: ghost:5-alpine
+    container_name: ghost
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:2368"
+    environment:
+      url: "{{SITE_URL}}"
+    volumes:
+      - "{{DATA_PATH}}:/var/lib/ghost/content"

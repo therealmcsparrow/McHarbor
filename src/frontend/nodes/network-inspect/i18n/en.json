@@ -1,0 +1,8 @@
+{
+  "label": "Network Inspect",
+  "description": "Inspect a Docker network",
+  "config": {
+    "environment": "Environment",
+    "name": "Name"
+  }
+}

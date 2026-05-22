@@ -1,0 +1,34 @@
+x-mcharbor:
+  name: freshrss
+  title: FreshRSS
+  description: Self-hosted RSS feed aggregator. Follow news, blogs, and podcasts in one place.
+  category: productivity
+  icon: rss
+  website: https://freshrss.org
+  tags: [rss, news, feed, reader]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8080"
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/freshrss
+
+services:
+  freshrss:
+    image: freshrss/freshrss:latest
+    container_name: freshrss
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:80"
+    environment:
+      TZ: UTC
+      CRON_MIN: "1,31"
+    volumes:
+      - "{{DATA_PATH}}/data:/var/www/FreshRSS/data"
+      - "{{DATA_PATH}}/extensions:/var/www/FreshRSS/extensions"

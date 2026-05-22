@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "quickActions": {
+      "label": "Quick Actions",
+      "description": "Common maintenance operations"
+    }
+  },
+  "quickActionsWidget": {
+    "title": "Quick Actions",
+    "pruneImages": "Prune Images",
+    "pruneImagesDesc": "Remove all unused images. This cannot be undone.",
+    "pruneVolumes": "Prune Volumes",
+    "pruneVolumesDesc": "Remove all unused volumes. This cannot be undone.",
+    "confirm": "Confirm"
+  }
+}

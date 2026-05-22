@@ -1,0 +1,8 @@
+{
+  "label": "Rate Limit",
+  "description": "Throttle workflow throughput with a simple rate policy",
+  "config": {
+    "limit": "Limit",
+    "window_seconds": "Window (seconds)"
+  }
+}

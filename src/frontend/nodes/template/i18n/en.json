@@ -1,0 +1,8 @@
+{
+  "label": "Template",
+  "description": "Render a text template using values from the workflow message",
+  "config": {
+    "template": "Template",
+    "output_property": "Output Property"
+  }
+}

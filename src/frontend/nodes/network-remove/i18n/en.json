@@ -1,0 +1,8 @@
+{
+  "label": "Network Remove",
+  "description": "Remove a Docker network",
+  "config": {
+    "environment": "Environment",
+    "name": "Name"
+  }
+}

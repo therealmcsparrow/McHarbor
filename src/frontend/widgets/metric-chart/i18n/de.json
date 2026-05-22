@@ -1,0 +1,33 @@
+{
+  "widgets": {
+    "cpuUsage": {
+      "label": "CPU-Auslastung",
+      "description": "Live-CPU-Auslastungsdiagramm"
+    },
+    "memoryUsage": {
+      "label": "Speicherauslastung",
+      "description": "Live-Speicherauslastungsdiagramm"
+    },
+    "networkIO": {
+      "label": "Netzwerk-I/O",
+      "description": "Netzwerk-Empfangs-/Sendediagramm"
+    },
+    "diskIO": {
+      "label": "Festplatten-I/O",
+      "description": "Festplatten-Lese-/Schreibdiagramm"
+    }
+  },
+  "metricChartWidget": {
+    "cpuUsage": "CPU-Auslastung",
+    "memoryUsage": "Speicherauslastung",
+    "networkIO": "Netzwerk-I/O",
+    "diskIO": "Festplatten-I/O",
+    "ofTotal": "von {{total}}",
+    "tx": "Tx: {{value}}",
+    "write": "Schreiben: {{value}}",
+    "rxLabel": "Rx",
+    "txLabel": "Tx",
+    "readLabel": "Lesen",
+    "writeLabel": "Schreiben"
+  }
+}

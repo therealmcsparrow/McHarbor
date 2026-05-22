@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "topCpuConsumers": {
+      "label": "Top CPU-Verbraucher",
+      "description": "Container mit höchster CPU-Auslastung"
+    },
+    "topMemoryConsumers": {
+      "label": "Top Speicherverbraucher",
+      "description": "Container mit höchstem Speicherverbrauch"
+    }
+  },
+  "topConsumersWidget": {
+    "cpuTitle": "Top CPU-Verbraucher",
+    "memoryTitle": "Top Speicherverbraucher",
+    "noData": "Keine Containerstatistiken verfügbar"
+  }
+}

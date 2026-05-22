@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "podStatus": {
+      "label": "Pod-Status",
+      "description": "Übersicht der Kubernetes-Pod-Phasen"
+    }
+  },
+  "podStatusWidget": {
+    "title": "Pod-Status",
+    "pods": "Pods",
+    "noPods": "Keine Pods gefunden",
+    "notAvailable": "Kubernetes nicht verfügbar"
+  }
+}

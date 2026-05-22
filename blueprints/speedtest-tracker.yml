@@ -1,0 +1,41 @@
+x-mcharbor:
+  name: speedtest-tracker
+  title: Speedtest Tracker
+  description: Self-hosted internet speed tracking with historical data and beautiful graphs.
+  category: monitoring
+  icon: wifi
+  website: https://github.com/alexjustesen/speedtest-tracker
+  tags: [speedtest, internet, monitoring, bandwidth]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8080"
+      required: true
+    - name: APP_KEY
+      label: App Key
+      type: password
+      required: true
+      description: "Generate with: base64(random 32 bytes)"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/speedtest
+
+services:
+  speedtest:
+    image: lscr.io/linuxserver/speedtest-tracker:latest
+    container_name: speedtest-tracker
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:80"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+      APP_KEY: "{{APP_KEY}}"
+      DB_CONNECTION: sqlite
+    volumes:
+      - "{{DATA_PATH}}:/config"

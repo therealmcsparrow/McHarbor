@@ -1,0 +1,8 @@
+{
+  "label": "Debug",
+  "description": "Emit the current message to the debug stream",
+  "config": {
+    "property": "Eigenschaft",
+    "full_message": "Show Full Message"
+  }
+}

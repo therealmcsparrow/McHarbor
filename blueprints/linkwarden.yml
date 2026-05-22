@@ -1,0 +1,54 @@
+x-mcharbor:
+  name: linkwarden
+  title: Linkwarden
+  description: Bookmark manager with automatic archiving, collections, and collaboration features.
+  category: productivity
+  icon: bookmark
+  website: https://linkwarden.app
+  tags: [bookmarks, links, archiving, web]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "3000"
+      required: true
+    - name: NEXTAUTH_SECRET
+      label: Auth Secret
+      type: password
+      required: true
+    - name: POSTGRES_PASSWORD
+      label: Database Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/linkwarden
+
+services:
+  linkwarden:
+    image: ghcr.io/linkwarden/linkwarden:latest
+    container_name: linkwarden
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:3000"
+    environment:
+      NEXTAUTH_SECRET: "{{NEXTAUTH_SECRET}}"
+      NEXTAUTH_URL: "http://localhost:{{WEB_PORT}}/api/v1/auth"
+      DATABASE_URL: "postgresql://postgres:{{POSTGRES_PASSWORD}}@linkwarden-db:5432/linkwarden"
+    volumes:
+      - "{{DATA_PATH}}/data:/data/data"
+    depends_on:
+      - linkwarden-db
+
+  linkwarden-db:
+    image: postgres:16-alpine
+    container_name: linkwarden-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: "{{POSTGRES_PASSWORD}}"
+      POSTGRES_DB: linkwarden
+    volumes:
+      - "{{DATA_PATH}}/postgres:/var/lib/postgresql/data"

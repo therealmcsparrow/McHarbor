@@ -1,0 +1,17 @@
+{
+  "label": "Container Wait",
+  "description": "Wait for a container to reach a condition",
+  "config": {
+    "environment": "Environment",
+    "container": "Container",
+    "condition": "Condition",
+    "timeout": "Timeout (seconds)"
+  },
+  "options": {
+    "condition": {
+      "not-running": "Not Running",
+      "next-exit": "Next Exit",
+      "removed": "Removed"
+    }
+  }
+}

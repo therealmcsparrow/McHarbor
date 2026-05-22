@@ -1,0 +1,9 @@
+{
+  "label": "KV Get",
+  "description": "Read a value from the workflow key-value store",
+  "config": {
+    "key": "Schlüssel",
+    "output_property": "Ausgabe-Eigenschaft",
+    "default_value": "Standardwert"
+  }
+}

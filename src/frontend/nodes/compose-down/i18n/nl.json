@@ -1,0 +1,9 @@
+{
+  "label": "Compose Down",
+  "description": "Stop and remove a compose stack",
+  "config": {
+    "environment": "Omgeving",
+    "stack_name": "Stacknaam",
+    "remove_volumes": "Volumes verwijderen"
+  }
+}

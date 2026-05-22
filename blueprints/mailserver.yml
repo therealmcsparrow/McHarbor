@@ -1,0 +1,44 @@
+x-mcharbor:
+  name: mailserver
+  title: Docker Mailserver
+  description: Production-ready fullstack email server with anti-spam, DKIM, DMARC, and TLS.
+  category: communication
+  icon: mail
+  website: https://docker-mailserver.github.io/docker-mailserver
+  tags: [email, mail, smtp, imap, communication]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: MAIL_DOMAIN
+      label: Mail Domain
+      type: string
+      required: true
+      placeholder: "mail.example.com"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/mailserver
+
+services:
+  mailserver:
+    image: ghcr.io/docker-mailserver/docker-mailserver:latest
+    container_name: mailserver
+    hostname: "{{MAIL_DOMAIN}}"
+    restart: unless-stopped
+    ports:
+      - "25:25"
+      - "143:143"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+    environment:
+      ENABLE_SPAMASSASSIN: "1"
+      ENABLE_CLAMAV: "1"
+      ENABLE_FAIL2BAN: "1"
+    volumes:
+      - "{{DATA_PATH}}/mail-data:/var/mail"
+      - "{{DATA_PATH}}/mail-state:/var/mail-state"
+      - "{{DATA_PATH}}/mail-logs:/var/log/mail"
+      - "{{DATA_PATH}}/config:/tmp/docker-mailserver"
+    cap_add:
+      - NET_ADMIN

@@ -1,0 +1,8 @@
+{
+  "label": "Send Internal Notification",
+  "description": "Send an in-app notification inside McHarbor",
+  "config": {
+    "title": "Title",
+    "message": "Message"
+  }
+}

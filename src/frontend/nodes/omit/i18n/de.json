@@ -1,0 +1,8 @@
+{
+  "label": "Omit",
+  "description": "Remove selected fields from an object",
+  "config": {
+    "property": "Eigenschaft",
+    "fields": "Felder"
+  }
+}

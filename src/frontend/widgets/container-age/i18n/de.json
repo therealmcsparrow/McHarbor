@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "containerAge": {
+      "label": "Container-Alter",
+      "description": "Älteste Container nach Erstellungsdatum"
+    }
+  },
+  "containerAgeWidget": {
+    "title": "Container-Alter",
+    "container": "Container",
+    "age": "Alter",
+    "state": "Status",
+    "noContainers": "Keine Container gefunden"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "label": "Container Create",
+  "description": "Create a new container from an image",
+  "config": {
+    "environment": "Environment",
+    "image": "Image",
+    "name": "Name",
+    "ports": "Ports",
+    "env_vars": "Environment Variables",
+    "restart_policy": "Restart Policy",
+    "auto_start": "Auto Start"
+  },
+  "options": {
+    "restart_policy": {
+      "no": "No",
+      "always": "Always",
+      "on-failure": "On Failure",
+      "unless-stopped": "Unless Stopped"
+    }
+  }
+}

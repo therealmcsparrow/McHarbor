@@ -1,0 +1,18 @@
+{
+  "label": "Metric Trigger",
+  "description": "Start a workflow when container metrics are checked",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container",
+    "conditions": "Metriekvoorwaarden",
+    "logic": "Conditielogica",
+    "interval": "Interval (seconden)",
+    "cooldown": "Afkoelperiode (seconden)"
+  },
+  "options": {
+    "logic": {
+      "and": "AND",
+      "or": "OR"
+    }
+  }
+}

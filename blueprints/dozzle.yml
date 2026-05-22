@@ -1,0 +1,26 @@
+x-mcharbor:
+  name: dozzle
+  title: Dozzle
+  description: Real-time log viewer for Docker containers. Lightweight and beautiful web UI.
+  category: monitoring
+  icon: scroll-text
+  website: https://dozzle.dev
+  tags: [logs, monitoring, docker, real-time]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "9999"
+      required: true
+
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro

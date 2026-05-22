@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "restartTracker": {
+      "label": "Herstart-tracker",
+      "description": "Containers met de meeste herstarts"
+    }
+  },
+  "restartTrackerWidget": {
+    "title": "Herstart-tracker",
+    "container": "Container",
+    "restarts": "Herstarts",
+    "state": "Status",
+    "noRestarts": "Geen containerherstarts gedetecteerd"
+  }
+}

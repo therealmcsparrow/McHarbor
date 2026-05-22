@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "deploymentStatus": {
+      "label": "Deployment Status",
+      "description": "Kubernetes deployment replica status"
+    }
+  },
+  "deploymentStatusWidget": {
+    "title": "Deployment Status",
+    "name": "Name",
+    "namespace": "Namespace",
+    "replicas": "Replicas",
+    "status": "Status",
+    "healthy": "Healthy",
+    "progressing": "Progressing",
+    "noDeployments": "No deployments found",
+    "notAvailable": "Kubernetes not available"
+  }
+}

@@ -1,0 +1,61 @@
+x-mcharbor:
+  name: loki-stack
+  title: Grafana Loki Stack
+  description: Log aggregation system with Grafana for visualization and Promtail for collection.
+  category: monitoring
+  icon: scroll-text
+  website: https://grafana.com/oss/loki
+  tags: [logs, monitoring, grafana, aggregation]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: GRAFANA_PORT
+      label: Grafana Port
+      type: port
+      default: "3000"
+      required: true
+    - name: LOKI_PORT
+      label: Loki Port
+      type: port
+      default: "3100"
+    - name: GF_ADMIN_PASSWORD
+      label: Grafana Admin Password
+      type: password
+      default: admin
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/loki-stack
+
+services:
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    ports:
+      - "{{LOKI_PORT}}:3100"
+    volumes:
+      - "{{DATA_PATH}}/loki:/loki"
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: loki-grafana
+    restart: unless-stopped
+    ports:
+      - "{{GRAFANA_PORT}}:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "{{GF_ADMIN_PASSWORD}}"
+    volumes:
+      - "{{DATA_PATH}}/grafana:/var/lib/grafana"
+    depends_on:
+      - loki

@@ -1,0 +1,19 @@
+{
+  "label": "Bedingung",
+  "description": "Route a message based on a condition",
+  "config": {
+    "field": "Feld",
+    "operator": "Operator",
+    "value": "Wert"
+  },
+  "options": {
+    "operator": {
+      "==": "Gleich",
+      "!=": "Ungleich",
+      "contains": "Contains",
+      "regex": "Entspricht Regex",
+      "is_empty": "Ist leer",
+      "is_not_empty": "Ist nicht leer"
+    }
+  }
+}

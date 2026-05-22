@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "workflowRuns": {
+      "label": "Workflow Runs",
+      "description": "Recent workflow execution history"
+    }
+  },
+  "workflowRunsWidget": {
+    "title": "Workflow Runs",
+    "workflow": "Workflow",
+    "status": "Status",
+    "duration": "Duration",
+    "when": "When",
+    "noRuns": "No workflow runs yet"
+  }
+}

@@ -1,0 +1,50 @@
+x-mcharbor:
+  name: minecraft
+  title: Minecraft Server
+  description: Java Edition Minecraft server with RCON support and automatic world backups.
+  category: gaming
+  icon: gamepad-2
+  website: https://minecraft.net
+  tags: [gaming, minecraft, server, multiplayer]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: GAME_PORT
+      label: Game Port
+      type: port
+      default: "25565"
+      required: true
+    - name: EULA
+      label: Accept EULA
+      type: select
+      options: ["TRUE", "FALSE"]
+      default: "TRUE"
+      required: true
+    - name: MEMORY
+      label: Memory (e.g. 2G)
+      type: string
+      default: "2G"
+    - name: VERSION
+      label: Minecraft Version
+      type: string
+      default: LATEST
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/minecraft
+
+services:
+  minecraft:
+    image: itzg/minecraft-server:latest
+    container_name: minecraft
+    restart: unless-stopped
+    ports:
+      - "{{GAME_PORT}}:25565"
+    environment:
+      EULA: "{{EULA}}"
+      MEMORY: "{{MEMORY}}"
+      VERSION: "{{VERSION}}"
+    volumes:
+      - "{{DATA_PATH}}:/data"
+    stdin_open: true
+    tty: true

@@ -1,0 +1,8 @@
+{
+  "label": "Container Inspect",
+  "description": "Inspect a single container",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container"
+  }
+}

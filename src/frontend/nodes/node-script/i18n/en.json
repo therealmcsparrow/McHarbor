@@ -1,0 +1,8 @@
+{
+  "label": "Node Script",
+  "description": "Run custom JavaScript against the current workflow message",
+  "config": {
+    "code": "Code",
+    "timeout": "Timeout (seconds)"
+  }
+}

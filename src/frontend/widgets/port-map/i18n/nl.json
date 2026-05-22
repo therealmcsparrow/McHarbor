@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "portMap": {
+      "label": "Poorttoewijzingen",
+      "description": "Host-naar-container poorttoewijzingen"
+    }
+  },
+  "portMapWidget": {
+    "title": "Poorttoewijzingen",
+    "container": "Container",
+    "mapping": "Host → Container",
+    "protocol": "Protocol",
+    "noPorts": "Geen gepubliceerde poorten gevonden"
+  }
+}

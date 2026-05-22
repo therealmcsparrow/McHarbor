@@ -1,0 +1,9 @@
+{
+  "label": "Image List",
+  "description": "List images in an environment",
+  "config": {
+    "environment": "Environment",
+    "show_all": "Show All",
+    "filter_dangling": "Only Dangling"
+  }
+}

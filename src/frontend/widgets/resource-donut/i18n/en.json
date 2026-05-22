@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "resourceDonut": {
+      "label": "Resource Donut",
+      "description": "Pie chart of resource distribution"
+    }
+  },
+  "resourceDonutWidget": {
+    "title": "Resources",
+    "noResources": "No resources",
+    "running": "Running",
+    "stopped": "Stopped",
+    "images": "Images",
+    "volumes": "Volumes",
+    "networks": "Networks",
+    "total": "total"
+  }
+}

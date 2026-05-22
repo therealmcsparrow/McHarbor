@@ -1,0 +1,21 @@
+{
+  "title": "Dashboard",
+  "description": "Overzicht van je Docker-omgeving",
+  "addWidget": "Widget toevoegen",
+  "editDashboard": "Dashboard bewerken",
+  "doneEditing": "Klaar met bewerken",
+  "edit": "Bewerken",
+  "done": "Klaar",
+  "reset": "Herstellen",
+  "loading": "Laden...",
+  "addWidgets": "Widgets toevoegen",
+  "addWidgetsDescription": "Selecteer widgets om toe te voegen aan je dashboard",
+  "categories": {
+    "resources": "Resources",
+    "host": "Host",
+    "metrics": "Statistieken",
+    "monitoring": "Monitoring",
+    "operations": "Operaties",
+    "kubernetes": "Kubernetes"
+  }
+}

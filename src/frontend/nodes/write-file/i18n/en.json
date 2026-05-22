@@ -1,0 +1,20 @@
+{
+  "label": "Write File",
+  "description": "Write message data to a file in the workflow data directory",
+  "config": {
+    "path": "Path",
+    "property": "Property",
+    "mode": "Mode",
+    "encoding": "Encoding"
+  },
+  "options": {
+    "mode": {
+      "overwrite": "Overwrite",
+      "append": "Append"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    }
+  }
+}

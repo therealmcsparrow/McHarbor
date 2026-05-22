@@ -1,0 +1,19 @@
+{
+  "label": "Send Webhook",
+  "description": "Send an outbound webhook with message data",
+  "config": {
+    "url": "URL",
+    "method": "Methode",
+    "headers": "Headers",
+    "body_source": "Body Source"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

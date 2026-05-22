@@ -1,0 +1,18 @@
+{
+  "label": "Metric Record",
+  "description": "Persist a workflow metric sample from the current message",
+  "config": {
+    "metric_name": "Metric Name",
+    "property": "Property",
+    "metric_type": "Metric Type",
+    "unit": "Unit",
+    "labels": "Labels"
+  },
+  "options": {
+    "metric_type": {
+      "gauge": "Gauge",
+      "counter": "Counter",
+      "event": "Event"
+    }
+  }
+}

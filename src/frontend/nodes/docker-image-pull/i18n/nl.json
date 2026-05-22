@@ -1,0 +1,8 @@
+{
+  "label": "Docker Image Pull",
+  "description": "Pull an image from a registry",
+  "config": {
+    "environment": "Omgeving",
+    "image": "Image"
+  }
+}

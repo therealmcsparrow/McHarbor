@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "alertSummary": {
+      "label": "Waarschuwingsoverzicht",
+      "description": "Geconfigureerde waarschuwingsregels gegroepeerd op ernst"
+    }
+  },
+  "alertSummaryWidget": {
+    "title": "Waarschuwingsoverzicht",
+    "noAlerts": "Geen ingeschakelde waarschuwingsregels",
+    "notConfigured": "Waarschuwingsregels niet beschikbaar",
+    "disabledRules": "Uitgeschakelde regels: {{count}}",
+    "severity": {
+      "critical": "Kritiek",
+      "warning": "Waarschuwing",
+      "info": "Info"
+    }
+  }
+}

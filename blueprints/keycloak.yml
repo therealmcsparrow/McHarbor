@@ -1,0 +1,68 @@
+x-mcharbor:
+  name: keycloak
+  title: Keycloak
+  description: Open-source identity and access management with SSO, social login, and user federation.
+  category: security
+  icon: shield
+  website: https://www.keycloak.org
+  tags: [auth, sso, identity, oidc, ldap, security]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "8080"
+      required: true
+    - name: KEYCLOAK_ADMIN
+      label: Admin Username
+      type: string
+      default: admin
+      required: true
+    - name: KEYCLOAK_ADMIN_PASSWORD
+      label: Admin Password
+      type: password
+      required: true
+    - name: DB_PASSWORD
+      label: Database Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/keycloak
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26-alpine
+    container_name: keycloak
+    restart: unless-stopped
+    command: start-dev
+    ports:
+      - "{{HTTP_PORT}}:8080"
+    environment:
+      KEYCLOAK_ADMIN: "{{KEYCLOAK_ADMIN}}"
+      KEYCLOAK_ADMIN_PASSWORD: "{{KEYCLOAK_ADMIN_PASSWORD}}"
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: "{{DB_PASSWORD}}"
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+
+  keycloak-db:
+    image: postgres:16-alpine
+    container_name: keycloak-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: "{{DB_PASSWORD}}"
+    volumes:
+      - "{{DATA_PATH}}/db:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

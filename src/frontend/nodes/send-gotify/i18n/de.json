@@ -1,0 +1,11 @@
+{
+  "label": "Send Gotify",
+  "description": "Send a Gotify notification",
+  "config": {
+    "server_url": "Server-URL",
+    "app_token": "App Token",
+    "title": "Titel",
+    "message": "Nachricht",
+    "priority": "Priorität"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "label": "Filter",
+  "description": "Allow or block a message using a condition",
+  "config": {
+    "field": "Field",
+    "operator": "Operator",
+    "value": "Value"
+  },
+  "options": {
+    "operator": {
+      "==": "Equals",
+      "!=": "Not equal",
+      "contains": "Contains",
+      "regex": "Matches regex",
+      "is_empty": "Is empty",
+      "is_not_empty": "Is not empty"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "label": "Delay",
+  "description": "Pause workflow execution for a number of seconds",
+  "config": {
+    "seconds": "Seconds"
+  }
+}

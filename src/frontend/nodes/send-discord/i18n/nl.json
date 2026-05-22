@@ -1,0 +1,9 @@
+{
+  "label": "Send Discord",
+  "description": "Send a message to a Discord webhook",
+  "config": {
+    "webhook_url": "Webhook-URL",
+    "username": "Username",
+    "message": "Bericht"
+  }
+}

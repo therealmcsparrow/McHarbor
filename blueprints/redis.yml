@@ -1,0 +1,38 @@
+x-mcharbor:
+  name: redis
+  title: Redis
+  description: In-memory data store for caching, session management, and real-time applications.
+  category: database
+  icon: database
+  website: https://redis.io
+  tags: [cache, database, in-memory, key-value]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: REDIS_PORT
+      label: Redis Port
+      type: port
+      default: "6379"
+      required: true
+    - name: REDIS_PASSWORD
+      label: Password
+      type: password
+      placeholder: "Leave empty for no password"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/redis
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "{{REDIS_PORT}}:6379"
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass "{{REDIS_PASSWORD}}"
+    volumes:
+      - "{{DATA_PATH}}:/data"

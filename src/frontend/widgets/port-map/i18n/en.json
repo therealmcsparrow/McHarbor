@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "portMap": {
+      "label": "Port Map",
+      "description": "Host-to-container port mappings"
+    }
+  },
+  "portMapWidget": {
+    "title": "Port Map",
+    "container": "Container",
+    "mapping": "Host → Container",
+    "protocol": "Protocol",
+    "noPorts": "No published ports found"
+  }
+}

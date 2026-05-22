@@ -1,0 +1,38 @@
+x-mcharbor:
+  name: matrix-synapse
+  title: Matrix Synapse
+  description: Decentralized communication server for Matrix protocol. Secure messaging and VoIP.
+  category: communication
+  icon: message-square
+  website: https://matrix.org
+  tags: [chat, messaging, matrix, encrypted, communication]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8008"
+      required: true
+    - name: SERVER_NAME
+      label: Server Name
+      type: string
+      required: true
+      placeholder: "matrix.example.com"
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/matrix
+
+services:
+  synapse:
+    image: matrixdotorg/synapse:latest
+    container_name: synapse
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8008"
+    environment:
+      SYNAPSE_SERVER_NAME: "{{SERVER_NAME}}"
+      SYNAPSE_REPORT_STATS: "no"
+    volumes:
+      - "{{DATA_PATH}}:/data"

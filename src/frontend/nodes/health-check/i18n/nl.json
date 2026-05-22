@@ -1,0 +1,20 @@
+{
+  "label": "Health Check",
+  "description": "Check an HTTP endpoint and branch on health",
+  "config": {
+    "url": "URL",
+    "method": "Methode",
+    "expected_status": "Verwachte status",
+    "timeout": "Timeout (seconden)",
+    "retries": "Pogingen"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

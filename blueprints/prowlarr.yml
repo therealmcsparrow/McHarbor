@@ -1,0 +1,34 @@
+x-mcharbor:
+  name: prowlarr
+  title: Prowlarr
+  description: Indexer manager for Sonarr, Radarr, and other *arr applications.
+  category: media
+  icon: search
+  website: https://prowlarr.com
+  tags: [media, indexer, automation, arr]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "9696"
+      required: true
+    - name: DATA_PATH
+      label: Config Directory
+      type: path
+      default: ./data/prowlarr
+
+services:
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:9696"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+    volumes:
+      - "{{DATA_PATH}}:/config"

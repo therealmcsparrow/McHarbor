@@ -1,0 +1,10 @@
+{
+  "label": "GraphQL Request",
+  "description": "Send a GraphQL request and store the parsed response",
+  "config": {
+    "url": "URL",
+    "query": "Query",
+    "variables": "Variables",
+    "headers": "Headers"
+  }
+}

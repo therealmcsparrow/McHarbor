@@ -1,0 +1,48 @@
+x-mcharbor:
+  name: minio
+  title: MinIO
+  description: S3-compatible object storage for AI, analytics, and cloud-native workloads.
+  category: storage
+  icon: hard-drive
+  website: https://min.io
+  tags: [storage, s3, object-storage, cloud]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: API_PORT
+      label: API Port
+      type: port
+      default: "9000"
+      required: true
+    - name: CONSOLE_PORT
+      label: Console Port
+      type: port
+      default: "9001"
+    - name: MINIO_ROOT_USER
+      label: Root User
+      type: string
+      default: minioadmin
+      required: true
+    - name: MINIO_ROOT_PASSWORD
+      label: Root Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/minio
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "{{API_PORT}}:9000"
+      - "{{CONSOLE_PORT}}:9001"
+    environment:
+      MINIO_ROOT_USER: "{{MINIO_ROOT_USER}}"
+      MINIO_ROOT_PASSWORD: "{{MINIO_ROOT_PASSWORD}}"
+    command: server /data --console-address ":9001"
+    volumes:
+      - "{{DATA_PATH}}:/data"

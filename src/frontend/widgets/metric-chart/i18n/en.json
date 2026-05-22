@@ -1,0 +1,33 @@
+{
+  "widgets": {
+    "cpuUsage": {
+      "label": "CPU Usage",
+      "description": "Live CPU usage chart"
+    },
+    "memoryUsage": {
+      "label": "Memory Usage",
+      "description": "Live memory usage chart"
+    },
+    "networkIO": {
+      "label": "Network I/O",
+      "description": "Network receive/transmit chart"
+    },
+    "diskIO": {
+      "label": "Disk I/O",
+      "description": "Disk read/write chart"
+    }
+  },
+  "metricChartWidget": {
+    "cpuUsage": "CPU Usage",
+    "memoryUsage": "Memory Usage",
+    "networkIO": "Network I/O",
+    "diskIO": "Disk I/O",
+    "ofTotal": "of {{total}}",
+    "tx": "Tx: {{value}}",
+    "write": "Write: {{value}}",
+    "rxLabel": "Rx",
+    "txLabel": "Tx",
+    "readLabel": "Read",
+    "writeLabel": "Write"
+  }
+}

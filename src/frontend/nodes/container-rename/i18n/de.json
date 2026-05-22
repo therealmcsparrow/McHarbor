@@ -1,0 +1,9 @@
+{
+  "label": "Container Rename",
+  "description": "Rename a container",
+  "config": {
+    "environment": "Umgebung",
+    "container": "Container",
+    "new_name": "Neuer Name"
+  }
+}

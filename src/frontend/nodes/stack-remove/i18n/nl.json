@@ -1,0 +1,9 @@
+{
+  "label": "Stack Remove",
+  "description": "Remove containers that belong to a compose stack",
+  "config": {
+    "environment": "Omgeving",
+    "stack_name": "Stacknaam",
+    "remove_volumes": "Volumes verwijderen"
+  }
+}

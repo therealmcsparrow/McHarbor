@@ -1,0 +1,20 @@
+{
+  "label": "Assert",
+  "description": "Assert that a condition is true and branch on the result",
+  "config": {
+    "field": "Field",
+    "operator": "Operator",
+    "value": "Value",
+    "message": "Failure Message"
+  },
+  "options": {
+    "operator": {
+      "==": "Equals",
+      "!=": "Not equal",
+      "contains": "Contains",
+      "regex": "Matches regex",
+      "is_empty": "Is empty",
+      "is_not_empty": "Is not empty"
+    }
+  }
+}

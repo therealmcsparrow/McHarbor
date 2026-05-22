@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "containerStates": {
+      "label": "Container States",
+      "description": "Donut chart of container states"
+    }
+  },
+  "containerStatesWidget": {
+    "title": "Container States",
+    "noContainers": "No containers found",
+    "total": "total"
+  }
+}

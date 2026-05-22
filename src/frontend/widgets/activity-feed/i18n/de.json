@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "activityFeed": {
+      "label": "Aktivitätsfeed",
+      "description": "Neueste Container-Ereignisse"
+    }
+  },
+  "activityFeedWidget": {
+    "title": "Aktivitätsfeed",
+    "loadingActivity": "Aktivität wird geladen...",
+    "noRecentActivity": "Keine aktuelle Aktivität"
+  }
+}

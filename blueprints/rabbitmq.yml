@@ -1,0 +1,46 @@
+x-mcharbor:
+  name: rabbitmq
+  title: RabbitMQ
+  description: Message broker with management UI. Reliable messaging for distributed applications.
+  category: development
+  icon: mail
+  website: https://rabbitmq.com
+  tags: [messaging, queue, amqp, broker]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: AMQP_PORT
+      label: AMQP Port
+      type: port
+      default: "5672"
+      required: true
+    - name: MGMT_PORT
+      label: Management Port
+      type: port
+      default: "15672"
+    - name: RABBITMQ_DEFAULT_USER
+      label: Username
+      type: string
+      default: admin
+    - name: RABBITMQ_DEFAULT_PASS
+      label: Password
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/rabbitmq
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "{{AMQP_PORT}}:5672"
+      - "{{MGMT_PORT}}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "{{RABBITMQ_DEFAULT_USER}}"
+      RABBITMQ_DEFAULT_PASS: "{{RABBITMQ_DEFAULT_PASS}}"
+    volumes:
+      - "{{DATA_PATH}}:/var/lib/rabbitmq"

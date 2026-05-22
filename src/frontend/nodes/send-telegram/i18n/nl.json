@@ -1,0 +1,17 @@
+{
+  "label": "Send Telegram",
+  "description": "Send a Telegram bot message",
+  "config": {
+    "bot_token": "Bot Token",
+    "chat_id": "Chat ID",
+    "message": "Bericht",
+    "parse_mode": "Parse-modus"
+  },
+  "options": {
+    "parse_mode": {
+      "": "Platte tekst",
+      "Markdown": "Markdown",
+      "HTML": "HTML"
+    }
+  }
+}

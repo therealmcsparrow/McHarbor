@@ -1,0 +1,66 @@
+x-mcharbor:
+  name: woodpecker-ci
+  title: Woodpecker CI
+  description: Lightweight CI/CD engine with a simple YAML pipeline syntax and built-in Docker support.
+  category: development
+  icon: git-branch
+  website: https://woodpecker-ci.org
+  tags: [ci, cd, pipeline, development, automation, git]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: HTTP_PORT
+      label: HTTP Port
+      type: port
+      default: "8000"
+      required: true
+    - name: AGENT_SECRET
+      label: Agent Secret
+      type: password
+      required: true
+    - name: GITEA_URL
+      label: Gitea URL
+      type: string
+      default: http://gitea:3000
+    - name: GITEA_CLIENT_ID
+      label: Gitea OAuth Client ID
+      type: string
+      required: true
+    - name: GITEA_CLIENT_SECRET
+      label: Gitea OAuth Client Secret
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/woodpecker
+
+services:
+  woodpecker-server:
+    image: woodpeckerci/woodpecker-server:latest
+    container_name: woodpecker-server
+    restart: unless-stopped
+    ports:
+      - "{{HTTP_PORT}}:8000"
+    environment:
+      WOODPECKER_HOST: "http://localhost:{{HTTP_PORT}}"
+      WOODPECKER_AGENT_SECRET: "{{AGENT_SECRET}}"
+      WOODPECKER_GITEA: "true"
+      WOODPECKER_GITEA_URL: "{{GITEA_URL}}"
+      WOODPECKER_GITEA_CLIENT: "{{GITEA_CLIENT_ID}}"
+      WOODPECKER_GITEA_SECRET: "{{GITEA_CLIENT_SECRET}}"
+    volumes:
+      - "{{DATA_PATH}}:/var/lib/woodpecker"
+
+  woodpecker-agent:
+    image: woodpeckerci/woodpecker-agent:latest
+    container_name: woodpecker-agent
+    restart: unless-stopped
+    command: agent
+    environment:
+      WOODPECKER_SERVER: woodpecker-server:9000
+      WOODPECKER_AGENT_SECRET: "{{AGENT_SECRET}}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - woodpecker-server

@@ -1,0 +1,8 @@
+{
+  "label": "HTTP Response",
+  "description": "Set the outgoing status code and headers on the message",
+  "config": {
+    "status_code": "Status Code",
+    "headers": "Headers"
+  }
+}

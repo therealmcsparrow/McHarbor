@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "containerAge": {
+      "label": "Containerleeftijd",
+      "description": "Oudste containers op aanmaakdatum"
+    }
+  },
+  "containerAgeWidget": {
+    "title": "Containerleeftijd",
+    "container": "Container",
+    "age": "Leeftijd",
+    "state": "Status",
+    "noContainers": "Geen containers gevonden"
+  }
+}

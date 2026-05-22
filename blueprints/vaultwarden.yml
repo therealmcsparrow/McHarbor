@@ -1,0 +1,37 @@
+x-mcharbor:
+  name: vaultwarden
+  title: Vaultwarden
+  description: Lightweight Bitwarden-compatible password manager server. Secure credential storage.
+  category: security
+  icon: lock
+  website: https://github.com/dani-garcia/vaultwarden
+  tags: [passwords, security, bitwarden, vault]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8080"
+      required: true
+    - name: ADMIN_TOKEN
+      label: Admin Token
+      type: password
+      required: true
+      description: Token for accessing the admin panel
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/vaultwarden
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:80"
+    environment:
+      ADMIN_TOKEN: "{{ADMIN_TOKEN}}"
+    volumes:
+      - "{{DATA_PATH}}:/data"

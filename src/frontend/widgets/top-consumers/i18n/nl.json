@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "topCpuConsumers": {
+      "label": "Hoogste CPU-verbruikers",
+      "description": "Containers met het hoogste CPU-gebruik"
+    },
+    "topMemoryConsumers": {
+      "label": "Hoogste geheugenverbruikers",
+      "description": "Containers met het hoogste geheugengebruik"
+    }
+  },
+  "topConsumersWidget": {
+    "cpuTitle": "Hoogste CPU-verbruikers",
+    "memoryTitle": "Hoogste geheugenverbruikers",
+    "noData": "Geen containerstatistieken beschikbaar"
+  }
+}

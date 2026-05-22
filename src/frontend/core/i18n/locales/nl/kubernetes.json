@@ -1,0 +1,94 @@
+{
+  "pods": {
+    "title": "Pods",
+    "description": "{{count}} pods",
+    "searchPlaceholder": "Pods zoeken...",
+    "emptyMessage": "Geen pods gevonden",
+    "columns": {
+      "name": "Naam",
+      "namespace": "Namespace",
+      "status": "Status",
+      "ready": "Gereed",
+      "restarts": "Herstarts",
+      "age": "Leeftijd",
+      "node": "Node",
+      "ip": "IP",
+      "actions": "Acties"
+    },
+    "detail": {
+      "notFound": "Pod niet gevonden",
+      "status": "Status",
+      "ready": "Gereed",
+      "node": "Node",
+      "ip": "IP",
+      "containers": "Containers",
+      "restartCount": "{{count}} herstarts"
+    },
+    "toast": {
+      "deleted": "Pod verwijderd"
+    },
+    "confirm": {
+      "deleteTitle": "Pod verwijderen",
+      "deleteDescription": "Weet u zeker dat u deze pod wilt verwijderen?"
+    }
+  },
+  "deployments": {
+    "title": "Deployments",
+    "description": "{{count}} deployments",
+    "searchPlaceholder": "Deployments zoeken...",
+    "emptyMessage": "Geen deployments gevonden",
+    "columns": {
+      "name": "Naam",
+      "namespace": "Namespace",
+      "ready": "Gereed",
+      "upToDate": "Bijgewerkt",
+      "available": "Beschikbaar",
+      "images": "Images",
+      "replicas": "Replica's",
+      "age": "Leeftijd",
+      "actions": "Acties"
+    },
+    "detail": {
+      "notFound": "Deployment niet gevonden",
+      "ready": "Gereed",
+      "upToDate": "Bijgewerkt",
+      "available": "Beschikbaar",
+      "strategy": "Strategie",
+      "conditions": "Condities"
+    },
+    "toast": {
+      "scaled": "Deployment geschaald",
+      "restarted": "Deployment herstart",
+      "deleted": "Deployment verwijderd"
+    },
+    "confirm": {
+      "deleteTitle": "Deployment verwijderen",
+      "deleteDescription": "Weet u zeker dat u dit deployment wilt verwijderen?"
+    }
+  },
+  "services": {
+    "title": "Services",
+    "description": "{{count}} services",
+    "searchPlaceholder": "Services zoeken...",
+    "emptyMessage": "Geen services gevonden",
+    "columns": {
+      "name": "Naam",
+      "namespace": "Namespace",
+      "type": "Type",
+      "clusterIP": "Cluster-IP",
+      "ports": "Poorten",
+      "age": "Leeftijd"
+    }
+  },
+  "namespaces": {
+    "title": "Namespaces",
+    "description": "{{count}} namespaces",
+    "searchPlaceholder": "Namespaces zoeken...",
+    "emptyMessage": "Geen namespaces gevonden",
+    "columns": {
+      "name": "Naam",
+      "status": "Status",
+      "age": "Leeftijd"
+    }
+  }
+}

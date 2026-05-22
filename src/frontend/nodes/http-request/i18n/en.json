@@ -1,0 +1,19 @@
+{
+  "label": "HTTP Request",
+  "description": "Send an HTTP request and store the response on the message",
+  "config": {
+    "url": "URL",
+    "method": "Method",
+    "headers": "Headers",
+    "body_source": "Body Source"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

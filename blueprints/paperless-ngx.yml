@@ -1,0 +1,46 @@
+x-mcharbor:
+  name: paperless-ngx
+  title: Paperless-ngx
+  description: Document management system with OCR. Scan, organize, and search your paper documents.
+  category: productivity
+  icon: file-text
+  website: https://docs.paperless-ngx.com
+  tags: [documents, ocr, scanning, paperless, organization]
+  author: McHarbor
+  version: "1.0"
+  variables:
+    - name: WEB_PORT
+      label: Web Port
+      type: port
+      default: "8000"
+      required: true
+    - name: PAPERLESS_SECRET_KEY
+      label: Secret Key
+      type: password
+      required: true
+    - name: DATA_PATH
+      label: Data Directory
+      type: path
+      default: ./data/paperless
+
+services:
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless
+    restart: unless-stopped
+    ports:
+      - "{{WEB_PORT}}:8000"
+    environment:
+      PAPERLESS_SECRET_KEY: "{{PAPERLESS_SECRET_KEY}}"
+      PAPERLESS_REDIS: redis://paperless-redis:6379
+    volumes:
+      - "{{DATA_PATH}}/data:/usr/src/paperless/data"
+      - "{{DATA_PATH}}/media:/usr/src/paperless/media"
+      - "{{DATA_PATH}}/consume:/usr/src/paperless/consume"
+    depends_on:
+      - paperless-redis
+
+  paperless-redis:
+    image: redis:7-alpine
+    container_name: paperless-redis
+    restart: unless-stopped

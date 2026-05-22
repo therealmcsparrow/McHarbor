@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "alertSummary": {
+      "label": "Warnungsuebersicht",
+      "description": "Konfigurierte Warnungsregeln nach Schweregrad gruppiert"
+    }
+  },
+  "alertSummaryWidget": {
+    "title": "Warnungsuebersicht",
+    "noAlerts": "Keine aktivierten Warnungsregeln",
+    "notConfigured": "Warnungsregeln nicht verfuegbar",
+    "disabledRules": "Deaktivierte Regeln: {{count}}",
+    "severity": {
+      "critical": "Kritisch",
+      "warning": "Warnung",
+      "info": "Info"
+    }
+  }
+}
