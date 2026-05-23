@@ -160,3 +160,13 @@ func TestCurrentContainerInspectCandidatesIncludesDefaultContainerName(t *testin
 	}
 	t.Fatalf("expected mcharbor inspect fallback in %#v", candidates)
 }
+
+func TestDataDirMountDestinationsIncludeContainerDefault(t *testing.T) {
+	destinations := dataDirMountDestinations("./data")
+	for _, destination := range destinations {
+		if strings.ReplaceAll(destination, "\\", "/") == "/app/data" {
+			return
+		}
+	}
+	t.Fatalf("expected /app/data fallback in %#v", destinations)
+}

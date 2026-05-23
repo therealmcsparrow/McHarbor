@@ -2,6 +2,23 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.13] - 2026-05-24
+
+### Fixed
+
+- Fixed container-page update and reinstall actions for the running McHarbor container by routing `POST /api/containers/{id}/recreate` through the detached self-update helper instead of stopping the API process inline.
+- Fixed the production helper preparation path when `DATA_DIR` is unset or relative by matching the actual container mount destination `/app/data`.
+- Kept the container update progress recovery logic active even when the backend successfully schedules a self-update helper before the API restarts.
+
+### Tests
+
+- Added regression coverage for detecting the McHarbor app container while excluding the remote agent image.
+- Added regression coverage for the `/app/data` helper mount fallback used by Docker-run production deployments.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.13`.
+
 ## [1.1.12] - 2026-05-24
 
 ### Fixed

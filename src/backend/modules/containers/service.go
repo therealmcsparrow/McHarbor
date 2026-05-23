@@ -29,6 +29,7 @@ import (
 	"github.com/docker/go-connections/nat"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
+	stacksmodule "github.com/therealmcsparrow/mcharbor/modules/stacks"
 )
 
 // Service wraps Docker SDK container operations.
@@ -399,6 +400,28 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	}
 
 	originalName := strings.TrimPrefix(info.Name, "/")
+	if isSelfMcHarborContainer(info) {
+		operation := "reinstall"
+		if req.PullImage {
+			operation = "update"
+		}
+
+		dockerHost := ""
+		if envID != "" {
+			if host, hostErr := s.pool.DockerHost(envID); hostErr == nil {
+				dockerHost = host
+			} else {
+				slog.Warn("containers: failed to resolve docker host for self recreate helper", "error", hostErr, "env", envID)
+			}
+		}
+
+		result := stacksmodule.ScheduleDetachedSelfUpdateHelper(cli, info, os.Getenv("DATA_DIR"), dockerHost, operation)
+		if !result.Success {
+			return container.CreateResponse{}, fmt.Errorf("scheduling self recreate helper: %s", result.Error)
+		}
+
+		return container.CreateResponse{ID: info.ID}, nil
+	}
 
 	// Stop the container if running
 	if info.State.Running {
@@ -621,6 +644,28 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	}
 
 	return newResp, nil
+}
+
+func isSelfMcHarborContainer(info types.ContainerJSON) bool {
+	name := strings.ToLower(strings.TrimPrefix(info.Name, "/"))
+	imageName := ""
+	labels := map[string]string{}
+	if info.Config != nil {
+		imageName = strings.ToLower(strings.TrimSpace(info.Config.Image))
+		labels = info.Config.Labels
+	}
+
+	if name == "mcharbor" {
+		return true
+	}
+	if strings.Contains(imageName, "therealmcsparrow/mcharbor") && !strings.Contains(imageName, "mcharbor-agent") {
+		return true
+	}
+	if strings.EqualFold(labels["org.opencontainers.image.title"], "McHarbor") {
+		return true
+	}
+
+	return false
 }
 
 // NetworkConnect connects a container to a Docker network.

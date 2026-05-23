@@ -949,7 +949,21 @@ func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeR
 		return &ComposeResult{Success: false, Error: "failed to inspect current McHarbor container"}
 	}
 
-	helperMounts, err := s.selfComposeHelperMounts(current)
+	dockerHost := ""
+	if envID != "" {
+		if host, err := s.dockerPool.DockerHost(envID); err == nil && host != "" {
+			dockerHost = host
+		}
+	}
+
+	return ScheduleDetachedSelfUpdateHelper(cli, current, s.dataDir, dockerHost, operation)
+}
+
+// ScheduleDetachedSelfUpdateHelper starts short-lived helper containers that can
+// recreate McHarbor after the API process stops. The caller must pass the
+// inspected currently running McHarbor container, not an arbitrary container.
+func ScheduleDetachedSelfUpdateHelper(cli *sdkclient.Client, current types.ContainerJSON, dataDir, dockerHost, operation string) *ComposeResult {
+	helperMounts, err := selfUpdateHelperMounts(current, dataDir)
 	if err != nil {
 		slog.Error("stacks: resolve helper mounts failed", "error", err, "container", current.ID)
 		return &ComposeResult{Success: false, Error: "failed to prepare self-update helper container"}
@@ -964,10 +978,8 @@ func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeR
 		"MCHARBOR_SELF_UPDATE_LOG":          "/app/data/self-update/" + helperName + ".log",
 		"MCHARBOR_SELF_UPDATE_OPERATION":    operation,
 	}
-	if envID != "" {
-		if host, err := s.dockerPool.DockerHost(envID); err == nil && host != "" {
-			envOverrides["DOCKER_HOST"] = host
-		}
+	if dockerHost != "" {
+		envOverrides["DOCKER_HOST"] = dockerHost
 	}
 	env := mergeEnvVars(os.Environ(), envOverrides)
 	watchdogEnvOverrides := make(map[string]string, len(envOverrides))
@@ -1137,10 +1149,17 @@ func containerIDMatches(containerID, candidate string) bool {
 	return strings.HasPrefix(containerID, candidate) || strings.HasPrefix(candidate, containerID)
 }
 
-func (s *Service) selfComposeHelperMounts(current types.ContainerJSON) ([]mount.Mount, error) {
-	dataMount, ok := helperMountForDestination(current.Mounts, filepath.Clean(s.dataDir))
+func selfUpdateHelperMounts(current types.ContainerJSON, dataDir string) ([]mount.Mount, error) {
+	var dataMount mount.Mount
+	var ok bool
+	for _, destination := range dataDirMountDestinations(dataDir) {
+		dataMount, ok = helperMountForDestination(current.Mounts, destination)
+		if ok {
+			break
+		}
+	}
 	if !ok {
-		return nil, fmt.Errorf("data directory mount %s not found", s.dataDir)
+		return nil, fmt.Errorf("data directory mount %s not found", dataDir)
 	}
 
 	socketMount, ok := helperMountForDestination(current.Mounts, "/var/run/docker.sock")
@@ -1149,6 +1168,33 @@ func (s *Service) selfComposeHelperMounts(current types.ContainerJSON) ([]mount.
 	}
 
 	return []mount.Mount{socketMount, dataMount}, nil
+}
+
+func dataDirMountDestinations(dataDir string) []string {
+	seen := map[string]struct{}{}
+	var destinations []string
+	add := func(value string) {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			return
+		}
+		value = filepath.Clean(value)
+		if _, exists := seen[value]; exists {
+			return
+		}
+		seen[value] = struct{}{}
+		destinations = append(destinations, value)
+	}
+
+	add(dataDir)
+	if !filepath.IsAbs(dataDir) {
+		if cwd, err := os.Getwd(); err == nil {
+			add(filepath.Join(cwd, dataDir))
+		}
+	}
+	add("/app/data")
+
+	return destinations
 }
 
 func helperMountForDestination(mounts []types.MountPoint, destination string) (mount.Mount, bool) {

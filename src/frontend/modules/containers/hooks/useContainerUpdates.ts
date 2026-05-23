@@ -177,6 +177,10 @@ export function useContainerOperationActions() {
           pullImage: mode === 'update',
         })
         .then(assertSuccess);
+      if (isSelfUpdateTarget(target)) {
+        const recoveredContainerId = await waitForSelfUpdateRecovery(target, envQuery, tc, log);
+        recreated = { Id: recoveredContainerId };
+      }
     } catch (error) {
       if (!isSelfUpdateTarget(target)) {
         throw error;
