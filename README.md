@@ -6,6 +6,12 @@ McHarbor is a self-hosted control plane for Docker and Kubernetes environments. 
 
 Deploy it as a Docker container, connect it to the host Docker socket, and start managing infrastructure from one clean, dark-first interface. Add remote Docker hosts through the outbound McHarbor agent, manage Kubernetes workloads beside Docker environments, stream logs, open browser terminals, build dashboards, automate routine work, and keep a clear record of operational changes without handing your infrastructure to a third party. McHarbor is free for personal and homelab use. Commercial and business use requires a commercial license.
 
+## Preview
+
+<video src="images/McHarbor.mp4" controls muted playsinline preload="metadata"></video>
+
+[Open the product walkthrough video](images/McHarbor.mp4)
+
 ## Why McHarbor
 
 McHarbor is built for the work that happens after deployment.
@@ -134,5 +140,4 @@ docker run -d \
 If you see an error like `Cannot connect to the Docker daemon at unix:///var/run/docker.sock`, check that Docker is running on the host and that the socket mount is present.
 
 Note: `ghcr.io/therealmcsparrow/mcharbor:latest` and `ghcr.io/therealmcsparrow/mcharbor-agent:latest` require the GitHub Container Registry publish step to succeed before these commands will pull successfully.
-
 
