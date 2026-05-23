@@ -4,21 +4,36 @@ All notable changes to McHarbor are documented in this file.
 
 ## [1.1.3] - 2026-05-23
 
+### Fixed
+
+- Fixed managed stack self-update and self-reinstall flows so McHarbor can recreate its own stack without killing the in-flight `docker compose` command before the API comes back online.
+- Fixed stack and container batch progress logs showing raw i18n keys by adding the missing shared `common.operations.log.*` translations for English, Dutch, and German.
+- Fixed the self-restart recovery status text in container update flows so the progress dialog uses translated copy instead of hardcoded English.
+- Fixed communication-channel test responses so missing channels no longer surface as generic `500` errors and now return a proper not-found response.
+- Fixed Telegram test-channel error handling so Telegram admin-rights failures are mapped to a specific user-facing validation message instead of an opaque internal server error.
+
 ### Changed
 
-- Bumped the McHarbor Docker image, agent image, runtime metadata, and frontend package version metadata to `1.1.3`.
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, README release reference, and frontend package version metadata to `1.1.3`.
 
 ## [1.1.2] - 2026-05-23
 
+### Added
+
+- Added a dedicated confirmation popup for the `Reinstall All` stack action so bulk reinstalls now require explicit confirmation before force-recreating managed stacks.
+- Added localized confirmation copy for the new reinstall-all dialog in English, Dutch, and German.
+
 ### Changed
 
-- Bumped the McHarbor Docker image, agent image, runtime metadata, and frontend package version metadata to `1.1.2`.
+- Reused the shared confirmation dialog pattern for stack reinstall flows so the new modal behaves consistently with existing destructive confirmations such as prune actions.
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, and frontend package version metadata to `1.1.2`.
 
 ## [1.1.1] - 2026-05-23
 
 ### Changed
 
-- Bumped the McHarbor Docker image, agent image, runtime metadata, and frontend package version metadata to `1.1.1`.
+- Aligned the production Docker image tag defaults, optional agent image tag defaults, backend health/version metadata, update-check version reporting, frontend package version, and footer version display on `1.1.1`.
+- Updated the README release reference and published the corresponding changelog entry so the documented default deployment version matched the shipped container images.
 
 ## [1.1.0] - 2026-05-23
 
