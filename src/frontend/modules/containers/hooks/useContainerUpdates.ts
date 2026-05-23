@@ -50,6 +50,66 @@ type ContainerOperationOptions = {
   scanner?: OperationScanner;
 };
 
+const selfUpdateRecoveryTimeoutMs = 60_000;
+const selfUpdatePollIntervalMs = 2_000;
+
+function isSelfUpdateTarget(target: ContainerOperationTarget) {
+  const normalizedName = target.name.replace(/^\//, '').toLowerCase();
+  const normalizedImage = target.image.toLowerCase();
+
+  return normalizedName === 'mcharbor' || normalizedImage.includes('/mcharbor');
+}
+
+async function delay(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForSelfUpdateRecovery(
+  target: ContainerOperationTarget,
+  envQuery: string,
+  log?: BatchProgressContext['log'],
+) {
+  const deadline = Date.now() + selfUpdateRecoveryTimeoutMs;
+  log?.('McHarbor is restarting. Waiting for the API to come back online...', {
+    detail: 'McHarbor is restarting. Waiting for the API to come back online...',
+  });
+
+  while (Date.now() < deadline) {
+    try {
+      const health = await fetch('/api/health', { credentials: 'include' });
+      if (health.ok) {
+        const containers = await api
+          .get<
+            Array<{
+              Id?: string;
+              ID?: string;
+              Names?: string[];
+              Image?: string;
+            }>
+          >(`/containers${envQuery}${envQuery ? '&' : '?'}all=true`)
+          .then(assertSuccess);
+
+        const match = containers.find((container) => {
+          const names = container.Names ?? [];
+          const byName = names.some(
+            (name) => name.replace(/^\//, '').toLowerCase() === target.name.replace(/^\//, '').toLowerCase(),
+          );
+          const byImage = (container.Image ?? '').toLowerCase() === target.image.toLowerCase();
+          return byName || byImage;
+        });
+
+        return match?.Id ?? match?.ID ?? target.id;
+      }
+    } catch {
+      // The app is expected to be unavailable while the container restarts.
+    }
+
+    await delay(selfUpdatePollIntervalMs);
+  }
+
+  throw new Error('McHarbor did not come back online after restarting');
+}
+
 export function useCheckContainerUpdates() {
   const queryClient = useQueryClient();
   const envId = useEnvironmentStore((s) => s.currentId);
@@ -108,11 +168,21 @@ export function useContainerOperationActions() {
       detail: tc('operations.log.recreatingContainer'),
     });
 
-    const recreated = await api
-      .post<RecreateResponse>(`/containers/${target.id}/recreate${envQuery}`, {
-        pullImage: mode === 'update',
-      })
-      .then(assertSuccess);
+    let recreated: RecreateResponse;
+    try {
+      recreated = await api
+        .post<RecreateResponse>(`/containers/${target.id}/recreate${envQuery}`, {
+          pullImage: mode === 'update',
+        })
+        .then(assertSuccess);
+    } catch (error) {
+      if (!isSelfUpdateTarget(target)) {
+        throw error;
+      }
+
+      const recoveredContainerId = await waitForSelfUpdateRecovery(target, envQuery, log);
+      recreated = { Id: recoveredContainerId };
+    }
 
     log?.(tc('operations.log.fetchingRecentLogs'), {
       detail: tc('operations.log.fetchingRecentLogs'),
