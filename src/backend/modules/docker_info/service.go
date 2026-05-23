@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-package docker_info
+package dockerinfo
 
 import (
 	"context"
@@ -101,10 +101,10 @@ func (s *Service) SystemInfo(ctx context.Context, envID string) (*DockerSystemIn
 		DockerRootDir: info.DockerRootDir,
 		DriverStatus:  driverStatus,
 
-		CgroupDriver:  info.CgroupDriver,
-		CgroupVersion: info.CgroupVersion,
+		CgroupDriver:   info.CgroupDriver,
+		CgroupVersion:  info.CgroupVersion,
 		DefaultRuntime: info.DefaultRuntime,
-		Runtimes:      runtimes,
+		Runtimes:       runtimes,
 
 		Containers:        info.Containers,
 		ContainersRunning: info.ContainersRunning,

@@ -13,7 +13,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/alerts"
 	"github.com/therealmcsparrow/mcharbor/modules/appstore"
 	"github.com/therealmcsparrow/mcharbor/modules/containers"
-	"github.com/therealmcsparrow/mcharbor/modules/docker_info"
+	dockerinfo "github.com/therealmcsparrow/mcharbor/modules/docker_info"
 	"github.com/therealmcsparrow/mcharbor/modules/metrics"
 	"github.com/therealmcsparrow/mcharbor/modules/scans"
 	"github.com/therealmcsparrow/mcharbor/modules/stacks"
@@ -157,7 +157,7 @@ func (a alertContainerSource) CheckImageUpdates(ctx context.Context, envID strin
 }
 
 type alertSystemInfoSource struct {
-	svc *docker_info.Service
+	svc *dockerinfo.Service
 }
 
 func (a alertSystemInfoSource) SystemInfo(ctx context.Context, envID string) (*alerts.SystemInfo, error) {
@@ -174,7 +174,7 @@ func NewAlertsEngineDeps(dockerPool *docker.ClientPool) alerts.EngineDeps {
 	return alerts.EngineDeps{
 		Metrics:    alertMetricsSource{svc: metrics.NewService(dockerPool)},
 		Containers: alertContainerSource{svc: containers.NewService(dockerPool)},
-		SystemInfo: alertSystemInfoSource{svc: docker_info.NewService(dockerPool)},
+		SystemInfo: alertSystemInfoSource{svc: dockerinfo.NewService(dockerPool)},
 	}
 }
 

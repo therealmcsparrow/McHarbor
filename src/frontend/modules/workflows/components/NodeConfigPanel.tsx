@@ -1,34 +1,34 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useMemo, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useMemo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   IconCopy,
   IconTrash,
   IconBug,
   IconPlayerTrackNext,
   IconBan,
-} from '@tabler/icons-react';
-import { cn } from '@resources/utils/cn';
-import { Input } from '@resources/components/ui/Input';
-import { Label } from '@resources/components/ui/Label';
-import { Button } from '@resources/components/ui/Button';
-import { useCanvasStore } from '../stores/canvasStore';
-import { getEffectiveInputPorts, getEffectiveOutputPorts } from '../types';
-import type { CanvasNode } from '../types';
-import { NODE_DEFINITION_MAP, CATEGORY_TAG_COLORS } from '../nodes';
-import { ConfigFieldRenderer } from './ConfigFieldRenderer';
-import { ExtraConditions } from './ExtraConditions';
-import { SwitchCases } from './SwitchCases';
-import { ct } from '../canvas-theme';
+} from "@tabler/icons-react";
+import { cn } from "@resources/utils/cn";
+import { Input } from "@resources/components/ui/Input";
+import { Label } from "@resources/components/ui/Label";
+import { Button } from "@resources/components/ui/Button";
+import { Switch } from "@resources/components/ui/Switch";
+import { useCanvasStore } from "../stores/canvasStore";
+import { getEffectiveInputPorts, getEffectiveOutputPorts } from "../types";
+import type { CanvasNode } from "../types";
+import { NODE_DEFINITION_MAP, CATEGORY_TAG_COLORS } from "../nodes";
+import { ConfigFieldRenderer } from "./ConfigFieldRenderer";
+import { ExtraConditions } from "./ExtraConditions";
+import { SwitchCases } from "./SwitchCases";
 
 interface NodeConfigPanelProps {
   node: CanvasNode;
 }
 
 export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const definition = NODE_DEFINITION_MAP[node.action];
   const updateNodeLabel = useCanvasStore((s) => s.updateNodeLabel);
   const updateNodeConfig = useCanvasStore((s) => s.updateNodeConfig);
@@ -39,32 +39,54 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
   const duplicateNode = useCanvasStore((s) => s.duplicateNode);
   const removeNode = useCanvasStore((s) => s.removeNode);
 
-  const tagColor = CATEGORY_TAG_COLORS[definition?.category ?? 'action'] ?? '';
-  const outputPorts = useMemo(() => getEffectiveOutputPorts(node, definition), [node, definition]);
-  const inputPorts = useMemo(() => getEffectiveInputPorts(node, definition), [node, definition]);
+  const tagColor = CATEGORY_TAG_COLORS[definition?.category ?? "action"] ?? "";
+  const outputPorts = useMemo(
+    () => getEffectiveOutputPorts(node, definition),
+    [node, definition],
+  );
+  const inputPorts = useMemo(
+    () => getEffectiveInputPorts(node, definition),
+    [node, definition],
+  );
 
-  const setConfigValue = useCallback((key: string, value: unknown) => {
-    updateNodeConfig(node.id, { ...node.config, [key]: value });
-  }, [node.id, node.config, updateNodeConfig]);
+  const setConfigValue = useCallback(
+    (key: string, value: unknown) => {
+      updateNodeConfig(node.id, { ...node.config, [key]: value });
+    },
+    [node.id, node.config, updateNodeConfig],
+  );
 
-  const setPortLabel = useCallback((port: string, label: string) => {
-    updateNodePortLabels(node.id, { ...(node.portLabels ?? {}), [port]: label });
-  }, [node.id, node.portLabels, updateNodePortLabels]);
+  const setPortLabel = useCallback(
+    (port: string, label: string) => {
+      updateNodePortLabels(node.id, {
+        ...(node.portLabels ?? {}),
+        [port]: label,
+      });
+    },
+    [node.id, node.portLabels, updateNodePortLabels],
+  );
 
   return (
     <div className="flex flex-col">
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <span className={cn('rounded-md px-2 py-0.5 text-[10px] font-medium uppercase', tagColor)}>
+        <span
+          className={cn(
+            "rounded-md px-2 py-0.5 text-[10px] font-medium uppercase",
+            tagColor,
+          )}
+        >
           {definition?.category ?? node.type}
         </span>
-        <span className="truncate text-xs text-muted-foreground">{definition?.label ?? node.action}</span>
+        <span className="truncate text-xs text-muted-foreground">
+          {definition?.label ?? node.action}
+        </span>
       </div>
 
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {/* Node label */}
         <div>
-          <Label className="mb-1.5 text-xs">{t('workflows.labelField')}</Label>
+          <Label className="mb-1.5 text-xs">{t("workflows.labelField")}</Label>
           <Input
             type="text"
             value={node.label}
@@ -77,33 +99,40 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
         {definition?.configSchema.map((field) => {
           if (field.showWhen) {
             const show = Object.entries(field.showWhen).every(
-              ([k, v]) => String(node.config[k] ?? '') === v,
+              ([k, v]) => String(node.config[k] ?? "") === v,
             );
             if (!show) return null;
           }
-          return <ConfigFieldRenderer key={field.key} field={field} value={node.config[field.key]} onChange={(v) => setConfigValue(field.key, v)} nodeConfig={node.config} nodeKey={node.action} />;
+          return (
+            <ConfigFieldRenderer
+              key={field.key}
+              field={field}
+              value={node.config[field.key]}
+              onChange={(v) => setConfigValue(field.key, v)}
+              nodeConfig={node.config}
+              nodeKey={node.action}
+            />
+          );
         })}
 
         {/* Extra conditions (for condition nodes) */}
-        {node.action === 'condition' && (
-          <ExtraConditions node={node} />
-        )}
+        {node.action === "condition" && <ExtraConditions node={node} />}
 
         {/* Switch cases (for switch nodes) */}
-        {node.action === 'switch' && (
-          <SwitchCases node={node} />
-        )}
+        {node.action === "switch" && <SwitchCases node={node} />}
 
         {/* Port labels */}
         <div>
-          <Label className="mb-1.5 text-xs">{t('workflows.portLabels')}</Label>
+          <Label className="mb-1.5 text-xs">{t("workflows.portLabels")}</Label>
           <div className="space-y-1.5">
             {inputPorts.map((port) => (
               <div key={`in-${port}`} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-right text-[10px] text-blue-400/70">in:{port}</span>
+                <span className="w-16 shrink-0 text-right text-[10px] text-blue-400/70">
+                  in:{port}
+                </span>
                 <Input
                   type="text"
-                  value={node.portLabels?.[`in:${port}`] ?? ''}
+                  value={node.portLabels?.[`in:${port}`] ?? ""}
                   onChange={(e) => setPortLabel(`in:${port}`, e.target.value)}
                   placeholder={port}
                   className="h-7 text-xs"
@@ -112,10 +141,12 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
             ))}
             {outputPorts.map((port) => (
               <div key={`out-${port}`} className="flex items-center gap-2">
-                <span className="w-16 shrink-0 text-right text-[10px] text-emerald-400/70">out:{port}</span>
+                <span className="w-16 shrink-0 text-right text-[10px] text-emerald-400/70">
+                  out:{port}
+                </span>
                 <Input
                   type="text"
-                  value={node.portLabels?.[`out:${port}`] ?? ''}
+                  value={node.portLabels?.[`out:${port}`] ?? ""}
                   onChange={(e) => setPortLabel(`out:${port}`, e.target.value)}
                   placeholder={port}
                   className="h-7 text-xs"
@@ -130,46 +161,40 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <IconPlayerTrackNext className="size-3.5 text-amber-400" />
-              <Label className="text-xs">{t('workflows.skipNode')}</Label>
+              <Label className="text-xs">{t("workflows.skipNode")}</Label>
             </div>
-            {/* Raw <button> kept: custom toggle switch with sliding thumb doesn't fit Button's API */}
-            <button
-              aria-label={t('workflows.skipNode')}
-              onClick={() => updateNodeSkip(node.id, !node.skip)}
-              className={cn(
-                'relative h-5 w-9 rounded-full transition-colors',
-                node.skip ? 'bg-amber-500' : 'bg-muted',
-              )}
-            >
-              <span className={cn(
-                `absolute left-0.5 top-0.5 size-4 rounded-full ${ct.toggleKnob} transition-transform`,
-                node.skip ? 'translate-x-4' : '',
-              )} />
-            </button>
+            <Switch
+              aria-label={t("workflows.skipNode")}
+              checked={node.skip}
+              onCheckedChange={(checked) => updateNodeSkip(node.id, checked)}
+              className={
+                node.skip ? "data-[state=checked]:bg-amber-500" : undefined
+              }
+            />
           </div>
-          <p className="text-[10px] text-muted-foreground/60 ml-5">{t('workflows.skipNodeDescription')}</p>
+          <p className="text-[10px] text-muted-foreground/60 ml-5">
+            {t("workflows.skipNodeDescription")}
+          </p>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <IconBan className="size-3.5 text-red-400" />
-              <Label className="text-xs">{t('workflows.disableNode')}</Label>
+              <Label className="text-xs">{t("workflows.disableNode")}</Label>
             </div>
-            {/* Raw <button> kept: custom toggle switch with sliding thumb doesn't fit Button's API */}
-            <button
-              aria-label={t('workflows.disableNode')}
-              onClick={() => updateNodeDisabled(node.id, !node.disabled)}
-              className={cn(
-                'relative h-5 w-9 rounded-full transition-colors',
-                node.disabled ? 'bg-red-500' : 'bg-muted',
-              )}
-            >
-              <span className={cn(
-                `absolute left-0.5 top-0.5 size-4 rounded-full ${ct.toggleKnob} transition-transform`,
-                node.disabled ? 'translate-x-4' : '',
-              )} />
-            </button>
+            <Switch
+              aria-label={t("workflows.disableNode")}
+              checked={node.disabled}
+              onCheckedChange={(checked) =>
+                updateNodeDisabled(node.id, checked)
+              }
+              className={
+                node.disabled ? "data-[state=checked]:bg-red-500" : undefined
+              }
+            />
           </div>
-          <p className="text-[10px] text-muted-foreground/60 ml-5">{t('workflows.disableNodeDescription')}</p>
+          <p className="text-[10px] text-muted-foreground/60 ml-5">
+            {t("workflows.disableNodeDescription")}
+          </p>
         </div>
 
         {/* Actions */}
@@ -178,16 +203,24 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
             size="sm"
             variant="outline"
             onClick={() => updateNodeDebug(node.id, !node.debug)}
-            className={cn(node.debug && 'border-amber-500/50 text-amber-400')}
+            className={cn(node.debug && "border-amber-500/50 text-amber-400")}
           >
             <IconBug className="size-3.5" />
-            {node.debug ? t('workflows.debugOn') : t('workflows.debug')}
+            {node.debug ? t("workflows.debugOn") : t("workflows.debug")}
           </Button>
           <div className="flex-1" />
-          <Button size="sm" variant="outline" onClick={() => duplicateNode(node.id)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => duplicateNode(node.id)}
+          >
             <IconCopy className="size-3.5" />
           </Button>
-          <Button size="sm" variant="destructive" onClick={() => removeNode(node.id)}>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => removeNode(node.id)}
+          >
             <IconTrash className="size-3.5" />
           </Button>
         </div>
@@ -195,4 +228,3 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
     </div>
   );
 }
-

@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -75,11 +76,12 @@ func APIKeyMiddleware(db *sql.DB, authSvc *auth.Service) func(http.Handler) http
 				}
 			}
 
-			// Update last_used_at in background
-			go func() {
-				now := time.Now().UTC().Format(time.RFC3339)
-				db.Exec("UPDATE api_keys SET last_used_at = ? WHERE id = ?", now, keyID)
-			}()
+			updateCtx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+			now := time.Now().UTC().Format(time.RFC3339)
+			if _, updateErr := db.ExecContext(updateCtx, "UPDATE api_keys SET last_used_at = ? WHERE id = ?", now, keyID); updateErr != nil {
+				slog.Warn("api key middleware: updating last_used_at failed", "keyID", keyID, "error", updateErr)
+			}
+			cancel()
 
 			// Load the user
 			user, err := authSvc.ValidateUserByID(userID)

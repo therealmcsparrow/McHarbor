@@ -125,7 +125,6 @@ func webhookSecretMatches(r *http.Request, expected string) bool {
 	candidates := []string{
 		r.Header.Get("X-Webhook-Secret"),
 		r.Header.Get("X-Workflow-Secret"),
-		r.URL.Query().Get("secret"),
 	}
 	if auth := strings.TrimSpace(r.Header.Get("Authorization")); strings.HasPrefix(strings.ToLower(auth), "bearer ") {
 		candidates = append(candidates, strings.TrimSpace(auth[7:]))

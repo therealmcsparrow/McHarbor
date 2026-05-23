@@ -147,6 +147,7 @@ func (s *Service) Create(req CreateRequest) (*Environment, string, error) {
 
 	// Generate agent token if agent connection type
 	var agentToken *string
+	var agentTokenHash *string
 	var plainToken string
 	if req.ConnectionType == "agent" {
 		b := make([]byte, 32)
@@ -159,6 +160,8 @@ func (s *Service) Create(req CreateRequest) (*Environment, string, error) {
 			return nil, "", fmt.Errorf("encrypting agent token: %w", err)
 		}
 		agentToken = &encrypted
+		hash := s.enc.StableHash(plainToken)
+		agentTokenHash = &hash
 	}
 
 	// If setting as default, clear other defaults first
@@ -178,14 +181,14 @@ func (s *Service) Create(req CreateRequest) (*Environment, string, error) {
 		                          tls_ca, tls_cert, tls_key, ssh_host, ssh_port, ssh_user, ssh_key,
 		                          is_default, is_active,
 		                          kubeconfig, k8s_namespace, k8s_server_url, k8s_bearer_token, k8s_ca_cert,
-		                          agent_token,
+		                          agent_token, agent_token_hash,
 		                          created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`, id, req.Name, req.OrchestratorType, req.ConnectionType, req.SocketPath, req.Host, req.Port,
 		tlsCa, tlsCert, tlsKey, req.SSHHost, req.SSHPort, req.SSHUser, sshKey,
 		isDefault,
 		kubeconfig, req.K8sNamespace, req.K8sServerURL, k8sBearerToken, k8sCACert,
-		agentToken,
+		agentToken, agentTokenHash,
 		now, now)
 	if err != nil {
 		return nil, "", fmt.Errorf("inserting environment: %w", err)

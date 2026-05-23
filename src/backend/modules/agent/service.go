@@ -39,29 +39,32 @@ func (s *Service) GenerateAgentToken() (string, error) {
 // ValidateAgentToken looks up an environment by matching the decrypted agent_token.
 // Returns the environment ID on success.
 func (s *Service) ValidateAgentToken(token string) (string, error) {
-	rows, err := s.db.Query(
-		"SELECT id, agent_token FROM environments WHERE connection_type = 'agent' AND agent_token IS NOT NULL",
-	)
-	if err != nil {
-		return "", fmt.Errorf("querying agent environments: %w", err)
-	}
-	defer rows.Close()
+	tokenHash := s.enc.StableHash(token)
 
-	for rows.Next() {
-		var envID, encToken string
-		if err := rows.Scan(&envID, &encToken); err != nil {
-			continue
-		}
-		decrypted, err := s.enc.Decrypt(encToken)
-		if err != nil {
-			continue
+	var envID string
+	var encToken string
+	err := s.db.QueryRow(
+		`SELECT id, agent_token
+		 FROM environments
+		 WHERE connection_type = 'agent' AND agent_token_hash = ?
+		 LIMIT 1`,
+		tokenHash,
+	).Scan(&envID, &encToken)
+	if err == nil {
+		decrypted, decryptErr := s.enc.Decrypt(encToken)
+		if decryptErr != nil {
+			return "", fmt.Errorf("decrypting agent token: %w", decryptErr)
 		}
 		if subtle.ConstantTimeCompare([]byte(decrypted), []byte(token)) == 1 {
 			return envID, nil
 		}
+		return "", fmt.Errorf("invalid agent token")
+	}
+	if err != sql.ErrNoRows {
+		return "", fmt.Errorf("querying agent token: %w", err)
 	}
 
-	return "", fmt.Errorf("invalid agent token")
+	return s.validateLegacyAgentToken(token, tokenHash)
 }
 
 // UpdateAgentStatus updates the agent connection metadata in the DB.
@@ -204,15 +207,58 @@ func (s *Service) RegenerateToken(envID string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("encrypting agent token: %w", err)
 	}
+	tokenHash := s.enc.StableHash(token)
 
 	now := time.Now().UTC().Format(time.RFC3339)
 	_, err = s.db.Exec(
-		"UPDATE environments SET agent_token = ?, updated_at = ? WHERE id = ? AND connection_type = 'agent'",
-		encrypted, now, envID,
+		`UPDATE environments
+		 SET agent_token = ?, agent_token_hash = ?, updated_at = ?
+		 WHERE id = ? AND connection_type = 'agent'`,
+		encrypted, tokenHash, now, envID,
 	)
 	if err != nil {
 		return "", fmt.Errorf("updating agent token: %w", err)
 	}
 
 	return token, nil
+}
+
+func (s *Service) validateLegacyAgentToken(token, tokenHash string) (string, error) {
+	rows, err := s.db.Query(
+		`SELECT id, agent_token
+		 FROM environments
+		 WHERE connection_type = 'agent' AND agent_token IS NOT NULL AND (agent_token_hash IS NULL OR agent_token_hash = '')
+		 LIMIT 1000`,
+	)
+	if err != nil {
+		return "", fmt.Errorf("querying legacy agent environments: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var envID, encToken string
+		if err := rows.Scan(&envID, &encToken); err != nil {
+			continue
+		}
+		decrypted, err := s.enc.Decrypt(encToken)
+		if err != nil {
+			continue
+		}
+		if subtle.ConstantTimeCompare([]byte(decrypted), []byte(token)) != 1 {
+			continue
+		}
+		if _, updateErr := s.db.Exec(
+			"UPDATE environments SET agent_token_hash = ? WHERE id = ?",
+			tokenHash,
+			envID,
+		); updateErr != nil {
+			return "", fmt.Errorf("backfilling agent token hash: %w", updateErr)
+		}
+		return envID, nil
+	}
+	if err := rows.Err(); err != nil {
+		return "", fmt.Errorf("iterating legacy agent environments: %w", err)
+	}
+
+	return "", fmt.Errorf("invalid agent token")
 }

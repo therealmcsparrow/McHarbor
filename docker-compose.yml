@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    image: ${MCHARBOR_IMAGE:-ghcr.io/therealmcsparrow/mcharbor}:${MCHARBOR_TAG:-1.0.0}
+    image: ${MCHARBOR_IMAGE:-ghcr.io/therealmcsparrow/mcharbor}:${MCHARBOR_TAG:-1.1.0}
     container_name: mcharbor
     restart: unless-stopped
     ports:

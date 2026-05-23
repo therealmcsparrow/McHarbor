@@ -1,18 +1,18 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   IconScan,
   IconLoader2,
   IconTrash,
   IconExternalLink,
-} from '@tabler/icons-react';
-import { Button } from '@resources/components/ui/Button';
-import { Badge } from '@resources/components/ui/Badge';
-import { useEnvironmentStore } from '@resources/stores/environment';
-import { formatDate } from '@resources/utils/format';
+} from "@tabler/icons-react";
+import { Button } from "@resources/components/ui/Button";
+import { Badge } from "@resources/components/ui/Badge";
+import { useEnvironmentStore } from "@resources/stores/environment";
+import { formatDate } from "@resources/utils/format";
 import {
   useImageScans,
   useScanVulnerabilities,
@@ -20,37 +20,48 @@ import {
   useDeleteScan,
   type Scan,
   type ScanVulnerability,
-} from '../../hooks/useScans';
-import { useAvailableScanners, type ScannerInfo } from '@resources/hooks/useScannerSettings';
+} from "../../hooks/useScans";
+import {
+  useAvailableScanners,
+  type ScannerInfo,
+} from "@resources/hooks/useScannerSettings";
 
 type ScanSectionProps = {
   imageRef: string;
 };
 
-const SEVERITY_VARIANT: Record<string, 'destructive' | 'warning' | 'default' | 'secondary'> = {
-  critical: 'destructive',
-  high: 'destructive',
-  medium: 'warning',
-  low: 'secondary',
+const SEVERITY_VARIANT: Record<
+  string,
+  "destructive" | "warning" | "default" | "secondary"
+> = {
+  critical: "destructive",
+  high: "destructive",
+  medium: "warning",
+  low: "secondary",
 };
 
-const STATUS_VARIANT: Record<string, 'success' | 'default' | 'warning' | 'destructive'> = {
-  completed: 'success',
-  running: 'default',
-  pending: 'warning',
-  failed: 'destructive',
+const STATUS_VARIANT: Record<
+  string,
+  "success" | "default" | "warning" | "destructive"
+> = {
+  completed: "success",
+  running: "default",
+  pending: "warning",
+  failed: "destructive",
 };
 
 export function ScanSection({ imageRef }: ScanSectionProps) {
-  const { t } = useTranslation('containers');
+  const { t } = useTranslation("containers");
   const envId = useEnvironmentStore((s) => s.currentId);
   const { data: scansData } = useImageScans(imageRef);
   const { data: scannersData } = useAvailableScanners();
   const startScan = useStartScan();
   const deleteScan = useDeleteScan();
 
-  const availableScanners: ScannerInfo[] = (scannersData?.scanners ?? []).filter((s) => s.available);
-  const defaultScanner = scannersData?.defaultScanner ?? 'trivy';
+  const availableScanners: ScannerInfo[] = (
+    scannersData?.scanners ?? []
+  ).filter((s) => s.available);
+  const defaultScanner = scannersData?.defaultScanner ?? "trivy";
 
   const [selectedScanner, setSelectedScanner] = useState<string | null>(null);
   const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
@@ -58,7 +69,9 @@ export function ScanSection({ imageRef }: ScanSectionProps) {
   const activeScanner = selectedScanner ?? defaultScanner;
 
   const scans = scansData?.items ?? [];
-  const isRunning = scans.some((s) => s.status === 'running' || s.status === 'pending');
+  const isRunning = scans.some(
+    (s) => s.status === "running" || s.status === "pending",
+  );
 
   function handleStartScan() {
     startScan.mutate({
@@ -71,7 +84,7 @@ export function ScanSection({ imageRef }: ScanSectionProps) {
   return (
     <div className="rounded-lg border border-border bg-card p-6">
       <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-        {t('scan.vulnerabilities')}
+        {t("scan.vulnerabilities")}
       </h3>
 
       {/* Scan controls */}
@@ -97,18 +110,18 @@ export function ScanSection({ imageRef }: ScanSectionProps) {
           ) : (
             <IconScan className="mr-1.5 size-3.5" />
           )}
-          {isRunning ? t('scan.scanning') : t('scan.scanImage')}
+          {isRunning ? t("scan.scanning") : t("scan.scanImage")}
         </Button>
       </div>
 
       {/* Scan history */}
       <h4 className="mb-2 text-xs font-medium text-muted-foreground">
-        {t('scan.scanHistory')}
+        {t("scan.scanHistory")}
       </h4>
 
       {scans.length === 0 ? (
         <p className="py-4 text-center text-xs text-muted-foreground">
-          {t('scan.noScans')}
+          {t("scan.noScans")}
         </p>
       ) : (
         <div className="space-y-2">
@@ -128,9 +141,7 @@ export function ScanSection({ imageRef }: ScanSectionProps) {
       )}
 
       {/* Vulnerability details */}
-      {selectedScanId && (
-        <VulnerabilityList scanId={selectedScanId} t={t} />
-      )}
+      {selectedScanId && <VulnerabilityList scanId={selectedScanId} t={t} />}
     </div>
   );
 }
@@ -152,20 +163,24 @@ function ScanRow({
     <div
       className={`flex items-center justify-between rounded-md border px-3 py-2 text-xs transition-colors ${
         selected
-          ? 'border-primary/50 bg-primary/5'
-          : 'border-border bg-muted/30 hover:border-border/80'
+          ? "border-primary/50 bg-primary/5"
+          : "border-border bg-muted/30 hover:border-border/80"
       }`}
     >
-      <button
+      <Button
         type="button"
-        className="flex flex-1 items-center gap-3 text-left"
+        variant="ghost"
+        className="h-auto flex-1 justify-start gap-3 p-0 text-left hover:bg-transparent"
         onClick={onSelect}
       >
-        <Badge variant={STATUS_VARIANT[scan.status] ?? 'secondary'} className="text-[10px]">
+        <Badge
+          variant={STATUS_VARIANT[scan.status] ?? "secondary"}
+          className="text-[10px]"
+        >
           {t(`scan.${scan.status}`)}
         </Badge>
         <span className="font-mono text-muted-foreground">{scan.scanner}</span>
-        {scan.status === 'completed' && (
+        {scan.status === "completed" && (
           <div className="flex gap-1.5">
             {scan.criticalCount > 0 && (
               <Badge variant="destructive" className="text-[10px]">
@@ -194,11 +209,11 @@ function ScanRow({
             ? formatDate(scan.completedAt)
             : formatDate(scan.startedAt)}
         </span>
-      </button>
+      </Button>
       <Button
         variant="ghost"
         size="icon"
-        aria-label={t('scan.deleteScan')}
+        aria-label={t("scan.deleteScan")}
         className="ml-2 size-6"
         onClick={(e) => {
           e.stopPropagation();
@@ -232,7 +247,7 @@ function VulnerabilityList({
   if (vulns.length === 0) {
     return (
       <p className="mt-4 py-4 text-center text-xs text-muted-foreground">
-        {t('scan.noVulnerabilities')}
+        {t("scan.noVulnerabilities")}
       </p>
     );
   }
@@ -240,29 +255,29 @@ function VulnerabilityList({
   return (
     <div className="mt-4">
       <h4 className="mb-2 text-xs font-medium text-muted-foreground">
-        {t('scan.vulnerabilities')} ({vulns.length})
+        {t("scan.vulnerabilities")} ({vulns.length})
       </h4>
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-border bg-muted/50">
               <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                {t('scan.severity')}
+                {t("scan.severity")}
               </th>
               <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                {t('scan.cve')}
+                {t("scan.cve")}
               </th>
               <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                {t('scan.package')}
+                {t("scan.package")}
               </th>
               <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                {t('scan.version')}
+                {t("scan.version")}
               </th>
               <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                {t('scan.fixedIn')}
+                {t("scan.fixedIn")}
               </th>
               <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                {t('scan.title')}
+                {t("scan.title")}
               </th>
             </tr>
           </thead>
@@ -282,7 +297,7 @@ function VulnRow({ vuln }: { vuln: ScanVulnerability }) {
     <tr className="border-b border-border/50 last:border-0 hover:bg-muted/30">
       <td className="px-3 py-1.5">
         <Badge
-          variant={SEVERITY_VARIANT[vuln.severity] ?? 'secondary'}
+          variant={SEVERITY_VARIANT[vuln.severity] ?? "secondary"}
           className="text-[10px]"
         >
           {vuln.severity}
@@ -304,12 +319,14 @@ function VulnRow({ vuln }: { vuln: ScanVulnerability }) {
         )}
       </td>
       <td className="px-3 py-1.5 font-mono text-foreground">{vuln.pkgName}</td>
-      <td className="px-3 py-1.5 font-mono text-muted-foreground">{vuln.pkgVersion}</td>
       <td className="px-3 py-1.5 font-mono text-muted-foreground">
-        {vuln.fixedVersion || '-'}
+        {vuln.pkgVersion}
+      </td>
+      <td className="px-3 py-1.5 font-mono text-muted-foreground">
+        {vuln.fixedVersion || "-"}
       </td>
       <td className="max-w-xs truncate px-3 py-1.5 text-muted-foreground">
-        {vuln.title || '-'}
+        {vuln.title || "-"}
       </td>
     </tr>
   );

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-package custom_nodes
+package customnodes
 
 import (
 	"github.com/go-chi/chi/v5"
@@ -9,15 +9,14 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
-// Mount registers custom node routes and initializes the data directory.
-// Returns the Executor so the workflow service can use it.
-func Mount(app *router.AppDeps) *Executor {
-	svc := NewService(app.Config.DataDir, app.Logger)
-	if err := svc.Init(); err != nil {
-		app.Logger.Error("custom-nodes: failed to init directory", "error", err)
-	}
+// Mount registers custom node routes with default runtime services.
+func Mount(app *router.AppDeps) {
+	executor, svc := buildRuntimeModule(app)
+	MountWithExecutor(app, svc, executor)
+}
 
-	executor := NewExecutor(svc, app.Logger)
+// MountWithExecutor registers custom node routes and initializes the data directory.
+func MountWithExecutor(app *router.AppDeps, svc *Service, executor *Executor) {
 	h := NewHandler(app, svc, executor)
 
 	app.RegisterProtectedRoutes(func(r chi.Router) {
@@ -33,5 +32,18 @@ func Mount(app *router.AppDeps) *Executor {
 		})
 	})
 
-	return executor
+}
+
+func buildRuntimeModule(app *router.AppDeps) (*Executor, *Service) {
+	svc := NewService(app.Config.DataDir, app.Logger)
+	if err := svc.Init(); err != nil {
+		app.Logger.Error("custom-nodes: failed to init directory", "error", err)
+	}
+	return NewExecutor(svc, app.Logger), svc
+}
+
+// NewRuntimeModule exposes the initialized service and executor for workflow bootstrap.
+func NewRuntimeModule(app *router.AppDeps) (*Service, *Executor) {
+	executor, svc := buildRuntimeModule(app)
+	return svc, executor
 }

@@ -6,8 +6,11 @@ package encryption
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -23,8 +26,9 @@ const (
 
 // Service handles AES-256-GCM encryption compatible with the TS version.
 type Service struct {
-	mu  sync.Mutex
-	gcm cipher.AEAD
+	mu      sync.Mutex
+	gcm     cipher.AEAD
+	hashKey []byte
 }
 
 // New creates a new encryption service, loading or generating the key.
@@ -50,6 +54,7 @@ func New(dataDir, envKey string) (*Service, error) {
 	if len(keyBytes) != keyLength {
 		return nil, fmt.Errorf("encryption key must be %d bytes, got %d", keyLength, len(keyBytes))
 	}
+	s.hashKey = append([]byte(nil), keyBytes...)
 
 	block, err := aes.NewCipher(keyBytes)
 	if err != nil {
@@ -105,6 +110,13 @@ func (s *Service) Decrypt(encrypted string) (string, error) {
 	}
 
 	return string(plaintext), nil
+}
+
+// StableHash returns a keyed, deterministic digest for indexing sensitive values.
+func (s *Service) StableHash(value string) string {
+	mac := hmac.New(sha256.New, s.hashKey)
+	mac.Write([]byte(value))
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 // IsEncrypted checks if a value has the encryption prefix.

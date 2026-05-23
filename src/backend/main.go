@@ -48,19 +48,19 @@ import (
 
 	// Kubernetes modules
 	"github.com/therealmcsparrow/mcharbor/modules/deployments"
-	"github.com/therealmcsparrow/mcharbor/modules/k8s_services"
+	k8sservices "github.com/therealmcsparrow/mcharbor/modules/k8s_services"
 	"github.com/therealmcsparrow/mcharbor/modules/namespaces"
 	"github.com/therealmcsparrow/mcharbor/modules/pods"
 
 	// Security modules
-	"github.com/therealmcsparrow/mcharbor/modules/api_keys"
+	apikeys "github.com/therealmcsparrow/mcharbor/modules/api_keys"
 	"github.com/therealmcsparrow/mcharbor/modules/groups"
 	"github.com/therealmcsparrow/mcharbor/modules/identity"
-	"github.com/therealmcsparrow/mcharbor/modules/in_app_notifications"
+	inappnotifications "github.com/therealmcsparrow/mcharbor/modules/in_app_notifications"
 	"github.com/therealmcsparrow/mcharbor/modules/roles"
 
 	// Docker info
-	"github.com/therealmcsparrow/mcharbor/modules/docker_info"
+	dockerinfo "github.com/therealmcsparrow/mcharbor/modules/docker_info"
 
 	// Email
 	"github.com/therealmcsparrow/mcharbor/modules/email"
@@ -74,7 +74,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/appstore"
 	modAudit "github.com/therealmcsparrow/mcharbor/modules/audit"
 	"github.com/therealmcsparrow/mcharbor/modules/blueprints"
-	"github.com/therealmcsparrow/mcharbor/modules/custom_nodes"
+	customnodes "github.com/therealmcsparrow/mcharbor/modules/custom_nodes"
 	"github.com/therealmcsparrow/mcharbor/modules/git"
 	"github.com/therealmcsparrow/mcharbor/modules/notifications"
 	"github.com/therealmcsparrow/mcharbor/modules/openapi"
@@ -110,7 +110,7 @@ func main() {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	logger.Info("starting McHarbor", "version", "1.0.0", "port", cfg.Port)
+	logger.Info("starting McHarbor", "version", "1.1.0", "port", cfg.Port)
 
 	// Open database
 	database, err := db.Open(cfg.DatabasePath)
@@ -188,7 +188,7 @@ func main() {
 	// Security modules
 	roles.Mount(app)
 	groups.Mount(app)
-	api_keys.Mount(app)
+	apikeys.Mount(app)
 	identity.Mount(app)
 
 	// Protected modules
@@ -203,7 +203,7 @@ func main() {
 	events.Mount(app)
 	dashboard.Mount(app)
 	metrics.Mount(app)
-	docker_info.Mount(app)
+	dockerinfo.Mount(app)
 	activity.Mount(app)
 	modAudit.Mount(app)
 	alerts.Mount(app)
@@ -220,21 +220,23 @@ func main() {
 	notifications.Mount(app)
 	email.Mount(app)
 	communications.Mount(app)
-	in_app_notifications.Mount(app)
+	inappnotifications.Mount(app)
 	users.Mount(app)
 	appStoreSvc := bootstrap.NewAppStoreService(database, dockerPool, cfg.DataDir, logger)
-	appstore.Mount(app, appStoreSvc)
+	appstore.MountWithService(app, appStoreSvc)
 	modWidgets.Mount(app)
-	customNodeExecutor := custom_nodes.Mount(app)
-	workflowTrigger := workflows.Mount(app)
+	customNodeService, customNodeExecutor := customnodes.NewRuntimeModule(app)
+	customnodes.MountWithExecutor(app, customNodeService, customNodeExecutor)
+	workflowTrigger := workflows.NewTriggerService(app, nil)
+	workflows.MountWithTriggerService(app, workflowTrigger)
 
 	// Wire custom node executor into the workflow engine
-	workflowTrigger.SetCustomExecutor(custom_nodes.NewBridge(customNodeExecutor))
+	workflowTrigger.SetCustomExecutor(customnodes.NewBridge(customNodeExecutor))
 
 	// Kubernetes modules
 	pods.Mount(app)
 	deployments.Mount(app)
-	k8s_services.Mount(app)
+	k8sservices.Mount(app)
 	namespaces.Mount(app)
 
 	openapi.Mount(app)

@@ -1,78 +1,118 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
-import { useTranslation } from 'react-i18next';
-import { useQueries } from '@tanstack/react-query';
-import { Command } from 'cmdk';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
+import { useQueries } from "@tanstack/react-query";
+import { Command } from "cmdk";
 import {
-  IconLayoutDashboard, IconBox, IconPhoto, IconDeviceFloppy, IconNetwork, IconStack2,
-  IconTerminal, IconFileText, IconWorld, IconBook, IconGitBranch, IconActivity,
-  IconClipboardList, IconSettings, IconRefresh, IconInfoCircle, IconSearch, IconLoader2,
-} from '@tabler/icons-react';
-import { api } from '@core/api/client';
-import type { ContainerInfo, ContainerState, ImageInfo, VolumeInfo, NetworkInfo } from '@core/types/docker';
-import { useEnvironmentStore } from '@resources/stores/environment';
-import { formatBytes } from '@resources/utils/format';
-import { Select } from '@resources/components/ui/Select';
-import { createSearchMatcher, type SearchMode } from '@resources/utils/search-filter';
+  IconLayoutDashboard,
+  IconBox,
+  IconPhoto,
+  IconDeviceFloppy,
+  IconNetwork,
+  IconStack2,
+  IconTerminal,
+  IconFileText,
+  IconWorld,
+  IconBook,
+  IconGitBranch,
+  IconActivity,
+  IconClipboardList,
+  IconSettings,
+  IconRefresh,
+  IconInfoCircle,
+  IconSearch,
+  IconLoader2,
+} from "@tabler/icons-react";
+import { api } from "@core/api/client";
+import type {
+  ContainerInfo,
+  ContainerState,
+  ImageInfo,
+  VolumeInfo,
+  NetworkInfo,
+} from "@core/types/docker";
+import { useEnvironmentStore } from "@resources/stores/environment";
+import { formatBytes } from "@resources/utils/format";
+import { Select } from "@resources/components/ui/Select";
+import {
+  createSearchMatcher,
+  type SearchMode,
+} from "@resources/utils/search-filter";
 
 // ── Navigation commands ─────────────────────────────────────────────
 
 const NAV_COMMANDS = [
-  { labelKey: 'nav.dashboard', to: '/dashboard', icon: IconLayoutDashboard },
-  { labelKey: 'nav.containers', to: '/containers', icon: IconBox },
-  { labelKey: 'nav.images', to: '/images', icon: IconPhoto },
-  { labelKey: 'nav.volumes', to: '/volumes', icon: IconDeviceFloppy },
-  { labelKey: 'nav.networks', to: '/networks', icon: IconNetwork },
-  { labelKey: 'nav.stacks', to: '/stacks', icon: IconStack2 },
-  { labelKey: 'nav.terminal', to: '/terminal', icon: IconTerminal },
-  { labelKey: 'nav.logs', to: '/logs', icon: IconFileText },
-  { labelKey: 'nav.environments', to: '/environments', icon: IconWorld },
-  { labelKey: 'nav.blueprints', to: '/blueprints', icon: IconBook },
-  { labelKey: 'nav.git', to: '/git', icon: IconGitBranch },
-  { labelKey: 'nav.reconciler', to: '/reconciler', icon: IconRefresh },
-  { labelKey: 'nav.activity', to: '/activity', icon: IconActivity },
-  { labelKey: 'nav.audit', to: '/audit', icon: IconClipboardList },
-  { labelKey: 'nav.settings', to: '/settings', icon: IconSettings },
-  { labelKey: 'about.menuItem', to: '/settings?tab=about', icon: IconInfoCircle },
+  { labelKey: "nav.dashboard", to: "/dashboard", icon: IconLayoutDashboard },
+  { labelKey: "nav.containers", to: "/containers", icon: IconBox },
+  { labelKey: "nav.images", to: "/images", icon: IconPhoto },
+  { labelKey: "nav.volumes", to: "/volumes", icon: IconDeviceFloppy },
+  { labelKey: "nav.networks", to: "/networks", icon: IconNetwork },
+  { labelKey: "nav.stacks", to: "/stacks", icon: IconStack2 },
+  { labelKey: "nav.terminal", to: "/terminal", icon: IconTerminal },
+  { labelKey: "nav.logs", to: "/logs", icon: IconFileText },
+  { labelKey: "nav.environments", to: "/environments", icon: IconWorld },
+  { labelKey: "nav.blueprints", to: "/blueprints", icon: IconBook },
+  { labelKey: "nav.git", to: "/git", icon: IconGitBranch },
+  { labelKey: "nav.reconciler", to: "/reconciler", icon: IconRefresh },
+  { labelKey: "nav.activity", to: "/activity", icon: IconActivity },
+  { labelKey: "nav.audit", to: "/audit", icon: IconClipboardList },
+  { labelKey: "nav.settings", to: "/settings", icon: IconSettings },
+  {
+    labelKey: "about.menuItem",
+    to: "/settings?tab=about",
+    icon: IconInfoCircle,
+  },
 ];
 
 // ── State dot colors ────────────────────────────────────────────────
 
 const CONTAINER_DOT: Record<ContainerState, string> = {
-  running: 'bg-emerald-500',
-  paused: 'bg-amber-500',
-  restarting: 'bg-amber-500',
-  created: 'bg-zinc-400',
-  exited: 'bg-red-500',
-  removing: 'bg-red-400',
-  dead: 'bg-red-600',
+  running: "bg-emerald-500",
+  paused: "bg-amber-500",
+  restarting: "bg-amber-500",
+  created: "bg-zinc-400",
+  exited: "bg-red-500",
+  removing: "bg-red-400",
+  dead: "bg-red-600",
 };
 
 const STACK_DOT: Record<string, string> = {
-  running: 'bg-emerald-500',
-  partial: 'bg-amber-500',
-  stopped: 'bg-red-500',
+  running: "bg-emerald-500",
+  partial: "bg-amber-500",
+  stopped: "bg-red-500",
 };
 
 // ── Types ───────────────────────────────────────────────────────────
 
-type StackSvc = { name: string; containerId?: string; status: string; image: string };
-type StackInfo = { id: string; name: string; status: string; services: StackSvc[]; description?: string; type: 'managed' | 'discovered' };
+type StackSvc = {
+  name: string;
+  containerId?: string;
+  status: string;
+  image: string;
+};
+type StackInfo = {
+  id: string;
+  name: string;
+  status: string;
+  services: StackSvc[];
+  description?: string;
+  type: "managed" | "discovered";
+};
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
 function containerName(c: ContainerInfo): string {
   const name = c.Names?.[0] ?? c.Id.slice(0, 12);
-  return name.startsWith('/') ? name.slice(1) : name;
+  return name.startsWith("/") ? name.slice(1) : name;
 }
 
 function imageLabel(img: ImageInfo): string {
   const firstTag = img.RepoTags?.[0];
-  if (firstTag && firstTag !== '<none>:<none>') return firstTag;
-  return img.Id.replace('sha256:', '').slice(0, 12);
+  if (firstTag && firstTag !== "<none>:<none>") return firstTag;
+  return img.Id.replace("sha256:", "").slice(0, 12);
 }
 
 // ── Component ───────────────────────────────────────────────────────
@@ -83,24 +123,31 @@ type GlobalSearchProps = {
 };
 
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const environments = useEnvironmentStore((s) => s.environments);
-  const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<SearchMode>('contains');
+  const [query, setQuery] = useState("");
+  const [mode, setMode] = useState<SearchMode>("contains");
 
   const dockerEnvs = useMemo(
-    () => environments.filter((e) => e.orchestratorType === 'docker'),
+    () => environments.filter((e) => e.orchestratorType === "docker"),
     [environments],
   );
 
   // Fetch all resource types from all envs
   const containerQueries = useQueries({
     queries: dockerEnvs.map((env) => ({
-      queryKey: ['global-search-containers', env.id],
+      queryKey: ["global-search-containers", env.id],
       queryFn: () =>
-        api.get<ContainerInfo[]>('/containers', { all: 'true', env: env.id })
-          .then((r) => (r.data ?? []).map((c) => ({ ...c, envId: env.id, envName: env.name }))),
+        api
+          .get<ContainerInfo[]>("/containers", { all: "true", env: env.id })
+          .then((r) =>
+            (r.data ?? []).map((c) => ({
+              ...c,
+              envId: env.id,
+              envName: env.name,
+            })),
+          ),
       refetchInterval: open ? 15_000 : false,
       staleTime: 5_000,
       enabled: open,
@@ -109,10 +156,17 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   const imageQueries = useQueries({
     queries: dockerEnvs.map((env) => ({
-      queryKey: ['global-search-images', env.id],
+      queryKey: ["global-search-images", env.id],
       queryFn: () =>
-        api.get<ImageInfo[]>('/images', { env: env.id })
-          .then((r) => (r.data ?? []).map((img) => ({ ...img, envId: env.id, envName: env.name }))),
+        api
+          .get<ImageInfo[]>("/images", { env: env.id })
+          .then((r) =>
+            (r.data ?? []).map((img) => ({
+              ...img,
+              envId: env.id,
+              envName: env.name,
+            })),
+          ),
       refetchInterval: open ? 30_000 : false,
       staleTime: 10_000,
       enabled: open,
@@ -121,10 +175,17 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   const volumeQueries = useQueries({
     queries: dockerEnvs.map((env) => ({
-      queryKey: ['global-search-volumes', env.id],
+      queryKey: ["global-search-volumes", env.id],
       queryFn: () =>
-        api.get<VolumeInfo[]>('/volumes', { env: env.id })
-          .then((r) => (r.data ?? []).map((v) => ({ ...v, envId: env.id, envName: env.name }))),
+        api
+          .get<VolumeInfo[]>("/volumes", { env: env.id })
+          .then((r) =>
+            (r.data ?? []).map((v) => ({
+              ...v,
+              envId: env.id,
+              envName: env.name,
+            })),
+          ),
       refetchInterval: open ? 30_000 : false,
       staleTime: 10_000,
       enabled: open,
@@ -133,10 +194,17 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   const networkQueries = useQueries({
     queries: dockerEnvs.map((env) => ({
-      queryKey: ['global-search-networks', env.id],
+      queryKey: ["global-search-networks", env.id],
       queryFn: () =>
-        api.get<NetworkInfo[]>('/networks', { env: env.id })
-          .then((r) => (r.data ?? []).map((n) => ({ ...n, envId: env.id, envName: env.name }))),
+        api
+          .get<NetworkInfo[]>("/networks", { env: env.id })
+          .then((r) =>
+            (r.data ?? []).map((n) => ({
+              ...n,
+              envId: env.id,
+              envName: env.name,
+            })),
+          ),
       refetchInterval: open ? 30_000 : false,
       staleTime: 10_000,
       enabled: open,
@@ -145,10 +213,17 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
   const stackQueries = useQueries({
     queries: dockerEnvs.map((env) => ({
-      queryKey: ['global-search-stacks', env.id],
+      queryKey: ["global-search-stacks", env.id],
       queryFn: () =>
-        api.get<StackInfo[]>('/stacks', { env: env.id })
-          .then((r) => (r.data ?? []).map((s) => ({ ...s, envId: env.id, envName: env.name }))),
+        api
+          .get<StackInfo[]>("/stacks", { env: env.id })
+          .then((r) =>
+            (r.data ?? []).map((s) => ({
+              ...s,
+              envId: env.id,
+              envName: env.name,
+            })),
+          ),
       refetchInterval: open ? 15_000 : false,
       staleTime: 5_000,
       enabled: open,
@@ -182,47 +257,69 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     () => stackQueries.flatMap((q) => q.data ?? []),
     [stackQueries],
   );
-  const matcher = useMemo(() => createSearchMatcher(query, mode), [mode, query]);
+  const matcher = useMemo(
+    () => createSearchMatcher(query, mode),
+    [mode, query],
+  );
   const filteredNavCommands = useMemo(
     () => NAV_COMMANDS.filter((cmd) => matcher.matches(t(cmd.labelKey))),
     [matcher, t],
   );
   const filteredContainers = useMemo(
-    () => containers.filter((c) => matcher.matches(`container ${containerName(c)} ${c.Image} ${c.State} ${c.envName}`)),
+    () =>
+      containers.filter((c) =>
+        matcher.matches(
+          `container ${containerName(c)} ${c.Image} ${c.State} ${c.envName}`,
+        ),
+      ),
     [containers, matcher],
   );
   const filteredImages = useMemo(
-    () => images.filter((img) => matcher.matches(`image ${imageLabel(img)} ${img.envName}`)),
+    () =>
+      images.filter((img) =>
+        matcher.matches(`image ${imageLabel(img)} ${img.envName}`),
+      ),
     [images, matcher],
   );
   const filteredVolumes = useMemo(
-    () => volumes.filter((vol) => matcher.matches(`volume ${vol.Name} ${vol.Driver} ${vol.envName}`)),
+    () =>
+      volumes.filter((vol) =>
+        matcher.matches(`volume ${vol.Name} ${vol.Driver} ${vol.envName}`),
+      ),
     [matcher, volumes],
   );
   const filteredNetworks = useMemo(
-    () => networks.filter((net) => matcher.matches(`network ${net.Name} ${net.Driver} ${net.envName}`)),
+    () =>
+      networks.filter((net) =>
+        matcher.matches(`network ${net.Name} ${net.Driver} ${net.envName}`),
+      ),
     [matcher, networks],
   );
   const filteredStacks = useMemo(
-    () => stacks.filter((stack) => matcher.matches(`stack ${stack.name} ${stack.status} ${stack.description ?? ''} ${stack.envName}`)),
+    () =>
+      stacks.filter((stack) =>
+        matcher.matches(
+          `stack ${stack.name} ${stack.status} ${stack.description ?? ""} ${stack.envName}`,
+        ),
+      ),
     [matcher, stacks],
   );
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) {
+      if (e.key === "Escape" && open) {
         e.preventDefault();
         onOpenChange(false);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [open, onOpenChange]);
 
   useEffect(() => {
     if (!open) {
-      setQuery('');
-      setMode('contains');
+      setQuery("");
+      setMode("contains");
     }
   }, [open]);
 
@@ -238,7 +335,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       className="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]"
       onClick={() => onOpenChange(false)}
     >
-      <div className="fixed inset-0 bg-black/50" />
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" />
       <div
         className="relative z-10 w-full max-w-2xl rounded-lg border border-border bg-popover shadow-lg"
         onClick={(e) => e.stopPropagation()}
@@ -249,7 +346,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
             <Command.Input
               value={query}
               onValueChange={setQuery}
-              placeholder={t('globalSearch.placeholder')}
+              placeholder={t("globalSearch.placeholder")}
               className="w-full bg-transparent px-3 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
               autoFocus
             />
@@ -262,16 +359,18 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               value={mode}
               onChange={(value) => setMode(value as SearchMode)}
               options={[
-                { value: 'contains', label: t('filters.modeContains') },
-                { value: 'exact', label: t('filters.modeExact') },
-                { value: 'regex', label: t('filters.modeRegex') },
+                { value: "contains", label: t("filters.modeContains") },
+                { value: "exact", label: t("filters.modeExact") },
+                { value: "regex", label: t("filters.modeRegex") },
               ]}
               searchable={false}
               variant="outline"
               className="w-40"
             />
             {matcher.error && (
-              <p className="mt-2 text-xs text-destructive">{t('filters.invalidRegex')}</p>
+              <p className="mt-2 text-xs text-destructive">
+                {t("filters.invalidRegex")}
+              </p>
             )}
           </div>
 
@@ -282,14 +381,14 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               filteredVolumes.length === 0 &&
               filteredNetworks.length === 0 &&
               filteredStacks.length === 0 && (
-              <Command.Empty className="px-4 py-8 text-center text-sm text-muted-foreground">
-                {t('globalSearch.noResults')}
-              </Command.Empty>
-            )}
+                <Command.Empty className="px-4 py-8 text-center text-sm text-muted-foreground">
+                  {t("globalSearch.noResults")}
+                </Command.Empty>
+              )}
 
             {filteredNavCommands.length > 0 && (
               <Command.Group
-                heading={t('nav.navigation')}
+                heading={t("nav.navigation")}
                 className="px-2 py-1 text-xs font-medium text-muted-foreground"
               >
                 {filteredNavCommands.map((cmd) => {
@@ -311,22 +410,32 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
             {filteredContainers.length > 0 && (
               <Command.Group
-                heading={t('globalSearch.containers', { count: filteredContainers.length })}
+                heading={t("globalSearch.containers", {
+                  count: filteredContainers.length,
+                })}
                 className="px-2 py-1 text-xs font-medium text-muted-foreground"
               >
                 {filteredContainers.map((c) => {
                   const name = containerName(c);
-                  const dotClass = CONTAINER_DOT[c.State] ?? 'bg-zinc-400';
+                  const dotClass = CONTAINER_DOT[c.State] ?? "bg-zinc-400";
                   return (
                     <Command.Item
                       key={`c-${c.envId}-${c.Id}`}
                       value={`container ${name} ${c.Image} ${c.State} ${c.envName}`}
-                      onSelect={() => select(`/containers/${c.Id}?env=${c.envId}`)}
+                      onSelect={() =>
+                        select(`/containers/${c.Id}?env=${c.envId}`)
+                      }
                       className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent aria-selected:bg-accent"
                     >
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
-                      <span className="min-w-0 truncate font-medium">{name}</span>
-                      <span className="min-w-0 truncate text-xs text-muted-foreground">{c.Image}</span>
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`}
+                      />
+                      <span className="min-w-0 truncate font-medium">
+                        {name}
+                      </span>
+                      <span className="min-w-0 truncate text-xs text-muted-foreground">
+                        {c.Image}
+                      </span>
                       <EnvTag name={c.envName} />
                     </Command.Item>
                   );
@@ -336,7 +445,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
             {filteredImages.length > 0 && (
               <Command.Group
-                heading={t('globalSearch.images', { count: filteredImages.length })}
+                heading={t("globalSearch.images", {
+                  count: filteredImages.length,
+                })}
                 className="px-2 py-1 text-xs font-medium text-muted-foreground"
               >
                 {filteredImages.map((img) => {
@@ -346,12 +457,22 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     <Command.Item
                       key={`i-${img.envId}-${img.Id}`}
                       value={`image ${label} ${img.envName}`}
-                      onSelect={() => select(`/images/${encodeURIComponent(img.Id)}?env=${img.envId}`)}
+                      onSelect={() =>
+                        select(
+                          `/images/${encodeURIComponent(img.Id)}?env=${img.envId}`,
+                        )
+                      }
                       className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent aria-selected:bg-accent"
                     >
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${inUse ? 'bg-emerald-500' : 'bg-zinc-400'}`} />
-                      <span className="min-w-0 truncate font-medium">{label}</span>
-                      <span className="text-xs tabular-nums text-muted-foreground">{formatBytes(img.Size)}</span>
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${inUse ? "bg-emerald-500" : "bg-zinc-400"}`}
+                      />
+                      <span className="min-w-0 truncate font-medium">
+                        {label}
+                      </span>
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {formatBytes(img.Size)}
+                      </span>
                       <EnvTag name={img.envName} />
                     </Command.Item>
                   );
@@ -361,7 +482,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
             {filteredVolumes.length > 0 && (
               <Command.Group
-                heading={t('globalSearch.volumes', { count: filteredVolumes.length })}
+                heading={t("globalSearch.volumes", {
+                  count: filteredVolumes.length,
+                })}
                 className="px-2 py-1 text-xs font-medium text-muted-foreground"
               >
                 {filteredVolumes.map((vol) => {
@@ -373,9 +496,15 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                       onSelect={() => select(`/volumes?env=${vol.envId}`)}
                       className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent aria-selected:bg-accent"
                     >
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${inUse ? 'bg-emerald-500' : 'bg-zinc-400'}`} />
-                      <span className="min-w-0 truncate font-medium">{vol.Name}</span>
-                      <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{vol.Driver}</span>
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${inUse ? "bg-emerald-500" : "bg-zinc-400"}`}
+                      />
+                      <span className="min-w-0 truncate font-medium">
+                        {vol.Name}
+                      </span>
+                      <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                        {vol.Driver}
+                      </span>
                       <EnvTag name={vol.envName} />
                     </Command.Item>
                   );
@@ -385,19 +514,27 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
             {filteredNetworks.length > 0 && (
               <Command.Group
-                heading={t('globalSearch.networks', { count: filteredNetworks.length })}
+                heading={t("globalSearch.networks", {
+                  count: filteredNetworks.length,
+                })}
                 className="px-2 py-1 text-xs font-medium text-muted-foreground"
               >
                 {filteredNetworks.map((net) => (
                   <Command.Item
                     key={`n-${net.envId}-${net.Id}`}
                     value={`network ${net.Name} ${net.Driver} ${net.envName}`}
-                    onSelect={() => select(`/networks/${net.Id}?env=${net.envId}`)}
+                    onSelect={() =>
+                      select(`/networks/${net.Id}?env=${net.envId}`)
+                    }
                     className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent aria-selected:bg-accent"
                   >
                     <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-                    <span className="min-w-0 truncate font-medium">{net.Name}</span>
-                    <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">{net.Driver}</span>
+                    <span className="min-w-0 truncate font-medium">
+                      {net.Name}
+                    </span>
+                    <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                      {net.Driver}
+                    </span>
                     <EnvTag name={net.envName} />
                   </Command.Item>
                 ))}
@@ -406,21 +543,33 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
 
             {filteredStacks.length > 0 && (
               <Command.Group
-                heading={t('globalSearch.stacks', { count: filteredStacks.length })}
+                heading={t("globalSearch.stacks", {
+                  count: filteredStacks.length,
+                })}
                 className="px-2 py-1 text-xs font-medium text-muted-foreground"
               >
                 {filteredStacks.map((stack) => {
-                  const dotClass = STACK_DOT[stack.status] ?? 'bg-zinc-400';
+                  const dotClass = STACK_DOT[stack.status] ?? "bg-zinc-400";
                   return (
                     <Command.Item
                       key={`s-${stack.envId}-${stack.name}`}
-                      value={`stack ${stack.name} ${stack.status} ${stack.description ?? ''} ${stack.envName}`}
-                      onSelect={() => select(`/stacks/${encodeURIComponent(stack.name)}?env=${stack.envId}`)}
+                      value={`stack ${stack.name} ${stack.status} ${stack.description ?? ""} ${stack.envName}`}
+                      onSelect={() =>
+                        select(
+                          `/stacks/${encodeURIComponent(stack.name)}?env=${stack.envId}`,
+                        )
+                      }
                       className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent aria-selected:bg-accent"
                     >
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
-                      <span className="min-w-0 truncate font-medium">{stack.name}</span>
-                      <span className="shrink-0 text-xs text-muted-foreground">{stack.services.length} svc</span>
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`}
+                      />
+                      <span className="min-w-0 truncate font-medium">
+                        {stack.name}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {stack.services.length} svc
+                      </span>
                       <EnvTag name={stack.envName} />
                     </Command.Item>
                   );
@@ -434,19 +583,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
               <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                 ↑↓
               </kbd>
-              {t('globalSearch.navigate')}
+              {t("globalSearch.navigate")}
             </span>
             <span className="flex items-center gap-1.5">
               <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                 ↵
               </kbd>
-              {t('globalSearch.open')}
+              {t("globalSearch.open")}
             </span>
             <span className="flex items-center gap-1.5">
               <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                 esc
               </kbd>
-              {t('globalSearch.close')}
+              {t("globalSearch.close")}
             </span>
           </div>
         </Command>
@@ -462,4 +611,3 @@ function EnvTag({ name }: { name: string }) {
     </span>
   );
 }
-

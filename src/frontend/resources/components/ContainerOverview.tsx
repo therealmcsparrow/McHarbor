@@ -1,31 +1,31 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router';
-import { useTranslation } from 'react-i18next';
-import { useQueries } from '@tanstack/react-query';
-import { Command } from 'cmdk';
-import { IconBox, IconLoader2 } from '@tabler/icons-react';
-import { api } from '@core/api/client';
-import type { ContainerInfo, ContainerState } from '@core/types/docker';
-import { useEnvironmentStore } from '@resources/stores/environment';
+import { useEffect, useMemo } from "react";
+import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
+import { useQueries } from "@tanstack/react-query";
+import { Command } from "cmdk";
+import { IconBox, IconLoader2 } from "@tabler/icons-react";
+import { api } from "@core/api/client";
+import type { ContainerInfo, ContainerState } from "@core/types/docker";
+import { useEnvironmentStore } from "@resources/stores/environment";
 
 type ContainerWithEnv = ContainerInfo & { envId: string; envName: string };
 
 const STATE_DOT: Record<ContainerState, string> = {
-  running: 'bg-emerald-500',
-  paused: 'bg-amber-500',
-  restarting: 'bg-amber-500',
-  created: 'bg-zinc-400',
-  exited: 'bg-red-500',
-  removing: 'bg-red-400',
-  dead: 'bg-red-600',
+  running: "bg-emerald-500",
+  paused: "bg-amber-500",
+  restarting: "bg-amber-500",
+  created: "bg-zinc-400",
+  exited: "bg-red-500",
+  removing: "bg-red-400",
+  dead: "bg-red-600",
 };
 
 function containerName(c: ContainerInfo): string {
   const name = c.Names?.[0] ?? c.Id.slice(0, 12);
-  return name.startsWith('/') ? name.slice(1) : name;
+  return name.startsWith("/") ? name.slice(1) : name;
 }
 
 type ContainerOverviewProps = {
@@ -33,25 +33,32 @@ type ContainerOverviewProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps) {
-  const { t } = useTranslation('containers');
-  const { t: tc } = useTranslation('common');
+export function ContainerOverview({
+  open,
+  onOpenChange,
+}: ContainerOverviewProps) {
+  const { t } = useTranslation("containers");
+  const { t: tc } = useTranslation("common");
   const navigate = useNavigate();
   const environments = useEnvironmentStore((s) => s.environments);
 
   const dockerEnvs = useMemo(
-    () => environments.filter((e) => e.orchestratorType === 'docker'),
+    () => environments.filter((e) => e.orchestratorType === "docker"),
     [environments],
   );
 
   const queries = useQueries({
     queries: dockerEnvs.map((env) => ({
-      queryKey: ['containers-overview', env.id],
+      queryKey: ["containers-overview", env.id],
       queryFn: () =>
         api
-          .get<ContainerInfo[]>('/containers', { all: 'true', env: env.id })
+          .get<ContainerInfo[]>("/containers", { all: "true", env: env.id })
           .then((r) =>
-            (r.data ?? []).map((c) => ({ ...c, envId: env.id, envName: env.name })),
+            (r.data ?? []).map((c) => ({
+              ...c,
+              envId: env.id,
+              envName: env.name,
+            })),
           ),
       refetchInterval: open ? 10_000 : false,
       staleTime: 5_000,
@@ -62,7 +69,11 @@ export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps
   const isLoading = queries.some((q) => q.isLoading);
 
   const envGroups = useMemo(() => {
-    const groups: { envId: string; envName: string; containers: ContainerWithEnv[] }[] = [];
+    const groups: {
+      envId: string;
+      envName: string;
+      containers: ContainerWithEnv[];
+    }[] = [];
     for (let i = 0; i < dockerEnvs.length; i++) {
       const env = dockerEnvs[i];
       const containers = queries[i]?.data ?? [];
@@ -75,19 +86,19 @@ export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps
 
   const totalCount = envGroups.reduce((sum, g) => sum + g.containers.length, 0);
   const runningCount = envGroups.reduce(
-    (sum, g) => sum + g.containers.filter((c) => c.State === 'running').length,
+    (sum, g) => sum + g.containers.filter((c) => c.State === "running").length,
     0,
   );
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) {
+      if (e.key === "Escape" && open) {
         e.preventDefault();
         onOpenChange(false);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [open, onOpenChange]);
 
   if (!open) return null;
@@ -97,7 +108,7 @@ export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps
       className="fixed inset-0 z-50 flex items-start justify-center pt-[12vh]"
       onClick={() => onOpenChange(false)}
     >
-      <div className="fixed inset-0 bg-black/50" />
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" />
       <div
         className="relative z-10 w-full max-w-2xl rounded-lg border border-border bg-popover shadow-lg"
         onClick={(e) => e.stopPropagation()}
@@ -106,7 +117,7 @@ export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps
           <div className="flex items-center border-b border-border">
             <IconBox className="ml-4 h-4 w-4 shrink-0 text-muted-foreground" />
             <Command.Input
-              placeholder={t('searchPlaceholder')}
+              placeholder={t("searchPlaceholder")}
               className="w-full bg-transparent px-3 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
               autoFocus
             />
@@ -117,20 +128,20 @@ export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps
 
           {/* Summary bar */}
           <div className="flex items-center gap-3 border-b border-border px-4 py-2 text-xs text-muted-foreground">
-            <span>
-              {tc('containerOverview.total', { count: totalCount })}
-            </span>
+            <span>{tc("containerOverview.total", { count: totalCount })}</span>
             <span className="text-emerald-500">
-              {tc('containerOverview.running', { count: runningCount })}
+              {tc("containerOverview.running", { count: runningCount })}
             </span>
             <span className="ml-auto">
-              {tc('containerOverview.environments', { count: dockerEnvs.length })}
+              {tc("containerOverview.environments", {
+                count: dockerEnvs.length,
+              })}
             </span>
           </div>
 
           <Command.List className="max-h-[50vh] overflow-y-auto p-2">
             <Command.Empty className="px-4 py-8 text-center text-sm text-muted-foreground">
-              {t('emptyMessage')}
+              {t("emptyMessage")}
             </Command.Empty>
 
             {envGroups.map((group) => (
@@ -141,7 +152,7 @@ export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps
               >
                 {group.containers.map((c) => {
                   const name = containerName(c);
-                  const dotClass = STATE_DOT[c.State] ?? 'bg-zinc-400';
+                  const dotClass = STATE_DOT[c.State] ?? "bg-zinc-400";
                   return (
                     <Command.Item
                       key={`${group.envId}-${c.Id}`}
@@ -152,8 +163,12 @@ export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps
                       }}
                       className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-foreground hover:bg-accent aria-selected:bg-accent"
                     >
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
-                      <span className="min-w-0 truncate font-medium">{name}</span>
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`}
+                      />
+                      <span className="min-w-0 truncate font-medium">
+                        {name}
+                      </span>
                       <span className="min-w-0 truncate text-xs text-muted-foreground">
                         {c.Image}
                       </span>
@@ -173,19 +188,19 @@ export function ContainerOverview({ open, onOpenChange }: ContainerOverviewProps
               <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                 ↑↓
               </kbd>
-              {tc('containerOverview.navigate')}
+              {tc("containerOverview.navigate")}
             </span>
             <span className="flex items-center gap-1.5">
               <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                 ↵
               </kbd>
-              {tc('containerOverview.open')}
+              {tc("containerOverview.open")}
             </span>
             <span className="flex items-center gap-1.5">
               <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                 esc
               </kbd>
-              {tc('containerOverview.close')}
+              {tc("containerOverview.close")}
             </span>
           </div>
         </Command>

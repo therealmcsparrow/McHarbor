@@ -1,10 +1,10 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useCallback, useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { useParams, useNavigate } from 'react-router';
-import { useTranslation } from 'react-i18next';
+import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { useParams, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import {
   IconInfoCircle,
   IconBox,
@@ -13,23 +13,37 @@ import {
   IconCode,
   IconVariable,
   IconWebhook,
-} from '@tabler/icons-react';
-import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
-import { Spinner } from '@resources/components/ui/Spinner';
-import { useHeaderSlot } from '@resources/stores/headerSlot';
-import { cn } from '@resources/utils/cn';
-import { useStack, useStackAction, useDeleteStack, useUpdateStack } from '../hooks/useStacks';
-import { TakeOverDialog } from '../components/TakeOverDialog';
-import { OverviewTab } from '../components/tabs/OverviewTab';
-import { ServicesTab } from '../components/tabs/ServicesTab';
-import { LogsTab } from '../components/tabs/LogsTab';
-import { ComposeTab } from '../components/tabs/ComposeTab';
-import { EnvironmentTab } from '../components/tabs/EnvironmentTab';
-import { LayersTab } from '../components/tabs/LayersTab';
-import { WebhooksTab } from '../components/tabs/WebhooksTab';
-import { StackDetailHeader } from './StackDetailHeader';
+} from "@tabler/icons-react";
+import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
+import { Button } from "@resources/components/ui/Button";
+import { Spinner } from "@resources/components/ui/Spinner";
+import { useHeaderSlot } from "@resources/stores/headerSlot";
+import { cn } from "@resources/utils/cn";
+import {
+  useStack,
+  useStackAction,
+  useDeleteStack,
+  useUpdateStack,
+} from "../hooks/useStacks";
+import { TakeOverDialog } from "../components/TakeOverDialog";
+import { OverviewTab } from "../components/tabs/OverviewTab";
+import { ServicesTab } from "../components/tabs/ServicesTab";
+import { LogsTab } from "../components/tabs/LogsTab";
+import { ComposeTab } from "../components/tabs/ComposeTab";
+import { EnvironmentTab } from "../components/tabs/EnvironmentTab";
+import { LayersTab } from "../components/tabs/LayersTab";
+import { WebhooksTab } from "../components/tabs/WebhooksTab";
+import { StackDetailHeader } from "./StackDetailHeader";
 
-const DETAIL_TAB_IDS = ['overview', 'services', 'layers', 'logs', 'compose', 'environment', 'webhooks'] as const;
+const DETAIL_TAB_IDS = [
+  "overview",
+  "services",
+  "layers",
+  "logs",
+  "compose",
+  "environment",
+  "webhooks",
+] as const;
 type DetailTabId = (typeof DETAIL_TAB_IDS)[number];
 
 const DETAIL_TAB_ICONS: Record<DetailTabId, typeof IconInfoCircle> = {
@@ -45,19 +59,19 @@ const DETAIL_TAB_ICONS: Record<DetailTabId, typeof IconInfoCircle> = {
 export default function StackDetailPage() {
   const { name } = useParams<{ name: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation('stacks');
-  const { data: stack, isLoading } = useStack(name ?? '');
+  const { t } = useTranslation("stacks");
+  const { data: stack, isLoading } = useStack(name ?? "");
   const action = useStackAction();
   const deleteStack = useDeleteStack();
   const updateStack = useUpdateStack();
-  const [activeTab, setActiveTab] = useState<DetailTabId>('overview');
+  const [activeTab, setActiveTab] = useState<DetailTabId>("overview");
   const [removeOpen, setRemoveOpen] = useState(false);
   const [takeOverOpen, setTakeOverOpen] = useState(false);
   const setHeaderActive = useHeaderSlot((s) => s.setActive);
 
   // Edit mode state
   const [editing, setEditing] = useState(false);
-  const [editDescription, setEditDescription] = useState('');
+  const [editDescription, setEditDescription] = useState("");
 
   useEffect(() => {
     setHeaderActive(true);
@@ -67,20 +81,20 @@ export default function StackDetailPage() {
   // Reset edit state when stack changes
   useEffect(() => {
     if (stack) {
-      setEditDescription(stack.description ?? '');
+      setEditDescription(stack.description ?? "");
     }
   }, [stack]);
 
   const handleStartEdit = useCallback(() => {
     if (!stack) return;
-    setEditDescription(stack.description ?? '');
+    setEditDescription(stack.description ?? "");
     setEditing(true);
   }, [stack]);
 
   const handleCancelEdit = useCallback(() => {
     setEditing(false);
     if (stack) {
-      setEditDescription(stack.description ?? '');
+      setEditDescription(stack.description ?? "");
     }
   }, [stack]);
 
@@ -107,17 +121,19 @@ export default function StackDetailPage() {
 
   if (!stack) {
     return (
-      <div className="py-12 text-center text-muted-foreground">{t('detail.stackNotFound')}</div>
+      <div className="py-12 text-center text-muted-foreground">
+        {t("detail.stackNotFound")}
+      </div>
     );
   }
 
-  const isRunning = stack.status === 'running' || stack.status === 'partial';
-  const isManaged = stack.type === 'managed';
-  const headerSlot = document.getElementById('header-slot');
+  const isRunning = stack.status === "running" || stack.status === "partial";
+  const isManaged = stack.type === "managed";
+  const headerSlot = document.getElementById("header-slot");
 
   const visibleTabs = isManaged
     ? DETAIL_TAB_IDS
-    : DETAIL_TAB_IDS.filter((id) => id !== 'environment');
+    : DETAIL_TAB_IDS.filter((id) => id !== "environment");
 
   return (
     <div className="flex h-full flex-col gap-0">
@@ -146,26 +162,28 @@ export default function StackDetailPage() {
             {visibleTabs.map((tabId) => {
               const Icon = DETAIL_TAB_ICONS[tabId];
               return (
-                <button
+                <Button
                   key={tabId}
+                  type="button"
+                  variant="ghost"
                   onClick={() => setActiveTab(tabId)}
                   className={cn(
-                    'py-2 px-3.5 inline-flex items-center gap-x-1.5 text-sm font-medium rounded-lg transition-colors',
+                    "h-auto py-2 px-3.5 inline-flex items-center gap-x-1.5 text-sm font-medium rounded-lg transition-colors",
                     activeTab === tabId
-                      ? 'bg-card text-foreground shadow-sm'
-                      : 'bg-transparent text-muted-foreground hover:text-primary',
+                      ? "bg-card text-foreground shadow-sm"
+                      : "bg-transparent text-muted-foreground hover:text-primary",
                   )}
                 >
                   <Icon className="size-4" />
                   {t(`detail.${tabId}`)}
-                </button>
+                </Button>
               );
             })}
           </nav>
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-5">
-          {activeTab === 'overview' && (
+          {activeTab === "overview" && (
             <OverviewTab
               stack={stack}
               editing={editing}
@@ -173,18 +191,34 @@ export default function StackDetailPage() {
               onDescriptionChange={setEditDescription}
             />
           )}
-          {activeTab === 'services' && <ServicesTab stackName={stack.name} />}
-          {activeTab === 'layers' && <LayersTab stackName={stack.name} services={stack.services} />}
-          <div className={activeTab !== 'logs' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}>
+          {activeTab === "services" && <ServicesTab stackName={stack.name} />}
+          {activeTab === "layers" && (
+            <LayersTab stackName={stack.name} services={stack.services} />
+          )}
+          <div
+            className={
+              activeTab !== "logs" ? "hidden" : "flex min-h-0 flex-1 flex-col"
+            }
+          >
             <LogsTab stackName={stack.name} />
           </div>
-          <div className={activeTab !== 'compose' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}>
-            <ComposeTab stackName={stack.name} isManaged={isManaged} editing={editing} />
+          <div
+            className={
+              activeTab !== "compose"
+                ? "hidden"
+                : "flex min-h-0 flex-1 flex-col"
+            }
+          >
+            <ComposeTab
+              stackName={stack.name}
+              isManaged={isManaged}
+              editing={editing}
+            />
           </div>
-          {activeTab === 'environment' && isManaged && (
+          {activeTab === "environment" && isManaged && (
             <EnvironmentTab stackName={stack.name} editing={editing} />
           )}
-          {activeTab === 'webhooks' && isManaged && (
+          {activeTab === "webhooks" && isManaged && (
             <WebhooksTab stackName={stack.name} />
           )}
         </div>
@@ -199,12 +233,12 @@ export default function StackDetailPage() {
       <ConfirmDialog
         open={removeOpen}
         onOpenChange={(open) => !open && setRemoveOpen(false)}
-        title={t('confirm.removeTitle')}
-        description={t('confirm.removeDescription', { name: stack.name })}
-        confirmLabel={t('confirm.removeLabel')}
+        title={t("confirm.removeTitle")}
+        description={t("confirm.removeDescription", { name: stack.name })}
+        confirmLabel={t("confirm.removeLabel")}
         onConfirm={() => {
           deleteStack.mutate(stack.name, {
-            onSuccess: () => navigate('/stacks'),
+            onSuccess: () => navigate("/stacks"),
           });
           setRemoveOpen(false);
         }}

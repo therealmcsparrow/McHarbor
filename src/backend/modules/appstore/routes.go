@@ -10,8 +10,13 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
-// Mount registers app store routes and seeds the catalog on startup.
-func Mount(app *router.AppDeps, service *Service) {
+// Mount registers app store routes using the default runtime service.
+func Mount(app *router.AppDeps) {
+	MountWithService(app, NewService(app.DB, nil, nil, app.Logger))
+}
+
+// MountWithService registers app store routes and seeds the catalog on startup.
+func MountWithService(app *router.AppDeps, service *Service) {
 	h := NewHandler(app, service)
 
 	// Seed bundled catalog into DB

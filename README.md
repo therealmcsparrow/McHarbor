@@ -72,7 +72,7 @@ docker compose up -d
 
 The app is served on port `8705` by default, mapped to backend port `5474` inside the container.
 
-The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.0.0`. To run the optional remote agent from Compose, set `MCHARBOR_URL` and `MCHARBOR_AGENT_TOKEN` and start the `agent` profile:
+The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.1.0`. To run the optional remote agent from Compose, set `MCHARBOR_URL` and `MCHARBOR_AGENT_TOKEN` and start the `agent` profile:
 
 ```bash
 docker compose --profile agent up -d
@@ -140,4 +140,3 @@ docker run -d \
 If you see an error like `Cannot connect to the Docker daemon at unix:///var/run/docker.sock`, check that Docker is running on the host and that the socket mount is present.
 
 Note: `ghcr.io/therealmcsparrow/mcharbor:latest` and `ghcr.io/therealmcsparrow/mcharbor-agent:latest` require the GitHub Container Registry publish step to succeed before these commands will pull successfully.
-

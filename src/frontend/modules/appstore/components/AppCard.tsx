@@ -1,12 +1,12 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useTranslation } from 'react-i18next';
-import { IconCheck, IconDownload } from '@tabler/icons-react';
-import { Badge } from '@resources/components/ui/Badge';
-import { Button } from '@resources/components/ui/Button';
-import { AppInstallationsSummary } from './AppInstallations';
-import type { AppTemplate } from '../types';
+import { useTranslation } from "react-i18next";
+import { IconCheck, IconDownload } from "@tabler/icons-react";
+import { Badge } from "@resources/components/ui/Badge";
+import { Button } from "@resources/components/ui/Button";
+import { AppInstallationsSummary } from "./AppInstallations";
+import type { AppTemplate } from "../types";
 
 interface AppCardProps {
   app: AppTemplate;
@@ -15,12 +15,9 @@ interface AppCardProps {
 }
 
 export function AppCard({ app, onInstall, onViewDetail }: AppCardProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   return (
-    <div
-      className="group flex cursor-pointer flex-col rounded-lg border border-border bg-card transition-colors hover:border-primary/40"
-      onClick={() => onViewDetail(app)}
-    >
+    <div className="group flex flex-col rounded-lg border border-border bg-card transition-colors hover:border-primary/40">
       <div className="m-2 flex flex-col gap-3">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted">
@@ -30,7 +27,7 @@ export function AppCard({ app, onInstall, onViewDetail }: AppCardProps) {
                 alt={app.name}
                 className="h-8 w-8 object-contain"
                 onError={(e) => {
-                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.style.display = "none";
                 }}
               />
             ) : (
@@ -41,9 +38,13 @@ export function AppCard({ app, onInstall, onViewDetail }: AppCardProps) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="truncate text-sm font-medium text-foreground">{app.name}</h3>
+              <h3 className="truncate text-sm font-medium text-foreground">
+                {app.name}
+              </h3>
               {app.version && (
-                <span className="shrink-0 text-xs text-muted-foreground">{app.version}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {app.version}
+                </span>
               )}
             </div>
             <Badge variant="secondary" className="mt-1 text-xs">
@@ -66,26 +67,29 @@ export function AppCard({ app, onInstall, onViewDetail }: AppCardProps) {
           {app.installed ? (
             <Badge variant="success" className="gap-1">
               <IconCheck className="size-3" />
-              {t('appStore.installed')}
+              {t("appStore.installed")}
             </Badge>
           ) : (
-            <span className="text-xs text-muted-foreground">{t('appStore.availableForInstall')}</span>
+            <span className="text-xs text-muted-foreground">
+              {t("appStore.availableForInstall")}
+            </span>
           )}
-          <Button
-            size="sm"
-            variant="outline"
-            className="gap-1"
-            onClick={(e) => {
-              e.stopPropagation();
-              onInstall(app);
-            }}
-          >
-            <IconDownload className="size-3.5" />
-            {t('appStore.install')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={() => onViewDetail(app)}>
+              {t("actions.view")}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={() => onInstall(app)}
+            >
+              <IconDownload className="size-3.5" />
+              {t("appStore.install")}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

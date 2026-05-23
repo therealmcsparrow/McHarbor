@@ -13,32 +13,32 @@
  */
 export const ct = {
   // --- Category A: Theme-aware opacity variants ---
-  text10: 'text-foreground/10',
-  text20: 'text-foreground/20',
-  text25: 'text-foreground/25',
-  text30: 'text-foreground/30',
-  text40: 'text-foreground/40',
-  text50: 'text-foreground/50',
-  text60: 'text-foreground/60',
-  text80: 'text-foreground/80',
-  border30: 'border-foreground/30',
-  border60: 'border-foreground/60',
-  bg20: 'bg-foreground/20',
+  text10: "text-foreground/10",
+  text20: "text-foreground/20",
+  text25: "text-foreground/25",
+  text30: "text-foreground/30",
+  text40: "text-foreground/40",
+  text50: "text-foreground/50",
+  text60: "text-foreground/60",
+  text80: "text-foreground/80",
+  border30: "border-foreground/30",
+  border60: "border-foreground/60",
+  bg20: "bg-foreground/20",
 
   // --- Category A: Theme-aware surface colors ---
   // Canvas background, node bodies, input fields on canvas
-  canvasBg: 'bg-background',
-  nodeBg: 'bg-muted',
-  portBg: 'bg-muted/50',
-  gridDot: 'rgba(128,128,128,0.15)',
+  canvasBg: "bg-background",
+  nodeBg: "bg-muted",
+  portBg: "bg-muted/50",
+  gridDot: "rgba(128,128,128,0.15)",
 
   // --- Category B: Fixed contrast (on colored backgrounds) ---
-  nodeHeaderText: 'text-white',
-  activeBtnText: 'text-white',
-  runBtnText: 'text-white',
+  nodeHeaderText: "text-primary-foreground",
+  activeBtnText: "text-primary-foreground",
+  runBtnText: "text-primary-foreground",
 
   // --- Category C: Fixed structural ---
-  toggleKnob: 'bg-white',
-  backdrop: 'bg-black/40',
-  tooltipBg: 'bg-black/80',
+  toggleKnob: "bg-background",
+  backdrop: "bg-background/40",
+  tooltipBg: "bg-popover/95",
 } as const;

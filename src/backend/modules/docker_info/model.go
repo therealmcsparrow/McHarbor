@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-package docker_info
+package dockerinfo
 
 // DockerSystemInfo contains extended Docker daemon information.
 type DockerSystemInfo struct {
@@ -22,15 +22,15 @@ type DockerSystemInfo struct {
 	MemTotal int64 `json:"memTotal"`
 
 	// Storage
-	StorageDriver string            `json:"storageDriver"`
-	DockerRootDir string            `json:"dockerRootDir"`
-	DriverStatus  [][]string        `json:"driverStatus"`
+	StorageDriver string     `json:"storageDriver"`
+	DockerRootDir string     `json:"dockerRootDir"`
+	DriverStatus  [][]string `json:"driverStatus"`
 
 	// Runtime
-	CgroupDriver  string   `json:"cgroupDriver"`
-	CgroupVersion string   `json:"cgroupVersion"`
-	DefaultRuntime string  `json:"defaultRuntime"`
-	Runtimes      []string `json:"runtimes"`
+	CgroupDriver   string   `json:"cgroupDriver"`
+	CgroupVersion  string   `json:"cgroupVersion"`
+	DefaultRuntime string   `json:"defaultRuntime"`
+	Runtimes       []string `json:"runtimes"`
 
 	// Counts
 	Containers        int `json:"containers"`
