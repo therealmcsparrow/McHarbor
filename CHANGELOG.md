@@ -2,6 +2,22 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.5] - 2026-05-23
+
+### Fixed
+
+- Fixed production self-update and self-reinstall flows so McHarbor reliably detects when a managed stack contains the running McHarbor container, even after an adopted compose file pinned an old container hostname.
+- Fixed the detached self-update helper to inspect the current container by real container ID candidates from `/proc` metadata before falling back to hostname-based lookup.
+- Fixed compose reconstruction so Docker-generated container hostnames are no longer written into adopted compose files, preventing future self-update detection from being poisoned by stale container IDs.
+
+### Tests
+
+- Added regression coverage for reconstructed compose output and self-container matching with stale hostnames.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.5`.
+
 ## [1.1.4] - 2026-05-23
 
 ### Fixed

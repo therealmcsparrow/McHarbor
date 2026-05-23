@@ -30,6 +30,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
+	sdkclient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rs/xid"
 
@@ -38,6 +39,7 @@ import (
 )
 
 var safeNameRe = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
+var dockerContainerIDRe = regexp.MustCompile(`[0-9a-f]{64}`)
 
 var (
 	ErrStackAlreadyManaged = fmt.Errorf("stack already managed")
@@ -821,8 +823,8 @@ func mergeComposeResults(results ...*ComposeResult) *ComposeResult {
 }
 
 func (s *Service) stackTargetsSelf(ctx context.Context, envID, projectName string) (bool, error) {
-	hostname, err := os.Hostname()
-	if err != nil || hostname == "" {
+	candidates := currentContainerIDCandidates()
+	if len(candidates) == 0 {
 		return false, nil
 	}
 
@@ -832,7 +834,7 @@ func (s *Service) stackTargetsSelf(ctx context.Context, envID, projectName strin
 	}
 
 	for _, c := range containers {
-		if strings.HasPrefix(c.ID, hostname) || strings.HasPrefix(hostname, c.ID) {
+		if containerMatchesAnyCandidate(c.ID, c.Names, candidates) {
 			return true, nil
 		}
 	}
@@ -846,23 +848,18 @@ func (s *Service) runDetachedSelfCompose(envID, projectPath string, envVars map[
 		return &ComposeResult{Success: false, Error: "docker connection failed"}
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil || hostname == "" {
-		return &ComposeResult{Success: false, Error: "failed to resolve current container ID"}
-	}
-
 	inspectCtx, inspectCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer inspectCancel()
 
-	current, err := cli.ContainerInspect(inspectCtx, hostname)
+	current, err := s.inspectCurrentContainer(inspectCtx, cli)
 	if err != nil {
-		slog.Error("stacks: inspect current container failed before self compose", "error", err, "container", hostname)
+		slog.Error("stacks: inspect current container failed before self compose", "error", err)
 		return &ComposeResult{Success: false, Error: "failed to inspect current McHarbor container"}
 	}
 
 	helperMounts, err := s.selfComposeHelperMounts(current)
 	if err != nil {
-		slog.Error("stacks: resolve helper mounts failed", "error", err, "container", hostname)
+		slog.Error("stacks: resolve helper mounts failed", "error", err, "container", current.ID)
 		return &ComposeResult{Success: false, Error: "failed to prepare self-update helper container"}
 	}
 
@@ -908,6 +905,83 @@ func (s *Service) runDetachedSelfCompose(envID, projectPath string, envVars map[
 		Success: true,
 		Output:  "scheduled detached self-update helper; waiting for McHarbor to restart",
 	}
+}
+
+func (s *Service) inspectCurrentContainer(ctx context.Context, cli *sdkclient.Client) (types.ContainerJSON, error) {
+	candidates := currentContainerIDCandidates()
+	var lastErr error
+	for _, candidate := range candidates {
+		current, err := cli.ContainerInspect(ctx, candidate)
+		if err == nil {
+			return current, nil
+		}
+		lastErr = err
+	}
+	if lastErr != nil {
+		return types.ContainerJSON{}, fmt.Errorf("inspecting current container candidates %v: %w", candidates, lastErr)
+	}
+	return types.ContainerJSON{}, fmt.Errorf("no current container candidates found")
+}
+
+func currentContainerIDCandidates() []string {
+	seen := map[string]struct{}{}
+	var candidates []string
+	add := func(value string) {
+		value = strings.TrimSpace(strings.TrimPrefix(value, "/"))
+		if value == "" {
+			return
+		}
+		if _, ok := seen[value]; ok {
+			return
+		}
+		seen[value] = struct{}{}
+		candidates = append(candidates, value)
+	}
+
+	for _, path := range []string{"/proc/self/mountinfo", "/proc/self/cgroup"} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		for _, id := range dockerContainerIDRe.FindAllString(string(data), -1) {
+			add(id)
+		}
+	}
+
+	if hostname, err := os.Hostname(); err == nil {
+		add(hostname)
+	}
+	if data, err := os.ReadFile("/etc/hostname"); err == nil {
+		add(string(data))
+	}
+
+	return candidates
+}
+
+func containerMatchesAnyCandidate(containerID string, names []string, candidates []string) bool {
+	for _, candidate := range candidates {
+		if containerIDMatches(containerID, candidate) {
+			return true
+		}
+		for _, name := range names {
+			if strings.TrimPrefix(name, "/") == candidate {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func containerIDMatches(containerID, candidate string) bool {
+	if containerID == "" || candidate == "" {
+		return false
+	}
+	containerID = strings.ToLower(containerID)
+	candidate = strings.ToLower(candidate)
+	if len(candidate) < 12 && len(containerID) >= 12 {
+		return false
+	}
+	return strings.HasPrefix(containerID, candidate) || strings.HasPrefix(candidate, containerID)
 }
 
 func (s *Service) selfComposeHelperMounts(current types.ContainerJSON) ([]mount.Mount, error) {

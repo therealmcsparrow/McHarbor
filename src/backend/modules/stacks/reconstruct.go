@@ -113,7 +113,7 @@ func ReconstructCompose(containers []types.ContainerJSON) (string, error) {
 		if c.Config.WorkingDir != "" {
 			svc["working_dir"] = c.Config.WorkingDir
 		}
-		if c.Config.Hostname != "" {
+		if c.Config.Hostname != "" && !isGeneratedContainerHostname(c.Config.Hostname, c.ID) {
 			svc["hostname"] = c.Config.Hostname
 		}
 		if c.Config.User != "" {
@@ -160,6 +160,15 @@ func ReconstructCompose(containers []types.ContainerJSON) (string, error) {
 	}
 
 	return string(out), nil
+}
+
+func isGeneratedContainerHostname(hostname, containerID string) bool {
+	hostname = strings.ToLower(strings.TrimSpace(hostname))
+	containerID = strings.ToLower(strings.TrimSpace(containerID))
+	if hostname == "" || containerID == "" {
+		return false
+	}
+	return strings.HasPrefix(containerID, hostname) || strings.HasPrefix(hostname, containerID)
 }
 
 // sanitizeServiceName derives a safe service name from a container name.
