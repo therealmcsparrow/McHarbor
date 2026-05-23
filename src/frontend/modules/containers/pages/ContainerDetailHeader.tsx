@@ -18,6 +18,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
+import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { truncateId } from '@resources/utils/format';
 import type { ContainerInspect } from '@core/types/docker';
@@ -64,19 +65,29 @@ type HeaderActionButtonProps = {
   tooltip: string;
   onClick: () => void;
   icon: React.ReactNode;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   className?: string;
 };
 
-function HeaderActionButton({ tooltip, onClick, icon, className = '' }: HeaderActionButtonProps) {
+function HeaderActionButton({
+  tooltip,
+  onClick,
+  icon,
+  variant = 'outline',
+  className = '',
+}: HeaderActionButtonProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
+        <Button
           onClick={onClick}
-          className={`flex size-8 items-center justify-center rounded-lg border border-border transition-colors ${className}`}
+          variant={variant}
+          size="icon-sm"
+          aria-label={tooltip}
+          className={className}
         >
           {icon}
-        </button>
+        </Button>
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>
@@ -124,12 +135,15 @@ export function ContainerDetailHeader({
       <div className="flex items-center gap-3">
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
+            <Button
               onClick={() => navigate('/containers')}
-              className="flex size-8 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+              variant="outline"
+              size="icon-sm"
+              aria-label={t('actions.backToContainers')}
+              className="text-muted-foreground hover:text-foreground"
             >
               <IconArrowLeft className="size-4" />
-            </button>
+            </Button>
           </TooltipTrigger>
           <TooltipContent>{t('actions.backToContainers')}</TooltipContent>
         </Tooltip>
@@ -163,6 +177,7 @@ export function ContainerDetailHeader({
             <HeaderActionButton
               tooltip={t('edit.saveChanges')}
               onClick={onSave}
+              variant="default"
               icon={
                 saving ? (
                   <span className="size-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -170,13 +185,12 @@ export function ContainerDetailHeader({
                   <IconCheck className="size-3.5" />
                 )
               }
-              className="text-green-500 hover:bg-green-500/10 hover:border-green-500/30"
             />
             <HeaderActionButton
               tooltip={t('edit.cancelChanges')}
               onClick={onCancelEdit}
               icon={<IconX className="size-3.5" />}
-              className="text-muted-foreground hover:bg-muted/50 hover:border-border"
+              className="text-muted-foreground"
             />
           </>
         ) : (
@@ -185,63 +199,59 @@ export function ContainerDetailHeader({
               tooltip={t('actions.edit')}
               onClick={onEdit}
               icon={<IconPencil className="size-3.5" />}
-              className="text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/30"
             />
             {isRunning ? (
               <HeaderActionButton
                 tooltip={t('actions.stop')}
                 onClick={() => onAction('stop')}
                 icon={<IconPlayerStop className="size-3.5" />}
-                className="text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-500/30"
               />
             ) : (
               <HeaderActionButton
                 tooltip={t('actions.start')}
                 onClick={() => onAction('start')}
+                variant="default"
                 icon={<IconPlayerPlay className="size-3.5" />}
-                className="text-green-500 hover:bg-green-500/10 hover:border-green-500/30"
               />
             )}
             <HeaderActionButton
               tooltip={t('actions.restart')}
               onClick={() => onAction('restart')}
               icon={<IconRotate className="size-3.5" />}
-              className="text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/30"
             />
             <HeaderActionButton
               tooltip={t('actions.pause')}
               onClick={() => onAction('pause')}
               icon={<IconPlayerPause className="size-3.5" />}
-              className="text-orange-500 hover:bg-orange-500/10 hover:border-orange-500/30"
             />
             {webUrl && (
               <HeaderActionButton
                 tooltip={t('actions.openWebsite')}
                 onClick={() => window.open(webUrl, '_blank', 'noopener,noreferrer')}
+                variant="secondary"
                 icon={<IconExternalLink className="size-3.5" />}
-                className="text-primary hover:bg-primary/10 hover:border-primary/30"
               />
             )}
             {!container.Config?.Labels?.['com.docker.compose.project'] && (
               <HeaderActionButton
                 tooltip={t('actions.takeOver')}
                 onClick={onTakeOver}
+                variant="secondary"
                 icon={<IconArrowsTransferUp className="size-3.5" />}
-                className="text-violet-500 hover:bg-violet-500/10 hover:border-violet-500/30"
               />
             )}
             <div className="h-5 w-px bg-border mx-0.5" />
             <HeaderActionButton
               tooltip={t('actions.kill')}
               onClick={onKill}
+              variant="destructive"
               icon={<IconSkull className="size-3.5" />}
-              className="text-red-400 hover:bg-red-500/10 hover:border-red-500/30"
             />
             <HeaderActionButton
               tooltip={t('actions.remove')}
               onClick={onRemove}
+              variant="destructive"
               icon={<IconTrash className="size-3.5" />}
-              className="text-red-500 hover:bg-red-500/10 hover:border-red-500/30"
             />
           </>
         )}

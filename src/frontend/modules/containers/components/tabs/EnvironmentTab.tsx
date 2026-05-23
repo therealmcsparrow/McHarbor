@@ -4,6 +4,7 @@
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { InfoRow } from '@resources/components/ui/InfoRow';
+import { Switch } from '@resources/components/ui/Switch';
 import { KeyValueEditor } from '../KeyValueEditor';
 import type { ContainerInspect } from '@core/types/docker';
 import type { EditFormData, HealthcheckConfig } from '../../types/edit-form';
@@ -54,19 +55,11 @@ function ToggleField({
   return (
     <div className="flex items-center justify-between">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-          checked ? 'bg-primary' : 'bg-muted-foreground/30'
-        }`}
-      >
-        <span className={`pointer-events-none inline-block size-4 rounded-full bg-white shadow-sm transition-transform ${
-          checked ? 'translate-x-4' : 'translate-x-0'
-        }`} />
-      </button>
+      <Switch
+        checked={checked}
+        aria-label={label}
+        onCheckedChange={onChange}
+      />
     </div>
   );
 }

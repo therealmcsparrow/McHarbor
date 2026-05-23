@@ -16,6 +16,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
+import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 
 const STATUS_VARIANTS: Record<string, 'success' | 'destructive' | 'warning' | 'secondary'> = {
@@ -28,19 +29,29 @@ type HeaderActionButtonProps = {
   tooltip: string;
   onClick: () => void;
   icon: React.ReactNode;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   className?: string;
 };
 
-function HeaderActionButton({ tooltip, onClick, icon, className = '' }: HeaderActionButtonProps) {
+function HeaderActionButton({
+  tooltip,
+  onClick,
+  icon,
+  variant = 'outline',
+  className = '',
+}: HeaderActionButtonProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
+        <Button
           onClick={onClick}
-          className={`flex size-8 items-center justify-center rounded-lg border border-border transition-colors ${className}`}
+          variant={variant}
+          size="icon-sm"
+          aria-label={tooltip}
+          className={className}
         >
           {icon}
-        </button>
+        </Button>
       </TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>
@@ -85,12 +96,15 @@ export function StackDetailHeader({
       <div className="flex items-center gap-3">
         <Tooltip>
           <TooltipTrigger asChild>
-            <button
+            <Button
               onClick={() => navigate('/stacks')}
-              className="flex size-8 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors"
+              variant="outline"
+              size="icon-sm"
+              aria-label={t('detail.backToStacks')}
+              className="text-muted-foreground hover:text-foreground"
             >
               <IconArrowLeft className="size-4" />
-            </button>
+            </Button>
           </TooltipTrigger>
           <TooltipContent>{t('detail.backToStacks')}</TooltipContent>
         </Tooltip>
@@ -119,6 +133,7 @@ export function StackDetailHeader({
             <HeaderActionButton
               tooltip={t('editStack.saveStack')}
               onClick={() => onSave?.()}
+              variant="default"
               icon={
                 saving ? (
                   <span className="size-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -126,13 +141,12 @@ export function StackDetailHeader({
                   <IconCheck className="size-3.5" />
                 )
               }
-              className="text-green-500 hover:bg-green-500/10 hover:border-green-500/30"
             />
             <HeaderActionButton
               tooltip={t('editStack.cancel')}
               onClick={() => onCancelEdit?.()}
               icon={<IconX className="size-3.5" />}
-              className="text-muted-foreground hover:bg-muted/50 hover:border-border"
+              className="text-muted-foreground"
             />
           </>
         ) : (
@@ -142,7 +156,6 @@ export function StackDetailHeader({
                 tooltip={t('editStack.editStack')}
                 onClick={() => onEdit?.()}
                 icon={<IconPencil className="size-3.5" />}
-                className="text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/30"
               />
             )}
             {isRunning ? (
@@ -151,13 +164,11 @@ export function StackDetailHeader({
                   tooltip={t('actions.stop')}
                   onClick={() => onAction('stop')}
                   icon={<IconPlayerStop className="size-3.5" />}
-                  className="text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-500/30"
                 />
                 <HeaderActionButton
                   tooltip={t('actions.restart')}
                   onClick={() => onAction('restart')}
                   icon={<IconRotate className="size-3.5" />}
-                  className="text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/30"
                 />
               </>
             ) : (
@@ -165,8 +176,8 @@ export function StackDetailHeader({
                 <HeaderActionButton
                   tooltip={t('actions.up')}
                   onClick={() => onAction('up')}
+                  variant="default"
                   icon={<IconPlayerPlay className="size-3.5" />}
-                  className="text-green-500 hover:bg-green-500/10 hover:border-green-500/30"
                 />
               )
             )}
@@ -174,22 +185,21 @@ export function StackDetailHeader({
               tooltip={t('actions.down')}
               onClick={() => onAction('down')}
               icon={<IconArrowDown className="size-3.5" />}
-              className="text-orange-500 hover:bg-orange-500/10 hover:border-orange-500/30"
             />
             {!isManaged && (
               <HeaderActionButton
                 tooltip={t('takeOver.adopt')}
                 onClick={onTakeOver}
+                variant="secondary"
                 icon={<IconArrowsTransferUp className="size-3.5" />}
-                className="text-violet-500 hover:bg-violet-500/10 hover:border-violet-500/30"
               />
             )}
             <div className="h-5 w-px bg-border mx-0.5" />
             <HeaderActionButton
               tooltip={t('actions.remove')}
               onClick={onRemove}
+              variant="destructive"
               icon={<IconTrash className="size-3.5" />}
-              className="text-red-500 hover:bg-red-500/10 hover:border-red-500/30"
             />
           </>
         )}

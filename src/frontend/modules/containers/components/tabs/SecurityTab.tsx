@@ -4,6 +4,8 @@
 import { useTranslation } from 'react-i18next';
 import { InfoRow } from '@resources/components/ui/InfoRow';
 import { Badge } from '@resources/components/ui/Badge';
+import { Button } from '@resources/components/ui/Button';
+import { Switch } from '@resources/components/ui/Switch';
 import { formatBytes } from '@resources/utils/format';
 import type { ContainerInspect } from '@core/types/docker';
 import type { EditFormData } from '../../types/edit-form';
@@ -72,19 +74,11 @@ function ToggleField({
         <span className="text-xs font-medium text-muted-foreground">{label}</span>
         {description && <p className="text-[10px] text-muted-foreground/70">{description}</p>}
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-          checked ? 'bg-primary' : 'bg-muted-foreground/30'
-        }`}
-      >
-        <span className={`pointer-events-none inline-block size-4 rounded-full bg-white shadow-sm transition-transform ${
-          checked ? 'translate-x-4' : 'translate-x-0'
-        }`} />
-      </button>
+      <Switch
+        checked={checked}
+        aria-label={label}
+        onCheckedChange={onChange}
+      />
     </div>
   );
 }
@@ -105,9 +99,12 @@ function CapabilitySelector({
         {COMMON_CAPABILITIES.map((cap) => {
           const isSelected = selected.includes(cap);
           return (
-            <button
+            <Button
               key={cap}
               type="button"
+              variant={isSelected ? 'default' : 'outline'}
+              size="sm"
+              aria-pressed={isSelected}
               onClick={() => {
                 if (isSelected) {
                   onChange(selected.filter((c) => c !== cap));
@@ -115,14 +112,10 @@ function CapabilitySelector({
                   onChange([...selected, cap]);
                 }
               }}
-              className={`rounded-md px-2 py-0.5 text-[10px] font-medium transition-colors ${
-                isSelected
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'bg-muted text-muted-foreground border border-border hover:border-primary/30'
-              }`}
+              className="h-6 rounded-md px-2 text-[10px]"
             >
               {cap}
-            </button>
+            </Button>
           );
         })}
       </div>
