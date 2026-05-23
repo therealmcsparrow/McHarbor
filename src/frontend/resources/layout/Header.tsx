@@ -172,7 +172,7 @@ export function Header() {
               <select
                 value={currentId}
                 onChange={(e) => setCurrentId(e.target.value)}
-                className="shrink-0 py-2 px-3 pe-9 bg-card border border-border rounded-lg text-sm text-foreground focus:border-primary focus:ring-primary"
+                className="shrink-0 rounded-lg border border-border bg-card px-3 py-2 pe-9 text-sm text-foreground focus:border-primary focus:ring-primary"
               >
                 <option value="">{t('header.allEnvironments')}</option>
                 {environments.map((env) => (
@@ -181,32 +181,33 @@ export function Header() {
                   </option>
                 ))}
               </select>
-              <div className="h-6 w-px bg-border shrink-0" />
+              <div className="h-6 w-px shrink-0 bg-border" />
             </>
           )}
           <div id="header-slot" className="flex min-w-0 flex-1 items-center" />
         </div>
 
-        {/* Center: search bar — absolutely centered */}
-        <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:flex">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSearchOpen(true)}
-            className="text-muted-foreground"
-          >
-            <IconSearch className="size-3.5" />
-            <span>{t('header.search')}</span>
-          </Button>
-        </div>
-
-        {/* Right side — always visible */}
-        <div className="flex shrink-0 items-center gap-2 ml-auto">
+        {/* Right side â€” always visible */}
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           {/* Page-specific right-side slot (e.g. view toggles) */}
           <div id="header-right-slot" className="flex items-center" />
 
           {/* Divider */}
           <div className="h-6 w-px bg-border" />
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={t('header.search')}
+                onClick={() => setSearchOpen(true)}
+              >
+                <IconSearch className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('header.search')}</TooltipContent>
+          </Tooltip>
 
           <Suspense fallback={<div className="size-8" />}>
             <HeaderNotifications />
@@ -230,9 +231,9 @@ export function Header() {
               </Button>
 
               {menuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-1 w-52 bg-card border border-border rounded-lg shadow-lg py-1">
+                <div className="absolute right-0 top-full z-50 mt-1 w-52 rounded-lg border border-border bg-card py-1 shadow-lg">
                   {/* User info */}
-                  <div className="px-3 py-2.5 border-b border-border">
+                  <div className="border-b border-border px-3 py-2.5">
                     <div className="flex items-center gap-2.5">
                       <div className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
                         {user.username.charAt(0).toUpperCase()}
@@ -331,4 +332,3 @@ export function Header() {
     </>
   );
 }
-
