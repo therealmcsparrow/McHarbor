@@ -2,6 +2,18 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.9] - 2026-05-23
+
+### Fixed
+
+- Added a detached self-start watchdog for McHarbor self-update and self-reinstall operations so production Linux hosts can recover if Docker creates the replacement container but leaves it stopped.
+- The watchdog starts before the destructive self-update step, ignores the old container ID, waits for the replacement container with the same McHarbor name, and repeatedly starts it until Docker reports it running.
+- Added separate watchdog logs under `/app/data/self-update` so stopped-replacement cases show whether the replacement was missing, created, exited, or successfully started by the watchdog.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.9`.
+
 ## [1.1.8] - 2026-05-23
 
 ### Fixed

@@ -99,6 +99,13 @@ func main() {
 		}
 		return
 	}
+	if len(os.Args) > 1 && os.Args[1] == "self-start-watchdog" {
+		if err := stacks.RunSelfStartWatchdog(context.Background()); err != nil {
+			fmt.Fprintf(os.Stderr, "self-start watchdog failed: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
 
 	// Load config
 	cfg, err := config.Load()
@@ -118,7 +125,7 @@ func main() {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	logger.Info("starting McHarbor", "version", "1.1.8", "port", cfg.Port)
+	logger.Info("starting McHarbor", "version", "1.1.9", "port", cfg.Port)
 
 	// Open database
 	database, err := db.Open(cfg.DatabasePath)

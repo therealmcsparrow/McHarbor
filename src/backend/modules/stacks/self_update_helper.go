@@ -114,6 +114,69 @@ func RunSelfUpdateHelper(ctx context.Context) error {
 	return nil
 }
 
+// RunSelfStartWatchdog is a short-lived production safety net. It waits for the
+// old McHarbor container to be replaced, then repeatedly starts the replacement
+// if Docker leaves it created or exited.
+func RunSelfStartWatchdog(ctx context.Context) error {
+	logFile, closeLog, err := openSelfUpdateLog(os.Getenv(selfUpdateEnvLog))
+	if err != nil {
+		return err
+	}
+	defer closeLog()
+
+	logger := log.New(logFile, "", log.LstdFlags|log.LUTC)
+	logger.Println("McHarbor self-start watchdog started")
+
+	oldContainerID := strings.TrimSpace(os.Getenv(selfUpdateEnvContainerID))
+	containerName := strings.Trim(strings.TrimSpace(os.Getenv(selfUpdateEnvContainer)), "/")
+	if containerName == "" {
+		return fmt.Errorf("missing %s", selfUpdateEnvContainer)
+	}
+
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return fmt.Errorf("creating Docker client: %w", err)
+	}
+	defer cli.Close()
+
+	watchCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+	defer cancel()
+
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		inspect, err := cli.ContainerInspect(watchCtx, containerName)
+		if err != nil {
+			if client.IsErrNotFound(err) {
+				logger.Printf("waiting for replacement container %s to be created", containerName)
+			} else {
+				logger.Printf("inspecting %s failed: %v", containerName, err)
+			}
+		} else if containerIDMatches(inspect.ID, oldContainerID) {
+			logger.Printf("old container %s is still present; waiting for replacement", oldContainerID)
+		} else if inspect.State != nil && inspect.State.Running {
+			logger.Printf("replacement container %s is running", inspect.ID)
+			logger.Println("McHarbor self-start watchdog completed")
+			return nil
+		} else {
+			status, exitCode, stateErr := selfContainerState(inspect)
+			logger.Printf("replacement container %s is not running: status=%s exitCode=%d error=%s", inspect.ID, status, exitCode, stateErr)
+			if err := cli.ContainerStart(watchCtx, inspect.ID, container.StartOptions{}); err != nil {
+				logger.Printf("watchdog start attempt failed for %s: %v", inspect.ID, err)
+			} else {
+				logger.Printf("watchdog start attempt sent for %s", inspect.ID)
+			}
+		}
+
+		select {
+		case <-watchCtx.Done():
+			return fmt.Errorf("watching replacement container %s: %w", containerName, watchCtx.Err())
+		case <-ticker.C:
+		}
+	}
+}
+
 func openSelfUpdateLog(logPath string) (*os.File, func(), error) {
 	if strings.TrimSpace(logPath) == "" {
 		logPath = "/app/data/self-update/self-update.log"
@@ -184,7 +247,8 @@ func createAndStartSelfContainer(ctx context.Context, cli *client.Client, logger
 
 	inspect, inspectErr := cli.ContainerInspect(ctx, created.ID)
 	if inspectErr == nil && inspect.State != nil {
-		logger.Printf("replacement container final state: status=%s exitCode=%d error=%s", inspect.State.Status, inspect.State.ExitCode, inspect.State.Error)
+		status, exitCode, stateErr := selfContainerState(inspect)
+		logger.Printf("replacement container final state: status=%s exitCode=%d error=%s", status, exitCode, stateErr)
 	}
 	_ = cli.ContainerRemove(ctx, created.ID, container.RemoveOptions{Force: true, RemoveVolumes: false})
 	return fmt.Errorf("starting replacement container after retries")
@@ -229,6 +293,13 @@ func sleepSelfUpdate(ctx context.Context, delay time.Duration) error {
 	case <-timer.C:
 		return nil
 	}
+}
+
+func selfContainerState(inspect container.InspectResponse) (string, int, string) {
+	if inspect.State == nil {
+		return "unknown", 0, "missing state"
+	}
+	return inspect.State.Status, inspect.State.ExitCode, inspect.State.Error
 }
 
 func isGeneratedSelfHostname(hostname string) bool {

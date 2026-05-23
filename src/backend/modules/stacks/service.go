@@ -859,6 +859,7 @@ func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeR
 	}
 
 	helperName := "mcharbor-compose-helper-" + xid.New().String()
+	watchdogName := helperName + "-watchdog"
 	envOverrides := map[string]string{
 		"MCHARBOR_SELF_UPDATE_CONTAINER_ID": current.ID,
 		"MCHARBOR_SELF_UPDATE_CONTAINER":    strings.TrimPrefix(current.Name, "/"),
@@ -872,9 +873,40 @@ func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeR
 		}
 	}
 	env := mergeEnvVars(os.Environ(), envOverrides)
+	watchdogEnvOverrides := make(map[string]string, len(envOverrides))
+	for key, value := range envOverrides {
+		watchdogEnvOverrides[key] = value
+	}
+	watchdogEnvOverrides["MCHARBOR_SELF_UPDATE_LOG"] = "/app/data/self-update/" + watchdogName + ".log"
+	watchdogEnv := mergeEnvVars(os.Environ(), watchdogEnvOverrides)
 
 	createCtx, createCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer createCancel()
+
+	watchdogResp, err := cli.ContainerCreate(createCtx, &container.Config{
+		Image:      current.Config.Image,
+		Entrypoint: []string{"./mcharbor"},
+		Cmd:        []string{"self-start-watchdog"},
+		WorkingDir: "/app",
+		Env:        watchdogEnv,
+		Labels: map[string]string{
+			"com.mcharbor.helper": "self-start-watchdog",
+		},
+	}, &container.HostConfig{
+		AutoRemove: true,
+		Mounts:     helperMounts,
+	}, nil, nil, watchdogName)
+	if err != nil {
+		slog.Error("stacks: create self-start watchdog container failed", "error", err, "helper", watchdogName)
+		return &ComposeResult{Success: false, Error: "failed to create self-start watchdog container"}
+	}
+	if err := cli.ContainerStart(createCtx, watchdogResp.ID, container.StartOptions{}); err != nil {
+		slog.Error("stacks: start self-start watchdog container failed", "error", err, "helper", watchdogName, "container", watchdogResp.ID)
+		if rmErr := cli.ContainerRemove(createCtx, watchdogResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
+			slog.Error("stacks: cleanup self-start watchdog container failed", "error", rmErr, "helper", watchdogName, "container", watchdogResp.ID)
+		}
+		return &ComposeResult{Success: false, Error: "failed to start self-start watchdog container"}
+	}
 
 	resp, err := cli.ContainerCreate(createCtx, &container.Config{
 		Image:      current.Config.Image,
