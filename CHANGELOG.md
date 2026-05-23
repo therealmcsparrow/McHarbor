@@ -2,6 +2,22 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.6] - 2026-05-23
+
+### Fixed
+
+- Hardened the production self-update and self-reinstall helper so McHarbor writes durable helper logs under `/app/data/self-update` before recreating itself.
+- Added helper recovery behavior that retries `docker compose up -d` and then attempts to start the previous McHarbor container if the compose update path fails mid-flight.
+- Fixed helper working-directory handling for managed stacks stored with relative project paths by normalizing them to `/app/...` inside the detached helper container.
+
+### Tests
+
+- Added regression coverage for self-update helper script generation, durable logging, recovery commands, and relative stack path normalization.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.6`.
+
 ## [1.1.5] - 2026-05-23
 
 ### Fixed

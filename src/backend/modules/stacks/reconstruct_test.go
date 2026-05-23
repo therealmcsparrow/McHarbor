@@ -45,3 +45,31 @@ func TestContainerMatchesAnyCandidateWithStaleHostnameAndRealID(t *testing.T) {
 		t.Fatal("expected real container ID candidate to match even when hostname candidate is stale")
 	}
 }
+
+func TestBuildSelfComposeHelperScriptIncludesLoggingAndRecovery(t *testing.T) {
+	script := buildSelfComposeHelperScript("mcharbor-compose-helper-test", "mcharbor", []string{
+		"docker compose -f docker-compose.yml pull",
+		"docker compose -f docker-compose.yml up -d",
+	})
+
+	for _, want := range []string{
+		"set -eu",
+		"/app/data/self-update/mcharbor-compose-helper-test.log",
+		"trap recover ERR",
+		"docker compose -f docker-compose.yml pull",
+		"docker compose -f docker-compose.yml up -d",
+		"docker start 'mcharbor'",
+	} {
+		if !strings.Contains(script, want) {
+			t.Fatalf("helper script missing %q:\n%s", want, script)
+		}
+	}
+}
+
+func TestHelperWorkingDirNormalizesRelativeStackPath(t *testing.T) {
+	got := helperWorkingDir("data/stacks/mcharbor")
+	want := "/app/data/stacks/mcharbor"
+	if got != want {
+		t.Fatalf("helperWorkingDir() = %q, want %q", got, want)
+	}
+}
