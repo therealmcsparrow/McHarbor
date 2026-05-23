@@ -465,7 +465,7 @@ func (s *Service) UpdateManagedStack(name string) (*ComposeResult, error) {
 		return nil, nil
 	}
 
-	selfTarget, err := s.stackTargetsSelf(context.Background(), envID, st.Name)
+	selfTarget, err := s.stackTargetsSelf(context.Background(), envID, st)
 	if err != nil {
 		return nil, err
 	}
@@ -492,7 +492,7 @@ func (s *Service) ReinstallManagedStack(name string) (*ComposeResult, error) {
 		return nil, nil
 	}
 
-	selfTarget, err := s.stackTargetsSelf(context.Background(), envID, st.Name)
+	selfTarget, err := s.stackTargetsSelf(context.Background(), envID, st)
 	if err != nil {
 		return nil, err
 	}
@@ -817,13 +817,33 @@ func mergeComposeResults(results ...*ComposeResult) *ComposeResult {
 	return merged
 }
 
-func (s *Service) stackTargetsSelf(ctx context.Context, envID, projectName string) (bool, error) {
+func (s *Service) stackTargetsSelf(ctx context.Context, envID string, st *Stack) (bool, error) {
+	if st == nil {
+		return false, nil
+	}
+
+	cli, err := s.dockerPool.Get(envID)
+	if err != nil {
+		return false, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	inspectCtx, inspectCancel := context.WithTimeout(ctx, 15*time.Second)
+	defer inspectCancel()
+
+	current, err := s.inspectCurrentContainer(inspectCtx, cli)
+	if err == nil && selfContainerMatchesManagedStack(current, st) {
+		return true, nil
+	}
+	if err != nil {
+		slog.Warn("stacks: could not inspect current container while checking self target", "error", err, "stack", st.Name)
+	}
+
 	candidates := currentContainerIDCandidates()
 	if len(candidates) == 0 {
 		return false, nil
 	}
 
-	containers, err := s.StackContainers(ctx, envID, projectName)
+	containers, err := s.StackContainers(ctx, envID, st.Name)
 	if err != nil {
 		return false, fmt.Errorf("listing stack containers: %w", err)
 	}
@@ -835,6 +855,69 @@ func (s *Service) stackTargetsSelf(ctx context.Context, envID, projectName strin
 	}
 
 	return false, nil
+}
+
+func selfContainerMatchesManagedStack(current types.ContainerJSON, st *Stack) bool {
+	if st == nil || current.Config == nil {
+		return false
+	}
+
+	labels := current.Config.Labels
+	project := labels["com.docker.compose.project"]
+	if project != "" && strings.EqualFold(project, st.Name) {
+		return true
+	}
+
+	workingDir := labels["com.docker.compose.project.working_dir"]
+	if sameStackPath(workingDir, st.ProjectPath) {
+		return true
+	}
+
+	configFiles := labels["com.docker.compose.project.config_files"]
+	if configFiles != "" && st.ProjectPath != "" && strings.Contains(normalizeStackPath(configFiles), normalizeStackPath(st.ProjectPath)) {
+		return true
+	}
+
+	composePath := filepath.Join(st.ProjectPath, st.ComposeFile)
+	data, err := os.ReadFile(composePath)
+	if err != nil {
+		return false
+	}
+	compose := string(data)
+	currentName := strings.TrimPrefix(current.Name, "/")
+	if composeReferencesContainerName(compose, currentName) {
+		return true
+	}
+	if current.Config.Image != "" && strings.Contains(compose, current.Config.Image) && strings.Contains(strings.ToLower(compose), "mcharbor") {
+		return true
+	}
+
+	return false
+}
+
+func composeReferencesContainerName(compose, containerName string) bool {
+	containerName = strings.TrimSpace(containerName)
+	if containerName == "" {
+		return false
+	}
+	re := regexp.MustCompile(`(?m)^\s*container_name\s*:\s*["']?` + regexp.QuoteMeta(containerName) + `["']?\s*(?:#.*)?$`)
+	return re.MatchString(compose)
+}
+
+func sameStackPath(a, b string) bool {
+	a = normalizeStackPath(a)
+	b = normalizeStackPath(b)
+	return a != "" && b != "" && a == b
+}
+
+func normalizeStackPath(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	value = filepath.Clean(value)
+	value = filepath.ToSlash(value)
+	return strings.ToLower(strings.TrimRight(value, "/"))
 }
 
 func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeResult {

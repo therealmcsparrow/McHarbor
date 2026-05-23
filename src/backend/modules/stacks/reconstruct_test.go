@@ -83,3 +83,42 @@ func TestCloneSelfContainerConfigUsesTargetImageAndDropsGeneratedHostname(t *tes
 		t.Fatalf("aliases = %#v", aliases)
 	}
 }
+
+func TestSelfContainerMatchesManagedStackByComposeWorkingDir(t *testing.T) {
+	current := types.ContainerJSON{
+		ContainerJSONBase: &container.ContainerJSONBase{
+			Name: "/mcharbor",
+		},
+		Config: &container.Config{
+			Labels: map[string]string{
+				"com.docker.compose.project":             "docker",
+				"com.docker.compose.project.working_dir": "/opt/mcharbor",
+			},
+		},
+	}
+	stack := &Stack{
+		Name:        "mcharbor",
+		ProjectPath: "/opt/mcharbor",
+		ComposeFile: "docker-compose.yml",
+	}
+
+	if !selfContainerMatchesManagedStack(current, stack) {
+		t.Fatal("expected current container to match managed stack by compose working directory")
+	}
+}
+
+func TestComposeReferencesContainerName(t *testing.T) {
+	compose := `
+services:
+  app:
+    image: ghcr.io/therealmcsparrow/mcharbor:1.1.9
+    container_name: "mcharbor"
+`
+
+	if !composeReferencesContainerName(compose, "mcharbor") {
+		t.Fatal("expected compose container_name to match")
+	}
+	if composeReferencesContainerName(compose, "other") {
+		t.Fatal("unexpected compose container_name match")
+	}
+}

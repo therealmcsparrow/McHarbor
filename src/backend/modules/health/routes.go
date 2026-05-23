@@ -15,7 +15,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
-const version = "1.1.9"
+const version = "1.1.10"
 
 // directDeps maps Go module paths to their display names for /about.
 var directDeps = map[string]string{

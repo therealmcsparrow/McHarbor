@@ -2,6 +2,22 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.10] - 2026-05-24
+
+### Fixed
+
+- Added McHarbor self-update/self-reinstall detection when a production managed stack name does not exactly match Docker Compose's `com.docker.compose.project` label.
+- Added self-target detection using the running McHarbor container's compose project label, compose working directory, compose config-file label, stored compose `container_name`, and McHarbor image reference before allowing a managed stack update to use plain `docker compose`.
+- Prevented self-updates from silently falling back to plain compose operations when the managed stack contains the running McHarbor container but Docker labels or adopted stack metadata differ.
+
+### Tests
+
+- Added regression coverage for self-container matching by compose working directory and stored compose `container_name`.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.10`.
+
 ## [1.1.9] - 2026-05-23
 
 ### Fixed
