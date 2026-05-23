@@ -57,6 +57,18 @@ export function formatDateOnly(dateStr: string | undefined | null): string {
   }).format(date);
 }
 
+export function formatTime(dateStr: string | undefined | null): string {
+  if (!dateStr) return '-';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '-';
+  return new Intl.DateTimeFormat(getLocale(), {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(date);
+}
+
 export function timeAgo(dateStr: string | undefined | null): string {
   if (!dateStr) return '-';
   const now = Date.now();

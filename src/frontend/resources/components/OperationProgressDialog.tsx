@@ -20,6 +20,7 @@ import {
   DialogTitle,
 } from '@resources/components/ui/Dialog';
 import { cn } from '@resources/utils/cn';
+import { formatTime } from '@resources/utils/format';
 import type {
   BatchProgressDialogState,
   BatchProgressItem,
@@ -163,12 +164,7 @@ export function OperationProgressDialog({ state, onClose }: OperationProgressDia
                 state.logs.map((entry) => (
                   <div key={entry.id} className="flex gap-3">
                     <span className="shrink-0 text-muted-foreground/60">
-                      {new Date(entry.timestamp).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: false,
-                      })}
+                      {formatTime(entry.timestamp)}
                     </span>
                     <span className="shrink-0 text-muted-foreground/60">
                       {entry.itemLabel ?? 'system'}
