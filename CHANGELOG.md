@@ -2,6 +2,12 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.1] - 2026-05-23
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image, runtime metadata, and frontend package version metadata to `1.1.1`.
+
 ## [1.1.0] - 2026-05-23
 
 Baseline: changes since `731ed97` (`Publice release`).
@@ -67,4 +73,3 @@ Baseline: changes since `731ed97` (`Publice release`).
 
 - Updated backend bootstrap wiring and imports to reflect standardized module mounts and renamed package declarations.
 - Regenerated the frontend lockfile version metadata to match the release bump.
-
