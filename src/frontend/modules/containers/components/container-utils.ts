@@ -34,13 +34,8 @@ export function parseUptime(status: string): string {
 }
 
 export function formatPorts(ports: ContainerInfo['Ports']): string {
-  if (!ports || ports.length === 0) return '-';
-  return (
-    ports
-      .filter((p) => p.PublicPort)
-      .map((p) => `${p.PublicPort}:${p.PrivatePort}/${p.Type}`)
-      .join(', ') || '-'
-  );
+  const publicPorts = getPublicPorts(ports);
+  return publicPorts.join(', ') || '-';
 }
 
 export function getContainerIP(c: ContainerInfo): string {
@@ -56,9 +51,21 @@ export function getStackName(c: ContainerInfo): string | null {
 
 export function getPublicPorts(ports: ContainerInfo['Ports']): string[] {
   if (!ports) return [];
-  return ports
-    .filter((p) => p.PublicPort)
-    .map((p) => `${p.PublicPort}:${p.PrivatePort}/${p.Type}`);
+
+  const seen = new Set<string>();
+  const publicPorts: string[] = [];
+
+  for (const port of ports) {
+    if (!port.PublicPort) continue;
+
+    const label = `${port.PublicPort}:${port.PrivatePort}/${port.Type}`;
+    if (seen.has(label)) continue;
+
+    seen.add(label);
+    publicPorts.push(label);
+  }
+
+  return publicPorts;
 }
 
 export function getAutoUpdate(c: ContainerInfo): boolean {
