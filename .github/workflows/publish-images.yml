@@ -58,6 +58,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             ${{ steps.meta.outputs.labels }}
+            org.opencontainers.image.version=${{ steps.versions.outputs.app_version }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
   publish-agent:
@@ -102,4 +103,5 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: |
             ${{ steps.meta.outputs.labels }}
+            org.opencontainers.image.version=${{ steps.version.outputs.agent_version }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}

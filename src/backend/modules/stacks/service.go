@@ -868,6 +868,11 @@ func selfContainerMatchesManagedStack(current types.ContainerJSON, st *Stack) bo
 		return true
 	}
 
+	currentName := strings.TrimPrefix(current.Name, "/")
+	if currentName != "" && strings.EqualFold(currentName, st.Name) {
+		return true
+	}
+
 	workingDir := labels["com.docker.compose.project.working_dir"]
 	if sameStackPath(workingDir, st.ProjectPath) {
 		return true
@@ -884,8 +889,10 @@ func selfContainerMatchesManagedStack(current types.ContainerJSON, st *Stack) bo
 		return false
 	}
 	compose := string(data)
-	currentName := strings.TrimPrefix(current.Name, "/")
 	if composeReferencesContainerName(compose, currentName) {
+		return true
+	}
+	if currentName == "mcharbor" && composeLooksLikeMcHarbor(compose) {
 		return true
 	}
 	if current.Config.Image != "" && strings.Contains(compose, current.Config.Image) && strings.Contains(strings.ToLower(compose), "mcharbor") {
@@ -902,6 +909,13 @@ func composeReferencesContainerName(compose, containerName string) bool {
 	}
 	re := regexp.MustCompile(`(?m)^\s*container_name\s*:\s*["']?` + regexp.QuoteMeta(containerName) + `["']?\s*(?:#.*)?$`)
 	return re.MatchString(compose)
+}
+
+func composeLooksLikeMcHarbor(compose string) bool {
+	compose = strings.ToLower(compose)
+	return strings.Contains(compose, "therealmcsparrow/mcharbor") ||
+		strings.Contains(compose, "mcharbor:${") ||
+		strings.Contains(compose, "mcharbor:latest")
 }
 
 func sameStackPath(a, b string) bool {
@@ -1029,7 +1043,7 @@ func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeR
 }
 
 func (s *Service) inspectCurrentContainer(ctx context.Context, cli *sdkclient.Client) (types.ContainerJSON, error) {
-	candidates := currentContainerIDCandidates()
+	candidates := currentContainerInspectCandidates()
 	var lastErr error
 	for _, candidate := range candidates {
 		current, err := cli.ContainerInspect(ctx, candidate)
@@ -1042,6 +1056,24 @@ func (s *Service) inspectCurrentContainer(ctx context.Context, cli *sdkclient.Cl
 		return types.ContainerJSON{}, fmt.Errorf("inspecting current container candidates %v: %w", candidates, lastErr)
 	}
 	return types.ContainerJSON{}, fmt.Errorf("no current container candidates found")
+}
+
+func currentContainerInspectCandidates() []string {
+	candidates := currentContainerIDCandidates()
+	seen := make(map[string]struct{}, len(candidates)+2)
+	for _, candidate := range candidates {
+		seen[candidate] = struct{}{}
+	}
+
+	for _, candidate := range []string{"mcharbor", "/mcharbor"} {
+		if _, ok := seen[candidate]; ok {
+			continue
+		}
+		candidates = append(candidates, candidate)
+		seen[candidate] = struct{}{}
+	}
+
+	return candidates
 }
 
 func currentContainerIDCandidates() []string {

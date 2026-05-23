@@ -2,6 +2,39 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.12] - 2026-05-24
+
+### Fixed
+
+- Fixed self-update detection for McHarbor containers that were started without Docker Compose labels and only expose stale OCI image labels.
+- Matched the conventional running container name `mcharbor` against the managed stack name before falling back to plain compose operations.
+- Added stored compose recognition for McHarbor image references that use environment-substituted tags such as `${MCHARBOR_TAG:-...}`.
+- Fixed published OCI image metadata so `org.opencontainers.image.version` is explicitly set from the release version for both the McHarbor and agent images.
+
+### Tests
+
+- Added regression coverage for name-based self-container matching, McHarbor compose image recognition, and the Docker-name inspect fallback.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.12`.
+
+## [1.1.11] - 2026-05-24
+
+### Fixed
+
+- Fixed self-update detection on Ubuntu hosts where cgroup v2 and `/proc` metadata may not expose the running container ID to McHarbor.
+- Added a direct Docker inspect fallback for the conventional `mcharbor` container name before deciding whether a managed stack contains the running McHarbor instance.
+- Prevented the self-update helper and watchdog path from being skipped when the running container can be inspected by Docker name but not by `/proc`-derived container ID candidates.
+
+### Tests
+
+- Added regression coverage to ensure the default `mcharbor` container-name fallback is always included in self-inspection candidates.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.11`.
+
 ## [1.1.10] - 2026-05-24
 
 ### Fixed

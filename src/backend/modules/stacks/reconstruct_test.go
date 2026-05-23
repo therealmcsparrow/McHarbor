@@ -107,6 +107,22 @@ func TestSelfContainerMatchesManagedStackByComposeWorkingDir(t *testing.T) {
 	}
 }
 
+func TestSelfContainerMatchesManagedStackByContainerName(t *testing.T) {
+	current := types.ContainerJSON{
+		ContainerJSONBase: &container.ContainerJSONBase{
+			Name: "/mcharbor",
+		},
+		Config: &container.Config{},
+	}
+	stack := &Stack{
+		Name: "mcharbor",
+	}
+
+	if !selfContainerMatchesManagedStack(current, stack) {
+		t.Fatal("expected current container to match managed stack by container name")
+	}
+}
+
 func TestComposeReferencesContainerName(t *testing.T) {
 	compose := `
 services:
@@ -121,4 +137,26 @@ services:
 	if composeReferencesContainerName(compose, "other") {
 		t.Fatal("unexpected compose container_name match")
 	}
+}
+
+func TestComposeLooksLikeMcHarborWithEnvTag(t *testing.T) {
+	compose := `
+services:
+  mcharbor:
+    image: ghcr.io/therealmcsparrow/mcharbor:${MCHARBOR_TAG:-1.1.11}
+`
+
+	if !composeLooksLikeMcHarbor(compose) {
+		t.Fatal("expected compose to look like McHarbor")
+	}
+}
+
+func TestCurrentContainerInspectCandidatesIncludesDefaultContainerName(t *testing.T) {
+	candidates := currentContainerInspectCandidates()
+	for _, candidate := range candidates {
+		if candidate == "mcharbor" {
+			return
+		}
+	}
+	t.Fatalf("expected mcharbor inspect fallback in %#v", candidates)
 }
