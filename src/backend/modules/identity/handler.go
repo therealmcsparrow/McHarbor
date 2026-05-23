@@ -70,20 +70,28 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		response.BadRequestCode(w, r, i18n.ErrIdentityNameRequired)
 		return
 	}
-	if input.ClientID == "" {
+	if input.ProviderType != "saml_2_0" && input.ClientID == "" {
 		response.BadRequestCode(w, r, i18n.ErrIdentityClientRequired)
 		return
 	}
-	if input.ClientSecret == "" {
+	if input.ProviderType != "saml_2_0" && input.ClientSecret == "" {
 		response.BadRequestCode(w, r, i18n.ErrIdentitySecretRequired)
 		return
 	}
-	if input.ProviderType != "entra_id" && input.ProviderType != "google" {
+	if input.ProviderType != "entra_id" && input.ProviderType != "google" && input.ProviderType != "generic_oidc" && input.ProviderType != "saml_2_0" {
 		response.BadRequestCode(w, r, i18n.ErrIdentityInvalidType)
 		return
 	}
 	if input.ProviderType == "entra_id" && (input.TenantID == nil || *input.TenantID == "") {
 		response.BadRequestCode(w, r, i18n.ErrIdentityTenantRequired)
+		return
+	}
+	if input.ProviderType == "generic_oidc" && (input.IssuerURL == nil || *input.IssuerURL == "") {
+		response.BadRequestCode(w, r, i18n.ErrIdentityIssuerRequired)
+		return
+	}
+	if input.ProviderType == "saml_2_0" && (input.MetadataURL == nil || *input.MetadataURL == "") {
+		response.BadRequestCode(w, r, i18n.ErrIdentityMetadataRequired)
 		return
 	}
 
@@ -215,14 +223,22 @@ func (h *Handler) HandleAuthorize(w http.ResponseWriter, r *http.Request) {
 
 	baseURL := httpx.BaseURL(r)
 
-	authURL, err := h.service.BuildAuthURL(id, baseURL)
+	result, err := h.service.BeginAuth(r.Context(), id, baseURL)
 	if err != nil {
 		h.app.Logger.Error("failed to build auth URL", "error", err, "providerId", id)
 		http.Redirect(w, r, "/login?error=oidc_failed", http.StatusFound)
 		return
 	}
 
-	http.Redirect(w, r, authURL, http.StatusFound)
+	if result.HTMLForm != "" {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		if _, writeErr := w.Write([]byte(result.HTMLForm)); writeErr != nil {
+			h.app.Logger.Error("failed to write auth form", "error", writeErr, "providerId", id)
+		}
+		return
+	}
+
+	http.Redirect(w, r, result.RedirectURL, http.StatusFound)
 }
 
 // HandleCallback processes the OIDC callback after provider authentication.
@@ -272,5 +288,55 @@ func (h *Handler) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	})
 
 	// Redirect to dashboard
+	http.Redirect(w, r, "/", http.StatusFound)
+}
+
+// HandleSAMLMetadata returns service-provider metadata for a configured SAML provider.
+func (h *Handler) HandleSAMLMetadata(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	baseURL := httpx.BaseURL(r)
+
+	metadataXML, err := h.service.SAMLMetadata(r.Context(), id, baseURL)
+	if err != nil {
+		h.app.Logger.Error("failed to generate saml metadata", "error", err, "providerId", id)
+		http.NotFound(w, r)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/samlmetadata+xml")
+	if _, writeErr := w.Write(metadataXML); writeErr != nil {
+		h.app.Logger.Error("failed to write saml metadata", "error", writeErr, "providerId", id)
+	}
+}
+
+// HandleSAMLACS processes a SAML assertion consumer service callback.
+func (h *Handler) HandleSAMLACS(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	baseURL := httpx.BaseURL(r)
+
+	sessionID, user, err := h.service.HandleSAMLACS(r.Context(), id, baseURL, r)
+	if err != nil {
+		h.app.Logger.Error("saml acs failed", "error", err, "providerId", id)
+		http.Redirect(w, r, "/login?error=oidc_failed", http.StatusFound)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     auth.SessionCookie,
+		Value:    sessionID,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   httpx.ShouldSetSecureCookie(r, h.app.Config),
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   int(auth.SessionDuration.Seconds()),
+	})
+
+	h.app.AuditLog.LogWithUser(r, user.ID, user.Username, audit.Entry{
+		Action:     "saml_login",
+		EntityType: "user",
+		EntityID:   user.ID,
+		EntityName: user.Username,
+	})
+
 	http.Redirect(w, r, "/", http.StatusFound)
 }

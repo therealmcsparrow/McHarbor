@@ -14,7 +14,7 @@ type User = {
 export type OIDCProvider = {
   id: string;
   name: string;
-  providerType: 'entra_id' | 'google';
+  providerType: 'entra_id' | 'google' | 'generic_oidc' | 'saml_2_0';
 };
 
 type AuthState = {

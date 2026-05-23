@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconBrandAzure, IconBrandGoogle, IconTrash, IconPencil, IconPlugConnected } from '@tabler/icons-react';
+import { IconBrandAzure, IconBrandGoogle, IconShieldLock, IconTrash, IconPencil, IconPlugConnected } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Badge } from '@resources/components/ui/Badge';
 import { Switch } from '@resources/components/ui/Switch';
@@ -22,11 +22,23 @@ export function ProviderCard({ provider, onEdit }: ProviderCardProps) {
   const deleteProvider = useDeleteProvider();
   const testProvider = useTestProvider();
 
-  const Icon = provider.providerType === 'entra_id' ? IconBrandAzure : IconBrandGoogle;
-  const iconColor = provider.providerType === 'entra_id' ? 'text-[#0078D4]' : 'text-[#4285F4]';
+  const Icon = provider.providerType === 'entra_id'
+    ? IconBrandAzure
+    : provider.providerType === 'google'
+      ? IconBrandGoogle
+      : IconShieldLock;
+  const iconColor = provider.providerType === 'entra_id'
+    ? 'text-[#0078D4]'
+    : provider.providerType === 'google'
+      ? 'text-[#4285F4]'
+      : 'text-sky-500';
   const typeLabel = provider.providerType === 'entra_id'
     ? t('identity.entraId')
-    : t('identity.google');
+    : provider.providerType === 'google'
+      ? t('identity.google')
+      : provider.providerType === 'generic_oidc'
+        ? t('identity.genericOidc')
+        : t('identity.saml2');
 
   function handleToggle(enabled: boolean) {
     updateProvider.mutate({ id: provider.id, enabled });

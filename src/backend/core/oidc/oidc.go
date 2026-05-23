@@ -23,6 +23,12 @@ type ProviderConfig struct {
 	UserInfo string
 }
 
+type discoveryDocument struct {
+	AuthorizationEndpoint string `json:"authorization_endpoint"`
+	TokenEndpoint         string `json:"token_endpoint"`
+	UserInfoEndpoint      string `json:"userinfo_endpoint"`
+}
+
 // UserInfo represents claims returned from the userinfo endpoint.
 type UserInfo struct {
 	Sub    string   `json:"sub"`
@@ -66,6 +72,31 @@ func BuildGoogleConfig(clientID, clientSecret, redirectURL string, scopes []stri
 	}
 }
 
+// BuildGenericConfig discovers endpoints from an issuer URL and builds an OAuth2 config.
+func BuildGenericConfig(ctx context.Context, clientID, clientSecret, issuerURL, redirectURL string, scopes []string) (ProviderConfig, error) {
+	discovery, err := fetchDiscoveryDocument(ctx, issuerURL)
+	if err != nil {
+		return ProviderConfig{}, err
+	}
+	if discovery.AuthorizationEndpoint == "" || discovery.TokenEndpoint == "" || discovery.UserInfoEndpoint == "" {
+		return ProviderConfig{}, fmt.Errorf("discovery document missing required endpoints")
+	}
+
+	return ProviderConfig{
+		OAuth2: oauth2.Config{
+			ClientID:     clientID,
+			ClientSecret: clientSecret,
+			RedirectURL:  redirectURL,
+			Scopes:       scopes,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  discovery.AuthorizationEndpoint,
+				TokenURL: discovery.TokenEndpoint,
+			},
+		},
+		UserInfo: discovery.UserInfoEndpoint,
+	}, nil
+}
+
 // FetchUserInfo exchanges an access token for user claims from the userinfo endpoint.
 func FetchUserInfo(ctx context.Context, token *oauth2.Token, userInfoURL string) (*UserInfo, error) {
 	client := oauth2.NewClient(ctx, oauth2.StaticTokenSource(token))
@@ -101,7 +132,7 @@ func FetchUserInfo(ctx context.Context, token *oauth2.Token, userInfoURL string)
 // It fetches the OIDC discovery document and attempts a client_credentials token exchange.
 // For Google, which doesn't support client_credentials for standard OAuth2 clients,
 // a "unauthorized_client" error (vs "invalid_client") indicates valid credentials.
-func TestConnection(ctx context.Context, providerType, clientID, clientSecret, tenantID string) error {
+func TestConnection(ctx context.Context, providerType, clientID, clientSecret, tenantID, issuerURL string) error {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
@@ -112,33 +143,16 @@ func TestConnection(ctx context.Context, providerType, clientID, clientSecret, t
 		discoveryURL = "https://login.microsoftonline.com/" + tenantID + "/v2.0/.well-known/openid-configuration"
 	case "google":
 		discoveryURL = "https://accounts.google.com/.well-known/openid-configuration"
+	case "generic_oidc":
+		discoveryURL = discoveryURLForIssuer(issuerURL)
 	default:
 		return fmt.Errorf("unsupported provider type: %s", providerType)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
+	discovery, err := fetchDiscoveryDocumentByURL(ctx, discoveryURL)
 	if err != nil {
-		return fmt.Errorf("creating discovery request: %w", err)
+		return err
 	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("fetching discovery document: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
-		return fmt.Errorf("discovery endpoint returned %d: %s", resp.StatusCode, body)
-	}
-
-	var discovery struct {
-		TokenEndpoint string `json:"token_endpoint"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&discovery); err != nil {
-		return fmt.Errorf("decoding discovery document: %w", err)
-	}
-
 	if discovery.TokenEndpoint == "" {
 		return fmt.Errorf("discovery document missing token_endpoint")
 	}
@@ -178,12 +192,45 @@ func TestConnection(ctx context.Context, providerType, clientID, clientSecret, t
 	}
 	if jsonErr := json.Unmarshal(body, &tokenErr); jsonErr == nil {
 		// Google returns "unauthorized_client" for valid credentials that can't use client_credentials grant
-		if tokenErr.Error == "unauthorized_client" || tokenErr.Error == "unsupported_grant_type" {
+		if tokenErr.Error == "unauthorized_client" || tokenErr.Error == "unsupported_grant_type" || tokenErr.Error == "invalid_scope" {
 			return nil
 		}
 	}
 
 	return fmt.Errorf("token endpoint returned %d: %s", tokenResp.StatusCode, body)
+}
+
+func fetchDiscoveryDocument(ctx context.Context, issuerURL string) (*discoveryDocument, error) {
+	return fetchDiscoveryDocumentByURL(ctx, discoveryURLForIssuer(issuerURL))
+}
+
+func fetchDiscoveryDocumentByURL(ctx context.Context, discoveryURL string) (*discoveryDocument, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, discoveryURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating discovery request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("fetching discovery document: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
+		return nil, fmt.Errorf("discovery endpoint returned %d: %s", resp.StatusCode, body)
+	}
+
+	var discovery discoveryDocument
+	if err := json.NewDecoder(resp.Body).Decode(&discovery); err != nil {
+		return nil, fmt.Errorf("decoding discovery document: %w", err)
+	}
+
+	return &discovery, nil
+}
+
+func discoveryURLForIssuer(issuerURL string) string {
+	return strings.TrimRight(issuerURL, "/") + "/.well-known/openid-configuration"
 }
 
 // GroupInfo represents a group from the identity provider.

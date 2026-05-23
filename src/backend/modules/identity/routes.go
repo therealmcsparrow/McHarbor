@@ -19,6 +19,9 @@ func Mount(app *router.AppDeps) {
 		r.Get("/identity-providers/enabled", h.HandleEnabledProviders)
 		r.Get("/identity-providers/{id}/authorize", h.HandleAuthorize)
 		r.Get("/identity-providers/callback", h.HandleCallback)
+		r.Get("/identity-providers/{id}/metadata", h.HandleSAMLMetadata)
+		r.Get("/identity-providers/{id}/acs", h.HandleSAMLACS)
+		r.Post("/identity-providers/{id}/acs", h.HandleSAMLACS)
 	})
 
 	// Protected routes — admin CRUD

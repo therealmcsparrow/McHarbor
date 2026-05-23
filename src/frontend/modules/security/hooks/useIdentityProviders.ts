@@ -9,11 +9,14 @@ import { assertSuccess } from '@resources/utils/api-mutation';
 export type IdentityProvider = {
   id: string;
   name: string;
-  providerType: 'entra_id' | 'google';
+  providerType: 'entra_id' | 'google' | 'generic_oidc' | 'saml_2_0';
   enabled: boolean;
   clientId: string;
   tenantId?: string;
   domain?: string;
+  issuerUrl?: string;
+  metadataUrl?: string;
+  entityId?: string;
   scopes: string;
   autoProvision: boolean;
   defaultRoleId?: string;
@@ -37,11 +40,14 @@ export type GroupMapping = {
 
 export type CreateProviderInput = {
   name: string;
-  providerType: 'entra_id' | 'google';
+  providerType: 'entra_id' | 'google' | 'generic_oidc' | 'saml_2_0';
   clientId: string;
   clientSecret: string;
   tenantId?: string;
   domain?: string;
+  issuerUrl?: string;
+  metadataUrl?: string;
+  entityId?: string;
   scopes?: string;
   autoProvision?: boolean;
   defaultRoleId?: string;
@@ -57,6 +63,9 @@ export type UpdateProviderInput = {
   clientSecret?: string;
   tenantId?: string;
   domain?: string;
+  issuerUrl?: string;
+  metadataUrl?: string;
+  entityId?: string;
   scopes?: string;
   autoProvision?: boolean;
   defaultRoleId?: string;

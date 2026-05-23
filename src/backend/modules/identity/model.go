@@ -3,7 +3,7 @@
 
 package identity
 
-// IdentityProvider represents an OIDC identity provider configuration.
+// IdentityProvider represents an external identity provider configuration.
 type IdentityProvider struct {
 	ID                  string         `json:"id"`
 	Name                string         `json:"name"`
@@ -13,6 +13,9 @@ type IdentityProvider struct {
 	ClientSecret        string         `json:"-"`
 	TenantID            *string        `json:"tenantId,omitempty"`
 	Domain              *string        `json:"domain,omitempty"`
+	IssuerURL           *string        `json:"issuerUrl,omitempty"`
+	MetadataURL         *string        `json:"metadataUrl,omitempty"`
+	EntityID            *string        `json:"entityId,omitempty"`
 	Scopes              string         `json:"scopes"`
 	AutoProvision       bool           `json:"autoProvision"`
 	DefaultRoleID       *string        `json:"defaultRoleId,omitempty"`
@@ -51,6 +54,9 @@ type CreateProviderInput struct {
 	ClientSecret        string         `json:"clientSecret"`
 	TenantID            *string        `json:"tenantId,omitempty"`
 	Domain              *string        `json:"domain,omitempty"`
+	IssuerURL           *string        `json:"issuerUrl,omitempty"`
+	MetadataURL         *string        `json:"metadataUrl,omitempty"`
+	EntityID            *string        `json:"entityId,omitempty"`
 	Scopes              *string        `json:"scopes,omitempty"`
 	AutoProvision       *bool          `json:"autoProvision,omitempty"`
 	DefaultRoleID       *string        `json:"defaultRoleId,omitempty"`
@@ -67,6 +73,9 @@ type UpdateProviderInput struct {
 	ClientSecret        *string        `json:"clientSecret,omitempty"`
 	TenantID            *string        `json:"tenantId,omitempty"`
 	Domain              *string        `json:"domain,omitempty"`
+	IssuerURL           *string        `json:"issuerUrl,omitempty"`
+	MetadataURL         *string        `json:"metadataUrl,omitempty"`
+	EntityID            *string        `json:"entityId,omitempty"`
 	Scopes              *string        `json:"scopes,omitempty"`
 	AutoProvision       *bool          `json:"autoProvision,omitempty"`
 	DefaultRoleID       *string        `json:"defaultRoleId,omitempty"`

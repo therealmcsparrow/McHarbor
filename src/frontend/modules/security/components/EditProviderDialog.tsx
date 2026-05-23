@@ -31,6 +31,9 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
   const [clientSecret, setClientSecret] = useState('');
   const [tenantId, setTenantId] = useState(provider.tenantId ?? '');
   const [domain, setDomain] = useState(provider.domain ?? '');
+  const [issuerUrl, setIssuerUrl] = useState(provider.issuerUrl ?? '');
+  const [metadataUrl, setMetadataUrl] = useState(provider.metadataUrl ?? '');
+  const [entityId, setEntityId] = useState(provider.entityId ?? '');
   const [scopes, setScopes] = useState(provider.scopes);
   const [autoProvision, setAutoProvision] = useState(provider.autoProvision);
   const [autoImportGroups, setAutoImportGroups] = useState(provider.autoImportGroups);
@@ -40,7 +43,12 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
 
   const typeLabel = provider.providerType === 'entra_id'
     ? t('identity.entraId')
-    : t('identity.google');
+    : provider.providerType === 'google'
+      ? t('identity.google')
+      : provider.providerType === 'generic_oidc'
+        ? t('identity.genericOidc')
+        : t('identity.saml2');
+  const providerBaseUrl = `${window.location.origin}/api/identity-providers/${provider.id}`;
 
   function handleSave() {
     const input: UpdateProviderInput & { id: string } = { id: provider.id };
@@ -56,6 +64,15 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
     }
     if (provider.providerType === 'google' && domain !== (provider.domain ?? '')) {
       input.domain = domain;
+    }
+    if (provider.providerType === 'generic_oidc' && issuerUrl !== (provider.issuerUrl ?? '')) {
+      input.issuerUrl = issuerUrl;
+    }
+    if (provider.providerType === 'saml_2_0' && metadataUrl !== (provider.metadataUrl ?? '')) {
+      input.metadataUrl = metadataUrl;
+    }
+    if (provider.providerType === 'saml_2_0' && entityId !== (provider.entityId ?? '')) {
+      input.entityId = entityId;
     }
 
     if (autoImportGroups !== provider.autoImportGroups) {
@@ -114,6 +131,23 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
             </div>
           )}
 
+          {provider.providerType === 'generic_oidc' && (
+            <div>
+              <Label htmlFor="edit-issuer-url" className="mb-1">{t('identity.issuerUrl')}</Label>
+              <Input
+                variant="outline"
+                id="edit-issuer-url"
+                value={issuerUrl}
+                onChange={(e) => setIssuerUrl(e.target.value)}
+                placeholder={t('identity.issuerUrlPlaceholder')}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t('identity.issuerUrlDescription')}
+              </p>
+            </div>
+          )}
+
+          {provider.providerType !== 'saml_2_0' && (
           <div>
             <Label htmlFor="edit-client-id" className="mb-1">{t('identity.clientId')}</Label>
             <Input
@@ -123,7 +157,9 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
               onChange={(e) => setClientId(e.target.value)}
             />
           </div>
+          )}
 
+          {provider.providerType !== 'saml_2_0' && (
           <div>
             <Label htmlFor="edit-secret" className="mb-1">{t('identity.clientSecret')}</Label>
             <Input
@@ -138,7 +174,56 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
               {t('identity.callbackUrlHint', 'Leave blank to keep existing secret')}
             </p>
           </div>
+          )}
 
+          {provider.providerType === 'saml_2_0' && (
+            <>
+              <div>
+                <Label htmlFor="edit-metadata-url" className="mb-1">{t('identity.metadataUrl')}</Label>
+                <Input
+                  variant="outline"
+                  id="edit-metadata-url"
+                  value={metadataUrl}
+                  onChange={(e) => setMetadataUrl(e.target.value)}
+                  placeholder={t('identity.metadataUrlPlaceholder')}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t('identity.metadataUrlDescription')}
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-entity-id" className="mb-1">{t('identity.entityId')}</Label>
+                <Input
+                  variant="outline"
+                  id="edit-entity-id"
+                  value={entityId}
+                  onChange={(e) => setEntityId(e.target.value)}
+                  placeholder={t('identity.entityIdPlaceholder')}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t('identity.entityIdDescription')}
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-border p-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{t('identity.serviceProviderMetadataUrl')}</p>
+                  <code className="mt-2 block rounded-md bg-muted px-3 py-2 text-xs text-foreground">
+                    {`${providerBaseUrl}/metadata`}
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <p className="text-sm font-medium text-foreground">{t('identity.acsUrl')}</p>
+                  <code className="mt-2 block rounded-md bg-muted px-3 py-2 text-xs text-foreground">
+                    {`${providerBaseUrl}/acs`}
+                  </code>
+                </div>
+              </div>
+            </>
+          )}
+
+          {provider.providerType !== 'saml_2_0' && (
           <div>
             <Label htmlFor="edit-scopes" className="mb-1">{t('identity.scopes')}</Label>
             <Input
@@ -148,6 +233,7 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
               onChange={(e) => setScopes(e.target.value)}
             />
           </div>
+          )}
 
           <div className="flex items-center justify-between rounded-lg border border-border p-3">
             <div>
@@ -165,6 +251,7 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
             enabled={groupMappingEnabled}
             mappings={groupMappings}
             providerId={provider.id}
+            supportsFetchGroups={provider.providerType !== 'generic_oidc' && provider.providerType !== 'saml_2_0'}
             onAutoImportChange={setAutoImportGroups}
             onEnabledChange={setGroupMappingEnabled}
             onMappingsChange={setGroupMappings}
@@ -175,7 +262,19 @@ export function EditProviderDialog({ open, onOpenChange, provider }: EditProvide
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {t('common:cancel', 'Cancel')}
           </Button>
-          <Button onClick={handleSave} disabled={!name || !clientId || updateProvider.isPending}>
+          <Button
+            onClick={handleSave}
+            disabled={
+              !name ||
+              (
+                provider.providerType !== 'saml_2_0' &&
+                !clientId
+              ) ||
+              (provider.providerType === 'generic_oidc' && !issuerUrl) ||
+              (provider.providerType === 'saml_2_0' && !metadataUrl) ||
+              updateProvider.isPending
+            }
+          >
             {updateProvider.isPending ? '...' : t('common:save', 'Save')}
           </Button>
         </DialogFooter>

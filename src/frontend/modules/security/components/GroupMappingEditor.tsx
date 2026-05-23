@@ -17,6 +17,7 @@ type GroupMappingEditorProps = {
   enabled: boolean;
   mappings: GroupMapping[];
   providerId?: string;
+  supportsFetchGroups?: boolean;
   onAutoImportChange: (autoImport: boolean) => void;
   onEnabledChange: (enabled: boolean) => void;
   onMappingsChange: (mappings: GroupMapping[]) => void;
@@ -27,6 +28,7 @@ export function GroupMappingEditor({
   enabled,
   mappings,
   providerId,
+  supportsFetchGroups = true,
   onAutoImportChange,
   onEnabledChange,
   onMappingsChange,
@@ -142,7 +144,7 @@ export function GroupMappingEditor({
               {t('identity.addMapping')}
             </Button>
 
-            {providerId && (
+            {providerId && supportsFetchGroups && (
               <Button
                 variant="outline"
                 size="sm"

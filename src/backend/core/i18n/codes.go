@@ -595,6 +595,8 @@ const (
 	ErrIdentityClientRequired    MsgCode = "err.identity.client_id_required"
 	ErrIdentitySecretRequired    MsgCode = "err.identity.client_secret_required"
 	ErrIdentityTenantRequired    MsgCode = "err.identity.tenant_id_required"
+	ErrIdentityIssuerRequired    MsgCode = "err.identity.issuer_url_required"
+	ErrIdentityMetadataRequired  MsgCode = "err.identity.metadata_url_required"
 	ErrIdentityInvalidType       MsgCode = "err.identity.invalid_type"
 	ErrIdentityDisabled          MsgCode = "err.identity.disabled"
 	ErrOIDCStateFailed           MsgCode = "err.oidc.state_failed"

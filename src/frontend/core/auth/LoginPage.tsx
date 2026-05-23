@@ -5,7 +5,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
-import { IconBrandAzure, IconBrandGoogle } from '@tabler/icons-react';
+import { IconBrandAzure, IconBrandGoogle, IconShieldLock } from '@tabler/icons-react';
 import { Input } from '@resources/components/ui/Input';
 import { Label } from '@resources/components/ui/Label';
 import { Button } from '@resources/components/ui/Button';
@@ -14,6 +14,8 @@ import { useAuth, type OIDCProvider } from './useAuth';
 const PROVIDER_ICONS: Record<string, typeof IconBrandAzure> = {
   entra_id: IconBrandAzure,
   google: IconBrandGoogle,
+  generic_oidc: IconShieldLock,
+  saml_2_0: IconShieldLock,
 };
 
 export default function LoginPage() {
