@@ -2,6 +2,17 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.4] - 2026-05-23
+
+### Fixed
+
+- Fixed the operation progress dialog so the shared log header and empty-state copy are translated correctly instead of rendering missing-key identifiers.
+- Fixed stack self-update and self-reinstall recovery in the frontend so McHarbor now waits for its API to come back online after recreating its own stack instead of failing the batch flow prematurely.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, README release reference, and frontend package version metadata to `1.1.4`.
+
 ## [1.1.3] - 2026-05-23
 
 ### Fixed

@@ -160,6 +160,8 @@
     "running": "{{action}} {{name}}",
     "completed": "{{action}} voltooid",
     "completedWithErrors": "{{action}} afgerond met {{count}} fouten",
+    "logTitle": "Bewerkingslog",
+    "logEmpty": "Logregels verschijnen hier tijdens de bewerking.",
     "log": {
       "preparing": "Voorbereiden...",
       "pullingLatestImage": "Nieuwste image ophalen...",

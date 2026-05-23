@@ -160,6 +160,8 @@
     "running": "{{action}} {{name}}",
     "completed": "{{action}} complete",
     "completedWithErrors": "{{action}} finished with {{count}} failures",
+    "logTitle": "Operation log",
+    "logEmpty": "Log entries will appear here during the operation.",
     "log": {
       "preparing": "Preparing...",
       "pullingLatestImage": "Pulling the latest image...",

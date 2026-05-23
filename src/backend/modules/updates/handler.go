@@ -177,7 +177,7 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 }
 
 // currentVersion is the running McHarbor version — keep in sync with health module.
-const currentVersion = "1.1.3"
+const currentVersion = "1.1.4"
 
 // githubRelease is a subset of the GitHub release API response.
 type githubRelease struct {

@@ -57,6 +57,44 @@ type StackOperationOptions = {
   scanner?: OperationScanner;
 };
 
+const selfUpdateRecoveryTimeoutMs = 60_000;
+const selfUpdatePollIntervalMs = 2_000;
+
+function isSelfUpdateTarget(target: StackOperationTarget) {
+  return target.name.toLowerCase() === 'mcharbor'
+    || target.images.some((image) => image.toLowerCase().includes('/mcharbor'));
+}
+
+async function delay(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForSelfUpdateRecovery(
+  t: (key: string, options?: Record<string, unknown>) => string,
+  log?: BatchProgressContext['log'],
+) {
+  const deadline = Date.now() + selfUpdateRecoveryTimeoutMs;
+  const waitingMessage = t('operations.log.waitingForApiRecovery');
+  log?.(waitingMessage, {
+    detail: waitingMessage,
+  });
+
+  while (Date.now() < deadline) {
+    try {
+      const health = await fetch('/api/health', { credentials: 'include' });
+      if (health.ok) {
+        return;
+      }
+    } catch {
+      // The app is expected to be unavailable while the container restarts.
+    }
+
+    await delay(selfUpdatePollIntervalMs);
+  }
+
+  throw new Error(t('operations.log.apiRecoveryTimeout'));
+}
+
 export function useCheckStackUpdates() {
   const queryClient = useQueryClient();
   const envId = useEnvironmentStore((s) => s.currentId);
@@ -117,9 +155,19 @@ export function useStackOperationActions() {
       },
     );
 
-    const result = await api
-      .post<ComposeResult>(`/stacks/${target.name}/${mode}${envQuery}`)
-      .then(assertSuccess);
+    let result: ComposeResult;
+    try {
+      result = await api
+        .post<ComposeResult>(`/stacks/${target.name}/${mode}${envQuery}`)
+        .then(assertSuccess);
+    } catch (error) {
+      if (!isSelfUpdateTarget(target)) {
+        throw error;
+      }
+
+      await waitForSelfUpdateRecovery(tc, log);
+      result = { success: true };
+    }
 
     const outputLines = extractLogTail(result.output ?? '', 30);
     if (outputLines.length > 0) {
