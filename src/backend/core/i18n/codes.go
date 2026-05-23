@@ -658,6 +658,7 @@ const (
 	ErrCommChannelSenderRequired     MsgCode = "err.comm_channel.sender_required"
 	ErrCommChannelRecipientsRequired MsgCode = "err.comm_channel.recipients_required"
 	ErrCommChannelPriorityInvalid    MsgCode = "err.comm_channel.priority_invalid"
+	ErrCommChannelTelegramAdminRequired MsgCode = "err.comm_channel.telegram_admin_required"
 	ErrCommChannelTestFailed         MsgCode = "err.comm_channel.test_failed"
 	MsgCommChannelCreated            MsgCode = "msg.comm_channel.created"
 	MsgCommChannelUpdated            MsgCode = "msg.comm_channel.updated"

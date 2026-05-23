@@ -4,6 +4,7 @@
 package communications
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -216,6 +217,14 @@ func (h *Handler) HandleTest(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if err := h.service.Test(r.Context(), id); err != nil {
+		if errors.Is(err, ErrChannelNotFound) {
+			response.NotFoundCode(w, r, i18n.ErrCommChannelNotFound)
+			return
+		}
+		if errors.Is(err, ErrTelegramAdminRequired) {
+			response.BadRequestCode(w, r, i18n.ErrCommChannelTelegramAdminRequired)
+			return
+		}
 		h.app.Logger.Error("communications: test error", "error", err, "id", id)
 		response.InternalErrorCode(w, r, i18n.ErrCommChannelTestFailed)
 		return

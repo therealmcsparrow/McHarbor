@@ -6,6 +6,7 @@ package communications
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -22,6 +23,9 @@ type Service struct {
 	db  *sql.DB
 	enc *encryption.Service
 }
+
+var ErrChannelNotFound = errors.New("communication channel not found")
+var ErrTelegramAdminRequired = errors.New("telegram admin rights required")
 
 // NewService creates a new communication channel service.
 func NewService(database *sql.DB, enc *encryption.Service) *Service {
@@ -359,7 +363,7 @@ func (s *Service) Test(ctx context.Context, id string) error {
 		&username, &password, &priority)
 
 	if err == sql.ErrNoRows {
-		return fmt.Errorf("communication channel not found")
+		return ErrChannelNotFound
 	}
 	if err != nil {
 		return fmt.Errorf("looking up communication channel %s: %w", id, err)
@@ -418,10 +422,14 @@ func (s *Service) Test(ctx context.Context, id string) error {
 		if err != nil {
 			return fmt.Errorf("decrypting token: %w", err)
 		}
-		return notify.SendTelegram(ctx, notify.TelegramConfig{
+		sendErr := notify.SendTelegram(ctx, notify.TelegramConfig{
 			BotToken: decToken,
 			ChatID:   chatID.String,
 		}, title, message)
+		if sendErr != nil && strings.Contains(sendErr.Error(), "need administrator rights in the channel chat") {
+			return ErrTelegramAdminRequired
+		}
+		return sendErr
 
 	case "signal":
 		recipientList := strings.Split(recipients.String, ",")
