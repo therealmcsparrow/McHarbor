@@ -2,6 +2,19 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.8] - 2026-05-23
+
+### Fixed
+
+- Fixed the remaining production self-update and self-reinstall restart gap where Docker could recreate the McHarbor container but leave it stopped until an operator manually started it.
+- Added repeated replacement-container start attempts in the self-update helper to tolerate Docker daemon cleanup timing on production Linux hosts after the old container is stopped and removed.
+- Added post-start verification so the helper only marks the update complete after the replacement McHarbor container stays running briefly.
+- Added detailed helper logging for failed start attempts and final replacement-container state to make future production restart failures diagnosable from `/app/data/self-update`.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.8`.
+
 ## [1.1.7] - 2026-05-23
 
 ### Fixed

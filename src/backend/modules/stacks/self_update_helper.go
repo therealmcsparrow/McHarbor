@@ -101,10 +101,10 @@ func RunSelfUpdateHelper(ctx context.Context) error {
 		return fmt.Errorf("removing current container: %w", err)
 	}
 
-	if err := createAndStartSelfContainer(opCtx, cli, containerName, cfg, hostCfg, netCfg); err != nil {
+	if err := createAndStartSelfContainer(opCtx, cli, logger, containerName, cfg, hostCfg, netCfg); err != nil {
 		logger.Printf("target recreate failed: %v", err)
 		cfg.Image = originalImage
-		if rollbackErr := createAndStartSelfContainer(opCtx, cli, containerName, cfg, hostCfg, netCfg); rollbackErr != nil {
+		if rollbackErr := createAndStartSelfContainer(opCtx, cli, logger, containerName, cfg, hostCfg, netCfg); rollbackErr != nil {
 			return fmt.Errorf("recreating target container: %w; rollback failed: %v", err, rollbackErr)
 		}
 		return fmt.Errorf("recreating target container: %w; rolled back to %s", err, originalImage)
@@ -158,16 +158,77 @@ func cloneSelfContainerConfig(current container.InspectResponse, targetImage str
 	return &cfg, &hostCfg, netCfg
 }
 
-func createAndStartSelfContainer(ctx context.Context, cli *client.Client, containerName string, cfg *container.Config, hostCfg *container.HostConfig, netCfg *network.NetworkingConfig) error {
+func createAndStartSelfContainer(ctx context.Context, cli *client.Client, logger *log.Logger, containerName string, cfg *container.Config, hostCfg *container.HostConfig, netCfg *network.NetworkingConfig) error {
 	created, err := cli.ContainerCreate(ctx, cfg, hostCfg, netCfg, nil, containerName)
 	if err != nil {
 		return fmt.Errorf("creating replacement container: %w", err)
 	}
-	if err := cli.ContainerStart(ctx, created.ID, container.StartOptions{}); err != nil {
-		_ = cli.ContainerRemove(ctx, created.ID, container.RemoveOptions{Force: true, RemoveVolumes: false})
-		return fmt.Errorf("starting replacement container: %w", err)
+
+	const attempts = 12
+	for attempt := 1; attempt <= attempts; attempt++ {
+		if err := cli.ContainerStart(ctx, created.ID, container.StartOptions{}); err != nil {
+			logger.Printf("starting replacement container attempt %d/%d failed: %v", attempt, attempts, err)
+		} else if err := waitForSelfContainerRunning(ctx, cli, created.ID, 3*time.Second); err != nil {
+			logger.Printf("replacement container did not stay running after attempt %d/%d: %v", attempt, attempts, err)
+		} else {
+			logger.Printf("replacement container %s started", created.ID)
+			return nil
+		}
+
+		if attempt < attempts {
+			if err := sleepSelfUpdate(ctx, 2*time.Second); err != nil {
+				break
+			}
+		}
 	}
-	return nil
+
+	inspect, inspectErr := cli.ContainerInspect(ctx, created.ID)
+	if inspectErr == nil && inspect.State != nil {
+		logger.Printf("replacement container final state: status=%s exitCode=%d error=%s", inspect.State.Status, inspect.State.ExitCode, inspect.State.Error)
+	}
+	_ = cli.ContainerRemove(ctx, created.ID, container.RemoveOptions{Force: true, RemoveVolumes: false})
+	return fmt.Errorf("starting replacement container after retries")
+}
+
+func waitForSelfContainerRunning(ctx context.Context, cli *client.Client, containerID string, stableFor time.Duration) error {
+	deadline := time.NewTimer(stableFor)
+	defer deadline.Stop()
+
+	ticker := time.NewTicker(500 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		inspect, err := cli.ContainerInspect(ctx, containerID)
+		if err != nil {
+			return fmt.Errorf("inspecting replacement container: %w", err)
+		}
+		if inspect.State == nil {
+			return fmt.Errorf("replacement container has no state")
+		}
+		if !inspect.State.Running {
+			return fmt.Errorf("replacement container status=%s exitCode=%d error=%s", inspect.State.Status, inspect.State.ExitCode, inspect.State.Error)
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-deadline.C:
+			return nil
+		case <-ticker.C:
+		}
+	}
+}
+
+func sleepSelfUpdate(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 func isGeneratedSelfHostname(hostname string) bool {
