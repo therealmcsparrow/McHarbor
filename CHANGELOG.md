@@ -2,6 +2,12 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.2] - 2026-05-23
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image, runtime metadata, and frontend package version metadata to `1.1.2`.
+
 ## [1.1.1] - 2026-05-23
 
 ### Changed

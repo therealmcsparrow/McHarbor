@@ -183,6 +183,10 @@
       "reinstallTitle": "Stacks neu installieren",
       "reinstallDescription": "Die ausgewaehlten Stacks mit ihren aktuellen Images nacheinander neu erstellen.",
       "reinstallAction": "Neu installieren"
+    },
+    "confirm": {
+      "reinstallAllTitle": "Alle Stacks neu installieren",
+      "reinstallAllDescription": "{{count}} verwaltete Stack(s) mit ihren aktuellen Images zwangsweise neu erstellen. Laufende Dienste koennen dabei kurzzeitig unterbrochen werden."
     }
   },
   "toast": {

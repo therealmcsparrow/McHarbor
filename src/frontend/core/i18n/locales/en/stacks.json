@@ -183,6 +183,10 @@
       "reinstallTitle": "Reinstall Stacks",
       "reinstallDescription": "Force recreate the selected stacks with their current images one by one.",
       "reinstallAction": "Reinstall"
+    },
+    "confirm": {
+      "reinstallAllTitle": "Reinstall All Stacks",
+      "reinstallAllDescription": "Force recreate {{count}} managed stack(s) with their current images. This may briefly interrupt running services."
     }
   },
   "toast": {

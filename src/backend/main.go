@@ -110,7 +110,7 @@ func main() {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	logger.Info("starting McHarbor", "version", "1.1.1", "port", cfg.Port)
+	logger.Info("starting McHarbor", "version", "1.1.2", "port", cfg.Port)
 
 	// Open database
 	database, err := db.Open(cfg.DatabasePath)

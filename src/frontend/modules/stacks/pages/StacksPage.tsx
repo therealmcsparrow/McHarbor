@@ -58,6 +58,7 @@ export default function StacksPage() {
   const [takeOverTarget, setTakeOverTarget] = useState<
     (typeof stacks)[number] | null
   >(null);
+  const [reinstallAllConfirmOpen, setReinstallAllConfirmOpen] = useState(false);
 
   const handleAction = (name: string, act: string) =>
     action.mutate({ name, action: act });
@@ -102,9 +103,7 @@ export default function StacksPage() {
             onUpdateAll={() =>
               runStackOperation("update", updateAvailableTargets)
             }
-            onReinstallAll={() =>
-              runStackOperation("reinstall", reinstallTargets)
-            }
+            onReinstallAll={() => setReinstallAllConfirmOpen(true)}
           />
         }
       />
@@ -170,6 +169,21 @@ export default function StacksPage() {
           setRemoveTarget(null);
         }}
         loading={deleteStack.isPending}
+      />
+
+      <ConfirmDialog
+        open={reinstallAllConfirmOpen}
+        onOpenChange={setReinstallAllConfirmOpen}
+        title={t("updates.confirm.reinstallAllTitle")}
+        description={t("updates.confirm.reinstallAllDescription", {
+          count: reinstallTargets.length,
+        })}
+        confirmLabel={t("updates.progress.reinstallAction")}
+        onConfirm={() => {
+          runStackOperation("reinstall", reinstallTargets);
+          setReinstallAllConfirmOpen(false);
+        }}
+        loading={batchProgress.isRunning}
       />
 
       <OperationProgressDialog

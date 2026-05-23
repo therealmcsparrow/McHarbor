@@ -183,6 +183,10 @@
       "reinstallTitle": "Stacks opnieuw installeren",
       "reinstallDescription": "Recreate de geselecteerde stacks met hun huidige images een voor een.",
       "reinstallAction": "Opnieuw installeren"
+    },
+    "confirm": {
+      "reinstallAllTitle": "Alle stacks opnieuw installeren",
+      "reinstallAllDescription": "Maak {{count}} beheerde stack(s) geforceerd opnieuw aan met hun huidige images. Dit kan draaiende services kort onderbreken."
     }
   },
   "toast": {
