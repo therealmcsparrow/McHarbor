@@ -364,7 +364,11 @@ export const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => 
         if (sorted.length > 1) {
           const gap = (maxX - minX) / (sorted.length - 1);
           for (let i = 0; i < sorted.length; i++) {
-            posMap.set(sorted[i]!.id, { x: Math.round(minX + gap * i), y: sorted[i]!.position.y });
+            const node = sorted[i];
+            if (!node) {
+              continue;
+            }
+            posMap.set(node.id, { x: Math.round(minX + gap * i), y: node.position.y });
           }
         }
         break;
@@ -383,7 +387,11 @@ export const useCanvasStore = create<CanvasState & CanvasActions>((set, get) => 
         if (sorted.length > 1) {
           const gap = (maxY - minY) / (sorted.length - 1);
           for (let i = 0; i < sorted.length; i++) {
-            posMap.set(sorted[i]!.id, { x: sorted[i]!.position.x, y: Math.round(minY + gap * i) });
+            const node = sorted[i];
+            if (!node) {
+              continue;
+            }
+            posMap.set(node.id, { x: node.position.x, y: Math.round(minY + gap * i) });
           }
         }
         break;
@@ -405,13 +413,17 @@ function wouldCreateCycle(edges: CanvasEdge[], sourceId: string, targetId: strin
   if (sourceId === targetId) return true;
   const adj: Record<string, string[]> = {};
   for (const e of edges) {
-    if (!adj[e.sourceNodeId]) adj[e.sourceNodeId] = [];
-    adj[e.sourceNodeId]!.push(e.targetNodeId);
+    const neighbors = adj[e.sourceNodeId] ?? [];
+    neighbors.push(e.targetNodeId);
+    adj[e.sourceNodeId] = neighbors;
   }
   const visited = new Set<string>();
   const queue = [targetId];
   while (queue.length > 0) {
-    const current = queue.shift()!;
+    const current = queue.shift();
+    if (!current) {
+      continue;
+    }
     if (current === sourceId) return true;
     if (visited.has(current)) continue;
     visited.add(current);

@@ -42,7 +42,13 @@ const queryClient = new QueryClient({
 
 await initializeI18n();
 
-createRoot(document.getElementById('root')!).render(
+const rootElement = document.getElementById('root');
+
+if (!rootElement) {
+  throw new Error('root element not found');
+}
+
+createRoot(rootElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
