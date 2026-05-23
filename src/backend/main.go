@@ -92,6 +92,14 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "self-update-helper" {
+		if err := stacks.RunSelfUpdateHelper(context.Background()); err != nil {
+			fmt.Fprintf(os.Stderr, "self-update helper failed: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	// Load config
 	cfg, err := config.Load()
 	if err != nil {
@@ -110,7 +118,7 @@ func main() {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	logger.Info("starting McHarbor", "version", "1.1.6", "port", cfg.Port)
+	logger.Info("starting McHarbor", "version", "1.1.7", "port", cfg.Port)
 
 	// Open database
 	database, err := db.Open(cfg.DatabasePath)

@@ -15,27 +15,27 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
-const version = "1.1.6"
+const version = "1.1.7"
 
 // directDeps maps Go module paths to their display names for /about.
 var directDeps = map[string]string{
-	"github.com/go-chi/chi/v5":       "chi",
-	"github.com/go-chi/cors":         "chi-cors",
-	"github.com/docker/docker":       "docker-sdk",
+	"github.com/go-chi/chi/v5":         "chi",
+	"github.com/go-chi/cors":           "chi-cors",
+	"github.com/docker/docker":         "docker-sdk",
 	"github.com/docker/go-connections": "docker-connections",
-	"k8s.io/client-go":               "k8s-client-go",
-	"k8s.io/api":                     "k8s-api",
-	"k8s.io/apimachinery":            "k8s-apimachinery",
-	"modernc.org/sqlite":             "sqlite",
-	"github.com/gorilla/websocket":   "websocket",
-	"github.com/dop251/goja":         "goja",
-	"github.com/rs/xid":              "xid",
-	"golang.org/x/crypto":            "x/crypto",
-	"golang.org/x/oauth2":            "x/oauth2",
-	"github.com/caarlos0/env/v11":    "env",
-	"github.com/google/uuid":         "uuid",
-	"github.com/PuerkitoBio/goquery": "goquery",
-	"gopkg.in/yaml.v3":               "yaml",
+	"k8s.io/client-go":                 "k8s-client-go",
+	"k8s.io/api":                       "k8s-api",
+	"k8s.io/apimachinery":              "k8s-apimachinery",
+	"modernc.org/sqlite":               "sqlite",
+	"github.com/gorilla/websocket":     "websocket",
+	"github.com/dop251/goja":           "goja",
+	"github.com/rs/xid":                "xid",
+	"golang.org/x/crypto":              "x/crypto",
+	"golang.org/x/oauth2":              "x/oauth2",
+	"github.com/caarlos0/env/v11":      "env",
+	"github.com/google/uuid":           "uuid",
+	"github.com/PuerkitoBio/goquery":   "goquery",
+	"gopkg.in/yaml.v3":                 "yaml",
 }
 
 type aboutResponse struct {

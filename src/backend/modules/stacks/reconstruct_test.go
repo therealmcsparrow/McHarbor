@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 )
 
 func TestReconstructComposeSkipsGeneratedHostname(t *testing.T) {
@@ -46,30 +47,39 @@ func TestContainerMatchesAnyCandidateWithStaleHostnameAndRealID(t *testing.T) {
 	}
 }
 
-func TestBuildSelfComposeHelperScriptIncludesLoggingAndRecovery(t *testing.T) {
-	script := buildSelfComposeHelperScript("mcharbor-compose-helper-test", "mcharbor", []string{
-		"docker compose -f docker-compose.yml pull",
-		"docker compose -f docker-compose.yml up -d",
-	})
-
-	for _, want := range []string{
-		"set -eu",
-		"/app/data/self-update/mcharbor-compose-helper-test.log",
-		"trap recover ERR",
-		"docker compose -f docker-compose.yml pull",
-		"docker compose -f docker-compose.yml up -d",
-		"docker start 'mcharbor'",
-	} {
-		if !strings.Contains(script, want) {
-			t.Fatalf("helper script missing %q:\n%s", want, script)
-		}
+func TestCloneSelfContainerConfigUsesTargetImageAndDropsGeneratedHostname(t *testing.T) {
+	current := container.InspectResponse{
+		ContainerJSONBase: &container.ContainerJSONBase{
+			ID: "49ca1252ea2939a2168b02a7ff0e4a2a2d020da55ad596a4ece4037e7d8f1f82",
+			HostConfig: &container.HostConfig{
+				AutoRemove: true,
+			},
+		},
+		Config: &container.Config{
+			Hostname: "49ca1252ea29",
+			Image:    "ghcr.io/therealmcsparrow/mcharbor:1.1.6",
+		},
+		NetworkSettings: &container.NetworkSettings{
+			Networks: map[string]*network.EndpointSettings{
+				"mcharbor_default": {
+					Aliases: []string{"mcharbor", "49ca1252ea29", "mcharbor"},
+				},
+			},
+		},
 	}
-}
 
-func TestHelperWorkingDirNormalizesRelativeStackPath(t *testing.T) {
-	got := helperWorkingDir("data/stacks/mcharbor")
-	want := "/app/data/stacks/mcharbor"
-	if got != want {
-		t.Fatalf("helperWorkingDir() = %q, want %q", got, want)
+	cfg, hostCfg, netCfg := cloneSelfContainerConfig(current, "ghcr.io/therealmcsparrow/mcharbor:1.1.7")
+	if cfg.Image != "ghcr.io/therealmcsparrow/mcharbor:1.1.7" {
+		t.Fatalf("cfg.Image = %q", cfg.Image)
+	}
+	if cfg.Hostname != "" {
+		t.Fatalf("generated hostname should be cleared, got %q", cfg.Hostname)
+	}
+	if hostCfg.AutoRemove {
+		t.Fatal("replacement McHarbor container must not be auto-remove")
+	}
+	aliases := netCfg.EndpointsConfig["mcharbor_default"].Aliases
+	if len(aliases) != 1 || aliases[0] != "mcharbor" {
+		t.Fatalf("aliases = %#v", aliases)
 	}
 }

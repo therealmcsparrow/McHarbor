@@ -17,7 +17,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -471,10 +470,7 @@ func (s *Service) UpdateManagedStack(name string) (*ComposeResult, error) {
 		return nil, err
 	}
 	if selfTarget {
-		return s.runDetachedSelfCompose(envID, st.ProjectPath, envVars,
-			"docker compose -f docker-compose.yml pull",
-			"docker compose -f docker-compose.yml up -d",
-		), nil
+		return s.runDetachedSelfUpdateHelper(envID, "update"), nil
 	}
 
 	pullResult := s.runDockerCompose([]string{"pull"}, st.ProjectPath, envVars, envID)
@@ -501,9 +497,7 @@ func (s *Service) ReinstallManagedStack(name string) (*ComposeResult, error) {
 		return nil, err
 	}
 	if selfTarget {
-		return s.runDetachedSelfCompose(envID, st.ProjectPath, envVars,
-			"docker compose -f docker-compose.yml up -d --force-recreate",
-		), nil
+		return s.runDetachedSelfUpdateHelper(envID, "reinstall"), nil
 	}
 
 	return s.runDockerCompose([]string{"up", "-d", "--force-recreate"}, st.ProjectPath, envVars, envID), nil
@@ -843,7 +837,7 @@ func (s *Service) stackTargetsSelf(ctx context.Context, envID, projectName strin
 	return false, nil
 }
 
-func (s *Service) runDetachedSelfCompose(envID, projectPath string, envVars map[string]string, commands ...string) *ComposeResult {
+func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeResult {
 	cli, err := s.dockerPool.Get(envID)
 	if err != nil {
 		return &ComposeResult{Success: false, Error: "docker connection failed"}
@@ -864,21 +858,32 @@ func (s *Service) runDetachedSelfCompose(envID, projectPath string, envVars map[
 		return &ComposeResult{Success: false, Error: "failed to prepare self-update helper container"}
 	}
 
-	env := mergeEnvVars(os.Environ(), envVars)
 	helperName := "mcharbor-compose-helper-" + xid.New().String()
-	script := buildSelfComposeHelperScript(helperName, strings.TrimPrefix(current.Name, "/"), commands)
+	envOverrides := map[string]string{
+		"MCHARBOR_SELF_UPDATE_CONTAINER_ID": current.ID,
+		"MCHARBOR_SELF_UPDATE_CONTAINER":    strings.TrimPrefix(current.Name, "/"),
+		"MCHARBOR_SELF_UPDATE_IMAGE":        current.Config.Image,
+		"MCHARBOR_SELF_UPDATE_LOG":          "/app/data/self-update/" + helperName + ".log",
+		"MCHARBOR_SELF_UPDATE_OPERATION":    operation,
+	}
+	if envID != "" {
+		if host, err := s.dockerPool.DockerHost(envID); err == nil && host != "" {
+			envOverrides["DOCKER_HOST"] = host
+		}
+	}
+	env := mergeEnvVars(os.Environ(), envOverrides)
 
 	createCtx, createCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer createCancel()
 
 	resp, err := cli.ContainerCreate(createCtx, &container.Config{
 		Image:      current.Config.Image,
-		Entrypoint: []string{"sh", "-c"},
-		Cmd:        []string{script},
-		WorkingDir: helperWorkingDir(projectPath),
+		Entrypoint: []string{"./mcharbor"},
+		Cmd:        []string{"self-update-helper"},
+		WorkingDir: "/app",
 		Env:        env,
 		Labels: map[string]string{
-			"com.mcharbor.helper": "self-compose",
+			"com.mcharbor.helper": "self-update",
 		},
 	}, &container.HostConfig{
 		AutoRemove: true,
@@ -906,55 +911,6 @@ func (s *Service) runDetachedSelfCompose(envID, projectPath string, envVars map[
 		Success: true,
 		Output:  "scheduled detached self-update helper; waiting for McHarbor to restart",
 	}
-}
-
-func buildSelfComposeHelperScript(helperName, currentName string, commands []string) string {
-	logDir := "/app/data/self-update"
-	logFile := path.Join(logDir, helperName+".log")
-	lines := []string{
-		"set -eu",
-		"mkdir -p " + shellQuote(logDir),
-		"exec >" + shellQuote(logFile) + " 2>&1",
-		"echo \"McHarbor self-update helper started at $(date -Iseconds)\"",
-		"echo \"Working directory: $(pwd)\"",
-		"recover() {",
-		"  code=$?",
-		"  echo \"McHarbor self-update helper failed with exit code ${code} at $(date -Iseconds)\"",
-		"  set +e",
-		"  echo \"Attempting docker compose recovery\"",
-		"  docker compose -f docker-compose.yml up -d",
-		"  recover_code=$?",
-		"  if [ \"$recover_code\" -ne 0 ] && [ -n " + shellQuote(currentName) + " ]; then",
-		"    echo \"Compose recovery failed; attempting to start previous container " + currentName + "\"",
-		"    docker start " + shellQuote(currentName),
-		"  fi",
-		"  exit \"$code\"",
-		"}",
-		"trap recover ERR",
-		"docker version",
-		"docker compose version",
-	}
-	lines = append(lines, commands...)
-	lines = append(lines,
-		"trap - ERR",
-		"echo \"McHarbor self-update helper completed at $(date -Iseconds)\"",
-	)
-	return strings.Join(lines, "\n")
-}
-
-func helperWorkingDir(projectPath string) string {
-	projectPath = strings.TrimSpace(projectPath)
-	if projectPath == "" {
-		return "/app"
-	}
-	if strings.HasPrefix(projectPath, "/") {
-		return filepath.Clean(projectPath)
-	}
-	return path.Join("/app", filepath.ToSlash(projectPath))
-}
-
-func shellQuote(value string) string {
-	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
 
 func (s *Service) inspectCurrentContainer(ctx context.Context, cli *sdkclient.Client) (types.ContainerJSON, error) {

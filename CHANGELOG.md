@@ -2,6 +2,23 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.7] - 2026-05-23
+
+### Fixed
+
+- Reworked McHarbor self-update and self-reinstall in production so the running container is recreated directly through the Docker socket instead of relying on the stored managed-stack compose file.
+- Fixed the failure mode where stale adopted compose metadata, including old image tags or generated container hostnames, could stop McHarbor and fail to bring it back online.
+- Added a dedicated `self-update-helper` runtime mode that safely clones the current container configuration, pulls the target image for update operations, recreates the named McHarbor container, and rolls back to the original image if replacement startup fails.
+- Preserved existing container mounts, ports, restart policy, labels, environment, and network attachment while filtering generated container-ID aliases that can poison future self-detection.
+
+### Tests
+
+- Added regression coverage for cloning self-container configuration, replacing the image tag, clearing generated hostnames, disabling auto-remove on the replacement container, and filtering generated network aliases.
+
+### Changed
+
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.7`.
+
 ## [1.1.6] - 2026-05-23
 
 ### Fixed
