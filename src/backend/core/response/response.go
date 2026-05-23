@@ -10,8 +10,8 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 )
 
-// ApiResponse matches the frontend contract: { success, data?, error?, message?, code? }
-type ApiResponse struct {
+// APIResponse matches the frontend contract: { success, data?, error?, message?, code? }
+type APIResponse struct {
 	Success bool   `json:"success"`
 	Data    any    `json:"data,omitempty"`
 	Error   string `json:"error,omitempty"`
@@ -36,12 +36,12 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 
 // OK sends { success: true, data: ... } with 200.
 func OK(w http.ResponseWriter, data any) {
-	writeJSON(w, http.StatusOK, ApiResponse{Success: true, Data: data})
+	writeJSON(w, http.StatusOK, APIResponse{Success: true, Data: data})
 }
 
 // Created sends { success: true, data: ... } with 201.
 func Created(w http.ResponseWriter, data any) {
-	writeJSON(w, http.StatusCreated, ApiResponse{Success: true, Data: data})
+	writeJSON(w, http.StatusCreated, APIResponse{Success: true, Data: data})
 }
 
 // NoContent sends 204 with no body.
@@ -51,7 +51,7 @@ func NoContent(w http.ResponseWriter) {
 
 // Err sends { success: false, error: ... } with the given status.
 func Err(w http.ResponseWriter, status int, msg string) {
-	writeJSON(w, status, ApiResponse{Success: false, Error: msg})
+	writeJSON(w, status, APIResponse{Success: false, Error: msg})
 }
 
 // BadRequest sends 400.
@@ -99,7 +99,7 @@ func InternalError(w http.ResponseWriter, msg string) {
 // translating the message based on the request's Accept-Language.
 func ErrCode(w http.ResponseWriter, r *http.Request, status int, code i18n.MsgCode) {
 	lang := i18n.FromRequest(r)
-	writeJSON(w, status, ApiResponse{Success: false, Error: i18n.T(lang, code), Code: string(code)})
+	writeJSON(w, status, APIResponse{Success: false, Error: i18n.T(lang, code), Code: string(code)})
 }
 
 // BadRequestCode sends 400 with a translated message code.
@@ -135,7 +135,7 @@ func InternalErrorCode(w http.ResponseWriter, r *http.Request, code i18n.MsgCode
 // OKMsg sends { success: true, data: { message: "..." }, code: ... } with 200.
 func OKMsg(w http.ResponseWriter, r *http.Request, code i18n.MsgCode) {
 	lang := i18n.FromRequest(r)
-	writeJSON(w, http.StatusOK, ApiResponse{
+	writeJSON(w, http.StatusOK, APIResponse{
 		Success: true,
 		Data:    map[string]string{"message": i18n.T(lang, code)},
 		Code:    string(code),

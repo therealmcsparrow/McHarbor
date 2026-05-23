@@ -898,9 +898,10 @@ func (s *Service) listFilesViaDetachedExec(ctx context.Context, envID, id, dirPa
 		return nil, fmt.Errorf("reading output: %w", err)
 	}
 
-	// Clean up temp file (fire and forget)
+	// Clean up temp file without tying the best-effort removal to request cancellation.
+	cleanupCtxBase := context.WithoutCancel(ctx)
 	go func() {
-		cleanCtx, cleanCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		cleanCtx, cleanCancel := context.WithTimeout(cleanupCtxBase, 5*time.Second)
 		defer cleanCancel()
 		cleanExec, cerr := cli.ContainerExecCreate(cleanCtx, id, container.ExecOptions{
 			Cmd: []string{"/bin/sh", "-c", "rm -f " + tmpFile},
@@ -1215,8 +1216,9 @@ func (s *Service) execViaDetached(ctx context.Context, envID, id, cmd string) (s
 		return "", fmt.Errorf("reading output: %w", err)
 	}
 
+	cleanupCtxBase := context.WithoutCancel(ctx)
 	go func() {
-		cleanCtx, cleanCancel := context.WithTimeout(context.Background(), 5*time.Second)
+		cleanCtx, cleanCancel := context.WithTimeout(cleanupCtxBase, 5*time.Second)
 		defer cleanCancel()
 		cleanExec, cerr := cli.ContainerExecCreate(cleanCtx, id, container.ExecOptions{
 			Cmd: []string{"/bin/sh", "-c", "rm -f " + tmpFile},

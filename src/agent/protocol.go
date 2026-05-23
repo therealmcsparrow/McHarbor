@@ -6,42 +6,52 @@
 
 package main
 
-// WebSocket message types — must match server protocol.
+// WebSocket message types exchanged between server and agent.
 const (
-	MsgAuth              = "auth"
-	MsgAuthResult        = "auth_result"
-	MsgPing              = "ping"
-	MsgPong              = "pong"
-	MsgHTTPRequest       = "http_request"
-	MsgHTTPResponse      = "http_response"
-	MsgHTTPResponseStart = "http_response_start"
-	MsgHTTPResponseChunk = "http_response_chunk"
-	MsgHTTPResponseEnd   = "http_response_end"
-	MsgHTTPCancel        = "http_cancel"
+	// Auth handshake
+	MsgAuth       = "auth"        // Agent->Server: token + hostname + Docker version
+	MsgAuthResult = "auth_result" // Server->Agent: accept/reject with envID
 
-	// Exec session (terminal)
-	MsgExecStart  = "exec_start"
-	MsgExecInput  = "exec_input"
-	MsgExecOutput = "exec_output"
-	MsgExecResize = "exec_resize"
-	MsgExecEnd    = "exec_end"
+	// Keepalive
+	MsgPing = "ping" // Bidirectional
+	MsgPong = "pong" // Bidirectional
+
+	// HTTP proxy (Docker API calls)
+	MsgHTTPRequest  = "http_request"  // Server->Agent: proxied Docker API call
+	MsgHTTPResponse = "http_response" // Agent->Server: full response
+
+	// Streaming responses (logs, stats, exec)
+	MsgHTTPResponseStart = "http_response_start" // Agent->Server: streaming header
+	MsgHTTPResponseChunk = "http_response_chunk" // Agent->Server: binary data chunk
+	MsgHTTPResponseEnd   = "http_response_end"   // Agent->Server: end of stream
+
+	// Cancellation
+	MsgHTTPCancel = "http_cancel" // Server->Agent: cancel in-flight request
+
+	// Exec session (terminal over agent)
+	MsgExecStart  = "exec_start"  // Server->Agent: start exec attach
+	MsgExecInput  = "exec_input"  // Server->Agent: stdin data
+	MsgExecOutput = "exec_output" // Agent->Server: stdout data
+	MsgExecResize = "exec_resize" // Server->Agent: terminal resize
+	MsgExecEnd    = "exec_end"    // Bidirectional: exec session ended
 )
 
 // WSMessage is the envelope for all WebSocket messages.
 type WSMessage struct {
-	Type         string              `json:"type"`
-	ID           string              `json:"id,omitempty"`
-	Auth         *AuthPayload        `json:"auth,omitempty"`
-	AuthResult   *AuthResultPayload  `json:"authResult,omitempty"`
-	HTTPRequest  *WSHTTPRequest      `json:"httpRequest,omitempty"`
-	HTTPResponse *WSHTTPResponse     `json:"httpResponse,omitempty"`
-	StreamStart  *WSStreamStart      `json:"streamStart,omitempty"`
-	StreamChunk  *WSStreamChunk      `json:"streamChunk,omitempty"`
-	ExecStart    *ExecStartPayload   `json:"execStart,omitempty"`
-	ExecResize   *ExecResizePayload  `json:"execResize,omitempty"`
+	Type string `json:"type"`
+	ID   string `json:"id,omitempty"` // Request ID for multiplexing
+	// Payload fields (only populated per message type)
+	Auth         *AuthPayload       `json:"auth,omitempty"`
+	AuthResult   *AuthResultPayload `json:"authResult,omitempty"`
+	HTTPRequest  *WSHTTPRequest     `json:"httpRequest,omitempty"`
+	HTTPResponse *WSHTTPResponse    `json:"httpResponse,omitempty"`
+	StreamStart  *WSStreamStart     `json:"streamStart,omitempty"`
+	StreamChunk  *WSStreamChunk     `json:"streamChunk,omitempty"`
+	ExecStart    *ExecStartPayload  `json:"execStart,omitempty"`
+	ExecResize   *ExecResizePayload `json:"execResize,omitempty"`
 }
 
-// ExecStartPayload is sent by the server to start an exec attach.
+// ExecStartPayload is sent by the server to start an exec attach on the agent.
 type ExecStartPayload struct {
 	ExecID string `json:"execId"`
 }
@@ -76,14 +86,14 @@ type WSHTTPRequest struct {
 	Path    string            `json:"path"`
 	Query   string            `json:"query,omitempty"`
 	Headers map[string]string `json:"headers,omitempty"`
-	Body    []byte            `json:"body,omitempty"`
+	Body    []byte            `json:"body,omitempty"` // raw bytes
 }
 
 // WSHTTPResponse represents a full HTTP response sent back by the agent.
 type WSHTTPResponse struct {
 	StatusCode int               `json:"statusCode"`
 	Headers    map[string]string `json:"headers,omitempty"`
-	Body       []byte            `json:"body,omitempty"`
+	Body       []byte            `json:"body,omitempty"` // raw bytes
 }
 
 // WSStreamStart signals the beginning of a streaming response.
