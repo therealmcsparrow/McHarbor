@@ -10,8 +10,8 @@ import { LogViewer } from '@resources/components/LogViewer';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { SearchFilterToolbar } from '@resources/components/SearchFilterToolbar';
 import { useSavedSearchFilters } from '@resources/hooks/useSavedSearchFilters';
+import { useContainers } from '@resources/hooks/useContainers';
 import { createSearchMatcher, type SearchMode } from '@resources/utils/search-filter';
-import { useContainers } from '@modules/containers/hooks/useContainers';
 import { useContainerLogs } from '../hooks/useContainerLogs';
 
 export default function LogsPage() {
