@@ -6,7 +6,6 @@ package audit
 import (
 	"database/sql"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/rs/xid"
@@ -54,47 +53,11 @@ func NewService(db *sql.DB) *Service {
 
 // List returns paginated audit logs with optional filtering.
 func (s *Service) List(page, perPage int, action, entityType string) ([]AuditLog, int64, error) {
-	// Build WHERE clause with slice-based builder
-	var conditions []string
-	var args []any
-
-	if action != "" {
-		conditions = append(conditions, "action = ?")
-		args = append(args, action)
-	}
-	if entityType != "" {
-		conditions = append(conditions, "entity_type = ?")
-		args = append(args, entityType)
-	}
-
-	whereClause := "1=1"
-	if len(conditions) > 0 {
-		whereClause = strings.Join(conditions, " AND ")
-	}
-
-	// Count total
 	var total int64
-	countQuery := "SELECT COUNT(*) FROM audit_logs WHERE " + whereClause
-	if err := s.db.QueryRow(countQuery, args...).Scan(&total); err != nil {
-		return nil, 0, fmt.Errorf("counting audit logs: %w", err)
-	}
-
-	// Fetch page
 	offset := (page - 1) * perPage
-	query := fmt.Sprintf(`
-		SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
-		       details, ip_address, environment_id, timestamp, created_at, updated_at
-		FROM audit_logs
-		WHERE %s
-		ORDER BY timestamp DESC
-		LIMIT ? OFFSET ?
-	`, whereClause)
-
-	args = append(args, perPage, offset)
-
-	rows, err := s.db.Query(query, args...)
+	rows, total, err := s.listRows(page, perPage, offset, action, entityType)
 	if err != nil {
-		return nil, 0, fmt.Errorf("querying audit logs: %w", err)
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -110,6 +73,80 @@ func (s *Service) List(page, perPage int, action, entityType string) ([]AuditLog
 		logs = []AuditLog{}
 	}
 	return logs, total, rows.Err()
+}
+
+func (s *Service) listRows(page, perPage, offset int, action, entityType string) (*sql.Rows, int64, error) {
+	var (
+		rows *sql.Rows
+		err  error
+		total int64
+	)
+
+	switch {
+	case action != "" && entityType != "":
+		if err = s.db.QueryRow(
+			"SELECT COUNT(*) FROM audit_logs WHERE action = ? AND entity_type = ?",
+			action,
+			entityType,
+		).Scan(&total); err != nil {
+			return nil, 0, fmt.Errorf("counting audit logs: %w", err)
+		}
+		rows, err = s.db.Query(`
+			SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
+			       details, ip_address, environment_id, timestamp, created_at, updated_at
+			FROM audit_logs
+			WHERE action = ? AND entity_type = ?
+			ORDER BY timestamp DESC
+			LIMIT ? OFFSET ?
+		`, action, entityType, perPage, offset)
+	case action != "":
+		if err = s.db.QueryRow(
+			"SELECT COUNT(*) FROM audit_logs WHERE action = ?",
+			action,
+		).Scan(&total); err != nil {
+			return nil, 0, fmt.Errorf("counting audit logs: %w", err)
+		}
+		rows, err = s.db.Query(`
+			SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
+			       details, ip_address, environment_id, timestamp, created_at, updated_at
+			FROM audit_logs
+			WHERE action = ?
+			ORDER BY timestamp DESC
+			LIMIT ? OFFSET ?
+		`, action, perPage, offset)
+	case entityType != "":
+		if err = s.db.QueryRow(
+			"SELECT COUNT(*) FROM audit_logs WHERE entity_type = ?",
+			entityType,
+		).Scan(&total); err != nil {
+			return nil, 0, fmt.Errorf("counting audit logs: %w", err)
+		}
+		rows, err = s.db.Query(`
+			SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
+			       details, ip_address, environment_id, timestamp, created_at, updated_at
+			FROM audit_logs
+			WHERE entity_type = ?
+			ORDER BY timestamp DESC
+			LIMIT ? OFFSET ?
+		`, entityType, perPage, offset)
+	default:
+		if err = s.db.QueryRow("SELECT COUNT(*) FROM audit_logs").Scan(&total); err != nil {
+			return nil, 0, fmt.Errorf("counting audit logs: %w", err)
+		}
+		rows, err = s.db.Query(`
+			SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
+			       details, ip_address, environment_id, timestamp, created_at, updated_at
+			FROM audit_logs
+			ORDER BY timestamp DESC
+			LIMIT ? OFFSET ?
+		`, perPage, offset)
+	}
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("querying audit logs: %w", err)
+	}
+
+	return rows, total, nil
 }
 
 // Create inserts a new audit log entry.

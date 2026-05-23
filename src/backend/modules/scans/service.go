@@ -190,7 +190,7 @@ func (s *Service) executeScanSync(ctx context.Context, scanID, imageRef string, 
 		s.logger.Error("scans: scanner failed", "error", scanErr, "scanId", scanID, "scanner", scanner.Name())
 		s.db.ExecContext(ctx,
 			`UPDATE scans SET status = 'failed', error_output = ?, completed_at = ?, updated_at = ? WHERE id = ?`,
-			scanErr.Error(), now, now, scanID)
+			scanFailureMessage("scanner"), now, now, scanID)
 		return nil, fmt.Errorf("scan failed: %w", scanErr)
 	}
 
@@ -267,7 +267,7 @@ func (s *Service) executeScan(scanID, imageRef string, scanner Scanner) {
 		s.logger.Error("scans: scanner failed", "error", scanErr, "scanId", scanID, "scanner", scanner.Name())
 		_, err := s.db.ExecContext(ctx,
 			`UPDATE scans SET status = 'failed', error_output = ?, completed_at = ?, updated_at = ? WHERE id = ?`,
-			scanErr.Error(), now, now, scanID)
+			scanFailureMessage("scanner"), now, now, scanID)
 		if err != nil {
 			s.logger.Error("scans: failed to update scan as failed", "error", err, "scanId", scanID)
 		}
@@ -279,7 +279,7 @@ func (s *Service) executeScan(scanID, imageRef string, scanner Scanner) {
 		s.logger.Error("scans: failed to insert vulnerabilities", "error", err, "scanId", scanID)
 		_, dbErr := s.db.ExecContext(ctx,
 			`UPDATE scans SET status = 'failed', error_output = ?, completed_at = ?, updated_at = ? WHERE id = ?`,
-			err.Error(), now, now, scanID)
+			scanFailureMessage("persistence"), now, now, scanID)
 		if dbErr != nil {
 			s.logger.Error("scans: failed to update scan as failed", "error", dbErr, "scanId", scanID)
 		}
@@ -319,6 +319,15 @@ func (s *Service) executeScan(scanID, imageRef string, scanner Scanner) {
 		maxSeverity, total, critical, high, medium, low, now, now, scanID)
 	if err != nil {
 		s.logger.Error("scans: failed to update scan as completed", "error", err, "scanId", scanID)
+	}
+}
+
+func scanFailureMessage(stage string) string {
+	switch stage {
+	case "persistence":
+		return "failed to persist scan results"
+	default:
+		return "scanner execution failed"
 	}
 }
 
