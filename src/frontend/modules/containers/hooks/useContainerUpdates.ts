@@ -67,11 +67,13 @@ async function delay(ms: number) {
 async function waitForSelfUpdateRecovery(
   target: ContainerOperationTarget,
   envQuery: string,
+  t: (key: string, options?: Record<string, unknown>) => string,
   log?: BatchProgressContext['log'],
 ) {
   const deadline = Date.now() + selfUpdateRecoveryTimeoutMs;
-  log?.('McHarbor is restarting. Waiting for the API to come back online...', {
-    detail: 'McHarbor is restarting. Waiting for the API to come back online...',
+  const waitingMessage = t('operations.log.waitingForApiRecovery');
+  log?.(waitingMessage, {
+    detail: waitingMessage,
   });
 
   while (Date.now() < deadline) {
@@ -107,7 +109,7 @@ async function waitForSelfUpdateRecovery(
     await delay(selfUpdatePollIntervalMs);
   }
 
-  throw new Error('McHarbor did not come back online after restarting');
+  throw new Error(t('operations.log.apiRecoveryTimeout'));
 }
 
 export function useCheckContainerUpdates() {
@@ -180,7 +182,7 @@ export function useContainerOperationActions() {
         throw error;
       }
 
-      const recoveredContainerId = await waitForSelfUpdateRecovery(target, envQuery, log);
+      const recoveredContainerId = await waitForSelfUpdateRecovery(target, envQuery, tc, log);
       recreated = { Id: recoveredContainerId };
     }
 

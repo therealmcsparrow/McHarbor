@@ -27,6 +27,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -462,6 +463,17 @@ func (s *Service) UpdateManagedStack(name string) (*ComposeResult, error) {
 		return nil, nil
 	}
 
+	selfTarget, err := s.stackTargetsSelf(context.Background(), envID, st.Name)
+	if err != nil {
+		return nil, err
+	}
+	if selfTarget {
+		return s.runDetachedSelfCompose(envID, st.ProjectPath, envVars,
+			"docker compose -f docker-compose.yml pull",
+			"docker compose -f docker-compose.yml up -d",
+		), nil
+	}
+
 	pullResult := s.runDockerCompose([]string{"pull"}, st.ProjectPath, envVars, envID)
 	if !pullResult.Success {
 		return pullResult, nil
@@ -479,6 +491,16 @@ func (s *Service) ReinstallManagedStack(name string) (*ComposeResult, error) {
 	}
 	if st == nil {
 		return nil, nil
+	}
+
+	selfTarget, err := s.stackTargetsSelf(context.Background(), envID, st.Name)
+	if err != nil {
+		return nil, err
+	}
+	if selfTarget {
+		return s.runDetachedSelfCompose(envID, st.ProjectPath, envVars,
+			"docker compose -f docker-compose.yml up -d --force-recreate",
+		), nil
 	}
 
 	return s.runDockerCompose([]string{"up", "-d", "--force-recreate"}, st.ProjectPath, envVars, envID), nil
@@ -798,6 +820,163 @@ func mergeComposeResults(results ...*ComposeResult) *ComposeResult {
 	return merged
 }
 
+func (s *Service) stackTargetsSelf(ctx context.Context, envID, projectName string) (bool, error) {
+	hostname, err := os.Hostname()
+	if err != nil || hostname == "" {
+		return false, nil
+	}
+
+	containers, err := s.StackContainers(ctx, envID, projectName)
+	if err != nil {
+		return false, fmt.Errorf("listing stack containers: %w", err)
+	}
+
+	for _, c := range containers {
+		if strings.HasPrefix(c.ID, hostname) || strings.HasPrefix(hostname, c.ID) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (s *Service) runDetachedSelfCompose(envID, projectPath string, envVars map[string]string, commands ...string) *ComposeResult {
+	cli, err := s.dockerPool.Get(envID)
+	if err != nil {
+		return &ComposeResult{Success: false, Error: "docker connection failed"}
+	}
+
+	hostname, err := os.Hostname()
+	if err != nil || hostname == "" {
+		return &ComposeResult{Success: false, Error: "failed to resolve current container ID"}
+	}
+
+	inspectCtx, inspectCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer inspectCancel()
+
+	current, err := cli.ContainerInspect(inspectCtx, hostname)
+	if err != nil {
+		slog.Error("stacks: inspect current container failed before self compose", "error", err, "container", hostname)
+		return &ComposeResult{Success: false, Error: "failed to inspect current McHarbor container"}
+	}
+
+	helperMounts, err := s.selfComposeHelperMounts(current)
+	if err != nil {
+		slog.Error("stacks: resolve helper mounts failed", "error", err, "container", hostname)
+		return &ComposeResult{Success: false, Error: "failed to prepare self-update helper container"}
+	}
+
+	env := mergeEnvVars(os.Environ(), envVars)
+	script := strings.Join(commands, " && ")
+	helperName := "mcharbor-compose-helper-" + xid.New().String()
+
+	createCtx, createCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer createCancel()
+
+	resp, err := cli.ContainerCreate(createCtx, &container.Config{
+		Image:      current.Config.Image,
+		Entrypoint: []string{"sh", "-c"},
+		Cmd:        []string{script},
+		WorkingDir: projectPath,
+		Env:        env,
+		Labels: map[string]string{
+			"com.mcharbor.helper": "self-compose",
+		},
+	}, &container.HostConfig{
+		AutoRemove: true,
+		Mounts:     helperMounts,
+	}, nil, nil, helperName)
+	if err != nil {
+		slog.Error("stacks: create helper container failed", "error", err, "helper", helperName)
+		return &ComposeResult{Success: false, Error: "failed to create self-update helper container"}
+	}
+
+	startCtx, startCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer startCancel()
+
+	if err := cli.ContainerStart(startCtx, resp.ID, container.StartOptions{}); err != nil {
+		slog.Error("stacks: start helper container failed", "error", err, "helper", helperName, "container", resp.ID)
+		removeCtx, removeCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer removeCancel()
+		if rmErr := cli.ContainerRemove(removeCtx, resp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
+			slog.Error("stacks: cleanup helper container failed", "error", rmErr, "helper", helperName, "container", resp.ID)
+		}
+		return &ComposeResult{Success: false, Error: "failed to start self-update helper container"}
+	}
+
+	return &ComposeResult{
+		Success: true,
+		Output:  "scheduled detached self-update helper; waiting for McHarbor to restart",
+	}
+}
+
+func (s *Service) selfComposeHelperMounts(current types.ContainerJSON) ([]mount.Mount, error) {
+	dataMount, ok := helperMountForDestination(current.Mounts, filepath.Clean(s.dataDir))
+	if !ok {
+		return nil, fmt.Errorf("data directory mount %s not found", s.dataDir)
+	}
+
+	socketMount, ok := helperMountForDestination(current.Mounts, "/var/run/docker.sock")
+	if !ok {
+		return nil, fmt.Errorf("docker socket mount not found")
+	}
+
+	return []mount.Mount{socketMount, dataMount}, nil
+}
+
+func helperMountForDestination(mounts []types.MountPoint, destination string) (mount.Mount, bool) {
+	for _, mp := range mounts {
+		if filepath.Clean(mp.Destination) != destination {
+			continue
+		}
+
+		source := mp.Source
+		if mp.Type == mount.TypeVolume {
+			source = mp.Name
+		}
+		if source == "" {
+			return mount.Mount{}, false
+		}
+
+		return mount.Mount{
+			Type:     mount.Type(mp.Type),
+			Source:   source,
+			Target:   mp.Destination,
+			ReadOnly: !mp.RW,
+		}, true
+	}
+
+	return mount.Mount{}, false
+}
+
+func mergeEnvVars(base []string, overrides map[string]string) []string {
+	if len(overrides) == 0 {
+		return append([]string{}, base...)
+	}
+
+	skip := make(map[string]struct{}, len(overrides))
+	for key := range overrides {
+		skip[key] = struct{}{}
+	}
+
+	merged := make([]string, 0, len(base)+len(overrides))
+	for _, entry := range base {
+		key, _, found := strings.Cut(entry, "=")
+		if found {
+			if _, blocked := skip[key]; blocked {
+				continue
+			}
+		}
+		merged = append(merged, entry)
+	}
+
+	for key, value := range overrides {
+		merged = append(merged, fmt.Sprintf("%s=%s", key, value))
+	}
+
+	return merged
+}
+
 // runDockerCompose executes a docker compose command in the project directory.
 // It resolves DOCKER_HOST for the given environment so the command targets the correct daemon.
 func (s *Service) runDockerCompose(args []string, projectPath string, envVars map[string]string, envID string) *ComposeResult {
@@ -814,10 +993,7 @@ func (s *Service) runDockerCompose(args []string, projectPath string, envVars ma
 	cmd.Dir = projectPath
 
 	// Set environment variables
-	cmd.Env = os.Environ()
-	for k, v := range envVars {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
-	}
+	cmd.Env = mergeEnvVars(os.Environ(), envVars)
 
 	// Point docker compose at the correct daemon for this environment.
 	// Filter out any existing DOCKER_HOST first — duplicate env vars on Linux
