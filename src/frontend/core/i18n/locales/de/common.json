@@ -147,7 +147,8 @@
     "updateSelected": "Auswahl aktualisieren",
     "reinstallSelected": "Auswahl neu installieren",
     "confirmTitle": "Batchaktion bestätigen",
-    "confirmDescription": "Sind Sie sicher, dass Sie {{count}} Elemente {{action}} möchten?"
+    "confirmDescription": "Sind Sie sicher, dass Sie {{count}} Elemente {{action}} möchten?",
+    "confirmPruneDescription": "Entfernt ungenutzte Ressourcen, die nicht mehr referenziert werden."
   },
   "errors": {
     "somethingWentWrong": "Etwas ist schiefgelaufen",

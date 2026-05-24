@@ -3,6 +3,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
+import { LinkContainerDialog } from '@resources/components/LinkContainerDialog';
 import { TakeOverDialog } from '@resources/components/TakeOverDialog';
 import type { ContainerInspect } from '@core/types/docker';
 import { RecreateConfirmDialog } from './RecreateConfirmDialog';
@@ -15,6 +16,8 @@ type ContainerDetailDialogsProps = {
   recreateConfirmOpen: boolean;
   removeDialogOpen: boolean;
   takeOverOpen: boolean;
+  relinkOpen: boolean;
+  linkedStackName: string | null;
   actionPending: boolean;
   editSaving: boolean;
   changedFields: string[];
@@ -22,6 +25,7 @@ type ContainerDetailDialogsProps = {
   onRecreateConfirmChange: (open: boolean) => void;
   onRemoveDialogChange: (open: boolean) => void;
   onTakeOverChange: (open: boolean) => void;
+  onRelinkChange: (open: boolean) => void;
   onKill: () => void;
   onConfirmRecreate: () => void;
   onRemoveSuccess: () => void;
@@ -34,6 +38,8 @@ export function ContainerDetailDialogs({
   recreateConfirmOpen,
   removeDialogOpen,
   takeOverOpen,
+  relinkOpen,
+  linkedStackName,
   actionPending,
   editSaving,
   changedFields,
@@ -41,6 +47,7 @@ export function ContainerDetailDialogs({
   onRecreateConfirmChange,
   onRemoveDialogChange,
   onTakeOverChange,
+  onRelinkChange,
   onKill,
   onConfirmRecreate,
   onRemoveSuccess,
@@ -73,7 +80,7 @@ export function ContainerDetailDialogs({
           name: containerName,
           image: container.Config?.Image ?? '',
           imageId: container.Image ?? '',
-          stackName: container.Config?.Labels?.['com.docker.compose.project'] ?? null,
+          stackName: linkedStackName,
         }}
         open={removeDialogOpen}
         onOpenChange={onRemoveDialogChange}
@@ -85,6 +92,14 @@ export function ContainerDetailDialogs({
         onOpenChange={onTakeOverChange}
         containerId={container.Id}
         containerName={containerName}
+      />
+
+      <LinkContainerDialog
+        open={relinkOpen}
+        onOpenChange={onRelinkChange}
+        initialContainerId={container.Id}
+        initialStackName={linkedStackName ?? ''}
+        fixedContainer
       />
     </>
   );

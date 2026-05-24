@@ -74,3 +74,18 @@ export function useRemoveContainer() {
     },
   });
 }
+
+export function usePruneContainers() {
+  const queryClient = useQueryClient();
+  const envId = useEnvironmentStore((s) => s.currentId);
+  const { t } = useTranslation('containers');
+
+  return useMutation({
+    mutationFn: () =>
+      api.post(`/containers/prune${envId ? `?env=${envId}` : ''}`, {}).then(assertSuccess),
+    meta: { success: t('toast.pruned') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['containers'] });
+    },
+  });
+}

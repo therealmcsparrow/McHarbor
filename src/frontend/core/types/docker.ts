@@ -19,6 +19,8 @@ export type ContainerInfo = {
   Created: number;
   Ports: ContainerPort[];
   Labels: Record<string, string>;
+  StackName?: string;
+  StackService?: string;
   State: ContainerState;
   Status: string;
   NetworkSettings: {

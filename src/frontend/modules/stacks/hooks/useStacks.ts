@@ -193,11 +193,13 @@ export function useUpdateStackEnvVars() {
 export function usePruneStack() {
   const queryClient = useQueryClient();
   const envId = useEnvironmentStore((s) => s.currentId);
+  const { t } = useTranslation('stacks');
   return useMutation({
     mutationFn: (name: string) =>
       api
         .post<PruneResult>(`/stacks/${name}/prune${envId ? `?env=${envId}` : ''}`)
         .then((r) => r.data!),
+    meta: { success: (data: PruneResult) => t('toast.pruned', { count: data.count }) },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stacks'] });
       queryClient.invalidateQueries({ queryKey: ['stack-containers'] });

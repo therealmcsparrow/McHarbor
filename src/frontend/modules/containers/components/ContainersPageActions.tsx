@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { IconArrowUp, IconLayoutGrid, IconLayoutList, IconPlus, IconRefresh, IconRotate } from '@tabler/icons-react';
+import { IconArrowUp, IconFilterOff, IconLayoutGrid, IconLayoutList, IconPlus, IconRefresh, IconRotate } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
 
@@ -14,6 +14,7 @@ type ContainersPageActionsProps = {
   onCheckUpdates: () => void;
   onUpdateAll: () => void;
   onReinstallAll: () => void;
+  onPruneUnused: () => void;
   onCreate: () => void;
   onViewModeChange: (viewMode: 'table' | 'card') => void;
   t: (key: string, options?: Record<string, unknown>) => string;
@@ -28,6 +29,7 @@ export function ContainersPageActions({
   onCheckUpdates,
   onUpdateAll,
   onReinstallAll,
+  onPruneUnused,
   onCreate,
   onViewModeChange,
   t,
@@ -50,6 +52,10 @@ export function ContainersPageActions({
           {t('updates.reinstallAll', { count: totalContainers })}
         </Button>
       )}
+      <Button variant="outline" onClick={onPruneUnused} disabled={batchRunning}>
+        <IconFilterOff className="h-4 w-4" />
+        {t('pruneUnused')}
+      </Button>
       <Button onClick={onCreate}>
         <IconPlus className="h-4 w-4" /> {t('createContainer')}
       </Button>

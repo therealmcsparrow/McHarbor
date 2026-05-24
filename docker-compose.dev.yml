@@ -32,7 +32,7 @@ services:
 
   agent:
     profiles: ["agent"]
-    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-1.1.15}
+    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-1.1.16-dev}
     container_name: mcharbor-agent-dev
     restart: unless-stopped
     environment:

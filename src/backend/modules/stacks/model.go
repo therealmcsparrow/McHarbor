@@ -71,6 +71,24 @@ type AdoptRequest struct {
 	ContainerID string `json:"containerId,omitempty"`
 }
 
+// ContainerStackLink represents a manual container-to-stack relationship.
+type ContainerStackLink struct {
+	ID            string `json:"id"`
+	EnvironmentID string `json:"environmentId"`
+	ContainerID   string `json:"containerId"`
+	StackName     string `json:"stackName"`
+	ServiceName   string `json:"serviceName,omitempty"`
+	CreatedAt     string `json:"createdAt"`
+	UpdatedAt     string `json:"updatedAt"`
+}
+
+// LinkContainerRequest is the JSON body for linking a container to a stack.
+type LinkContainerRequest struct {
+	ContainerID string `json:"containerId"`
+	StackName   string `json:"stackName"`
+	ServiceName string `json:"serviceName,omitempty"`
+}
+
 // StackWebhook represents a webhook that fires on stack events.
 type StackWebhook struct {
 	ID        string `json:"id"`

@@ -55,7 +55,7 @@ export function ContainerUtilityDialogs({
                 name: removeTarget.Names?.[0]?.replace(/^\//, '') ?? removeTarget.Id,
                 image: removeTarget.Image,
                 imageId: removeTarget.ImageID,
-                stackName: removeTarget.Labels?.['com.docker.compose.project'] ?? null,
+                stackName: removeTarget.StackName ?? removeTarget.Labels?.['com.docker.compose.project'] ?? null,
               }
             : null
         }

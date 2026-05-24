@@ -3,6 +3,7 @@
 
 import {
   IconArrowUp,
+  IconFilterOff,
   IconLayoutGrid,
   IconLayoutList,
   IconPlus,
@@ -21,9 +22,11 @@ type StacksPageHeaderActionsProps = {
   batchRunning: boolean;
   updatesAvailable: number;
   reinstallCount: number;
+  pruneRunning: boolean;
   onCheckUpdates: () => void;
   onUpdateAll: () => void;
   onReinstallAll: () => void;
+  onPruneUnused: () => void;
 };
 
 export function StacksPageHeaderActions({
@@ -35,9 +38,11 @@ export function StacksPageHeaderActions({
   batchRunning,
   updatesAvailable,
   reinstallCount,
+  pruneRunning,
   onCheckUpdates,
   onUpdateAll,
   onReinstallAll,
+  onPruneUnused,
 }: StacksPageHeaderActionsProps) {
   return (
     <>
@@ -79,6 +84,18 @@ export function StacksPageHeaderActions({
       )}
       <Button onClick={() => setCreateOpen(true)}>
         <IconPlus className="h-4 w-4" /> {t("deployStack")}
+      </Button>
+      <Button
+        variant="outline"
+        onClick={onPruneUnused}
+        disabled={batchRunning || pruneRunning}
+      >
+        {pruneRunning ? (
+          <Spinner size="sm" />
+        ) : (
+          <IconFilterOff className="h-4 w-4" />
+        )}
+        {t("prune.button")}
       </Button>
       <div className="h-6 w-px bg-border" />
       <div className="flex items-center rounded-lg border border-border">

@@ -6,6 +6,8 @@
   "tableView": "Tabelweergave",
   "cardView": "Kaartweergave",
   "notFound": "Image niet gevonden.",
+  "pruneUnused": "Ongebruikte opschonen",
+  "pruneDescription": "Verwijder ongebruikte images die niet door containers worden gebruikt.",
   "columns": {
     "repoTag": "Repository:Tag",
     "status": "Status",

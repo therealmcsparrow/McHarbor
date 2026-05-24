@@ -6,6 +6,8 @@
   "tableView": "Tabellenansicht",
   "cardView": "Kartenansicht",
   "notFound": "Image nicht gefunden.",
+  "pruneUnused": "Ungenutzte bereinigen",
+  "pruneDescription": "Entfernt ungenutzte Images, die von keinen Containern referenziert werden.",
   "columns": {
     "repoTag": "Repository:Tag",
     "status": "Status",

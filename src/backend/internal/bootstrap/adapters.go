@@ -170,10 +170,10 @@ func (a alertSystemInfoSource) SystemInfo(ctx context.Context, envID string) (*a
 }
 
 // NewAlertsEngineDeps builds the alert-engine adapters from the Docker-backed modules.
-func NewAlertsEngineDeps(dockerPool *docker.ClientPool) alerts.EngineDeps {
+func NewAlertsEngineDeps(db *sql.DB, dockerPool *docker.ClientPool) alerts.EngineDeps {
 	return alerts.EngineDeps{
 		Metrics:    alertMetricsSource{svc: metrics.NewService(dockerPool)},
-		Containers: alertContainerSource{svc: containers.NewService(dockerPool)},
+		Containers: alertContainerSource{svc: containers.NewService(dockerPool, db)},
 		SystemInfo: alertSystemInfoSource{svc: dockerinfo.NewService(dockerPool)},
 	}
 }

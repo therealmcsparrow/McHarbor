@@ -7,6 +7,8 @@
   "noContainersFound": "Geen containers gevonden",
   "containerNotFound": "Container niet gevonden.",
   "createContainer": "Container aanmaken",
+  "pruneUnused": "Ongebruikte opschonen",
+  "pruneDescription": "Verwijder gestopte containers die niet meer draaien.",
   "tableView": "Tabelweergave",
   "cardView": "Kaartweergave",
   "columns": {
@@ -47,6 +49,7 @@
     "reconnect": "Opnieuw verbinden",
     "actionCompleted": "Actie voltooid",
     "takeOver": "Overnemen",
+    "relinkStack": "Stack opnieuw koppelen",
     "edit": "Bewerken"
   },
   "detail": {
@@ -86,7 +89,8 @@
     "recreated": "Container opnieuw aangemaakt",
     "updated": "Container bijgewerkt",
     "reinstalled": "Container opnieuw geinstalleerd",
-    "resumed": "Container hervat"
+    "resumed": "Container hervat",
+    "pruned": "Ongebruikte containers opgeschoond"
   },
   "confirm": {
     "stopTitle": "Container stoppen",

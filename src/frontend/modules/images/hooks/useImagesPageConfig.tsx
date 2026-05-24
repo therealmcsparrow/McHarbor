@@ -4,7 +4,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ColumnDef } from '@tanstack/react-table';
-import { IconFileExport, IconFilterOff, IconTrash } from '@tabler/icons-react';
+import { IconFileExport, IconTrash } from '@tabler/icons-react';
 import type { ImageInfo } from '@core/types/docker';
 import type { BatchAction } from '@resources/components/DataGrid';
 import { Badge } from '@resources/components/ui/Badge';
@@ -15,14 +15,12 @@ type UseImagesPageConfigOptions = {
   onExport: (image: ImageInfo) => void;
   onRemove: (imageId: string) => void;
   onBatchRemove: (images: ImageInfo[]) => void;
-  onPrune: () => void;
 };
 
 export function useImagesPageConfig({
   onExport,
   onRemove,
   onBatchRemove,
-  onPrune,
 }: UseImagesPageConfigOptions) {
   const { t } = useTranslation('images');
   const { t: tc } = useTranslation('common');
@@ -111,17 +109,8 @@ export function useImagesPageConfig({
           onBatchRemove(rows as ImageInfo[]);
         },
       },
-      {
-        label: tc('batch.prune'),
-        icon: IconFilterOff,
-        variant: 'default',
-        confirm: true,
-        onClick: () => {
-          onPrune();
-        },
-      },
     ],
-    [onBatchRemove, onPrune, tc],
+    [onBatchRemove, tc],
   );
 
   return { columns, batchActions };

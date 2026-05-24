@@ -7,9 +7,9 @@ import type { ColumnDef } from '@tanstack/react-table';
 import {
   IconTrash,
   IconPlus,
-  IconFilterOff,
   IconLayoutGrid,
   IconLayoutList,
+  IconFilterOff,
 } from '@tabler/icons-react';
 import type { VolumeInfo } from '@core/types/docker';
 import { PageHeader } from '@resources/layout/PageHeader';
@@ -34,6 +34,7 @@ export default function VolumesPage() {
   const { viewMode, setViewMode } = useVolumesViewStore();
   const [createOpen, setCreateOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
+  const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
 
   const columns = useMemo<ColumnDef<VolumeInfo, unknown>[]>(
     () => [
@@ -113,17 +114,8 @@ export default function VolumesPage() {
           }
         },
       },
-      {
-        label: tc('batch.prune'),
-        icon: IconFilterOff,
-        variant: 'default',
-        confirm: true,
-        onClick: () => {
-          pruneVolumes.mutate();
-        },
-      },
     ],
-    [tc, removeVolume, pruneVolumes]
+    [tc, removeVolume]
   );
 
   return (
@@ -135,6 +127,9 @@ export default function VolumesPage() {
           <>
             <Button onClick={() => setCreateOpen(true)}>
               <IconPlus className="h-4 w-4" /> {t('create.title')}
+            </Button>
+            <Button variant="outline" onClick={() => setPruneConfirmOpen(true)}>
+              <IconFilterOff className="h-4 w-4" /> {t('pruneUnused')}
             </Button>
             <div className="h-6 w-px bg-border" />
             <div className="flex items-center rounded-lg border border-border">
@@ -195,6 +190,19 @@ export default function VolumesPage() {
           setConfirmTarget(null);
         }}
         loading={removeVolume.isPending}
+      />
+
+      <ConfirmDialog
+        open={pruneConfirmOpen}
+        onOpenChange={setPruneConfirmOpen}
+        title={t('pruneUnused')}
+        description={t('pruneDescription')}
+        confirmLabel={t('pruneUnused')}
+        onConfirm={() => {
+          pruneVolumes.mutate();
+          setPruneConfirmOpen(false);
+        }}
+        loading={pruneVolumes.isPending}
       />
     </div>
   );

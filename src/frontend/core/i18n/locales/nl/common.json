@@ -147,7 +147,8 @@
     "updateSelected": "Selectie bijwerken",
     "reinstallSelected": "Selectie opnieuw installeren",
     "confirmTitle": "Batchactie bevestigen",
-    "confirmDescription": "Weet u zeker dat u {{count}} items wilt {{action}}?"
+    "confirmDescription": "Weet u zeker dat u {{count}} items wilt {{action}}?",
+    "confirmPruneDescription": "Verwijder ongebruikte resources die niet meer worden gebruikt."
   },
   "errors": {
     "somethingWentWrong": "Er ging iets mis",

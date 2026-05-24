@@ -163,6 +163,19 @@
     "success": "Stack taken over successfully",
     "generating": "Generating compose file..."
   },
+  "link": {
+    "title": "Link Container",
+    "description": "Choose the container and stack relationship.",
+    "container": "Container",
+    "stack": "Stack",
+    "serviceName": "Service Name",
+    "serviceNamePlaceholder": "Use container name",
+    "save": "Save Link",
+    "unlink": "Unlink",
+    "success": "Container linked to stack",
+    "unlinked": "Container unlinked from stack",
+    "linkContainer": "Link Container"
+  },
   "updates": {
     "searchForUpdates": "Search for Updates",
     "updateAll": "Update All ({{count}})",

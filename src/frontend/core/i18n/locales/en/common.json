@@ -147,7 +147,8 @@
     "updateSelected": "Update Selected",
     "reinstallSelected": "Reinstall Selected",
     "confirmTitle": "Confirm Batch Action",
-    "confirmDescription": "Are you sure you want to {{action}} {{count}} items?"
+    "confirmDescription": "Are you sure you want to {{action}} {{count}} items?",
+    "confirmPruneDescription": "Remove unused resources that are no longer referenced."
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",

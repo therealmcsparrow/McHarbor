@@ -163,6 +163,19 @@
     "success": "Stack erfolgreich übernommen",
     "generating": "Compose-Datei wird erstellt..."
   },
+  "link": {
+    "title": "Container verknüpfen",
+    "description": "Container- und Stack-Zuordnung auswählen.",
+    "container": "Container",
+    "stack": "Stack",
+    "serviceName": "Dienstname",
+    "serviceNamePlaceholder": "Containername verwenden",
+    "save": "Verknüpfung speichern",
+    "unlink": "Verknüpfung entfernen",
+    "success": "Container mit Stack verknüpft",
+    "unlinked": "Container vom Stack getrennt",
+    "linkContainer": "Container verknüpfen"
+  },
   "updates": {
     "searchForUpdates": "Nach Updates suchen",
     "updateAll": "Alle aktualisieren ({{count}})",

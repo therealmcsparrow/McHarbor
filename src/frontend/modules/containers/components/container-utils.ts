@@ -46,7 +46,7 @@ export function getContainerIP(c: ContainerInfo): string {
 }
 
 export function getStackName(c: ContainerInfo): string | null {
-  return c.Labels?.['com.docker.compose.project'] ?? null;
+  return c.StackName ?? c.Labels?.['com.docker.compose.project'] ?? null;
 }
 
 export function getPublicPorts(ports: ContainerInfo['Ports']): string[] {

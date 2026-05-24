@@ -163,6 +163,19 @@
     "success": "Stack succesvol overgenomen",
     "generating": "Compose-bestand genereren..."
   },
+  "link": {
+    "title": "Container koppelen",
+    "description": "Kies de relatie tussen container en stack.",
+    "container": "Container",
+    "stack": "Stack",
+    "serviceName": "Servicenaam",
+    "serviceNamePlaceholder": "Gebruik containernaam",
+    "save": "Koppeling opslaan",
+    "unlink": "Ontkoppelen",
+    "success": "Container aan stack gekoppeld",
+    "unlinked": "Container van stack ontkoppeld",
+    "linkContainer": "Container koppelen"
+  },
   "updates": {
     "searchForUpdates": "Zoeken naar updates",
     "updateAll": "Alles bijwerken ({{count}})",
