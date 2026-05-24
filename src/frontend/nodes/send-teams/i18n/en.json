@@ -2,9 +2,17 @@
   "label": "Send Teams",
   "description": "Send a message to a Microsoft Teams webhook",
   "config": {
+    "communication_mode": "Delivery",
+    "channel_id": "Communication Channel",
     "webhook_url": "Webhook URL",
     "title": "Title",
     "color": "Color",
     "message": "Message"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Configured Channel",
+      "custom": "Other"
+    }
   }
 }

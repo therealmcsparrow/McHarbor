@@ -2,10 +2,18 @@
   "label": "Envoyer Gotify",
   "description": "Envoyer une notification Gotify",
   "config": {
+    "communication_mode": "Livraison",
+    "channel_id": "Canal de communication",
     "server_url": "URL du serveur",
     "app_token": "Jeton d'application",
     "title": "Titre",
     "message": "Message",
     "priority": "Priorité"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Canal configur?",
+      "custom": "Autre"
+    }
   }
 }

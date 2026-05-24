@@ -2,11 +2,19 @@
   "label": "Send ntfy",
   "description": "Publish a message to an ntfy topic",
   "config": {
+    "communication_mode": "Delivery",
+    "channel_id": "Communication Channel",
     "server_url": "Server URL",
     "topic": "Topic",
     "title": "Title",
     "message": "Message",
     "priority": "Priority",
     "tags": "Tags"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Configured Channel",
+      "custom": "Other"
+    }
   }
 }

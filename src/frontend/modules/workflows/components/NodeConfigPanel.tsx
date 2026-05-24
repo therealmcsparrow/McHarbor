@@ -66,6 +66,16 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
     [node.id, node.portLabels, updateNodePortLabels],
   );
 
+  const defaultConfig = useMemo(() => {
+    const defaults: Record<string, unknown> = {};
+    for (const field of definition?.configSchema ?? []) {
+      if (field.default !== undefined) {
+        defaults[field.key] = field.default;
+      }
+    }
+    return defaults;
+  }, [definition]);
+
   return (
     <div className="flex flex-col">
       {/* Header */}
@@ -99,7 +109,8 @@ export function NodeConfigPanel({ node }: NodeConfigPanelProps) {
         {definition?.configSchema.map((field) => {
           if (field.showWhen) {
             const show = Object.entries(field.showWhen).every(
-              ([k, v]) => String(node.config[k] ?? "") === v,
+              ([k, v]) =>
+                String(node.config[k] ?? defaultConfig[k] ?? "") === v,
             );
             if (!show) return null;
           }

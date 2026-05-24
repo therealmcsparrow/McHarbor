@@ -2,9 +2,17 @@
   "label": "Send Signal",
   "description": "Send a message through a Signal API bridge",
   "config": {
+    "communication_mode": "Zustellung",
+    "channel_id": "Kommunikationskanal",
     "api_url": "API URL",
     "sender": "Sender",
     "recipient": "Recipient",
     "message": "Nachricht"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Konfigurierter Kanal",
+      "custom": "Andere"
+    }
   }
 }

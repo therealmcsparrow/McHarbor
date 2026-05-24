@@ -2,8 +2,16 @@
   "label": "Send Discord",
   "description": "Send a message to a Discord webhook",
   "config": {
+    "communication_mode": "Zustellung",
+    "channel_id": "Kommunikationskanal",
     "webhook_url": "Webhook-URL",
     "username": "Username",
     "message": "Nachricht"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Konfigurierter Kanal",
+      "custom": "Andere"
+    }
   }
 }

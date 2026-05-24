@@ -2,9 +2,17 @@
   "label": "Send Whatsapp",
   "description": "Send a WhatsApp message through an API",
   "config": {
+    "communication_mode": "Zustellung",
+    "channel_id": "Kommunikationskanal",
     "api_url": "API URL",
     "access_token": "Access Token",
     "phone_number": "Telefonnummer",
     "message": "Nachricht"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Konfigurierter Kanal",
+      "custom": "Andere"
+    }
   }
 }

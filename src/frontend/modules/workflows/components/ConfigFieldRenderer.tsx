@@ -242,6 +242,7 @@ export function ConfigFieldRenderer({
           <CommunicationChannelSelect
             value={strVal}
             onChange={(v) => onChange(v)}
+            channelType={field.channelType}
           />
         </div>
       );

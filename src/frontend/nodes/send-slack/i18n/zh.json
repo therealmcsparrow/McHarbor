@@ -2,9 +2,17 @@
   "label": "发送Slack",
   "description": "向 Slack Webhook 发送消息",
   "config": {
+    "communication_mode": "????",
+    "channel_id": "????",
     "webhook_url": "网络钩子 URL",
     "channel": "渠道",
     "username": "用户名",
     "message": "信息"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "?????",
+      "custom": "??"
+    }
   }
 }

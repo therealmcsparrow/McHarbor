@@ -3891,6 +3891,10 @@ func (s *Service) executeSendConfiguredNotification(ctx context.Context, node *C
 
 // executeSendWebhookGeneric handles Slack, Discord, and Teams webhook messages.
 func (s *Service) executeSendWebhookGeneric(ctx context.Context, node *CanvasNode, msg Msg, platform string) (string, Msg, error) {
+	if usesConfiguredCommunication(node) {
+		return s.executeSendConfiguredCommunication(ctx, node, msg, platform)
+	}
+
 	webhookURL, _ := node.Config["webhook_url"].(string)
 	message, _ := node.Config["message"].(string)
 	if webhookURL == "" || message == "" {
@@ -3931,6 +3935,10 @@ func (s *Service) executeSendWebhookGeneric(ctx context.Context, node *CanvasNod
 }
 
 func (s *Service) executeSendTelegram(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if usesConfiguredCommunication(node) {
+		return s.executeSendConfiguredCommunication(ctx, node, msg, "telegram")
+	}
+
 	botToken, _ := node.Config["bot_token"].(string)
 	chatID, _ := node.Config["chat_id"].(string)
 	message, _ := node.Config["message"].(string)
@@ -4003,6 +4011,10 @@ func (s *Service) executeSendOutboundWebhook(ctx context.Context, node *CanvasNo
 }
 
 func (s *Service) executeSendWhatsApp(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if usesConfiguredCommunication(node) {
+		return s.executeSendConfiguredCommunication(ctx, node, msg, "whatsapp")
+	}
+
 	apiURL, _ := node.Config["api_url"].(string)
 	accessToken, _ := node.Config["access_token"].(string)
 	phoneNumber, _ := node.Config["phone_number"].(string)
@@ -4051,6 +4063,10 @@ func (s *Service) executeSendWhatsApp(ctx context.Context, node *CanvasNode, msg
 }
 
 func (s *Service) executeSendSignal(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if usesConfiguredCommunication(node) {
+		return s.executeSendConfiguredCommunication(ctx, node, msg, "signal")
+	}
+
 	apiURL, _ := node.Config["api_url"].(string)
 	sender, _ := node.Config["sender"].(string)
 	recipient, _ := node.Config["recipient"].(string)
@@ -4069,6 +4085,10 @@ func (s *Service) executeSendSignal(ctx context.Context, node *CanvasNode, msg M
 }
 
 func (s *Service) executeSendNtfy(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if usesConfiguredCommunication(node) {
+		return s.executeSendConfiguredCommunication(ctx, node, msg, "ntfy")
+	}
+
 	serverURL, _ := node.Config["server_url"].(string)
 	if serverURL == "" {
 		serverURL = "https://ntfy.sh"
@@ -4117,6 +4137,10 @@ func (s *Service) executeSendNtfy(ctx context.Context, node *CanvasNode, msg Msg
 }
 
 func (s *Service) executeSendGotify(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if usesConfiguredCommunication(node) {
+		return s.executeSendConfiguredCommunication(ctx, node, msg, "gotify")
+	}
+
 	serverURL, _ := node.Config["server_url"].(string)
 	appToken, _ := node.Config["app_token"].(string)
 	message, _ := node.Config["message"].(string)
@@ -4158,6 +4182,55 @@ func (s *Service) executeSendGotify(ctx context.Context, node *CanvasNode, msg M
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
 	out["payload"] = map[string]interface{}{"status": "sent", "statusCode": resp.StatusCode}
+	return "output", out, nil
+}
+
+func usesConfiguredCommunication(node *CanvasNode) bool {
+	mode, _ := node.Config["communication_mode"].(string)
+	return mode == "configured"
+}
+
+func (s *Service) executeSendConfiguredCommunication(ctx context.Context, node *CanvasNode, msg Msg, channelType string) (string, Msg, error) {
+	if s.notifier == nil {
+		return "", nil, fmt.Errorf("notification dispatcher is not configured")
+	}
+
+	channelID, _ := node.Config["channel_id"].(string)
+	title, _ := node.Config["title"].(string)
+	message, _ := node.Config["message"].(string)
+	if strings.TrimSpace(message) == "" {
+		return "", nil, fmt.Errorf("message is required")
+	}
+
+	delivery, err := s.notifier.SendChannel(ctx, corenotify.ChannelRequest{
+		ChannelID:   channelID,
+		ChannelType: channelType,
+		Title:       title,
+		Message:     message,
+	})
+	if err != nil {
+		s.logger.Error("workflows: configured communication send failed", "error", err, "channelID", channelID, "channelType", channelType)
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{
+			"error":       "communication send failed",
+			"channelId":   channelID,
+			"channelType": channelType,
+			"title":       title,
+		}
+		return "error", out, nil
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	out["payload"] = map[string]interface{}{
+		"notified":    true,
+		"channelId":   delivery.TargetID,
+		"channelName": delivery.TargetName,
+		"channelType": delivery.TargetType,
+		"title":       title,
+		"message":     message,
+	}
 	return "output", out, nil
 }
 

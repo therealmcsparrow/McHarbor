@@ -2,10 +2,18 @@
   "label": "Send Gotify",
   "description": "Send a Gotify notification",
   "config": {
+    "communication_mode": "Zustellung",
+    "channel_id": "Kommunikationskanal",
     "server_url": "Server-URL",
     "app_token": "App Token",
     "title": "Titel",
     "message": "Nachricht",
     "priority": "Priorität"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Konfigurierter Kanal",
+      "custom": "Andere"
+    }
   }
 }

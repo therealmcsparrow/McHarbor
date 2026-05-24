@@ -2,6 +2,16 @@
 
 Development-only changes for McHarbor are documented in this file.
 
+## [1.1.20-dev] - 2026-05-24
+
+### Added
+
+- Added configured-channel delivery selectors to workflow communication nodes for Slack, Discord, Teams, Telegram, WhatsApp, Signal, ntfy, and Gotify, with an Other mode that keeps direct custom settings available.
+
+### Changed
+
+- Switched the dev branch patch version markers, Docker image defaults, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, lockfile root version, and footer display to `1.1.20-dev`.
+
 ## [1.1.19-dev] - 2026-05-24
 
 ### Added

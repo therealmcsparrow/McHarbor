@@ -2,8 +2,16 @@
   "label": "Send Discord",
   "description": "Send a message to a Discord webhook",
   "config": {
+    "communication_mode": "Aflevering",
+    "channel_id": "Communicatiekanaal",
     "webhook_url": "Webhook-URL",
     "username": "Username",
     "message": "Bericht"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Geconfigureerd kanaal",
+      "custom": "Andere"
+    }
   }
 }
