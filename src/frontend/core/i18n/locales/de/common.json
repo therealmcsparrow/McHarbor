@@ -593,7 +593,14 @@
     "selectLinkOutput": "Link-Ausgabe auswählen...",
     "noLinkOutputsFound": "Keine Link-Ausgaben gefunden",
     "conditionLabel": "Bedingung {{count}}",
-    "selectColor": "Farbe {{color}} ausw?hlen"
+    "selectColor": "Farbe {{color}} ausw?hlen",
+    "selectWebhook": "Webhook auswaehlen...",
+    "noWebhooksFound": "Keine aktiven Webhooks gefunden",
+    "selectRegistry": "Registry auswaehlen...",
+    "useDefaultRegistry": "Standard-Registry verwenden",
+    "noRegistriesFound": "Keine Registries gefunden",
+    "fieldTypeWebhookSelect": "Waehlt einen aktiven konfigurierten Outbound-Webhook aus.",
+    "fieldTypeRegistrySelect": "Verwendet eine konfigurierte Registry. Leer lassen, um auf die Standard-Registry zurueckzufallen."
   },
   "store": {
     "title": "Store",
@@ -727,7 +734,14 @@
       "displayName": "Anzeigename",
       "email": "E-Mail",
       "noEmail": "Keine E-Mail-Adresse",
-      "unknownUser": "Unbekannter Benutzer"
+      "unknownUser": "Unbekannter Benutzer",
+      "editTitle": "Kontodetails",
+      "saveProfile": "Profil speichern",
+      "systemAccount": "Das integrierte Systemkonto kann nicht bearbeitet werden.",
+      "toast": {
+        "updated": "Profil aktualisiert",
+        "updateFailed": "Profil konnte nicht aktualisiert werden"
+      }
     },
     "preferences": {
       "title": "Einstellungen",
@@ -735,7 +749,7 @@
       "themeLightDescription": "Nutze eine helle Oberfl?che f?r die Arbeit bei Tageslicht.",
       "themeDarkDescription": "Nutze die dunkle McHarbor-Oberfl?che.",
       "themeSystemDescription": "Folge der Einstellung deines Browsers oder Betriebssystems.",
-      "languageDescription": "Sprach?nderungen werden sofort angewendet und f?r diesen Browser gespeichert."
+      "languageDescription": "Sprachaenderungen werden sofort angewendet und in Ihrem Benutzerprofil gespeichert."
     }
   }
 }

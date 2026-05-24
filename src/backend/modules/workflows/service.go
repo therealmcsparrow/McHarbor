@@ -6,6 +6,7 @@ package workflows
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -45,6 +46,8 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/db"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
+	coreemail "github.com/therealmcsparrow/mcharbor/core/email"
+	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	corenotify "github.com/therealmcsparrow/mcharbor/core/notify"
 )
 
@@ -70,6 +73,7 @@ type Service struct {
 	db             *sql.DB
 	pool           *docker.ClientPool
 	logger         *slog.Logger
+	enc            *encryption.Service
 	onLinkOut      LinkOutCallback
 	customExecutor interface {
 		ExecuteCustom(ctx context.Context, nodeKey string, config, msg map[string]interface{}, timeout float64) (string, map[string]interface{}, error)
@@ -79,8 +83,8 @@ type Service struct {
 }
 
 // NewService creates a new workflow service.
-func NewService(db *sql.DB, pool *docker.ClientPool, logger *slog.Logger, notifier *corenotify.Dispatcher) *Service {
-	return &Service{db: db, pool: pool, logger: logger, notifier: notifier}
+func NewService(db *sql.DB, pool *docker.ClientPool, logger *slog.Logger, enc *encryption.Service, notifier *corenotify.Dispatcher) *Service {
+	return &Service{db: db, pool: pool, logger: logger, enc: enc, notifier: notifier}
 }
 
 // SetCustomExecutor registers the custom node executor for handling third-party nodes.
@@ -1413,7 +1417,12 @@ func (s *Service) executeDockerImagePull(ctx context.Context, node *CanvasNode, 
 	pullCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
-	reader, err := cli.ImagePull(pullCtx, imageName, image.PullOptions{})
+	registryAuth, registryName, err := s.registryAuthForNode(pullCtx, node)
+	if err != nil {
+		return "", nil, err
+	}
+
+	reader, err := cli.ImagePull(pullCtx, imageName, image.PullOptions{RegistryAuth: registryAuth})
 	if err != nil {
 		s.logger.Error("workflows: image pull failed", "error", err, "image", imageName, "envID", envID)
 		out := CloneMsg(msg)
@@ -1431,8 +1440,9 @@ func (s *Service) executeDockerImagePull(ctx context.Context, node *CanvasNode, 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
 	out["payload"] = map[string]interface{}{
-		"image":  imageName,
-		"status": "pulled",
+		"image":    imageName,
+		"registry": registryName,
+		"status":   "pulled",
 	}
 	return "output", out, nil
 }
@@ -3803,6 +3813,10 @@ func (s *Service) executeGraphQLRequest(ctx context.Context, node *CanvasNode, m
 // ---------------------------------------------------------------------------
 
 func (s *Service) executeSendConfiguredEmail(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if deliveryMode, _ := node.Config["delivery_mode"].(string); deliveryMode == "custom" {
+		return s.executeSendCustomEmail(ctx, node, msg)
+	}
+
 	if s.notifier == nil {
 		return "", nil, fmt.Errorf("notification dispatcher is not configured")
 	}
@@ -3844,6 +3858,74 @@ func (s *Service) executeSendConfiguredEmail(ctx context.Context, node *CanvasNo
 		"subject":    subject,
 		"serverId":   delivery.TargetID,
 		"serverName": delivery.TargetName,
+	}
+	return "output", out, nil
+}
+
+func (s *Service) executeSendCustomEmail(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	to, _ := node.Config["to"].(string)
+	subject, _ := node.Config["subject"].(string)
+	body, _ := node.Config["body"].(string)
+	host, _ := node.Config["smtp_host"].(string)
+	encryptionMode, _ := node.Config["smtp_encryption"].(string)
+	authMethod, _ := node.Config["smtp_auth_method"].(string)
+	username, _ := node.Config["smtp_username"].(string)
+	password, _ := node.Config["smtp_password"].(string)
+	fromAddress, _ := node.Config["from_address"].(string)
+	fromName, _ := node.Config["from_name"].(string)
+	port := int(configFloat(node.Config, "smtp_port", 587))
+
+	if strings.TrimSpace(to) == "" {
+		return "", nil, fmt.Errorf("recipient is required")
+	}
+	if strings.TrimSpace(body) == "" {
+		return "", nil, fmt.Errorf("body is required")
+	}
+	if strings.TrimSpace(host) == "" {
+		return "", nil, fmt.Errorf("smtp host is required")
+	}
+	if port <= 0 {
+		return "", nil, fmt.Errorf("smtp port is required")
+	}
+	if strings.TrimSpace(fromAddress) == "" {
+		return "", nil, fmt.Errorf("from address is required")
+	}
+	if encryptionMode == "" {
+		encryptionMode = "starttls"
+	}
+	if authMethod == "" {
+		authMethod = "plain"
+	}
+
+	err := coreemail.SendSMTP(ctx, coreemail.SMTPConfig{
+		Host:        host,
+		Port:        port,
+		Encryption:  encryptionMode,
+		AuthMethod:  authMethod,
+		Username:    username,
+		Password:    password,
+		FromAddress: fromAddress,
+		FromName:    fromName,
+	}, to, subject, body)
+	if err != nil {
+		s.logger.Error("workflows: custom email send failed", "error", err, "host", host)
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{
+			"error":   "email send failed",
+			"to":      to,
+			"subject": subject,
+		}
+		return "error", out, nil
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	out["payload"] = map[string]interface{}{
+		"sent":    true,
+		"to":      to,
+		"subject": subject,
+		"server":  host,
 	}
 	return "output", out, nil
 }
@@ -3957,6 +4039,10 @@ func (s *Service) executeSendTelegram(ctx context.Context, node *CanvasNode, msg
 }
 
 func (s *Service) executeSendOutboundWebhook(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if deliveryMode, _ := node.Config["delivery_mode"].(string); deliveryMode == "configured" {
+		return s.executeSendConfiguredWebhook(ctx, node, msg)
+	}
+
 	urlStr, _ := node.Config["url"].(string)
 	method, _ := node.Config["method"].(string)
 	if method == "" {
@@ -4008,6 +4094,126 @@ func (s *Service) executeSendOutboundWebhook(ctx context.Context, node *CanvasNo
 		"body":       string(respBody),
 	}
 	return "output", out, nil
+}
+
+type configuredWebhook struct {
+	ID     string
+	Name   string
+	URL    string
+	Secret string
+}
+
+func (s *Service) executeSendConfiguredWebhook(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	webhookID, _ := node.Config["webhook_id"].(string)
+	if strings.TrimSpace(webhookID) == "" {
+		return "", nil, fmt.Errorf("webhook is required")
+	}
+
+	wh, err := s.resolveConfiguredWebhook(ctx, webhookID)
+	if err != nil {
+		return "", nil, err
+	}
+	if wh == nil {
+		return "", nil, fmt.Errorf("webhook not found")
+	}
+
+	bodySource, _ := node.Config["body_source"].(string)
+	if bodySource == "" {
+		bodySource = "payload"
+	}
+
+	var bodyData interface{}
+	if raw, ok := GetPath(msg, bodySource); ok {
+		bodyData = raw
+	}
+	bodyBytes, _ := json.Marshal(bodyData)
+
+	reqCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodPost, wh.URL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return "", nil, fmt.Errorf("creating webhook request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if wh.Secret != "" {
+		mac := hmac.New(sha256.New, []byte(wh.Secret))
+		mac.Write(bodyBytes)
+		req.Header.Set("X-McHarbor-Signature", "sha256="+hex.EncodeToString(mac.Sum(nil)))
+	}
+
+	start := time.Now()
+	resp, err := http.DefaultClient.Do(req)
+	duration := int(time.Since(start).Milliseconds())
+	if err != nil {
+		s.logger.Error("workflows: configured webhook failed", "error", err, "webhookID", wh.ID)
+		if recErr := s.recordWebhookDelivery(wh.ID, "workflow", string(bodyBytes), 0, err.Error(), false, duration); recErr != nil {
+			s.logger.Warn("workflows: recording webhook delivery failed", "error", recErr, "webhookID", wh.ID)
+		}
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"error": "webhook request failed", "webhookId": wh.ID}
+		return "error", out, nil
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := io.ReadAll(resp.Body)
+	success := resp.StatusCode >= 200 && resp.StatusCode < 300
+	if recErr := s.recordWebhookDelivery(wh.ID, "workflow", string(bodyBytes), resp.StatusCode, string(respBody), success, duration); recErr != nil {
+		s.logger.Warn("workflows: recording webhook delivery failed", "error", recErr, "webhookID", wh.ID)
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	out["payload"] = map[string]interface{}{
+		"statusCode":  resp.StatusCode,
+		"body":        string(respBody),
+		"webhookId":   wh.ID,
+		"webhookName": wh.Name,
+	}
+	return "output", out, nil
+}
+
+func (s *Service) resolveConfiguredWebhook(ctx context.Context, id string) (*configuredWebhook, error) {
+	var wh configuredWebhook
+	var secret sql.NullString
+	err := s.db.QueryRowContext(ctx,
+		`SELECT id, name, url, secret
+		 FROM webhooks
+		 WHERE id = ? AND is_active = 1
+		 LIMIT 1`, id,
+	).Scan(&wh.ID, &wh.Name, &wh.URL, &secret)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("looking up configured webhook: %w", err)
+	}
+	if secret.String != "" {
+		if s.enc == nil {
+			return nil, fmt.Errorf("encryption service is not configured")
+		}
+		plain, decErr := s.enc.Decrypt(secret.String)
+		if decErr != nil {
+			return nil, fmt.Errorf("decrypting webhook secret: %w", decErr)
+		}
+		wh.Secret = plain
+	}
+	return &wh, nil
+}
+
+func (s *Service) recordWebhookDelivery(webhookID, event, payload string, respStatus int, respBody string, success bool, duration int) error {
+	id := xid.New().String()
+	now := time.Now().UTC().Format(time.RFC3339)
+	_, err := s.db.Exec(
+		`INSERT INTO webhook_deliveries (id, webhook_id, event, payload, response_status, response_body, success, duration, created_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		id, webhookID, event, payload, respStatus, respBody, success, duration, now,
+	)
+	if err != nil {
+		return fmt.Errorf("recording webhook delivery: %w", err)
+	}
+	return nil
 }
 
 func (s *Service) executeSendWhatsApp(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
@@ -5047,7 +5253,12 @@ func (s *Service) executeImagePush(ctx context.Context, node *CanvasNode, msg Ms
 	pushCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()
 
-	reader, pushErr := cli.ImagePush(pushCtx, imageName, image.PushOptions{})
+	registryAuth, registryName, err := s.registryAuthForNode(pushCtx, node)
+	if err != nil {
+		return "", nil, err
+	}
+
+	reader, pushErr := cli.ImagePush(pushCtx, imageName, image.PushOptions{RegistryAuth: registryAuth})
 	if pushErr != nil {
 		s.logger.Error("workflows: image push failed", "error", pushErr, "image", imageName, "envID", envID)
 		out := CloneMsg(msg)
@@ -5062,7 +5273,7 @@ func (s *Service) executeImagePush(ctx context.Context, node *CanvasNode, msg Ms
 
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
-	out["payload"] = map[string]interface{}{"image": imageName, "status": "pushed"}
+	out["payload"] = map[string]interface{}{"image": imageName, "registry": registryName, "status": "pushed"}
 	return "output", out, nil
 }
 
@@ -5081,7 +5292,12 @@ func (s *Service) executeRegistrySearch(ctx context.Context, node *CanvasNode, m
 	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	results, searchErr := cli.ImageSearch(opCtx, term, registry.SearchOptions{Limit: limit})
+	registryAuth, registryName, err := s.registryAuthForNode(opCtx, node)
+	if err != nil {
+		return "", nil, err
+	}
+
+	results, searchErr := cli.ImageSearch(opCtx, term, registry.SearchOptions{Limit: limit, RegistryAuth: registryAuth})
 	if searchErr != nil {
 		s.logger.Error("workflows: registry search failed", "error", searchErr, "term", term, "envID", envID)
 		out := CloneMsg(msg)
@@ -5103,7 +5319,107 @@ func (s *Service) executeRegistrySearch(ctx context.Context, node *CanvasNode, m
 	out := CloneMsg(msg)
 	out = EnsureMsgID(out)
 	out["payload"] = items
+	if registryName != "" {
+		out["registry"] = registryName
+	}
 	return "output", out, nil
+}
+
+type configuredRegistry struct {
+	ID       string
+	Name     string
+	URL      string
+	Username string
+	Password string
+}
+
+func (s *Service) registryAuthForNode(ctx context.Context, node *CanvasNode) (string, string, error) {
+	mode, _ := node.Config["registry_mode"].(string)
+	if mode == "configured" {
+		registryID, _ := node.Config["registry_id"].(string)
+		return s.configuredRegistryAuth(ctx, registryID)
+	}
+
+	regURL, _ := node.Config["registry_url"].(string)
+	username, _ := node.Config["registry_username"].(string)
+	password, _ := node.Config["registry_password"].(string)
+	if strings.TrimSpace(regURL) == "" && strings.TrimSpace(username) == "" && strings.TrimSpace(password) == "" {
+		return "", "", nil
+	}
+
+	auth, err := registry.EncodeAuthConfig(registry.AuthConfig{
+		Username:      username,
+		Password:      password,
+		ServerAddress: strings.TrimRight(regURL, "/"),
+	})
+	if err != nil {
+		return "", "", fmt.Errorf("encoding registry auth: %w", err)
+	}
+	return auth, strings.TrimRight(regURL, "/"), nil
+}
+
+func (s *Service) configuredRegistryAuth(ctx context.Context, registryID string) (string, string, error) {
+	reg, err := s.resolveConfiguredRegistry(ctx, registryID)
+	if err != nil {
+		return "", "", err
+	}
+	if reg == nil {
+		return "", "", fmt.Errorf("registry not found")
+	}
+
+	auth, err := registry.EncodeAuthConfig(registry.AuthConfig{
+		Username:      reg.Username,
+		Password:      reg.Password,
+		ServerAddress: strings.TrimRight(reg.URL, "/"),
+	})
+	if err != nil {
+		return "", "", fmt.Errorf("encoding registry auth: %w", err)
+	}
+	return auth, reg.Name, nil
+}
+
+func (s *Service) resolveConfiguredRegistry(ctx context.Context, registryID string) (*configuredRegistry, error) {
+	var row *sql.Row
+	if strings.TrimSpace(registryID) != "" {
+		row = s.db.QueryRowContext(ctx,
+			`SELECT id, name, url, username, password
+			 FROM registries
+			 WHERE id = ?
+			 LIMIT 1`, registryID,
+		)
+	} else {
+		row = s.db.QueryRowContext(ctx,
+			`SELECT id, name, url, username, password
+			 FROM registries
+			 WHERE is_default = 1
+			 ORDER BY name ASC
+			 LIMIT 1`,
+		)
+	}
+
+	var reg configuredRegistry
+	var username, password sql.NullString
+	err := row.Scan(&reg.ID, &reg.Name, &reg.URL, &username, &password)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("looking up configured registry: %w", err)
+	}
+
+	reg.Username = username.String
+	if password.String != "" {
+		if s.enc == nil {
+			return nil, fmt.Errorf("encryption service is not configured")
+		}
+		plain, decErr := s.enc.Decrypt(password.String)
+		if decErr != nil {
+			return nil, fmt.Errorf("decrypting registry password: %w", decErr)
+		}
+		reg.Password = plain
+	}
+
+	return &reg, nil
 }
 
 func (s *Service) executeComposeUp(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {

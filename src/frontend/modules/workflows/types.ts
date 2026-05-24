@@ -17,7 +17,9 @@ export type ConfigFieldType =
   | "code"
   | "link-output-select"
   | "email-server-select"
-  | "communication-channel-select";
+  | "communication-channel-select"
+  | "webhook-select"
+  | "registry-select";
 
 export type ConfigFieldOption = {
   value: string;

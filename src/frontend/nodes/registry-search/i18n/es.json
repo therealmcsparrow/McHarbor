@@ -2,8 +2,19 @@
   "label": "Búsqueda de registro",
   "description": "Buscar imágenes en un registro de contenedores",
   "config": {
-    "environment": "Ambiente",
-    "term": "Término de búsqueda",
-    "limit": "Límite"
+    "environment": "Environment",
+    "term": "Search Term",
+    "limit": "Limit",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry URL",
+    "registry_username": "Registry Username",
+    "registry_password": "Registry Password"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
   }
 }

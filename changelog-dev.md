@@ -2,11 +2,30 @@
 
 Development-only changes for McHarbor are documented in this file.
 
+## [1.1.21-dev] - 2026-05-24
+
+### Added
+
+- Added authenticated user language preferences with a user-table migration, session/login payload support, a protected preferences endpoint, and profile/settings selectors that persist the selected interface language.
+- Added local-user profile editing for display name and email, including a protected profile update endpoint, audit logging, localized profile form copy, and auth-store refresh after save.
+- Added configured/custom delivery modes for workflow email and outbound webhook nodes, including saved webhook selection, custom SMTP settings, HMAC-signed configured webhook calls, and workflow delivery recording.
+- Added configured/custom registry selection to workflow image pull, image push, and registry search nodes, including registry picker fields, default-registry fallback, and encrypted registry credential reuse.
+- Added reusable workflow config field renderers for saved webhooks and registries.
+
+### Changed
+
+- Updated workflow node requirement inference so conditionally hidden fields do not make inactive delivery or registry modes look required.
+- Hardened auth preference/session paths by checking database write and lookup errors instead of silently ignoring them.
+- Fixed cron schedule previews so valid schedules with timezone labels no longer display “Invalid cron expression” because of date formatting.
+- Switched the dev branch patch version markers, Docker image defaults, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, lockfile root version, and footer display to `1.1.21-dev`.
+
 ## [1.1.20-dev] - 2026-05-24
 
 ### Added
 
 - Added configured-channel delivery selectors to workflow communication nodes for Slack, Discord, Teams, Telegram, WhatsApp, Signal, ntfy, and Gotify, with an Other mode that keeps direct custom settings available.
+- Added configured/custom delivery selectors to workflow email, outbound webhook, image pull, image push, and registry search nodes, including saved webhook and registry pickers.
+- Added user-bound language preferences so profile language changes are saved to the authenticated user and restored on sign-in.
 
 ### Changed
 

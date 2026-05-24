@@ -23,6 +23,11 @@ Requires at least one compatible environment in McHarbor before this node can ru
 ## Configuration Guide
 
 - `Environment` (environment-select, required): Pick one of the configured environments.
+- `Registry` (select, required): Choose a configured registry or custom registry auth. Default: `custom`. Options: Configured Registry, Other.
+- `Registry` (registry-select, optional): Select a configured registry, or leave it empty to use the default registry.
+- `Registry URL` (text, optional): Custom registry server address.
+- `Registry Username` (text, optional): Custom registry username.
+- `Registry Password` (text, optional): Custom registry password.
 - `Search Term` (text, required): Single-line text value.
 - `Limit` (number, optional): Numeric value. Default: `25`.
 

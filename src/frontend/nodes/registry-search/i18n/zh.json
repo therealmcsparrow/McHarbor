@@ -2,8 +2,19 @@
   "label": "注册表搜索",
   "description": "在容器注册表中搜索图像",
   "config": {
-    "environment": "环境",
-    "term": "搜索词",
-    "limit": "限制"
+    "environment": "Environment",
+    "term": "Search Term",
+    "limit": "Limit",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry URL",
+    "registry_username": "Registry Username",
+    "registry_password": "Registry Password"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
   }
 }

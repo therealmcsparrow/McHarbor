@@ -18,6 +18,8 @@ import { ContainerSelect } from "./ContainerSelect";
 import { LinkOutputSelect } from "./LinkOutputSelect";
 import { EmailServerSelect } from "./EmailServerSelect";
 import { CommunicationChannelSelect } from "./CommunicationChannelSelect";
+import { WebhookSelect } from "./WebhookSelect";
+import { RegistrySelect } from "./RegistrySelect";
 import type { ConfigField } from "../types";
 
 interface ConfigFieldRendererProps {
@@ -244,6 +246,28 @@ export function ConfigFieldRenderer({
             onChange={(v) => onChange(v)}
             channelType={field.channelType}
           />
+        </div>
+      );
+
+    case "webhook-select":
+      return (
+        <div>
+          <Label className="mb-1.5 text-xs">
+            {fieldLabel}
+            {field.required && <span className="text-destructive"> *</span>}
+          </Label>
+          <WebhookSelect value={strVal} onChange={(v) => onChange(v)} />
+        </div>
+      );
+
+    case "registry-select":
+      return (
+        <div>
+          <Label className="mb-1.5 text-xs">
+            {fieldLabel}
+            {field.required && <span className="text-destructive"> *</span>}
+          </Label>
+          <RegistrySelect value={strVal} onChange={(v) => onChange(v)} />
         </div>
       );
 

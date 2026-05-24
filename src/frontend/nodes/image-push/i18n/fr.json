@@ -2,7 +2,18 @@
   "label": "Poussée d'image",
   "description": "Pousser une image vers son registre configuré",
   "config": {
-    "environment": "Environnement",
-    "image": "Image"
+    "environment": "Environment",
+    "image": "Image",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry URL",
+    "registry_username": "Registry Username",
+    "registry_password": "Registry Password"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
   }
 }

@@ -593,7 +593,14 @@
     "selectLinkOutput": "Selecteer link-uitvoer...",
     "noLinkOutputsFound": "Geen link-uitvoeren gevonden",
     "conditionLabel": "Voorwaarde {{count}}",
-    "selectColor": "Kleur {{color}} selecteren"
+    "selectColor": "Kleur {{color}} selecteren",
+    "selectWebhook": "Selecteer webhook...",
+    "noWebhooksFound": "Geen actieve webhooks gevonden",
+    "selectRegistry": "Selecteer registry...",
+    "useDefaultRegistry": "Standaardregistry gebruiken",
+    "noRegistriesFound": "Geen registries gevonden",
+    "fieldTypeWebhookSelect": "Selecteert een actieve geconfigureerde outbound webhook.",
+    "fieldTypeRegistrySelect": "Gebruikt een geconfigureerde registry. Laat leeg om terug te vallen op de standaardregistry."
   },
   "store": {
     "title": "Store",
@@ -727,7 +734,14 @@
       "displayName": "Weergavenaam",
       "email": "E-mail",
       "noEmail": "Geen e-mailadres",
-      "unknownUser": "Onbekende gebruiker"
+      "unknownUser": "Onbekende gebruiker",
+      "editTitle": "Accountgegevens",
+      "saveProfile": "Profiel opslaan",
+      "systemAccount": "Het ingebouwde systeemaccount kan niet worden bewerkt.",
+      "toast": {
+        "updated": "Profiel bijgewerkt",
+        "updateFailed": "Profiel bijwerken mislukt"
+      }
     },
     "preferences": {
       "title": "Voorkeuren",
@@ -735,7 +749,7 @@
       "themeLightDescription": "Gebruik een lichte interface voor werken bij daglicht.",
       "themeDarkDescription": "Gebruik de donkere McHarbor-interface.",
       "themeSystemDescription": "Volg de instelling van je browser of besturingssysteem.",
-      "languageDescription": "Taalwijzigingen worden direct toegepast en voor deze browser opgeslagen."
+      "languageDescription": "Taalwijzigingen worden direct toegepast en opgeslagen in je gebruikersprofiel."
     }
   }
 }

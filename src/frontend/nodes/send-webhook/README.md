@@ -22,6 +22,8 @@ No extra McHarbor-managed service setup is required. Configure this node directl
 
 ## Configuration Guide
 
+- `Delivery` (select, required): Choose a configured webhook or custom request settings. Default: `custom`. Options: Configured Webhook, Other.
+- `Webhook` (webhook-select, required): Select an active configured webhook when Delivery is Configured Webhook.
 - `URL` (text, required): Single-line text value.
 - `Method` (select, optional): Choose one of the built-in options. Default: `POST`. Options: GET, POST, PUT, PATCH, DELETE.
 - `Headers` (key-value, optional): Build an object as key/value pairs.

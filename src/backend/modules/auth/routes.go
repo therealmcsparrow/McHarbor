@@ -28,5 +28,7 @@ func Mount(app *router.AppDeps) {
 	// Protected auth routes
 	app.RegisterProtectedRoutes(func(r chi.Router) {
 		r.Get("/auth/session", h.HandleSession)
+		r.Put("/auth/profile", h.HandleUpdateProfile)
+		r.Put("/auth/preferences", h.HandleUpdatePreferences)
 	})
 }

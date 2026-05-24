@@ -9,6 +9,7 @@ import { NumberInput } from '@resources/components/ui/NumberInput';
 import { Select } from '@resources/components/ui/Select';
 import { Label } from '@resources/components/ui/Label';
 import { useLanguageStore } from '@resources/stores/language';
+import { useAuth } from '@core/auth/useAuth';
 import { supportedLanguages, languageLabels, type SupportedLanguage } from '@core/i18n';
 import { useSaveSettings } from '../hooks/useSettings';
 import { useRetentionSettings, useSaveRetentionSettings } from '../hooks/useRetentionSettings';
@@ -22,8 +23,8 @@ export function GeneralTab({ settings }: GeneralTabProps) {
   const { t } = useTranslation('settings');
   const { t: tc } = useTranslation('common');
   const save = useSaveSettings();
+  const updatePreferences = useAuth((s) => s.updatePreferences);
   const language = useLanguageStore((s) => s.language);
-  const setLanguage = useLanguageStore((s) => s.setLanguage);
   const [appName, setAppName] = useState(settings?.appName ?? 'McHarbor');
   const [refreshInterval, setRefreshInterval] = useState(settings?.autoRefreshInterval ?? 10);
 
@@ -46,7 +47,9 @@ export function GeneralTab({ settings }: GeneralTabProps) {
         <p className="mb-2 text-sm text-muted-foreground">{t('general.languageDescription')}</p>
         <Select
           value={language}
-          onChange={(v) => setLanguage(v as SupportedLanguage)}
+          onChange={(v) => {
+            void updatePreferences({ preferredLanguage: v as SupportedLanguage });
+          }}
           options={supportedLanguages.map((lang) => ({ value: lang, label: languageLabels[lang] }))}
           className="max-w-sm"
         />

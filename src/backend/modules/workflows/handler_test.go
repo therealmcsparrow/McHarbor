@@ -285,7 +285,7 @@ func TestHandleExecuteMetricRecordPersistsWorkflowMetric(t *testing.T) {
 func TestExecuteSQLQueryRejectsDisallowedTable(t *testing.T) {
 	db := openWorkflowTestDB(t)
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	svc := NewService(db, nil, logger, nil)
+	svc := NewService(db, nil, logger, nil, nil)
 
 	node := &CanvasNode{
 		Config: map[string]interface{}{
@@ -314,7 +314,7 @@ func TestExecuteSQLQueryRejectsDisallowedTable(t *testing.T) {
 func TestExecuteSQLQueryCapsResultRows(t *testing.T) {
 	db := openWorkflowTestDB(t)
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	svc := NewService(db, nil, logger, nil)
+	svc := NewService(db, nil, logger, nil, nil)
 
 	for i := 0; i < sqlQueryMaxRows+5; i++ {
 		if _, err := db.Exec(

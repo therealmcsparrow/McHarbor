@@ -53,7 +53,7 @@ func (ts *TriggerService) SetCustomExecutor(executor interface {
 
 // NewTriggerService creates a new background trigger service.
 func NewTriggerService(app *router.AppDeps, hub *Hub) *TriggerService {
-	svc := NewService(app.DB, app.DockerPool, app.Logger, corenotify.NewDispatcher(app.DB, app.Encryption))
+	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption))
 	return &TriggerService{
 		app:     app,
 		hub:     hub,

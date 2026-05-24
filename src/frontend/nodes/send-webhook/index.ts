@@ -11,10 +11,39 @@ export const sendWebhook: NodeDefinition = {
   "icon": "IconWebhook",
   "configSchema": [
     {
+      "key": "delivery_mode",
+      "label": "Delivery",
+      "type": "select",
+      "required": true,
+      "default": "custom",
+      "options": [
+        {
+          "value": "configured",
+          "label": "Configured Webhook"
+        },
+        {
+          "value": "custom",
+          "label": "Other"
+        }
+      ]
+    },
+    {
+      "key": "webhook_id",
+      "label": "Webhook",
+      "type": "webhook-select",
+      "required": true,
+      "showWhen": {
+        "delivery_mode": "configured"
+      }
+    },
+    {
       "key": "url",
       "label": "URL",
       "type": "text",
-      "required": true
+      "required": true,
+      "showWhen": {
+        "delivery_mode": "custom"
+      }
     },
     {
       "key": "method",
@@ -22,6 +51,9 @@ export const sendWebhook: NodeDefinition = {
       "type": "select",
       "required": false,
       "default": "POST",
+      "showWhen": {
+        "delivery_mode": "custom"
+      },
       "options": [
         {
           "value": "GET",
@@ -49,7 +81,10 @@ export const sendWebhook: NodeDefinition = {
       "key": "headers",
       "label": "Headers",
       "type": "key-value",
-      "required": false
+      "required": false,
+      "showWhen": {
+        "delivery_mode": "custom"
+      }
     },
     {
       "key": "body_source",

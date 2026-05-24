@@ -146,6 +146,7 @@ function normalizeRequirement(definition: NodeDefinition): NodeRequirement | und
   }
 
   const inferred = definition.configSchema
+    .filter((field) => !field.showWhen)
     .map((field) => FIELD_TYPE_REQUIREMENTS[field.type])
     .filter((requirement): requirement is NodeRequirement => Boolean(requirement));
   if (inferred.length === 0) {

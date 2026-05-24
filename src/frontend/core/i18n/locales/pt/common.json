@@ -593,7 +593,14 @@
     "selectLinkOutput": "Selecione a saída do link...",
     "noLinkOutputsFound": "Nenhuma saída de link encontrada",
     "conditionLabel": "Condição {{count}}",
-    "selectColor": "Selecione a cor {{color}}"
+    "selectColor": "Selecione a cor {{color}}",
+    "selectWebhook": "Selecionar webhook...",
+    "noWebhooksFound": "Nenhum webhook ativo encontrado",
+    "selectRegistry": "Selecionar registry...",
+    "useDefaultRegistry": "Usar registry padrao",
+    "noRegistriesFound": "Nenhum registry encontrado",
+    "fieldTypeWebhookSelect": "Seleciona um webhook de saida configurado ativo.",
+    "fieldTypeRegistrySelect": "Usa um registry configurado. Deixe em branco para usar o registry padrao."
   },
   "store": {
     "title": "Loja",
@@ -727,7 +734,14 @@
       "displayName": "Nome de exibi??o",
       "email": "E-mail",
       "noEmail": "Sem endere?o de e-mail",
-      "unknownUser": "Usu?rio desconhecido"
+      "unknownUser": "Usu?rio desconhecido",
+      "editTitle": "Detalhes da conta",
+      "saveProfile": "Salvar perfil",
+      "systemAccount": "A conta do sistema integrada nao pode ser editada.",
+      "toast": {
+        "updated": "Perfil atualizado",
+        "updateFailed": "Falha ao atualizar o perfil"
+      }
     },
     "preferences": {
       "title": "Prefer?ncias",
@@ -735,7 +749,7 @@
       "themeLightDescription": "Use uma interface clara para trabalho durante o dia.",
       "themeDarkDescription": "Use a interface escura do McHarbor.",
       "themeSystemDescription": "Siga a configura??o do navegador ou do sistema operacional.",
-      "languageDescription": "As altera??es de idioma s?o aplicadas imediatamente e salvas para este navegador."
+      "languageDescription": "As alteracoes de idioma sao aplicadas imediatamente e salvas no seu perfil de usuario."
     }
   }
 }

@@ -593,7 +593,14 @@
     "selectLinkOutput": "Seleccionar salida del enlace...",
     "noLinkOutputsFound": "No se encontraron salidas de enlace",
     "conditionLabel": "Condición {{count}}",
-    "selectColor": "Selecciona color {{color}}"
+    "selectColor": "Selecciona color {{color}}",
+    "selectWebhook": "Seleccionar webhook...",
+    "noWebhooksFound": "No se encontraron webhooks activos",
+    "selectRegistry": "Seleccionar registry...",
+    "useDefaultRegistry": "Usar registry predeterminada",
+    "noRegistriesFound": "No se encontraron registries",
+    "fieldTypeWebhookSelect": "Selecciona un webhook saliente configurado activo.",
+    "fieldTypeRegistrySelect": "Usa una registry configurada. Dejalo vacio para usar la registry predeterminada."
   },
   "store": {
     "title": "Almacenar",
@@ -727,7 +734,14 @@
       "displayName": "Nombre para mostrar",
       "email": "Correo",
       "noEmail": "Sin direcci?n de correo",
-      "unknownUser": "Usuario desconocido"
+      "unknownUser": "Usuario desconocido",
+      "editTitle": "Datos de la cuenta",
+      "saveProfile": "Guardar perfil",
+      "systemAccount": "La cuenta del sistema integrada no se puede editar.",
+      "toast": {
+        "updated": "Perfil actualizado",
+        "updateFailed": "No se pudo actualizar el perfil"
+      }
     },
     "preferences": {
       "title": "Preferencias",
@@ -735,7 +749,7 @@
       "themeLightDescription": "Usa una interfaz clara para trabajar con luz diurna.",
       "themeDarkDescription": "Usa la interfaz oscura de McHarbor.",
       "themeSystemDescription": "Sigue la configuraci?n del navegador o del sistema operativo.",
-      "languageDescription": "Los cambios de idioma se aplican de inmediato y se guardan para este navegador."
+      "languageDescription": "Los cambios de idioma se aplican de inmediato y se guardan en tu perfil de usuario."
     }
   }
 }

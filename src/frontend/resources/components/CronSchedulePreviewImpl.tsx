@@ -26,10 +26,13 @@ function resolvePreviewTimezone(timezone?: string | null): string {
 
 function formatOccurrence(date: Date, timezone: string): string {
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: timezone,
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    month: 'short',
     timeZoneName: 'short',
+    timeZone: timezone,
+    year: 'numeric',
   }).format(date);
 }
 

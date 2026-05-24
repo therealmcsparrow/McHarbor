@@ -3,9 +3,11 @@
   "description": "发送包含消息数据的出站 Webhook",
   "config": {
     "url": "URL",
-    "method": "方法",
-    "headers": "标头",
-    "body_source": "身体来源"
+    "method": "Method",
+    "headers": "Headers",
+    "body_source": "Body Source",
+    "delivery_mode": "Delivery",
+    "webhook_id": "Webhook"
   },
   "options": {
     "method": {
@@ -14,6 +16,10 @@
       "PUT": "PUT",
       "PATCH": "PATCH",
       "DELETE": "DELETE"
+    },
+    "delivery_mode": {
+      "configured": "Configured Webhook",
+      "custom": "Other"
     }
   }
 }

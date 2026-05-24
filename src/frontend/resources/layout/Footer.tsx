@@ -151,7 +151,7 @@ export function Footer() {
         )}
 
         {/* Right: version */}
-        <span className="shrink-0 text-muted-foreground/60">McHarbor v1.1.20-dev</span>
+        <span className="shrink-0 text-muted-foreground/60">McHarbor v1.1.21-dev</span>
       </div>
     </footer>
   );

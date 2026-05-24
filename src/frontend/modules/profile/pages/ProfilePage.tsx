@@ -4,15 +4,20 @@
 import {
   IconCheck,
   IconDeviceDesktop,
+  IconDeviceFloppy,
   IconLanguage,
   IconMoon,
   IconSun,
   IconUserCircle,
   type TablerIcon,
 } from '@tabler/icons-react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { Button } from '@resources/components/ui/Button';
+import { Input } from '@resources/components/ui/Input';
+import { Label } from '@resources/components/ui/Label';
 import { Select } from '@resources/components/ui/Select';
 import { useTheme } from '@resources/hooks/useTheme';
 import { useLanguageStore } from '@resources/stores/language';
@@ -30,9 +35,18 @@ type ThemeOption = {
 export default function ProfilePage() {
   const { t } = useTranslation('common');
   const user = useAuth((s) => s.user);
+  const updateProfile = useAuth((s) => s.updateProfile);
+  const updatePreferences = useAuth((s) => s.updatePreferences);
   const { theme, setTheme } = useTheme();
   const language = useLanguageStore((s) => s.language);
-  const setLanguage = useLanguageStore((s) => s.setLanguage);
+  const [profileDisplayName, setProfileDisplayName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  useEffect(() => {
+    setProfileDisplayName(user?.displayName ?? '');
+    setProfileEmail(user?.email ?? '');
+  }, [user?.displayName, user?.email]);
 
   const themeOptions: ThemeOption[] = [
     {
@@ -57,6 +71,28 @@ export default function ProfilePage() {
 
   const displayName = user?.displayName || user?.username || t('profile.account.unknownUser');
   const initials = displayName.charAt(0).toUpperCase();
+  const profileChanged =
+    profileDisplayName.trim() !== (user?.displayName ?? '') ||
+    profileEmail.trim() !== (user?.email ?? '');
+  const canEditProfile = Boolean(user && user.id !== 'system');
+
+  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!canEditProfile || savingProfile) return;
+
+    setSavingProfile(true);
+    const result = await updateProfile({
+      displayName: profileDisplayName.trim(),
+      email: profileEmail.trim(),
+    });
+    setSavingProfile(false);
+
+    if (result.success) {
+      toast.success(t('profile.account.toast.updated'));
+      return;
+    }
+    toast.error(t('profile.account.toast.updateFailed'));
+  }
 
   return (
     <div className="space-y-6">
@@ -91,6 +127,55 @@ export default function ProfilePage() {
           </div>
 
           <div className="mt-6 space-y-6">
+            <form className="space-y-4" onSubmit={handleProfileSubmit}>
+              <div className="mb-3 flex items-center gap-2">
+                <IconUserCircle className="size-4 text-muted-foreground" />
+                <h3 className="text-sm font-medium text-foreground">{t('profile.account.editTitle')}</h3>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="profile-display-name" className="mb-1.5 text-xs">
+                    {t('profile.account.displayName')}
+                  </Label>
+                  <Input
+                    id="profile-display-name"
+                    value={profileDisplayName}
+                    onChange={(event) => setProfileDisplayName(event.target.value)}
+                    maxLength={120}
+                    disabled={!canEditProfile || savingProfile}
+                    placeholder={user?.username ?? ''}
+                    variant="outline"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="profile-email" className="mb-1.5 text-xs">
+                    {t('profile.account.email')}
+                  </Label>
+                  <Input
+                    id="profile-email"
+                    type="email"
+                    value={profileEmail}
+                    onChange={(event) => setProfileEmail(event.target.value)}
+                    maxLength={254}
+                    disabled={!canEditProfile || savingProfile}
+                    placeholder="name@example.com"
+                    variant="outline"
+                  />
+                </div>
+              </div>
+              {!canEditProfile && (
+                <p className="text-xs text-muted-foreground">{t('profile.account.systemAccount')}</p>
+              )}
+              <Button
+                type="submit"
+                variant="default"
+                disabled={!canEditProfile || !profileChanged || savingProfile}
+              >
+                <IconDeviceFloppy className="size-4" />
+                {savingProfile ? t('actions.saving') : t('profile.account.saveProfile')}
+              </Button>
+            </form>
+
             <div>
               <div className="mb-3 flex items-center gap-2">
                 <IconDeviceDesktop className="size-4 text-muted-foreground" />
@@ -131,7 +216,9 @@ export default function ProfilePage() {
               <div className="max-w-sm">
                 <Select
                   value={language}
-                  onChange={(value) => setLanguage(value as SupportedLanguage)}
+                  onChange={(value) => {
+                    void updatePreferences({ preferredLanguage: value as SupportedLanguage });
+                  }}
                   options={supportedLanguages.map((lang) => ({
                     value: lang,
                     label: languageLabels[lang],

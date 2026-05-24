@@ -279,6 +279,15 @@ export function describeFieldType(type: ConfigFieldType, t: TFunction<'common'>)
         defaultValue:
           'Uses a configured communication channel. Leave it empty to fall back to the default enabled channel.',
       });
+    case 'webhook-select':
+      return t('workflows.fieldTypeWebhookSelect', {
+        defaultValue: 'Selects an active configured outbound webhook.',
+      });
+    case 'registry-select':
+      return t('workflows.fieldTypeRegistrySelect', {
+        defaultValue:
+          'Uses a configured registry. Leave it empty to fall back to the default registry.',
+      });
     case 'text':
     default:
       return t('workflows.fieldTypeText', {

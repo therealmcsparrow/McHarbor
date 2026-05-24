@@ -593,7 +593,14 @@
     "selectLinkOutput": "Sélectionnez la sortie du lien...",
     "noLinkOutputsFound": "Aucune sortie de lien trouvée",
     "conditionLabel": "Etat {{count}}",
-    "selectColor": "Sélectionnez la couleur {{color}}"
+    "selectColor": "Sélectionnez la couleur {{color}}",
+    "selectWebhook": "Selectionner un webhook...",
+    "noWebhooksFound": "Aucun webhook actif trouve",
+    "selectRegistry": "Selectionner un registry...",
+    "useDefaultRegistry": "Utiliser le registry par defaut",
+    "noRegistriesFound": "Aucun registry trouve",
+    "fieldTypeWebhookSelect": "Selectionne un webhook sortant configure actif.",
+    "fieldTypeRegistrySelect": "Utilise un registry configure. Laissez vide pour utiliser le registry par defaut."
   },
   "store": {
     "title": "Magasin",
@@ -727,7 +734,14 @@
       "displayName": "Nom affich?",
       "email": "E-mail",
       "noEmail": "Aucune adresse e-mail",
-      "unknownUser": "Utilisateur inconnu"
+      "unknownUser": "Utilisateur inconnu",
+      "editTitle": "Details du compte",
+      "saveProfile": "Enregistrer le profil",
+      "systemAccount": "Le compte systeme integre ne peut pas etre modifie.",
+      "toast": {
+        "updated": "Profil mis a jour",
+        "updateFailed": "Impossible de mettre a jour le profil"
+      }
     },
     "preferences": {
       "title": "Pr?f?rences",
@@ -735,7 +749,7 @@
       "themeLightDescription": "Utilisez une interface claire pour le travail de jour.",
       "themeDarkDescription": "Utilisez l'interface sombre de McHarbor.",
       "themeSystemDescription": "Suivez le r?glage du navigateur ou du syst?me d'exploitation.",
-      "languageDescription": "Les changements de langue sont appliqu?s imm?diatement et enregistr?s pour ce navigateur."
+      "languageDescription": "Les changements de langue sont appliques immediatement et enregistres dans votre profil utilisateur."
     }
   }
 }

@@ -4,6 +4,17 @@
   "config": {
     "environment": "Environment",
     "term": "Search Term",
-    "limit": "Limit"
+    "limit": "Limit",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry URL",
+    "registry_username": "Registry Username",
+    "registry_password": "Registry Password"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
   }
 }
