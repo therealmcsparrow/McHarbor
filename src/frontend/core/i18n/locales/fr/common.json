@@ -717,5 +717,25 @@
     "all": "Tous",
     "resource": "Ressource",
     "optional": "facultatif"
+  },
+  "profile": {
+    "menuItem": "Profil",
+    "title": "Profil",
+    "description": "G?rez les pr?f?rences de votre compte.",
+    "account": {
+      "username": "Nom d'utilisateur",
+      "displayName": "Nom affich?",
+      "email": "E-mail",
+      "noEmail": "Aucune adresse e-mail",
+      "unknownUser": "Utilisateur inconnu"
+    },
+    "preferences": {
+      "title": "Pr?f?rences",
+      "description": "Choisissez l'apparence de McHarbor et la langue utilis?e.",
+      "themeLightDescription": "Utilisez une interface claire pour le travail de jour.",
+      "themeDarkDescription": "Utilisez l'interface sombre de McHarbor.",
+      "themeSystemDescription": "Suivez le r?glage du navigateur ou du syst?me d'exploitation.",
+      "languageDescription": "Les changements de langue sont appliqu?s imm?diatement et enregistr?s pour ce navigateur."
+    }
   }
 }

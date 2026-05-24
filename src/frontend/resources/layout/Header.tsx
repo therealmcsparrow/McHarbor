@@ -2,13 +2,10 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { lazy, Suspense } from 'react';
-import { IconMoon, IconSun, IconDeviceDesktop, IconLogout, IconSearch, IconCheck, IconLanguage, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconInfoCircle } from '@tabler/icons-react';
+import { IconLogout, IconSearch, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconInfoCircle, IconUserCircle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@resources/hooks/useTheme';
 import { useAuth } from '@core/auth/useAuth';
 import { useEnvironmentStore } from '@resources/stores/environment';
-import { useLanguageStore } from '@resources/stores/language';
-import { supportedLanguages, languageLabels, type SupportedLanguage } from '@core/i18n';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 import { useState, useRef, useEffect } from 'react';
@@ -45,25 +42,16 @@ const ENV_SELECTOR_ROUTES = new Set([
 
 export function Header() {
   const { t } = useTranslation('common');
-  const { theme, setTheme } = useTheme();
   const user = useAuth((s) => s.user);
   const logout = useAuth((s) => s.logout);
   const environments = useEnvironmentStore((s) => s.environments);
   const currentId = useEnvironmentStore((s) => s.currentId);
   const setCurrentId = useEnvironmentStore((s) => s.setCurrentId);
   const setEnvironments = useEnvironmentStore((s) => s.setEnvironments);
-  const language = useLanguageStore((s) => s.language);
-  const setLanguage = useLanguageStore((s) => s.setLanguage);
   const { pathname } = useLocation();
   const showEnvSelector = ENV_SELECTOR_ROUTES.has(pathname);
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggleSidebar = useSidebarStore((s) => s.toggle);
-
-  const themeOptions = [
-    { value: 'light' as const, label: t('theme.light'), icon: IconSun },
-    { value: 'dark' as const, label: t('theme.dark'), icon: IconMoon },
-    { value: 'system' as const, label: t('theme.system'), icon: IconDeviceDesktop },
-  ];
 
   type EnvSummary = {
     id: string;
@@ -245,40 +233,16 @@ export function Header() {
                     </div>
                   </div>
 
-                  {/* Theme section */}
-                  <div className="px-3 py-1.5 text-xs font-medium uppercase text-muted-foreground">{t('theme.label')}</div>
-                  {themeOptions.map((opt) => (
-                    <Button
-                      key={opt.value}
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setTheme(opt.value)}
-                      className="w-full justify-start rounded-none px-3 py-1.5 text-sm"
-                    >
-                      <opt.icon className="size-4 text-muted-foreground" />
-                      <span>{opt.label}</span>
-                      {theme === opt.value && <IconCheck className="ml-auto size-3.5 text-primary" />}
-                    </Button>
-                  ))}
-
-                  {/* Language section */}
                   <div className="my-1 border-t border-border" />
-                  <div className="px-3 py-1.5 text-xs font-medium uppercase text-muted-foreground">{t('language.label')}</div>
-                  {supportedLanguages.map((lang) => (
-                    <Button
-                      key={lang}
-                      type="button"
-                      variant="ghost"
-                      onClick={() => setLanguage(lang as SupportedLanguage)}
-                      className="w-full justify-start rounded-none px-3 py-1.5 text-sm"
-                    >
-                      <IconLanguage className="size-4 text-muted-foreground" />
-                      <span>{languageLabels[lang]}</span>
-                      {language === lang && <IconCheck className="ml-auto size-3.5 text-primary" />}
-                    </Button>
-                  ))}
-
-                  <div className="my-1 border-t border-border" />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => { setMenuOpen(false); navigate('/profile'); }}
+                    className="w-full justify-start rounded-none px-3 py-1.5 text-sm"
+                  >
+                    <IconUserCircle className="size-4 text-muted-foreground" />
+                    <span>{t('profile.menuItem')}</span>
+                  </Button>
                   <Button
                     type="button"
                     variant="ghost"

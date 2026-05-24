@@ -82,7 +82,7 @@
   "yes": "Ja",
   "no": "Nein",
   "select": {
-    "placeholder": "Auswählen...",
+    "placeholder": "Ausw?hlen...",
     "searchPlaceholder": "Suchen...",
     "noResults": "Keine Ergebnisse"
   },
@@ -470,7 +470,7 @@
     "disableNodeDescription": "Die Kette an diesem Knoten blockieren",
     "debugOn": "Debug AN",
     "debug": "Debug",
-    "skipped": "Übersprungen",
+    "skipped": "?bersprungen",
     "disabled": "Deaktiviert",
     "noConfiguration": "Keine Konfiguration",
     "input": "Eingabe",
@@ -593,15 +593,6 @@
     "selectLinkOutput": "Link-Ausgabe auswählen...",
     "noLinkOutputsFound": "Keine Link-Ausgaben gefunden",
     "conditionLabel": "Bedingung {{count}}",
-    "removeCondition": "Bedingung entfernen",
-    "field": "Feld",
-    "value": "Wert",
-    "input": "Eingabe",
-    "config": "Konfiguration",
-    "output": "Ausgabe",
-    "data": "Daten",
-    "skipped": "?bersprungen",
-    "disabled": "Deaktiviert",
     "selectColor": "Farbe {{color}} ausw?hlen"
   },
   "store": {
@@ -720,16 +711,31 @@
       "deleteFailed": "Löschen des benutzerdefinierten Knotens fehlgeschlagen"
     }
   },
-  "select": {
-    "placeholder": "Ausw?hlen...",
-    "searchPlaceholder": "Suchen...",
-    "noResults": "Keine Ergebnisse"
-  },
   "labels": {
     "yes": "Ja",
     "no": "Nein",
     "all": "Alle",
     "resource": "Ressource",
     "optional": "optional"
+  },
+  "profile": {
+    "menuItem": "Profil",
+    "title": "Profil",
+    "description": "Verwalte deine Kontoeinstellungen.",
+    "account": {
+      "username": "Benutzername",
+      "displayName": "Anzeigename",
+      "email": "E-Mail",
+      "noEmail": "Keine E-Mail-Adresse",
+      "unknownUser": "Unbekannter Benutzer"
+    },
+    "preferences": {
+      "title": "Einstellungen",
+      "description": "W?hle, wie McHarbor aussieht und welche Sprache verwendet wird.",
+      "themeLightDescription": "Nutze eine helle Oberfl?che f?r die Arbeit bei Tageslicht.",
+      "themeDarkDescription": "Nutze die dunkle McHarbor-Oberfl?che.",
+      "themeSystemDescription": "Folge der Einstellung deines Browsers oder Betriebssystems.",
+      "languageDescription": "Sprach?nderungen werden sofort angewendet und f?r diesen Browser gespeichert."
+    }
   }
 }

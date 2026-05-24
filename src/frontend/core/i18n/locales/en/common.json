@@ -717,5 +717,25 @@
     "all": "All",
     "resource": "Resource",
     "optional": "optional"
+  },
+  "profile": {
+    "menuItem": "Profile",
+    "title": "Profile",
+    "description": "Manage your account preferences.",
+    "account": {
+      "username": "Username",
+      "displayName": "Display name",
+      "email": "Email",
+      "noEmail": "No email address",
+      "unknownUser": "Unknown user"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "description": "Choose how McHarbor looks and which language it uses.",
+      "themeLightDescription": "Use a bright interface for daylight work.",
+      "themeDarkDescription": "Use the dark-first McHarbor interface.",
+      "themeSystemDescription": "Follow your browser or operating system setting.",
+      "languageDescription": "Language changes apply immediately and are saved for this browser."
+    }
   }
 }

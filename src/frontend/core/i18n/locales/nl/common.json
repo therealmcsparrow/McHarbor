@@ -476,7 +476,7 @@
     "input": "Invoer",
     "config": "Configuratie",
     "output": "Uitvoer",
-    "data": "Gegevens",
+    "data": "Data",
     "noDebugMessages": "Nog geen debugberichten.",
     "noDebugDescription": "Voer een workflow uit om uitvoeringstrace en payload gegevens hier te zien.",
     "entries": "{{count}} items",
@@ -593,15 +593,6 @@
     "selectLinkOutput": "Selecteer link-uitvoer...",
     "noLinkOutputsFound": "Geen link-uitvoeren gevonden",
     "conditionLabel": "Voorwaarde {{count}}",
-    "removeCondition": "Voorwaarde verwijderen",
-    "field": "Veld",
-    "value": "Waarde",
-    "input": "Invoer",
-    "config": "Configuratie",
-    "output": "Uitvoer",
-    "data": "Data",
-    "skipped": "Overgeslagen",
-    "disabled": "Uitgeschakeld",
     "selectColor": "Kleur {{color}} selecteren"
   },
   "store": {
@@ -720,16 +711,31 @@
       "deleteFailed": "Aangepaste node verwijderen mislukt"
     }
   },
-  "select": {
-    "placeholder": "Selecteer...",
-    "searchPlaceholder": "Zoeken...",
-    "noResults": "Geen resultaten"
-  },
   "labels": {
     "yes": "Ja",
     "no": "Nee",
     "all": "Alles",
     "resource": "Resource",
     "optional": "optioneel"
+  },
+  "profile": {
+    "menuItem": "Profiel",
+    "title": "Profiel",
+    "description": "Beheer je accountvoorkeuren.",
+    "account": {
+      "username": "Gebruikersnaam",
+      "displayName": "Weergavenaam",
+      "email": "E-mail",
+      "noEmail": "Geen e-mailadres",
+      "unknownUser": "Onbekende gebruiker"
+    },
+    "preferences": {
+      "title": "Voorkeuren",
+      "description": "Kies hoe McHarbor eruitziet en welke taal wordt gebruikt.",
+      "themeLightDescription": "Gebruik een lichte interface voor werken bij daglicht.",
+      "themeDarkDescription": "Gebruik de donkere McHarbor-interface.",
+      "themeSystemDescription": "Volg de instelling van je browser of besturingssysteem.",
+      "languageDescription": "Taalwijzigingen worden direct toegepast en voor deze browser opgeslagen."
+    }
   }
 }

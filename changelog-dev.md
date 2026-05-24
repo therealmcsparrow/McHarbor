@@ -2,6 +2,19 @@
 
 Development-only changes for McHarbor are documented in this file.
 
+## [1.1.18-dev] - 2026-05-24
+
+### Added
+
+- Added a dedicated profile page with account details, theme selection, and language selection.
+- Added localized profile-page copy for every supported interface language.
+- Added a Profile link to the avatar menu for direct access to account preferences.
+
+### Changed
+
+- Moved theme and language controls out of the avatar menu and into the profile page.
+- Switched the dev branch patch version markers, Docker image defaults, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, lockfile root version, and footer display to `1.1.18-dev`.
+
 ## [1.1.17-dev] - 2026-05-24
 
 ### Added
