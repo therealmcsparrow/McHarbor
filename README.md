@@ -143,7 +143,3 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock \
   ghcr.io/therealmcsparrow/mcharbor-agent:latest
 ```
-
-If you see an error like `Cannot connect to the Docker daemon at unix:///var/run/docker.sock`, check that Docker is running on the host and that the socket mount is present.
-
-Note: `ghcr.io/therealmcsparrow/mcharbor:latest` and `ghcr.io/therealmcsparrow/mcharbor-agent:latest` require the GitHub Container Registry publish step to succeed before these commands will pull successfully.
