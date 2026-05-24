@@ -3,6 +3,8 @@
   "description": "Gerenciar conexões Docker e Kubernetes",
   "searchPlaceholder": "Pesquisar ambientes...",
   "addEnvironment": "Adicionar ambiente",
+  "tableView": "Visualizacao em tabela",
+  "cardView": "Visualizacao em cartoes",
   "emptyMessage": "Nenhum ambiente configurado",
   "columns": {
     "name": "Nome",
@@ -30,6 +32,21 @@
     "ssh": "SSH",
     "agent": "Agente Remoto",
     "podman": "Podman"
+  },
+  "card": {
+    "cpu": "CPU",
+    "ram": "RAM",
+    "containers": "Containers",
+    "running": "Em execucao",
+    "stopped": "Parados",
+    "restarting": "Reiniciando",
+    "killed": "Finalizados",
+    "needsUpdates": "Precisam de updates",
+    "loadingMetrics": "Carregando metricas...",
+    "unavailable": "Indisponivel",
+    "versionUnknown": "Versao desconhecida",
+    "open": "Abrir ambiente",
+    "noMatches": "Nenhum ambiente corresponde a pesquisa"
   },
   "create": {
     "title": "Adicionar ambiente",

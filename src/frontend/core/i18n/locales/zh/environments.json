@@ -3,6 +3,8 @@
   "description": "管理 Docker 和 Kubernetes 连接",
   "searchPlaceholder": "搜索环境...",
   "addEnvironment": "添加环境",
+  "tableView": "表格视图",
+  "cardView": "卡片视图",
   "emptyMessage": "没有配置环境",
   "columns": {
     "name": "姓名",
@@ -30,6 +32,21 @@
     "ssh": "SSH",
     "agent": "远程代理",
     "podman": "波德曼"
+  },
+  "card": {
+    "cpu": "CPU",
+    "ram": "RAM",
+    "containers": "容器",
+    "running": "运行中",
+    "stopped": "已停止",
+    "restarting": "重启中",
+    "killed": "已终止",
+    "needsUpdates": "需要更新",
+    "loadingMetrics": "正在加载指标...",
+    "unavailable": "不可用",
+    "versionUnknown": "版本未知",
+    "open": "打开环境",
+    "noMatches": "没有符合搜索条件的环境"
   },
   "create": {
     "title": "添加环境",

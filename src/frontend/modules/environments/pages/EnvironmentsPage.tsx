@@ -3,13 +3,14 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconPlus } from '@tabler/icons-react';
+import { IconLayoutGrid, IconLayoutList, IconPlus } from '@tabler/icons-react';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { DataGrid } from '@resources/components/DataGrid';
 import { Button } from '@resources/components/ui/Button';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { AgentTokenDialog } from '../components/AgentTokenDialog';
 import { CreateEnvironmentDialog } from '../components/CreateEnvironmentDialog';
+import { EnvironmentCardGrid } from '../components/EnvironmentCardGrid';
 import { useEnvironmentColumns } from '../components/EnvironmentsColumns';
 import {
   useEnvironmentList,
@@ -17,6 +18,7 @@ import {
   useRemoveEnvironment,
 } from '../hooks/useEnvironmentActions';
 import type { InstallTokenResponse } from '../hooks/useEnvironmentActions';
+import { useEnvironmentsViewStore } from '../stores/environments-view';
 
 type AgentTokenData = {
   token: string;
@@ -28,6 +30,7 @@ export default function EnvironmentsPage() {
   const { data: environments = [], isLoading } = useEnvironmentList();
   const testEnv = useTestEnvironment();
   const removeEnv = useRemoveEnvironment();
+  const { viewMode, setViewMode } = useEnvironmentsViewStore();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
@@ -44,20 +47,50 @@ export default function EnvironmentsPage() {
         title={t('title')}
         description={t('description')}
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <IconPlus className="h-4 w-4" /> {t('addEnvironment')}
-          </Button>
+          <>
+            <Button onClick={() => setCreateOpen(true)}>
+              <IconPlus className="h-4 w-4" /> {t('addEnvironment')}
+            </Button>
+            <div className="h-6 w-px bg-border" />
+            <div className="flex items-center rounded-lg border border-border">
+              <Button
+                variant={viewMode === 'table' ? 'default' : 'ghost'}
+                size="icon-sm"
+                onClick={() => setViewMode('table')}
+                aria-label={t('tableView')}
+              >
+                <IconLayoutList className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'card' ? 'default' : 'ghost'}
+                size="icon-sm"
+                onClick={() => setViewMode('card')}
+                aria-label={t('cardView')}
+              >
+                <IconLayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+          </>
         }
       />
 
-      <DataGrid
-        data={environments}
-        columns={columns}
-        searchKey="name"
-        searchPlaceholder={t('searchPlaceholder')}
-        loading={isLoading}
-        emptyMessage={t('emptyMessage')}
-      />
+      {viewMode === 'table' ? (
+        <DataGrid
+          data={environments}
+          columns={columns}
+          searchKey="name"
+          searchPlaceholder={t('searchPlaceholder')}
+          loading={isLoading}
+          emptyMessage={t('emptyMessage')}
+        />
+      ) : (
+        <EnvironmentCardGrid
+          environments={environments}
+          isLoading={isLoading}
+          onTest={(id) => testEnv.mutate(id)}
+          onRemove={setConfirmTarget}
+        />
+      )}
 
       <CreateEnvironmentDialog
         open={createOpen}

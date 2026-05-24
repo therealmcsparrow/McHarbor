@@ -2,10 +2,11 @@
 
 Development-only changes for McHarbor are documented in this file.
 
-## [1.1.21-dev] - 2026-05-24
+## [1.1.22-dev] - 2026-05-24
 
 ### Added
 
+- Added an environments card overview with a persistent table/card switch, compact CPU and RAM sparklines, container state totals, and per-environment image update counts.
 - Added authenticated user language preferences with a user-table migration, session/login payload support, a protected preferences endpoint, and profile/settings selectors that persist the selected interface language.
 - Added local-user profile editing for display name and email, including a protected profile update endpoint, audit logging, localized profile form copy, and auth-store refresh after save.
 - Added configured/custom delivery modes for workflow email and outbound webhook nodes, including saved webhook selection, custom SMTP settings, HMAC-signed configured webhook calls, and workflow delivery recording.
@@ -14,10 +15,11 @@ Development-only changes for McHarbor are documented in this file.
 
 ### Changed
 
+- Matched the environments card overview grid to the container cards so cards use the same responsive widths across breakpoints.
 - Updated workflow node requirement inference so conditionally hidden fields do not make inactive delivery or registry modes look required.
 - Hardened auth preference/session paths by checking database write and lookup errors instead of silently ignoring them.
 - Fixed cron schedule previews so valid schedules with timezone labels no longer display “Invalid cron expression” because of date formatting.
-- Switched the dev branch patch version markers, Docker image defaults, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, lockfile root version, and footer display to `1.1.21-dev`.
+- Switched the dev branch patch version markers, Docker image defaults, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, lockfile root version, and footer display to `1.1.22-dev`.
 
 ## [1.1.20-dev] - 2026-05-24
 

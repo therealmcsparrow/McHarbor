@@ -3,6 +3,8 @@
   "description": "Docker- und Kubernetes-Verbindungen verwalten",
   "searchPlaceholder": "Umgebungen suchen...",
   "addEnvironment": "Umgebung hinzufügen",
+  "tableView": "Tabellenansicht",
+  "cardView": "Kartenansicht",
   "emptyMessage": "Keine Umgebungen konfiguriert",
   "columns": {
     "name": "Name",
@@ -30,6 +32,21 @@
     "ssh": "SSH",
     "agent": "Remote Agent",
     "podman": "Podman"
+  },
+  "card": {
+    "cpu": "CPU",
+    "ram": "RAM",
+    "containers": "Container",
+    "running": "Laufend",
+    "stopped": "Gestoppt",
+    "restarting": "Neustart",
+    "killed": "Beendet",
+    "needsUpdates": "Updates verfugbar",
+    "loadingMetrics": "Metriken werden geladen...",
+    "unavailable": "Nicht verfugbar",
+    "versionUnknown": "Version unbekannt",
+    "open": "Umgebung offnen",
+    "noMatches": "Keine Umgebungen entsprechen deiner Suche"
   },
   "create": {
     "title": "Umgebung hinzufügen",

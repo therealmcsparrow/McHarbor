@@ -3,6 +3,8 @@
   "description": "Manage Docker and Kubernetes connections",
   "searchPlaceholder": "Search environments...",
   "addEnvironment": "Add Environment",
+  "tableView": "Table view",
+  "cardView": "Card view",
   "emptyMessage": "No environments configured",
   "columns": {
     "name": "Name",
@@ -30,6 +32,21 @@
     "ssh": "SSH",
     "agent": "Remote Agent",
     "podman": "Podman"
+  },
+  "card": {
+    "cpu": "CPU",
+    "ram": "RAM",
+    "containers": "Containers",
+    "running": "Running",
+    "stopped": "Stopped",
+    "restarting": "Restarting",
+    "killed": "Killed",
+    "needsUpdates": "Needs updates",
+    "loadingMetrics": "Loading metrics...",
+    "unavailable": "Unavailable",
+    "versionUnknown": "Version unknown",
+    "open": "Open environment",
+    "noMatches": "No environments match your search"
   },
   "create": {
     "title": "Add Environment",
