@@ -2,6 +2,39 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.2.0] - 2026-05-24
+
+### Added
+
+- Added an environments card overview with a persistent table/card switch, CPU and RAM sparklines, container state totals, and per-environment image update counts.
+- Added local-user profile management, including account details editing for display name and email, a dedicated profile page, profile navigation from the avatar menu, and localized profile copy.
+- Added authenticated user language preferences with session/login payload support, protected preference endpoints, and persisted profile/settings language selectors.
+- Added Spanish, French, Portuguese, and Chinese as selectable interface languages, including frontend resource bundles, widget/node translations, backend API message translations, and language negotiation.
+- Added security user creation for local accounts, including backend validation, duplicate username handling, default role assignment, RBAC cache invalidation, audit logging, frontend creation controls, and localized copy.
+- Added manual container-to-stack relinking from container detail and stack detail views, backed by a persisted link table.
+- Added configured delivery and registry selectors across workflow communication, email, webhook, image pull, image push, and registry search nodes, including saved channel/webhook/registry pickers, custom fallback modes, HMAC-signed configured webhooks, custom SMTP settings, encrypted credential reuse, and reusable config field renderers.
+
+### Changed
+
+- Matched environment overview cards to container card grid widths across responsive breakpoints.
+- Moved theme and language controls from the avatar menu into the profile page.
+- Made prune-unused actions visible as page-level actions for containers, images, volumes, and stacks.
+- Expanded i18n validation to cover every locale directory plus co-located widget and workflow node translation files.
+- Updated the README AI section to describe AI-assisted translation, review, documentation, and developer workflow support.
+- Updated OpenAPI documentation for manual container-to-stack link, relink, and unlink endpoints.
+- Improved workflow node requirement inference so conditionally hidden fields do not appear required when inactive.
+- Hardened auth preference and session update paths by surfacing database write and lookup errors instead of silently ignoring them.
+
+### Fixed
+
+- Fixed cron schedule previews so valid schedules with timezone labels no longer render as “Invalid cron expression”.
+- Fixed container take-over so adopting a standalone container creates a durable container-to-stack link instead of only creating a managed stack record.
+- Preserved selected container rows across polling refreshes by pruning table selection only when selected row IDs disappear.
+
+### Tests
+
+- Added backend i18n tests for the expanded language negotiation and message registrations.
+
 ## [1.1.15] - 2026-05-24
 
 ### Changed
