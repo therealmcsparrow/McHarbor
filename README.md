@@ -79,7 +79,7 @@ docker compose up -d
 
 The app is served on port `8705` by default, mapped to backend port `5474` inside the container.
 
-The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.1.22-dev`. To run the optional remote agent from Compose, set `MCHARBOR_URL` and `MCHARBOR_AGENT_TOKEN` and start the `agent` profile:
+The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.2.0`. To run the optional remote agent from Compose, set `MCHARBOR_URL` and `MCHARBOR_AGENT_TOKEN` and start the `agent` profile:
 
 ```bash
 docker compose --profile agent up -d
