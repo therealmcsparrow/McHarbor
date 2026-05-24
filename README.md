@@ -1,5 +1,12 @@
 # McHarbor
 
+**!! IMPORTANT !!**
+
+There was a problem with self-updating. This is fixed from version 1.1.13. I am so sorry for any inconvenience it may cause you.
+If you have a version below 1.1.13 you need it to update or reinstall it by CLI or with another docker manager.
+
+**!! IMPORTANT !!**
+
 Your containers. Your clusters. Your rules.
 
 McHarbor is a self-hosted control plane for Docker and Kubernetes environments. It brings enterprise-level functionality, container management, remote access, live operational visibility, dashboards, workflow automation, and extensibility into one platform that you run yourself.

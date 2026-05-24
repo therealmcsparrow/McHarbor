@@ -431,6 +431,10 @@
       "reinstallTitle": "Reinstall Containers",
       "reinstallDescription": "Recreate the selected containers with their current image one by one.",
       "reinstallAction": "Reinstall"
+    },
+    "confirm": {
+      "reinstallAllTitle": "Reinstall All Containers",
+      "reinstallAllDescription": "Force recreate {{count}} container(s) with their current images. Running containers may be briefly interrupted."
     }
   },
   "scan": {

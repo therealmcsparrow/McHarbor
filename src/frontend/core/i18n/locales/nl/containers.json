@@ -431,6 +431,10 @@
       "reinstallTitle": "Containers opnieuw installeren",
       "reinstallDescription": "Recreate de geselecteerde containers met hun huidige image een voor een.",
       "reinstallAction": "Opnieuw installeren"
+    },
+    "confirm": {
+      "reinstallAllTitle": "Alle containers opnieuw installeren",
+      "reinstallAllDescription": "Maak {{count}} container(s) geforceerd opnieuw aan met hun huidige images. Actieve containers kunnen kort worden onderbroken."
     }
   },
   "scan": {

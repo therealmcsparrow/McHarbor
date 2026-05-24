@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { ContainerInfo } from '@core/types/docker';
 import { DataGrid } from '@resources/components/DataGrid';
+import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { useBatchProgressOperation } from '@resources/hooks/useBatchProgressOperation';
 import { useCurrentEnvironmentActivitySettings } from '@resources/hooks/useCurrentEnvironmentActivitySettings';
@@ -42,6 +43,7 @@ export default function ContainersPage() {
   const [terminalTarget, setTerminalTarget] = useState<ContainerInfo | null>(null);
   const [logsTarget, setLogsTarget] = useState<ContainerInfo | null>(null);
   const [takeOverTarget, setTakeOverTarget] = useState<ContainerInfo | null>(null);
+  const [reinstallAllConfirmOpen, setReinstallAllConfirmOpen] = useState(false);
 
   const updateAvailableIDs = new Set(
     updateResults ? [...updateResults.values()].filter((result) => result.updateAvailable).map((result) => result.containerId) : [],
@@ -115,7 +117,7 @@ export default function ContainersPage() {
             totalContainers={allTargets.length}
             onCheckUpdates={() => checkUpdates.mutate(undefined)}
             onUpdateAll={() => runContainerOperation('update', updateTargets)}
-            onReinstallAll={() => runContainerOperation('reinstall', allTargets)}
+            onReinstallAll={() => setReinstallAllConfirmOpen(true)}
             onCreate={() => navigate('/containers/create')}
             onViewModeChange={setViewMode}
             t={t}
@@ -168,6 +170,21 @@ export default function ContainersPage() {
         setLogsTarget={setLogsTarget}
         setTakeOverTarget={setTakeOverTarget}
         t={t}
+      />
+
+      <ConfirmDialog
+        open={reinstallAllConfirmOpen}
+        onOpenChange={setReinstallAllConfirmOpen}
+        title={t('updates.confirm.reinstallAllTitle')}
+        description={t('updates.confirm.reinstallAllDescription', {
+          count: allTargets.length,
+        })}
+        confirmLabel={t('updates.progress.reinstallAction')}
+        onConfirm={() => {
+          runContainerOperation('reinstall', allTargets);
+          setReinstallAllConfirmOpen(false);
+        }}
+        loading={batchProgress.isRunning}
       />
     </div>
   );

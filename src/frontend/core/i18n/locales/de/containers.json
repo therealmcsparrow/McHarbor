@@ -431,6 +431,10 @@
       "reinstallTitle": "Container neu installieren",
       "reinstallDescription": "Die ausgewaehlten Container mit ihrem aktuellen Image nacheinander neu erstellen.",
       "reinstallAction": "Neu installieren"
+    },
+    "confirm": {
+      "reinstallAllTitle": "Alle Container neu installieren",
+      "reinstallAllDescription": "{{count}} Container mit ihren aktuellen Images zwangsweise neu erstellen. Laufende Container koennen dabei kurzzeitig unterbrochen werden."
     }
   },
   "scan": {
