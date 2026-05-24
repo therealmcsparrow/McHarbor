@@ -2,6 +2,16 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.1.15] - 2026-05-24
+
+### Changed
+
+- Added Piper and Speech-to-Phrase to the bundled App Store catalog.
+- Added Frigate, Homebridge, go2rtc, Scrypted, InfluxDB, EMQX, EVCC, rtl_433, Ring-MQTT, and AppDaemon to the bundled App Store catalog.
+- Updated Technitium's catalog display name to Technitium DNS Server.
+- Enabled App Store compose overrides for entries that require a custom command block.
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.1.15`.
+
 ## [1.1.13] - 2026-05-24
 
 ### Fixed
