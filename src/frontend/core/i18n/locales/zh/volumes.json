@@ -1,0 +1,40 @@
+{
+  "title": "卷",
+  "description": "{{count}} 卷",
+  "searchPlaceholder": "搜索量...",
+  "emptyMessage": "未找到卷",
+  "tableView": "表格视图",
+  "cardView": "卡片视图",
+  "pruneUnused": "修剪未使用的",
+  "pruneDescription": "删除未附加到任何容器的卷。",
+  "columns": {
+    "name": "姓名",
+    "driver": "司机",
+    "usage": "用法",
+    "mountpoint": "挂载点",
+    "created": "已创建",
+    "actions": "行动"
+  },
+  "badges": {
+    "inUse": "使用中",
+    "unused": "未使用"
+  },
+  "create": {
+    "title": "创建卷",
+    "description": "指定卷名称和驱动程序。",
+    "name": "卷名",
+    "driver": "司机",
+    "driverPlaceholder": "驱动程序（默认：本地）",
+    "submit": "创造",
+    "creating": "创造..."
+  },
+  "toast": {
+    "created": "已创建卷",
+    "removed": "删除卷",
+    "pruned": "未使用的卷被修剪"
+  },
+  "confirm": {
+    "removeTitle": "删除音量",
+    "removeDescription": "这将永久删除该卷及其所有数据。"
+  }
+}

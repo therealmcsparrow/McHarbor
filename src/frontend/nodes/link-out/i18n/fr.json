@@ -1,0 +1,7 @@
+{
+  "label": "Lien vers la sortie",
+  "description": "Stocker le message actuel pour qu'un autre flux de travail le consomme",
+  "config": {
+    "name": "Nom"
+  }
+}

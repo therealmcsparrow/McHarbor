@@ -1,0 +1,14 @@
+{
+  "label": "Base64",
+  "description": "使用 Base64 对值进行编码或解码",
+  "config": {
+    "property": "财产",
+    "action": "行动"
+  },
+  "options": {
+    "action": {
+      "encode": "编码",
+      "decode": "解码"
+    }
+  }
+}

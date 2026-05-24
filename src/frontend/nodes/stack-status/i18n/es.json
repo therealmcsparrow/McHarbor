@@ -1,0 +1,8 @@
+{
+  "label": "Estado de la pila",
+  "description": "Inspeccionar el estado de una pila de redacción",
+  "config": {
+    "environment": "Ambiente",
+    "stack_name": "Nombre de la pila"
+  }
+}

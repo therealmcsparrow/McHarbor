@@ -1,0 +1,20 @@
+{
+  "label": "健康检查",
+  "description": "检查 HTTP 端点和分支的运行状况",
+  "config": {
+    "url": "URL",
+    "method": "方法",
+    "expected_status": "预期状态",
+    "timeout": "超时（秒）",
+    "retries": "重试"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

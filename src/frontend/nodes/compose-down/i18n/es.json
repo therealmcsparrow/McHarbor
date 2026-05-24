@@ -1,0 +1,9 @@
+{
+  "label": "Compose abajo",
+  "description": "Detener y eliminar una pila de redacción",
+  "config": {
+    "environment": "Ambiente",
+    "stack_name": "Nombre de la pila",
+    "remove_volumes": "Eliminar volúmenes"
+  }
+}

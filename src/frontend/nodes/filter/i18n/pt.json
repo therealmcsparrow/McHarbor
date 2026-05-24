@@ -1,0 +1,19 @@
+{
+  "label": "Filtro",
+  "description": "Permitir ou bloquear uma mensagem usando uma condição",
+  "config": {
+    "field": "Campo",
+    "operator": "Operador",
+    "value": "Valor"
+  },
+  "options": {
+    "operator": {
+      "==": "Igual",
+      "!=": "Diferente",
+      "contains": "Contém",
+      "regex": "Regex de correspondência",
+      "is_empty": "Está vazio",
+      "is_not_empty": "Não está vazio"
+    }
+  }
+}

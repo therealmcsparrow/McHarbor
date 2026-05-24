@@ -1,0 +1,15 @@
+{
+  "label": "Trier",
+  "description": "Trier un tableau sur le message actuel",
+  "config": {
+    "property": "Propriété",
+    "sort_by": "Trier par",
+    "direction": "Direction"
+  },
+  "options": {
+    "direction": {
+      "asc": "Ascendant",
+      "desc": "Descendant"
+    }
+  }
+}

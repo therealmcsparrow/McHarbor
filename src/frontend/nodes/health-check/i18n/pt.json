@@ -1,0 +1,20 @@
+{
+  "label": "Verificação de saúde",
+  "description": "Verifique um endpoint HTTP e ramifique a integridade",
+  "config": {
+    "url": "URL",
+    "method": "Método",
+    "expected_status": "Status esperado",
+    "timeout": "Tempo limite (segundos)",
+    "retries": "Novas tentativas"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

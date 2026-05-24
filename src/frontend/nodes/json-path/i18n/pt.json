@@ -1,0 +1,9 @@
+{
+  "label": "Caminho JSON",
+  "description": "Leia um valor de dados estruturados com uma expressão JSONPath simples",
+  "config": {
+    "expression": "Expressão",
+    "property": "Propriedade",
+    "output_property": "Propriedade de saída"
+  }
+}

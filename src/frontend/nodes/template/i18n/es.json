@@ -1,0 +1,8 @@
+{
+  "label": "Plantilla",
+  "description": "Representar una plantilla de texto usando valores del mensaje del flujo de trabajo",
+  "config": {
+    "template": "Plantilla",
+    "output_property": "Propiedad de salida"
+  }
+}

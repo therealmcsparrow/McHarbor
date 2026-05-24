@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "workflowRuns": {
+      "label": "Exécutions de flux de travail",
+      "description": "Historique récent de l'exécution du workflow"
+    }
+  },
+  "workflowRunsWidget": {
+    "title": "Exécutions de flux de travail",
+    "workflow": "Flux de travail",
+    "status": "Statut",
+    "duration": "Durée",
+    "when": "Quand",
+    "noRuns": "Aucun flux de travail n'est encore exécuté"
+  }
+}

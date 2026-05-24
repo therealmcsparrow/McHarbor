@@ -1,0 +1,8 @@
+{
+  "label": "Docker 图像拉取",
+  "description": "从注册表中提取图像",
+  "config": {
+    "environment": "环境",
+    "image": "图像"
+  }
+}

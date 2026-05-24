@@ -1,0 +1,7 @@
+{
+  "label": "解析JSON",
+  "description": "将 JSON 字符串解析为对象或数组",
+  "config": {
+    "property": "财产"
+  }
+}

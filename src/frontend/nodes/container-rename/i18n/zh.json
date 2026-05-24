@@ -1,0 +1,9 @@
+{
+  "label": "容器重命名",
+  "description": "重命名容器",
+  "config": {
+    "environment": "环境",
+    "container": "容器",
+    "new_name": "新名称"
+  }
+}

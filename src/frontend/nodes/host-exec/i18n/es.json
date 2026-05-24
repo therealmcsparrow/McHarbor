@@ -1,0 +1,9 @@
+{
+  "label": "Ejecutivo anfitrión",
+  "description": "Ejecute un comando de host a través de un contenedor temporal",
+  "config": {
+    "environment": "Ambiente",
+    "command": "Dominio",
+    "timeout": "Tiempo de espera (segundos)"
+  }
+}

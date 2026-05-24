@@ -1,0 +1,8 @@
+{
+  "label": "Statistiques des conteneurs",
+  "description": "Lire les métriques d'exécution ponctuelles pour un conteneur",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient"
+  }
+}

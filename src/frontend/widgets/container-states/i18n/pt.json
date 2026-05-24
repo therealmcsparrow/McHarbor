@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "containerStates": {
+      "label": "Estados de contêiner",
+      "description": "Gráfico de rosca dos estados dos contêineres"
+    }
+  },
+  "containerStatesWidget": {
+    "title": "Estados de contêiner",
+    "noContainers": "Nenhum contêiner encontrado",
+    "total": "total"
+  }
+}

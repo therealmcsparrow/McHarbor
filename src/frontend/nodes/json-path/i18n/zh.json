@@ -1,0 +1,9 @@
+{
+  "label": "JSON路径",
+  "description": "使用简单的 JSONPath 表达式从结构化数据中读取值",
+  "config": {
+    "expression": "表达",
+    "property": "财产",
+    "output_property": "输出属性"
+  }
+}

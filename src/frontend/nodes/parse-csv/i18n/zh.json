@@ -1,0 +1,9 @@
+{
+  "label": "解析CSV",
+  "description": "将 CSV 或 TSV 文本解析为结构化行",
+  "config": {
+    "property": "财产",
+    "delimiter": "分隔符",
+    "has_headers": "有标题"
+  }
+}

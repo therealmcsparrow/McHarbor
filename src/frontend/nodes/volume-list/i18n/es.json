@@ -1,0 +1,8 @@
+{
+  "label": "Lista de volúmenes",
+  "description": "Listar volúmenes Docker",
+  "config": {
+    "environment": "Ambiente",
+    "filter_dangling": "Sólo colgando"
+  }
+}

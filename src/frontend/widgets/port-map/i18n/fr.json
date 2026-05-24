@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "portMap": {
+      "label": "Carte du port",
+      "description": "Mappages de ports hôte-conteneur"
+    }
+  },
+  "portMapWidget": {
+    "title": "Carte du port",
+    "container": "Récipient",
+    "mapping": "Hôte → Conteneur",
+    "protocol": "Protocole",
+    "noPorts": "Aucun port publié trouvé"
+  }
+}

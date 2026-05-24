@@ -1,0 +1,11 @@
+{
+  "label": "Crear red",
+  "description": "Crear una red Docker",
+  "config": {
+    "environment": "Ambiente",
+    "name": "Nombre",
+    "driver": "Conductor",
+    "internal": "Interno",
+    "subnet": "Subred"
+  }
+}

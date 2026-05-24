@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "storageBreakdown": {
+      "label": "Desglose del almacenamiento",
+      "description": "Uso de disco por categoría"
+    }
+  },
+  "storageBreakdownWidget": {
+    "title": "Desglose del almacenamiento",
+    "images": "Imágenes",
+    "volumes": "Volúmenes",
+    "containers": "Contenedores",
+    "buildCache": "Construir caché",
+    "total": "total",
+    "noData": "No hay datos de almacenamiento disponibles"
+  }
+}

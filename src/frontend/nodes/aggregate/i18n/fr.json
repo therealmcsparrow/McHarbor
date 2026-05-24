@@ -1,0 +1,15 @@
+{
+  "label": "Agrégat",
+  "description": "Collecter les éléments pour une agrégation ultérieure dans l'exécuteur",
+  "config": {
+    "group_by": "Regrouper par",
+    "mode": "Mode"
+  },
+  "options": {
+    "mode": {
+      "list": "Liste",
+      "count": "Compter",
+      "sum": "Somme"
+    }
+  }
+}

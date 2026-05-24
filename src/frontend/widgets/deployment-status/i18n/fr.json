@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "deploymentStatus": {
+      "label": "Statut de déploiement",
+      "description": "État du réplica de déploiement Kubernetes"
+    }
+  },
+  "deploymentStatusWidget": {
+    "title": "Statut de déploiement",
+    "name": "Nom",
+    "namespace": "Espace de noms",
+    "replicas": "Répliques",
+    "status": "Statut",
+    "healthy": "En bonne santé",
+    "progressing": "Progresser",
+    "noDeployments": "Aucun déploiement trouvé",
+    "notAvailable": "Kubernetes non disponible"
+  }
+}

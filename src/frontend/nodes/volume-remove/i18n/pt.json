@@ -1,0 +1,9 @@
+{
+  "label": "Remover volume",
+  "description": "Remover um volume Docker",
+  "config": {
+    "environment": "Ambiente",
+    "name": "Nome",
+    "force": "Vigor"
+  }
+}

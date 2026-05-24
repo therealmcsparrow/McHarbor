@@ -1,0 +1,8 @@
+{
+  "label": "Déclencheur de surveillance de fichier",
+  "description": "Démarrez un flux de travail lorsqu'un chemin de fichier surveillé change",
+  "config": {
+    "path": "Chemin",
+    "event_types": "Types d'événements"
+  }
+}

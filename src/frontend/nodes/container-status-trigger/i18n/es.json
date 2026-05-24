@@ -1,0 +1,18 @@
+{
+  "label": "Activador de estado del contenedor",
+  "description": "Iniciar un flujo de trabajo cuando un contenedor cambia de estado",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "status": "Estado del evento"
+  },
+  "options": {
+    "status": {
+      "any": "Cualquier",
+      "start": "Comenzar",
+      "stop": "Detener",
+      "die": "Morir",
+      "health_status": "Estado de salud"
+    }
+  }
+}

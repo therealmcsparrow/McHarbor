@@ -1,0 +1,14 @@
+{
+  "label": "Base64",
+  "description": "Codifique ou decodifique um valor com Base64",
+  "config": {
+    "property": "Propriedade",
+    "action": "Ação"
+  },
+  "options": {
+    "action": {
+      "encode": "Codificar",
+      "decode": "Decodificar"
+    }
+  }
+}

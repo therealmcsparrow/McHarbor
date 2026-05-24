@@ -1,0 +1,9 @@
+{
+  "label": "KV设定",
+  "description": "将值写入工作流键值存储",
+  "config": {
+    "key": "钥匙",
+    "property": "财产",
+    "ttl": "TTL（秒）"
+  }
+}

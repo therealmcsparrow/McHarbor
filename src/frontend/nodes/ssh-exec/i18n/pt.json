@@ -1,0 +1,12 @@
+{
+  "label": "Executivo SSH",
+  "description": "Execute um comando remoto por SSH com senha ou autenticação de chave",
+  "config": {
+    "host": "Hospedar",
+    "port": "Porta",
+    "user": "Usuário",
+    "password": "Senha",
+    "private_key": "Chave privada",
+    "command": "Comando"
+  }
+}

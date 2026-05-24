@@ -1,0 +1,7 @@
+{
+  "label": "Lista de pilha",
+  "description": "Listar pilhas de composição por rótulo do projeto",
+  "config": {
+    "environment": "Ambiente"
+  }
+}

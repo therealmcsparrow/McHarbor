@@ -1,0 +1,9 @@
+{
+  "label": "注册表搜索",
+  "description": "在容器注册表中搜索图像",
+  "config": {
+    "environment": "环境",
+    "term": "搜索词",
+    "limit": "限制"
+  }
+}

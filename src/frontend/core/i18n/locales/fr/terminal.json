@@ -1,0 +1,13 @@
+{
+  "title": "Terminal",
+  "description": "Shell interactif dans les conteneurs en cours d'exécution",
+  "selectContainer": "Sélectionnez un conteneur",
+  "selectContainerPlaceholder": "Sélectionnez un conteneur...",
+  "selectShell": "Coquille",
+  "connect": "Connecter",
+  "disconnect": "Déconnecter",
+  "connecting": "De liaison...",
+  "connected": "Connecté",
+  "disconnected": "Déconnecté",
+  "reconnect": "Reconnecter"
+}

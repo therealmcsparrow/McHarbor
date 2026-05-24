@@ -1,0 +1,15 @@
+{
+  "label": "Enregistrer",
+  "description": "Écrire un message dans le flux du journal du workflow",
+  "config": {
+    "level": "Niveau",
+    "message": "Message"
+  },
+  "options": {
+    "level": {
+      "info": "Informations",
+      "warn": "Avertir",
+      "error": "Erreur"
+    }
+  }
+}

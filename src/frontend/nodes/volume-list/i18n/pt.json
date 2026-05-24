@@ -1,0 +1,8 @@
+{
+  "label": "Lista de volumes",
+  "description": "Listar volumes Docker",
+  "config": {
+    "environment": "Ambiente",
+    "filter_dangling": "Apenas pendurado"
+  }
+}

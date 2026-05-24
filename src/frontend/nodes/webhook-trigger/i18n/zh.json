@@ -1,0 +1,18 @@
+{
+  "label": "Webhook 触发器",
+  "description": "从传入的 Webhook 请求启动工作流程",
+  "config": {
+    "method": "方法",
+    "path": "小路",
+    "secret": "秘密"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

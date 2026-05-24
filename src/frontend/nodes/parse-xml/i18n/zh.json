@@ -1,0 +1,7 @@
+{
+  "label": "解析XML",
+  "description": "将 XML 解析为嵌套对象",
+  "config": {
+    "property": "财产"
+  }
+}

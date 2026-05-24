@@ -1,0 +1,7 @@
+{
+  "label": "Demora",
+  "description": "Pausar la ejecución del flujo de trabajo durante unos segundos",
+  "config": {
+    "seconds": "Artículos de segunda clase"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "label": "SSH Exécutif",
+  "description": "Exécutez une commande à distance sur SSH avec un mot de passe ou une authentification par clé",
+  "config": {
+    "host": "Hôte",
+    "port": "Port",
+    "user": "Utilisateur",
+    "password": "Mot de passe",
+    "private_key": "Clé privée",
+    "command": "Commande"
+  }
+}

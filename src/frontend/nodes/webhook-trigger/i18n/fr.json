@@ -1,0 +1,18 @@
+{
+  "label": "Déclencheur Webhook",
+  "description": "Démarrer un workflow à partir d'une demande de webhook entrante",
+  "config": {
+    "method": "Méthode",
+    "path": "Chemin",
+    "secret": "Secrète"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

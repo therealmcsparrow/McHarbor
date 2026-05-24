@@ -1,0 +1,9 @@
+{
+  "label": "Balise d'image",
+  "description": "Marquer une image avec une nouvelle référence cible",
+  "config": {
+    "environment": "Environnement",
+    "source": "Image source",
+    "target": "Image cible"
+  }
+}

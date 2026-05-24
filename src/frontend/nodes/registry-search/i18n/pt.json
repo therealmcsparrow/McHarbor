@@ -1,0 +1,9 @@
+{
+  "label": "Pesquisa de registro",
+  "description": "Pesquisar imagens em um registro de contêiner",
+  "config": {
+    "environment": "Ambiente",
+    "term": "Termo de pesquisa",
+    "limit": "Limite"
+  }
+}

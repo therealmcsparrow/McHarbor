@@ -1,0 +1,8 @@
+{
+  "label": "Compose para cima",
+  "description": "Iniciar contêineres que pertencem a uma pilha de composição",
+  "config": {
+    "environment": "Ambiente",
+    "stack_name": "Nome da pilha"
+  }
+}

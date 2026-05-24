@@ -1,0 +1,16 @@
+{
+  "label": "Connexion réseau",
+  "description": "Connecter ou déconnecter un conteneur d'un réseau",
+  "config": {
+    "environment": "Environnement",
+    "network": "Réseau",
+    "container": "Récipient",
+    "action": "Action"
+  },
+  "options": {
+    "action": {
+      "connect": "Connecter",
+      "disconnect": "Déconnecter"
+    }
+  }
+}

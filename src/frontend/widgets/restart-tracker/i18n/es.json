@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "restartTracker": {
+      "label": "Reiniciar rastreador",
+      "description": "Contenedores con más reinicios"
+    }
+  },
+  "restartTrackerWidget": {
+    "title": "Reiniciar rastreador",
+    "container": "Recipiente",
+    "restarts": "Se reinicia",
+    "state": "Estado",
+    "noRestarts": "No se detectaron reinicios de contenedores"
+  }
+}

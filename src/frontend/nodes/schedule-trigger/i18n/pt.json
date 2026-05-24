@@ -1,0 +1,7 @@
+{
+  "label": "Gatilho de agendamento",
+  "description": "Execute um fluxo de trabalho em uma programação baseada em cron",
+  "config": {
+    "cron": "Expressão Cron"
+  }
+}

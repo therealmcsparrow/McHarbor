@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "activityFeed": {
+      "label": "Flux d'activité",
+      "description": "Événements récents sur les conteneurs"
+    }
+  },
+  "activityFeedWidget": {
+    "title": "Flux d'activité",
+    "loadingActivity": "Chargement de l'activité...",
+    "noRecentActivity": "Aucune activité récente"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "label": "Journaux de conteneur",
+  "description": "Lire les journaux récents d'un conteneur",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient",
+    "tail": "Lignes de queue",
+    "since": "Depuis"
+  }
+}

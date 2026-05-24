@@ -1,0 +1,15 @@
+{
+  "label": "Trocar",
+  "description": "Rotear uma mensagem para saídas de caso dinâmicas",
+  "config": {
+    "property": "Propriedade",
+    "check_type": "Verifique o tipo"
+  },
+  "options": {
+    "check_type": {
+      "value": "Valor",
+      "type": "Tipo",
+      "regex": "Regex"
+    }
+  }
+}

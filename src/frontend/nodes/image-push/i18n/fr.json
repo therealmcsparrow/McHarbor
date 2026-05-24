@@ -1,0 +1,8 @@
+{
+  "label": "Poussée d'image",
+  "description": "Pousser une image vers son registre configuré",
+  "config": {
+    "environment": "Environnement",
+    "image": "Image"
+  }
+}

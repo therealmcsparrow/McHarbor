@@ -1,0 +1,40 @@
+{
+  "title": "Volumes",
+  "description": "Volumes {{count}}",
+  "searchPlaceholder": "Volumes de pesquisa...",
+  "emptyMessage": "Nenhum volume encontrado",
+  "tableView": "Visualização de tabela",
+  "cardView": "Visualização de cartão",
+  "pruneUnused": "Podar não utilizado",
+  "pruneDescription": "Remova volumes que não estão anexados a nenhum contêiner.",
+  "columns": {
+    "name": "Nome",
+    "driver": "Motorista",
+    "usage": "Uso",
+    "mountpoint": "Ponto de montagem",
+    "created": "Criado",
+    "actions": "Ações"
+  },
+  "badges": {
+    "inUse": "em uso",
+    "unused": "não utilizado"
+  },
+  "create": {
+    "title": "Criar Volume",
+    "description": "Especifique o nome do volume e o driver.",
+    "name": "Nome do volume",
+    "driver": "Motorista",
+    "driverPlaceholder": "Driver (padrão: local)",
+    "submit": "Criar",
+    "creating": "Criando..."
+  },
+  "toast": {
+    "created": "Volume criado",
+    "removed": "Volume removido",
+    "pruned": "Volumes não utilizados removidos"
+  },
+  "confirm": {
+    "removeTitle": "Remover volume",
+    "removeDescription": "Isso removerá permanentemente este volume e todos os seus dados."
+  }
+}

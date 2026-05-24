@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "deploymentStatus": {
+      "label": "Estado de implementación",
+      "description": "Estado de la réplica de implementación de Kubernetes"
+    }
+  },
+  "deploymentStatusWidget": {
+    "title": "Estado de implementación",
+    "name": "Nombre",
+    "namespace": "Espacio de nombres",
+    "replicas": "Réplicas",
+    "status": "Estado",
+    "healthy": "Saludable",
+    "progressing": "Progresando",
+    "noDeployments": "No se encontraron implementaciones",
+    "notAvailable": "Kubernetes no disponible"
+  }
+}

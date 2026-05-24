@@ -1,0 +1,17 @@
+{
+  "label": "Envoyer Telegram",
+  "description": "Envoyer un message de robot Telegram",
+  "config": {
+    "bot_token": "Jeton de robot",
+    "chat_id": "Identifiant de discussion",
+    "message": "Message",
+    "parse_mode": "Mode d'analyse"
+  },
+  "options": {
+    "parse_mode": {
+      "": "Texte brut",
+      "Markdown": "Réduction",
+      "HTML": "HTML"
+    }
+  }
+}

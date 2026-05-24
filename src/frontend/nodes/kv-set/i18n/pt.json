@@ -1,0 +1,9 @@
+{
+  "label": "Conjunto KV",
+  "description": "Gravar um valor no armazenamento de valores-chave do fluxo de trabalho",
+  "config": {
+    "key": "Chave",
+    "property": "Propriedade",
+    "ttl": "TTL (segundos)"
+  }
+}

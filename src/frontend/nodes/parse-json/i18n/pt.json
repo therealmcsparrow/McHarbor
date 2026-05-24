@@ -1,0 +1,7 @@
+{
+  "label": "Analisar JSON",
+  "description": "Analisar uma string JSON em um objeto ou array",
+  "config": {
+    "property": "Propriedade"
+  }
+}

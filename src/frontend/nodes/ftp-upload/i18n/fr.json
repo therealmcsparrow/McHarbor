@@ -1,0 +1,25 @@
+{
+  "label": "Téléchargement FTP",
+  "description": "Téléchargez des données de flux de travail ou un fichier enregistré avec FTP ou SFTP",
+  "config": {
+    "host": "Hôte",
+    "port": "Port",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "protocol": "Protocole",
+    "remote_path": "Chemin distant",
+    "source_mode": "Mode source",
+    "property": "Propriété",
+    "local_path": "Chemin local"
+  },
+  "options": {
+    "protocol": {
+      "ftp": "FTP",
+      "sftp": "SFTP"
+    },
+    "source_mode": {
+      "payload": "Propriété du message",
+      "file": "Chemin du fichier"
+    }
+  }
+}

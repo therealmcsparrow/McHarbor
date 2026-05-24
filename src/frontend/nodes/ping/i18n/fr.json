@@ -1,0 +1,8 @@
+{
+  "label": "Ping",
+  "description": "Vérifier si un hôte est accessible via TCP",
+  "config": {
+    "host": "Hôte",
+    "timeout": "Délai d'expiration (secondes)"
+  }
+}

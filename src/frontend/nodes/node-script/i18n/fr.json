@@ -1,0 +1,8 @@
+{
+  "label": "Script de nœud",
+  "description": "Exécuter du JavaScript personnalisé sur le message de flux de travail actuel",
+  "config": {
+    "code": "Code",
+    "timeout": "Délai d'expiration (secondes)"
+  }
+}

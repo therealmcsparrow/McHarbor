@@ -1,0 +1,10 @@
+{
+  "label": "Registros de contenedores",
+  "description": "Leer registros recientes de un contenedor",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "tail": "Líneas de cola",
+    "since": "Desde"
+  }
+}

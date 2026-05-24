@@ -1,0 +1,7 @@
+{
+  "label": "Lista de pila",
+  "description": "Enumerar pilas de composición por etiqueta de proyecto",
+  "config": {
+    "environment": "Ambiente"
+  }
+}

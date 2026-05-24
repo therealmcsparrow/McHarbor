@@ -2,6 +2,24 @@
 
 Development-only changes for McHarbor are documented in this file.
 
+## [1.1.17-dev] - 2026-05-24
+
+### Added
+
+- Added Spanish, French, Portuguese, and Chinese as fully selectable interface languages.
+- Added translated frontend resource bundles for core pages, dashboard widgets, and workflow nodes in the new languages.
+- Added backend API message translations and language negotiation support for `es`, `fr`, `pt`, and `zh`.
+
+### Changed
+
+- Rewrote the README AI section to describe how AI-assisted tooling is used for translations, reviews, documentation, and developer workflow support.
+- Expanded the frontend i18n validation script to check every locale directory plus co-located widget and workflow node translation files.
+- Switched the dev branch version markers, Docker image defaults, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, lockfile root version, and footer display to `1.1.17-dev`.
+
+### Tests
+
+- Added backend i18n tests for the new language negotiation and message registrations.
+
 ## [1.1.16-dev] - 2026-05-24
 
 ### Fixed

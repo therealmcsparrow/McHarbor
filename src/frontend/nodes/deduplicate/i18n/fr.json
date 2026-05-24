@@ -1,0 +1,8 @@
+{
+  "label": "Dédoublonner",
+  "description": "Supprimer les éléments en double d'un tableau",
+  "config": {
+    "property": "Propriété",
+    "unique_by": "Unique par"
+  }
+}

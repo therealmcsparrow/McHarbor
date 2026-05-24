@@ -1,0 +1,17 @@
+{
+  "label": "Picadillo",
+  "description": "Hash un valor usando un algoritmo seleccionado",
+  "config": {
+    "property": "Propiedad",
+    "algorithm": "Algoritmo",
+    "output_property": "Propiedad de salida"
+  },
+  "options": {
+    "algorithm": {
+      "md5": "MD5",
+      "sha1": "SHA1",
+      "sha256": "SHA256",
+      "sha512": "SHA512"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Extraction d'images Docker",
+  "description": "Extraire une image d'un registre",
+  "config": {
+    "environment": "Environnement",
+    "image": "Image"
+  }
+}

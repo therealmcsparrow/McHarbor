@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "containerAge": {
+      "label": "Edad del contenedor",
+      "description": "Contenedores más antiguos por fecha de creación"
+    }
+  },
+  "containerAgeWidget": {
+    "title": "Edad del contenedor",
+    "container": "Recipiente",
+    "age": "Edad",
+    "state": "Estado",
+    "noContainers": "No se encontraron contenedores"
+  }
+}

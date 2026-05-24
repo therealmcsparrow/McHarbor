@@ -1,0 +1,8 @@
+{
+  "label": "Script do nó",
+  "description": "Execute JavaScript personalizado na mensagem do fluxo de trabalho atual",
+  "config": {
+    "code": "Código",
+    "timeout": "Tempo limite (segundos)"
+  }
+}

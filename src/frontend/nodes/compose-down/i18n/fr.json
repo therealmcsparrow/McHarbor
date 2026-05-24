@@ -1,0 +1,9 @@
+{
+  "label": "Compose vers le bas",
+  "description": "Arrêter et supprimer une pile de composition",
+  "config": {
+    "environment": "Environnement",
+    "stack_name": "Nom de la pile",
+    "remove_volumes": "Supprimer des volumes"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "label": "Escribir archivo",
+  "description": "Escribir datos de mensajes en un archivo en el directorio de datos del flujo de trabajo",
+  "config": {
+    "path": "Camino",
+    "property": "Propiedad",
+    "mode": "Modo",
+    "encoding": "Codificación"
+  },
+  "options": {
+    "mode": {
+      "overwrite": "Exagerar",
+      "append": "Añadir"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    }
+  }
+}

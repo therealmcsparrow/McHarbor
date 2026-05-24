@@ -1,0 +1,9 @@
+{
+  "label": "Formato de data",
+  "description": "Analisar e reformatar uma data ou carimbo de data/hora",
+  "config": {
+    "property": "Propriedade",
+    "output_format": "Formato de saída",
+    "timezone": "Fuso horário"
+  }
+}

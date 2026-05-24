@@ -1,0 +1,8 @@
+{
+  "label": "Compose vers le haut",
+  "description": "Démarrer des conteneurs appartenant à une pile de composition",
+  "config": {
+    "environment": "Environnement",
+    "stack_name": "Nom de la pile"
+  }
+}

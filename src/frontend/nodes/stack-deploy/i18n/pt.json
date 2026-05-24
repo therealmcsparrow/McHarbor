@@ -1,0 +1,18 @@
+{
+  "label": "Implantação de pilha",
+  "description": "Implante uma pilha Docker Compose a partir de dados de fluxo de trabalho, YAML embutido ou um arquivo salvo",
+  "config": {
+    "environment": "Ambiente",
+    "stack_name": "Nome da pilha",
+    "compose_source": "Fonte Compose",
+    "compose_content": "Conteúdo Compose",
+    "compose_path": "Caminho Compose"
+  },
+  "options": {
+    "compose_source": {
+      "message": "Mensagem",
+      "inline": "YAML em linha",
+      "file": "Caminho do arquivo"
+    }
+  }
+}

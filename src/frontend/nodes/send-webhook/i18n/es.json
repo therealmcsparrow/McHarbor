@@ -1,0 +1,19 @@
+{
+  "label": "Enviar webhook",
+  "description": "Enviar un webhook saliente con datos del mensaje",
+  "config": {
+    "url": "URL",
+    "method": "Método",
+    "headers": "Encabezados",
+    "body_source": "Fuente del cuerpo"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Modelo",
+  "description": "Renderizar um modelo de texto usando valores da mensagem do fluxo de trabalho",
+  "config": {
+    "template": "Modelo",
+    "output_property": "Propriedade de saída"
+  }
+}

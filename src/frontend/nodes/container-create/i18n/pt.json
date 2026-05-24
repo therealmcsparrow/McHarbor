@@ -1,0 +1,21 @@
+{
+  "label": "Criação de contêiner",
+  "description": "Crie um novo contêiner a partir de uma imagem",
+  "config": {
+    "environment": "Ambiente",
+    "image": "Imagem",
+    "name": "Nome",
+    "ports": "Portas",
+    "env_vars": "Variáveis ​​de ambiente",
+    "restart_policy": "Política de reinicialização",
+    "auto_start": "Início automático"
+  },
+  "options": {
+    "restart_policy": {
+      "no": "Não",
+      "always": "Sempre",
+      "on-failure": "Em caso de falha",
+      "unless-stopped": "A menos que seja parado"
+    }
+  }
+}

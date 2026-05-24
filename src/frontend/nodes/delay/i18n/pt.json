@@ -1,0 +1,7 @@
+{
+  "label": "Atraso",
+  "description": "Pausar a execução do fluxo de trabalho por alguns segundos",
+  "config": {
+    "seconds": "Segundos"
+  }
+}

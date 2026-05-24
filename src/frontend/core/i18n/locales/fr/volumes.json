@@ -1,0 +1,40 @@
+{
+  "title": "Volumes",
+  "description": "Volumes {{count}}",
+  "searchPlaceholder": "Volumes de recherche...",
+  "emptyMessage": "Aucun volume trouvé",
+  "tableView": "Vue tableau",
+  "cardView": "Vue carte",
+  "pruneUnused": "Tailler inutilisé",
+  "pruneDescription": "Supprimez les volumes qui ne sont attachés à aucun conteneur.",
+  "columns": {
+    "name": "Nom",
+    "driver": "Conducteur",
+    "usage": "Usage",
+    "mountpoint": "Point de montage",
+    "created": "Créé",
+    "actions": "Actes"
+  },
+  "badges": {
+    "inUse": "utilisé",
+    "unused": "inutilisé"
+  },
+  "create": {
+    "title": "Créer un volume",
+    "description": "Spécifiez le nom du volume et le pilote.",
+    "name": "Nom du volume",
+    "driver": "Conducteur",
+    "driverPlaceholder": "Pilote (par défaut : local)",
+    "submit": "Créer",
+    "creating": "Création..."
+  },
+  "toast": {
+    "created": "Volume créé",
+    "removed": "Volume supprimé",
+    "pruned": "Volumes inutilisés élagués"
+  },
+  "confirm": {
+    "removeTitle": "Supprimer le volume",
+    "removeDescription": "Cela supprimera définitivement ce volume et toutes ses données."
+  }
+}

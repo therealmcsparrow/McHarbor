@@ -1,0 +1,8 @@
+{
+  "label": "Gatilho de observação de arquivo",
+  "description": "Iniciar um fluxo de trabalho quando um caminho de arquivo monitorado for alterado",
+  "config": {
+    "path": "Caminho",
+    "event_types": "Tipos de eventos"
+  }
+}

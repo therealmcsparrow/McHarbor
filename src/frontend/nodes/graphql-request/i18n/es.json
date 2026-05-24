@@ -1,0 +1,10 @@
+{
+  "label": "Solicitud GraphQL",
+  "description": "Envíe una solicitud GraphQL y almacene la respuesta analizada",
+  "config": {
+    "url": "URL",
+    "query": "Consulta",
+    "variables": "variables",
+    "headers": "Encabezados"
+  }
+}

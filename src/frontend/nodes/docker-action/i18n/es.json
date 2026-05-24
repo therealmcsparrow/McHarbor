@@ -1,0 +1,17 @@
+{
+  "label": "Acción Docker",
+  "description": "Ejecute una acción de contenedor Docker básica",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "action": "Acción"
+  },
+  "options": {
+    "action": {
+      "start": "Comenzar",
+      "stop": "Detener",
+      "restart": "Reanudar",
+      "remove": "Eliminar"
+    }
+  }
+}

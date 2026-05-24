@@ -1,0 +1,8 @@
+{
+  "label": "HTTP 响应",
+  "description": "设置消息的传出状态代码和标头",
+  "config": {
+    "status_code": "状态码",
+    "headers": "标头"
+  }
+}

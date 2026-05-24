@@ -1,0 +1,12 @@
+{
+  "label": "Ejecutivo SSH",
+  "description": "Ejecute un comando remoto sobre SSH con contraseña o autenticación de clave",
+  "config": {
+    "host": "Anfitrión",
+    "port": "Puerto",
+    "user": "Usuario",
+    "password": "Contraseña",
+    "private_key": "Clave privada",
+    "command": "Dominio"
+  }
+}

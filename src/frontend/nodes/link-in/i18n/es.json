@@ -1,0 +1,7 @@
+{
+  "label": "Enlace en",
+  "description": "Recibir el último mensaje de la salida de un enlace en otro flujo de trabajo",
+  "config": {
+    "source": "Salida de fuente"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Compose arriba",
+  "description": "Iniciar contenedores que pertenecen a una pila de redacción",
+  "config": {
+    "environment": "Ambiente",
+    "stack_name": "Nombre de la pila"
+  }
+}

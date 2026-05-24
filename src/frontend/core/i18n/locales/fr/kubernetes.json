@@ -1,0 +1,94 @@
+{
+  "pods": {
+    "title": "Gousses",
+    "description": "Pods {{count}}",
+    "searchPlaceholder": "Rechercher des modules...",
+    "emptyMessage": "Aucun module trouvé",
+    "columns": {
+      "name": "Nom",
+      "namespace": "Espace de noms",
+      "status": "Statut",
+      "ready": "Prêt",
+      "restarts": "Redémarre",
+      "age": "Âge",
+      "node": "Nœud",
+      "ip": "IP",
+      "actions": "Actes"
+    },
+    "detail": {
+      "notFound": "Pod introuvable",
+      "status": "Statut",
+      "ready": "Prêt",
+      "node": "Nœud",
+      "ip": "IP",
+      "containers": "Conteneurs",
+      "restartCount": "{{count}} redémarre"
+    },
+    "toast": {
+      "deleted": "Pod supprimé"
+    },
+    "confirm": {
+      "deleteTitle": "Supprimer le module",
+      "deleteDescription": "Êtes-vous sûr de vouloir supprimer ce module ?"
+    }
+  },
+  "deployments": {
+    "title": "Déploiements",
+    "description": "Déploiements {{count}}",
+    "searchPlaceholder": "Rechercher des déploiements...",
+    "emptyMessage": "Aucun déploiement trouvé",
+    "columns": {
+      "name": "Nom",
+      "namespace": "Espace de noms",
+      "ready": "Prêt",
+      "upToDate": "À jour",
+      "available": "Disponible",
+      "images": "Images",
+      "replicas": "Répliques",
+      "age": "Âge",
+      "actions": "Actes"
+    },
+    "detail": {
+      "notFound": "Déploiement introuvable",
+      "ready": "Prêt",
+      "upToDate": "À jour",
+      "available": "Disponible",
+      "strategy": "Stratégie",
+      "conditions": "Conditions"
+    },
+    "toast": {
+      "scaled": "Déploiement à l'échelle",
+      "restarted": "Déploiement redémarré",
+      "deleted": "Déploiement supprimé"
+    },
+    "confirm": {
+      "deleteTitle": "Supprimer le déploiement",
+      "deleteDescription": "Êtes-vous sûr de vouloir supprimer ce déploiement ?"
+    }
+  },
+  "services": {
+    "title": "Services",
+    "description": "Services {{count}}",
+    "searchPlaceholder": "Services de recherche...",
+    "emptyMessage": "Aucun service trouvé",
+    "columns": {
+      "name": "Nom",
+      "namespace": "Espace de noms",
+      "type": "Taper",
+      "clusterIP": "IP du cluster",
+      "ports": "Ports",
+      "age": "Âge"
+    }
+  },
+  "namespaces": {
+    "title": "Espaces de noms",
+    "description": "Espaces de noms {{count}}",
+    "searchPlaceholder": "Rechercher des espaces de noms...",
+    "emptyMessage": "Aucun espace de noms trouvé",
+    "columns": {
+      "name": "Nom",
+      "status": "Statut",
+      "age": "Âge"
+    }
+  }
+}

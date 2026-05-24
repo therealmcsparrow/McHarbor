@@ -1,0 +1,7 @@
+{
+  "label": "计划触发器",
+  "description": "根据基于 cron 的计划运行工作流程",
+  "config": {
+    "cron": "克朗表达式"
+  }
+}

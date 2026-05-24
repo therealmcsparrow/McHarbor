@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "quickActions": {
+      "label": "Actions rapides",
+      "description": "Opérations de maintenance courantes"
+    }
+  },
+  "quickActionsWidget": {
+    "title": "Actions rapides",
+    "pruneImages": "Tailler les images",
+    "pruneImagesDesc": "Supprimez toutes les images inutilisées. Cela ne peut pas être annulé.",
+    "pruneVolumes": "Tailler les volumes",
+    "pruneVolumesDesc": "Supprimez tous les volumes inutilisés. Cela ne peut pas être annulé.",
+    "confirm": "Confirmer"
+  }
+}

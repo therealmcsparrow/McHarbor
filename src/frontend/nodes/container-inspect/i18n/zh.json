@@ -1,0 +1,8 @@
+{
+  "label": "集装箱检查",
+  "description": "检查单个容器",
+  "config": {
+    "environment": "环境",
+    "container": "容器"
+  }
+}

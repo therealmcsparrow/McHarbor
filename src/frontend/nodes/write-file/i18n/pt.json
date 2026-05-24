@@ -1,0 +1,20 @@
+{
+  "label": "Gravar arquivo",
+  "description": "Gravar dados de mensagens em um arquivo no diretório de dados do fluxo de trabalho",
+  "config": {
+    "path": "Caminho",
+    "property": "Propriedade",
+    "mode": "Modo",
+    "encoding": "Codificação"
+  },
+  "options": {
+    "mode": {
+      "overwrite": "Substituir",
+      "append": "Acrescentar"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    }
+  }
+}

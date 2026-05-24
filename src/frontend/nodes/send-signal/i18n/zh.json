@@ -1,0 +1,10 @@
+{
+  "label": "发送Signal",
+  "description": "通过 Signal API 桥发送消息",
+  "config": {
+    "api_url": "API URL",
+    "sender": "发件人",
+    "recipient": "接受者",
+    "message": "信息"
+  }
+}

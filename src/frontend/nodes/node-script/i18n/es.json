@@ -1,0 +1,8 @@
+{
+  "label": "Secuencia de comandos de nodo",
+  "description": "Ejecute JavaScript personalizado con el mensaje de flujo de trabajo actual",
+  "config": {
+    "code": "Código",
+    "timeout": "Tiempo de espera (segundos)"
+  }
+}

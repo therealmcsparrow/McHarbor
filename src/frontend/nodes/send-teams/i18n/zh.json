@@ -1,0 +1,10 @@
+{
+  "label": "发送Teams",
+  "description": "向 Microsoft Teams Webhook 发送消息",
+  "config": {
+    "webhook_url": "网络钩子 URL",
+    "title": "标题",
+    "color": "颜色",
+    "message": "信息"
+  }
+}

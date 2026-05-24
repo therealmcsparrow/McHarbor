@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "alertSummary": {
+      "label": "Résumé des alertes",
+      "description": "Règles d'alerte configurées regroupées par gravité"
+    }
+  },
+  "alertSummaryWidget": {
+    "title": "Résumé des alertes",
+    "noAlerts": "Aucune règle d'alerte activée",
+    "notConfigured": "Règles d'alerte indisponibles",
+    "disabledRules": "Règles désactivées : {{count}}",
+    "severity": {
+      "critical": "Critique",
+      "warning": "Avertissement",
+      "info": "Informations"
+    }
+  }
+}

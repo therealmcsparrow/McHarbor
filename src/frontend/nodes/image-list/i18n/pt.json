@@ -1,0 +1,9 @@
+{
+  "label": "Lista de imagens",
+  "description": "Listar imagens em um ambiente",
+  "config": {
+    "environment": "Ambiente",
+    "show_all": "Mostrar tudo",
+    "filter_dangling": "Apenas pendurado"
+  }
+}

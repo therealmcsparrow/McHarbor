@@ -1,0 +1,7 @@
+{
+  "label": "Programar activador",
+  "description": "Ejecute un flujo de trabajo según una programación basada en cron",
+  "config": {
+    "cron": "Expresión cron"
+  }
+}

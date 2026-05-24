@@ -1,0 +1,15 @@
+{
+  "label": "Registro",
+  "description": "Escreva uma mensagem no fluxo de log do fluxo de trabalho",
+  "config": {
+    "level": "Nível",
+    "message": "Mensagem"
+  },
+  "options": {
+    "level": {
+      "info": "Informações",
+      "warn": "Avisar",
+      "error": "Erro"
+    }
+  }
+}

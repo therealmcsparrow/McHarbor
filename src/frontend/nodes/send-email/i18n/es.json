@@ -1,0 +1,10 @@
+{
+  "label": "Enviar correo electrónico",
+  "description": "Enviar un correo electrónico a través de un servidor de correo electrónico configurado",
+  "config": {
+    "server_id": "Servidor de correo electrónico",
+    "to": "A",
+    "subject": "Sujeto",
+    "body": "Cuerpo"
+  }
+}

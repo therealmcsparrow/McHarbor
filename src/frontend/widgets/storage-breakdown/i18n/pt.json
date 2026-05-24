@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "storageBreakdown": {
+      "label": "Divisão de armazenamento",
+      "description": "Uso de disco por categoria"
+    }
+  },
+  "storageBreakdownWidget": {
+    "title": "Divisão de armazenamento",
+    "images": "Imagens",
+    "volumes": "Volumes",
+    "containers": "Recipientes",
+    "buildCache": "Construir Cache",
+    "total": "total",
+    "noData": "Nenhum dado de armazenamento disponível"
+  }
+}

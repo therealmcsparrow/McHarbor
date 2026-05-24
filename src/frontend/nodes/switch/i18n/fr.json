@@ -1,0 +1,15 @@
+{
+  "label": "Changer",
+  "description": "Acheminer un message vers des sorties de requête dynamiques",
+  "config": {
+    "property": "Propriété",
+    "check_type": "Type de chèque"
+  },
+  "options": {
+    "check_type": {
+      "value": "Valeur",
+      "type": "Taper",
+      "regex": "Expression régulière"
+    }
+  }
+}

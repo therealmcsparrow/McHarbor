@@ -1,0 +1,10 @@
+{
+  "label": "Executivo de contêiner",
+  "description": "Execute um comando dentro de um contêiner em execução",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "command": "Comando",
+    "workdir": "Diretório de trabalho"
+  }
+}

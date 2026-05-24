@@ -1,0 +1,9 @@
+{
+  "label": "Conjunto KV",
+  "description": "Escriba un valor en el almacén de valores clave del flujo de trabajo",
+  "config": {
+    "key": "Llave",
+    "property": "Propiedad",
+    "ttl": "TTL (segundos)"
+  }
+}

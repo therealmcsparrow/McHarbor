@@ -1,0 +1,8 @@
+{
+  "label": "图片推送",
+  "description": "将映像推送到其配置的注册表",
+  "config": {
+    "environment": "环境",
+    "image": "图像"
+  }
+}

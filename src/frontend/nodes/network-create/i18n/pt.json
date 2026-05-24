@@ -1,0 +1,11 @@
+{
+  "label": "Criação de rede",
+  "description": "Crie uma rede Docker",
+  "config": {
+    "environment": "Ambiente",
+    "name": "Nome",
+    "driver": "Motorista",
+    "internal": "Interno",
+    "subnet": "Sub-rede"
+  }
+}

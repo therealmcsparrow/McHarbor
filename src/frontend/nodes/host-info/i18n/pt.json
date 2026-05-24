@@ -1,0 +1,7 @@
+{
+  "label": "Informações do anfitrião",
+  "description": "Ler informações do host de um ambiente Docker",
+  "config": {
+    "environment": "Ambiente"
+  }
+}

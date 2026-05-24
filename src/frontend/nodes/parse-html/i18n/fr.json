@@ -1,0 +1,17 @@
+{
+  "label": "Analyser le HTML",
+  "description": "Extraire du texte, du HTML ou des attributs du contenu HTML",
+  "config": {
+    "property": "Propriété",
+    "selector": "Sélecteur",
+    "output_type": "Type de sortie",
+    "attribute": "Attribut"
+  },
+  "options": {
+    "output_type": {
+      "text": "Texte",
+      "html": "HTML",
+      "attribute": "Attribut"
+    }
+  }
+}

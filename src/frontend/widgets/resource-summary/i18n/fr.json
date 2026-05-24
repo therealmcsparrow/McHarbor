@@ -1,0 +1,27 @@
+{
+  "widgets": {
+    "containers": {
+      "label": "Conteneurs",
+      "description": "Nombre total de conteneurs avec des comptes running/stopped"
+    },
+    "images": {
+      "label": "Images",
+      "description": "Nombre total d'images"
+    },
+    "volumes": {
+      "label": "Volumes",
+      "description": "Nombre total de tomes"
+    },
+    "networks": {
+      "label": "Réseaux",
+      "description": "Nombre total de réseaux"
+    }
+  },
+  "resourceSummaryWidget": {
+    "containers": "Conteneurs",
+    "images": "Images",
+    "volumes": "Volumes",
+    "networks": "Réseaux",
+    "runningStoppedDescription": "{{running}} en cours d'exécution, {{stopped}} arrêté"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Remover rede",
+  "description": "Remover uma rede Docker",
+  "config": {
+    "environment": "Ambiente",
+    "name": "Nome"
+  }
+}

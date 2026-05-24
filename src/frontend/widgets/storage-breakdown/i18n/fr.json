@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "storageBreakdown": {
+      "label": "Répartition du stockage",
+      "description": "Utilisation du disque par catégorie"
+    }
+  },
+  "storageBreakdownWidget": {
+    "title": "Répartition du stockage",
+    "images": "Images",
+    "volumes": "Volumes",
+    "containers": "Conteneurs",
+    "buildCache": "Construire le cache",
+    "total": "total",
+    "noData": "Aucune donnée de stockage disponible"
+  }
+}

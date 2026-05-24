@@ -1,0 +1,10 @@
+{
+  "label": "Enviar Signal",
+  "description": "Enviar un mensaje a través de un puente Signal API",
+  "config": {
+    "api_url": "API URL",
+    "sender": "Remitente",
+    "recipient": "Beneficiario",
+    "message": "Mensaje"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "label": "Etiqueta de imagen",
+  "description": "Etiquetar una imagen con una nueva referencia de destino",
+  "config": {
+    "environment": "Ambiente",
+    "source": "Imagen de origen",
+    "target": "Imagen de destino"
+  }
+}

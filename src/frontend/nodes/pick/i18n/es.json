@@ -1,0 +1,8 @@
+{
+  "label": "Elegir",
+  "description": "Mantener solo los campos seleccionados en un objeto",
+  "config": {
+    "property": "Propiedad",
+    "fields": "Campos"
+  }
+}

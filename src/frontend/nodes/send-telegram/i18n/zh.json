@@ -1,0 +1,17 @@
+{
+  "label": "发送Telegram",
+  "description": "发送 Telegram 机器人消息",
+  "config": {
+    "bot_token": "机器人代币",
+    "chat_id": "聊天ID",
+    "message": "信息",
+    "parse_mode": "解析模式"
+  },
+  "options": {
+    "parse_mode": {
+      "": "纯文本",
+      "Markdown": "降价",
+      "HTML": "HTML"
+    }
+  }
+}

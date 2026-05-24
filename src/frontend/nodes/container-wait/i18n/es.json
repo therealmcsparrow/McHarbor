@@ -1,0 +1,17 @@
+{
+  "label": "Espera de contenedor",
+  "description": "Esperar a que un contenedor alcance una condición.",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "condition": "Condición",
+    "timeout": "Tiempo de espera (segundos)"
+  },
+  "options": {
+    "condition": {
+      "not-running": "No corriendo",
+      "next-exit": "La próxima salida",
+      "removed": "Remoto"
+    }
+  }
+}

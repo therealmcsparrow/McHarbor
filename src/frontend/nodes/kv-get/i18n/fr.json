@@ -1,0 +1,9 @@
+{
+  "label": "KV Obtenir",
+  "description": "Lire une valeur à partir du magasin clé-valeur du workflow",
+  "config": {
+    "key": "Clé",
+    "output_property": "Propriété de sortie",
+    "default_value": "Valeur par défaut"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "挑选",
+  "description": "仅保留对象上选定的字段",
+  "config": {
+    "property": "财产",
+    "fields": "领域"
+  }
+}

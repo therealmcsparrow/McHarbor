@@ -1,0 +1,15 @@
+{
+  "label": "日志",
+  "description": "将消息写入工作流日志流",
+  "config": {
+    "level": "等级",
+    "message": "信息"
+  },
+  "options": {
+    "level": {
+      "info": "信息",
+      "warn": "警告",
+      "error": "错误"
+    }
+  }
+}

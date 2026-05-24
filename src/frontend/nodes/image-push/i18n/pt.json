@@ -1,0 +1,8 @@
+{
+  "label": "Envio de imagem",
+  "description": "Enviar uma imagem para seu registro configurado",
+  "config": {
+    "environment": "Ambiente",
+    "image": "Imagem"
+  }
+}

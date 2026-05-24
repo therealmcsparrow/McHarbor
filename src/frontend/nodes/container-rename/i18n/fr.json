@@ -1,0 +1,9 @@
+{
+  "label": "Renommer le conteneur",
+  "description": "Renommer un conteneur",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient",
+    "new_name": "Nouveau nom"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Inspección de red",
+  "description": "Inspeccionar una red Docker",
+  "config": {
+    "environment": "Ambiente",
+    "name": "Nombre"
+  }
+}

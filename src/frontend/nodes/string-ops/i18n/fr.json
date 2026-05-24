@@ -1,0 +1,22 @@
+{
+  "label": "Opérations à cordes",
+  "description": "Appliquer des opérations de chaîne courantes à une valeur",
+  "config": {
+    "property": "Propriété",
+    "operation": "Opération",
+    "arg1": "Arg 1",
+    "arg2": "Arg 2"
+  },
+  "options": {
+    "operation": {
+      "uppercase": "Majuscule",
+      "lowercase": "Minuscule",
+      "trim": "Garniture",
+      "replace": "Remplacer",
+      "split": "Diviser",
+      "join": "Rejoindre",
+      "substring": "Sous-chaîne",
+      "reverse": "Inverse"
+    }
+  }
+}

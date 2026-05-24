@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "resourceDonut": {
+      "label": "Donut de ressources",
+      "description": "Diagramme circulaire de la répartition des ressources"
+    }
+  },
+  "resourceDonutWidget": {
+    "title": "Ressources",
+    "noResources": "Aucune ressource",
+    "running": "En cours d'exécution",
+    "stopped": "Arrêté",
+    "images": "Images",
+    "volumes": "Volumes",
+    "networks": "Réseaux",
+    "total": "total"
+  }
+}

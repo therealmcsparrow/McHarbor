@@ -1,0 +1,8 @@
+{
+  "label": "文件监视触发器",
+  "description": "当监视的文件路径更改时启动工作流程",
+  "config": {
+    "path": "小路",
+    "event_types": "事件类型"
+  }
+}

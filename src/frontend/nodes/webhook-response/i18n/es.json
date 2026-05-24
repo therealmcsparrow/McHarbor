@@ -1,0 +1,9 @@
+{
+  "label": "Respuesta de webhook",
+  "description": "Prepare una respuesta HTTP para un flujo activado por webhook",
+  "config": {
+    "status_code": "Código de estado",
+    "content_type": "Tipo de contenido",
+    "body": "Cuerpo"
+  }
+}

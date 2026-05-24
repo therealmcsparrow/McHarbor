@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "portMap": {
+      "label": "Mapa do Porto",
+      "description": "Mapeamentos de portas host-contêiner"
+    }
+  },
+  "portMapWidget": {
+    "title": "Mapa do Porto",
+    "container": "Recipiente",
+    "mapping": "Hospedeiro → Contêiner",
+    "protocol": "Protocolo",
+    "noPorts": "Nenhuma porta publicada encontrada"
+  }
+}

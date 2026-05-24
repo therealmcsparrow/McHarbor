@@ -1,0 +1,17 @@
+{
+  "label": "Espera do contêiner",
+  "description": "Aguarde até que um contêiner atinja uma condição",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "condition": "Doença",
+    "timeout": "Tempo limite (segundos)"
+  },
+  "options": {
+    "condition": {
+      "not-running": "Não está em execução",
+      "next-exit": "Próxima saída",
+      "removed": "Removido"
+    }
+  }
+}

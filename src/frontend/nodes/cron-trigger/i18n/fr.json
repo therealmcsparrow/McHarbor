@@ -1,0 +1,8 @@
+{
+  "label": "Déclencheur Cron",
+  "description": "Émettre un message à partir d'une expression cron et d'un fuseau horaire",
+  "config": {
+    "cron": "Expression Cron",
+    "timezone": "Fuseau horaire"
+  }
+}

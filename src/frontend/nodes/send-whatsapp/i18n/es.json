@@ -1,0 +1,10 @@
+{
+  "label": "enviar whatsap",
+  "description": "Enviar un mensaje WhatsApp a través de un API",
+  "config": {
+    "api_url": "API URL",
+    "access_token": "Token de acceso",
+    "phone_number": "Número de teléfono",
+    "message": "Mensaje"
+  }
+}

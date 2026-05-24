@@ -79,7 +79,7 @@ docker compose up -d
 
 The app is served on port `8705` by default, mapped to backend port `5474` inside the container.
 
-The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.1.16-dev`. To run the optional remote agent from Compose, set `MCHARBOR_URL` and `MCHARBOR_AGENT_TOKEN` and start the `agent` profile:
+The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.1.17-dev`. To run the optional remote agent from Compose, set `MCHARBOR_URL` and `MCHARBOR_AGENT_TOKEN` and start the `agent` profile:
 
 ```bash
 docker compose --profile agent up -d
@@ -143,3 +143,15 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock \
   ghcr.io/therealmcsparrow/mcharbor-agent:latest
 ```
+
+## AI
+
+McHarbor uses AI-assisted tooling in a few parts of the project. AI helps us move faster, but it does not replace coding, review, testing, or operational judgment.
+
+We currently use AI assistance for:
+
+- **Translations**: Interface translations may be generated or refined with AI so McHarbor can support more users across more languages. These translations are checked for missing keys and broken placeholders, but they still need human review for tone, technical wording, and regional accuracy.
+- **Code review and sanity checks**: AI helps inspect changes for obvious bugs, missing edge cases, inconsistent naming, or risky patterns. Implementation remain in the hands of the maintainer.
+- **Documentation**: AI helps draft or improve README content, API documentation, setup notes, changelogs, release notes, and user-facing explanations.
+- **Developer workflow support**: AI helps summarize changes, generate test ideas, and keep repetitive project maintenance work consistent.
+s

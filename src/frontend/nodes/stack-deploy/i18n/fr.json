@@ -1,0 +1,18 @@
+{
+  "label": "Déploiement de la pile",
+  "description": "Déployez une pile Docker Compose à partir de données de flux de travail, YAML en ligne ou un fichier enregistré",
+  "config": {
+    "environment": "Environnement",
+    "stack_name": "Nom de la pile",
+    "compose_source": "Source Compose",
+    "compose_content": "Contenu Compose",
+    "compose_path": "Chemin Compose"
+  },
+  "options": {
+    "compose_source": {
+      "message": "Message",
+      "inline": "YAML en ligne",
+      "file": "Chemin du fichier"
+    }
+  }
+}

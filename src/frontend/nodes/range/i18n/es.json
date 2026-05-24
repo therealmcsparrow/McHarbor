@@ -1,0 +1,7 @@
+{
+  "label": "Rango",
+  "description": "Leer una propiedad de matriz y adjuntar metadatos de rango",
+  "config": {
+    "property": "Propiedad"
+  }
+}

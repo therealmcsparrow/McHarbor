@@ -1,0 +1,27 @@
+{
+  "widgets": {
+    "containers": {
+      "label": "Recipientes",
+      "description": "Total de contêineres com contagens running/stopped"
+    },
+    "images": {
+      "label": "Imagens",
+      "description": "Número total de imagens"
+    },
+    "volumes": {
+      "label": "Volumes",
+      "description": "Número total de volumes"
+    },
+    "networks": {
+      "label": "Redes",
+      "description": "Número total de redes"
+    }
+  },
+  "resourceSummaryWidget": {
+    "containers": "Recipientes",
+    "images": "Imagens",
+    "volumes": "Volumes",
+    "networks": "Redes",
+    "runningStoppedDescription": "{{running}} em execução, {{stopped}} parado"
+  }
+}

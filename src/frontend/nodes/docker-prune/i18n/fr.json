@@ -1,0 +1,17 @@
+{
+  "label": "Docker Pruneau",
+  "description": "Supprimer les ressources Docker inutilisées d'un environnement",
+  "config": {
+    "environment": "Environnement",
+    "resource": "Ressource"
+  },
+  "options": {
+    "resource": {
+      "all": "Tous",
+      "containers": "Conteneurs",
+      "images": "Images",
+      "volumes": "Volumes",
+      "networks": "Réseaux"
+    }
+  }
+}

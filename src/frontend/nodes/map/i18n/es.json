@@ -1,0 +1,8 @@
+{
+  "label": "Mapa",
+  "description": "Asigna claves de objetos de matriz a una nueva forma",
+  "config": {
+    "property": "Propiedad",
+    "mapping": "Cartografía"
+  }
+}

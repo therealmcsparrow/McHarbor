@@ -1,0 +1,9 @@
+{
+  "label": "Liste d'images",
+  "description": "Lister les images dans un environnement",
+  "config": {
+    "environment": "Environnement",
+    "show_all": "Afficher tout",
+    "filter_dangling": "Seulement pendant"
+  }
+}

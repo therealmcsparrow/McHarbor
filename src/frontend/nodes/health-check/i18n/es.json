@@ -1,0 +1,20 @@
+{
+  "label": "Control de salud",
+  "description": "Verifique un punto final HTTP y bifurque en salud",
+  "config": {
+    "url": "URL",
+    "method": "Método",
+    "expected_status": "Estado esperado",
+    "timeout": "Tiempo de espera (segundos)",
+    "retries": "Reintentos"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

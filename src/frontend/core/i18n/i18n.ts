@@ -48,13 +48,17 @@ function deepMerge(
   return target;
 }
 
-export const supportedLanguages = ['en', 'nl', 'de'] as const;
+export const supportedLanguages = ['en', 'nl', 'de', 'es', 'fr', 'pt', 'zh'] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
 
 export const languageLabels: Record<SupportedLanguage, string> = {
   en: 'English',
   nl: 'Nederlands',
   de: 'Deutsch',
+  es: 'Español',
+  fr: 'Français',
+  pt: 'Português',
+  zh: '中文',
 };
 
 const loadedLanguages = new Set<SupportedLanguage>();

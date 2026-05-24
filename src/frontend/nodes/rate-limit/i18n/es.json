@@ -1,0 +1,8 @@
+{
+  "label": "Límite de tarifa",
+  "description": "Acelere el rendimiento del flujo de trabajo con una política de tarifas simple",
+  "config": {
+    "limit": "Límite",
+    "window_seconds": "Ventana (segundos)"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "label": "Búsqueda de registro",
+  "description": "Buscar imágenes en un registro de contenedores",
+  "config": {
+    "environment": "Ambiente",
+    "term": "Término de búsqueda",
+    "limit": "Límite"
+  }
+}

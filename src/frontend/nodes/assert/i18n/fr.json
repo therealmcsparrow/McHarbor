@@ -1,0 +1,20 @@
+{
+  "label": "Affirmer",
+  "description": "Affirmer qu'une condition est vraie et biffer sur le résultat",
+  "config": {
+    "field": "Champ",
+    "operator": "Opérateur",
+    "value": "Valeur",
+    "message": "Message d'échec"
+  },
+  "options": {
+    "operator": {
+      "==": "Égal",
+      "!=": "Pas égal",
+      "contains": "Contient",
+      "regex": "Correspond à l'expression régulière",
+      "is_empty": "Est vide",
+      "is_not_empty": "N'est pas vide"
+    }
+  }
+}

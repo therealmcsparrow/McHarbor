@@ -1,0 +1,9 @@
+{
+  "label": "Ensemble KV",
+  "description": "Écrire une valeur dans le magasin clé-valeur du workflow",
+  "config": {
+    "key": "Clé",
+    "property": "Propriété",
+    "ttl": "TTL (secondes)"
+  }
+}

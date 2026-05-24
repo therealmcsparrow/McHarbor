@@ -1,0 +1,20 @@
+{
+  "label": "Afirmar",
+  "description": "Afirme que uma condição é verdadeira e ramifique o resultado",
+  "config": {
+    "field": "Campo",
+    "operator": "Operador",
+    "value": "Valor",
+    "message": "Mensagem de falha"
+  },
+  "options": {
+    "operator": {
+      "==": "Igual",
+      "!=": "Diferente",
+      "contains": "Contém",
+      "regex": "Regex de correspondência",
+      "is_empty": "Está vazio",
+      "is_not_empty": "Não está vazio"
+    }
+  }
+}

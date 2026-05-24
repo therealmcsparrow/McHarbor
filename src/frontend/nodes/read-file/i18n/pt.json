@@ -1,0 +1,15 @@
+{
+  "label": "Ler arquivo",
+  "description": "Ler um arquivo do diretório de dados do fluxo de trabalho",
+  "config": {
+    "path": "Caminho",
+    "encoding": "Codificação",
+    "output_property": "Propriedade de saída"
+  },
+  "options": {
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    }
+  }
+}

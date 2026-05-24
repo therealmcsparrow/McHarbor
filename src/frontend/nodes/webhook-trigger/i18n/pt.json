@@ -1,0 +1,18 @@
+{
+  "label": "Gatilho de webhook",
+  "description": "Iniciar um fluxo de trabalho a partir de uma solicitação de webhook recebida",
+  "config": {
+    "method": "Método",
+    "path": "Caminho",
+    "secret": "Segredo"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

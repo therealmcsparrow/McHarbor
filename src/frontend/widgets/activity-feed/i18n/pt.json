@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "activityFeed": {
+      "label": "Feed de atividades",
+      "description": "Eventos recentes de contêiner"
+    }
+  },
+  "activityFeedWidget": {
+    "title": "Feed de atividades",
+    "loadingActivity": "Carregando atividade...",
+    "noRecentActivity": "Nenhuma atividade recente"
+  }
+}

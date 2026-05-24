@@ -1,0 +1,19 @@
+{
+  "label": "Solicitud HTTP",
+  "description": "Envíe una solicitud HTTP y almacene la respuesta en el mensaje",
+  "config": {
+    "url": "URL",
+    "method": "Método",
+    "headers": "Encabezados",
+    "body_source": "Fuente del cuerpo"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "stackStatus": {
+      "label": "Estado de la pila",
+      "description": "Descripción general de las pilas de redacción"
+    }
+  },
+  "stackStatusWidget": {
+    "title": "pilas",
+    "loadingStacks": "Cargando pilas...",
+    "noStacksFound": "No se encontraron pilas",
+    "service_one": "servicio {{count}}",
+    "service_other": "Servicios {{count}}",
+    "viewAll": "Ver todo"
+  }
+}

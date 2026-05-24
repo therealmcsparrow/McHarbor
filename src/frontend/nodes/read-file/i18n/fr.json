@@ -1,0 +1,15 @@
+{
+  "label": "Lire le fichier",
+  "description": "Lire un fichier à partir du répertoire de données du workflow",
+  "config": {
+    "path": "Chemin",
+    "encoding": "Codage",
+    "output_property": "Propriété de sortie"
+  },
+  "options": {
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    }
+  }
+}

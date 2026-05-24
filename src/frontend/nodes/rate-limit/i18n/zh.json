@@ -1,0 +1,8 @@
+{
+  "label": "速率限制",
+  "description": "使用简单的速率策略限制工作流程吞吐量",
+  "config": {
+    "limit": "限制",
+    "window_seconds": "窗口（秒）"
+  }
+}

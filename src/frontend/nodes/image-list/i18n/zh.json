@@ -1,0 +1,9 @@
+{
+  "label": "图片列表",
+  "description": "列出环境中的图像",
+  "config": {
+    "environment": "环境",
+    "show_all": "显示全部",
+    "filter_dangling": "只有悬空"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Depurar",
+  "description": "Emitir el mensaje actual a la secuencia de depuración",
+  "config": {
+    "property": "Propiedad",
+    "full_message": "Mostrar mensaje completo"
+  }
+}

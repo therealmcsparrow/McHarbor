@@ -1,0 +1,21 @@
+{
+  "label": "Cambiar",
+  "description": "Establecer o eliminar un valor en mensaje, flujo o alcance global",
+  "config": {
+    "action_type": "Acción",
+    "scope": "Alcance",
+    "property": "Propiedad",
+    "value": "Valor"
+  },
+  "options": {
+    "action_type": {
+      "set": "Colocar",
+      "delete": "Borrar"
+    },
+    "scope": {
+      "msg": "mensaje",
+      "flow": "fluir",
+      "global": "global"
+    }
+  }
+}

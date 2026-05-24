@@ -1,0 +1,9 @@
+{
+  "label": "KV Obtener",
+  "description": "Leer un valor del almacén de valores-clave del flujo de trabajo",
+  "config": {
+    "key": "Llave",
+    "output_property": "Propiedad de salida",
+    "default_value": "Valor predeterminado"
+  }
+}

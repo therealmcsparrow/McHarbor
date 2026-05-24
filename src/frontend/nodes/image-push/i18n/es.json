@@ -1,0 +1,8 @@
+{
+  "label": "Empuje de imagen",
+  "description": "Insertar una imagen en su registro configurado",
+  "config": {
+    "environment": "Ambiente",
+    "image": "Imagen"
+  }
+}

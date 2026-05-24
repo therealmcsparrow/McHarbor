@@ -1,0 +1,7 @@
+{
+  "label": "Intenta atrapar",
+  "description": "Proteja la ejecución posterior y enrute las fallas a una rama de captura",
+  "config": {
+    "error_property": "Propiedad de error"
+  }
+}

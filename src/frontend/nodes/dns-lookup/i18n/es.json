@@ -1,0 +1,18 @@
+{
+  "label": "Búsqueda de DNS",
+  "description": "Resolver registros DNS para un nombre de host",
+  "config": {
+    "hostname": "Nombre de host",
+    "record_type": "Tipo de registro"
+  },
+  "options": {
+    "record_type": {
+      "A": "A",
+      "AAAA": "AAAA",
+      "MX": "MX",
+      "TXT": "TXT",
+      "CNAME": "CNAME",
+      "NS": "NS"
+    }
+  }
+}

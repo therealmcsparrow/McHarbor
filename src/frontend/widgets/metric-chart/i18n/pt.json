@@ -1,0 +1,33 @@
+{
+  "widgets": {
+    "cpuUsage": {
+      "label": "Uso da CPU",
+      "description": "Gráfico de uso de CPU ao vivo"
+    },
+    "memoryUsage": {
+      "label": "Uso de memória",
+      "description": "Gráfico de uso de memória ao vivo"
+    },
+    "networkIO": {
+      "label": "Rede I/O",
+      "description": "Gráfico de recebimento de rede/transmit"
+    },
+    "diskIO": {
+      "label": "Disco I/O",
+      "description": "Gráfico read/write do disco"
+    }
+  },
+  "metricChartWidget": {
+    "cpuUsage": "Uso da CPU",
+    "memoryUsage": "Uso de memória",
+    "networkIO": "Rede I/O",
+    "diskIO": "Disco I/O",
+    "ofTotal": "de {{total}}",
+    "tx": "Tx: {{value}}",
+    "write": "Escreva: {{value}}",
+    "rxLabel": "Rx",
+    "txLabel": "Tx",
+    "readLabel": "Ler",
+    "writeLabel": "Escrever"
+  }
+}

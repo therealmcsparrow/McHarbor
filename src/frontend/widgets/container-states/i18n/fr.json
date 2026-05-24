@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "containerStates": {
+      "label": "États des conteneurs",
+      "description": "Graphique en anneau des états des conteneurs"
+    }
+  },
+  "containerStatesWidget": {
+    "title": "États des conteneurs",
+    "noContainers": "Aucun conteneur trouvé",
+    "total": "total"
+  }
+}

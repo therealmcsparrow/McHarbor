@@ -1,0 +1,7 @@
+{
+  "label": "Commentaire",
+  "description": "Annoter un workflow sans modifier son exécution",
+  "config": {
+    "text": "Commentaire"
+  }
+}

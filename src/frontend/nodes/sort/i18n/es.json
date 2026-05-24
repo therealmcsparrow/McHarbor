@@ -1,0 +1,15 @@
+{
+  "label": "Clasificar",
+  "description": "Ordenar una matriz en el mensaje actual",
+  "config": {
+    "property": "Propiedad",
+    "sort_by": "Ordenar por",
+    "direction": "Dirección"
+  },
+  "options": {
+    "direction": {
+      "asc": "Ascendente",
+      "desc": "Descendente"
+    }
+  }
+}

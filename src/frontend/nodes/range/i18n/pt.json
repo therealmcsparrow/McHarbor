@@ -1,0 +1,7 @@
+{
+  "label": "Faixa",
+  "description": "Ler uma propriedade de array e anexar metadados de intervalo",
+  "config": {
+    "property": "Propriedade"
+  }
+}

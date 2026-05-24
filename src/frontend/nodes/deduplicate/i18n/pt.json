@@ -1,0 +1,8 @@
+{
+  "label": "Desduplicar",
+  "description": "Remover itens duplicados de um array",
+  "config": {
+    "property": "Propriedade",
+    "unique_by": "Único por"
+  }
+}

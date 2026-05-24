@@ -1,0 +1,12 @@
+{
+  "label": "Enviar mensagem",
+  "description": "Publicar uma mensagem em um tópico ntfy",
+  "config": {
+    "server_url": "URL do servidor",
+    "topic": "Tópico",
+    "title": "Título",
+    "message": "Mensagem",
+    "priority": "Prioridade",
+    "tags": "Etiquetas"
+  }
+}

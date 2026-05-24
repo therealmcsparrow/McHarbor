@@ -1,0 +1,16 @@
+{
+  "label": "集装箱动力",
+  "description": "使用电源辅助操作启用或禁用容器",
+  "config": {
+    "environment": "环境",
+    "container": "容器",
+    "action": "行动",
+    "timeout": "超时（秒）"
+  },
+  "options": {
+    "action": {
+      "enable": "使能够",
+      "disable": "禁用"
+    }
+  }
+}

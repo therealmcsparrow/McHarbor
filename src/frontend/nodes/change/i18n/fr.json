@@ -1,0 +1,21 @@
+{
+  "label": "Changement",
+  "description": "Définir ou supprimer une valeur sur le message, le flux ou la portée globale",
+  "config": {
+    "action_type": "Action",
+    "scope": "Portée",
+    "property": "Propriété",
+    "value": "Valeur"
+  },
+  "options": {
+    "action_type": {
+      "set": "Ensemble",
+      "delete": "Supprimer"
+    },
+    "scope": {
+      "msg": "message",
+      "flow": "couler",
+      "global": "mondial"
+    }
+  }
+}

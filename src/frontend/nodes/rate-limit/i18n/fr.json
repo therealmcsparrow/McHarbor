@@ -1,0 +1,8 @@
+{
+  "label": "Limite de taux",
+  "description": "Limitez le débit du flux de travail avec une politique de tarification simple",
+  "config": {
+    "limit": "Limite",
+    "window_seconds": "Fenêtre (secondes)"
+  }
+}

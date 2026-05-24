@@ -1,0 +1,18 @@
+{
+  "label": "Activador de webhook",
+  "description": "Iniciar un flujo de trabajo a partir de una solicitud de webhook entrante",
+  "config": {
+    "method": "Método",
+    "path": "Camino",
+    "secret": "Secreto"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

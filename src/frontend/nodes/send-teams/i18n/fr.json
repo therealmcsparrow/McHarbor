@@ -1,0 +1,10 @@
+{
+  "label": "Envoyer Teams",
+  "description": "Envoyer un message à un webhook Microsoft Teams",
+  "config": {
+    "webhook_url": "URL du webhook",
+    "title": "Titre",
+    "color": "Couleur",
+    "message": "Message"
+  }
+}

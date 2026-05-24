@@ -1,0 +1,16 @@
+{
+  "label": "Energía del contenedor",
+  "description": "Habilite o deshabilite un contenedor usando la acción de ayuda de energía",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "action": "Acción",
+    "timeout": "Tiempo de espera (segundos)"
+  },
+  "options": {
+    "action": {
+      "enable": "Permitir",
+      "disable": "Desactivar"
+    }
+  }
+}

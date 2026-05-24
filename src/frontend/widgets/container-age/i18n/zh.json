@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "containerAge": {
+      "label": "集装箱时代",
+      "description": "按创建日期排列的最旧容器"
+    }
+  },
+  "containerAgeWidget": {
+    "title": "集装箱时代",
+    "container": "容器",
+    "age": "年龄",
+    "state": "状态",
+    "noContainers": "未找到容器"
+  }
+}

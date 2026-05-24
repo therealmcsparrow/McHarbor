@@ -1,0 +1,7 @@
+{
+  "label": "Comentário",
+  "description": "Anote um fluxo de trabalho sem alterar a execução",
+  "config": {
+    "text": "Comentário"
+  }
+}

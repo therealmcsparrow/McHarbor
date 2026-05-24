@@ -1,0 +1,13 @@
+{
+  "widgets": {
+    "containerStates": {
+      "label": "集装箱国家",
+      "description": "容器状态圆环图"
+    }
+  },
+  "containerStatesWidget": {
+    "title": "集装箱国家",
+    "noContainers": "未找到容器",
+    "total": "全部的"
+  }
+}
