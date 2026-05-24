@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "stackStatus": {
+      "label": "Statut de la pile",
+      "description": "Présentation des piles de composition"
+    }
+  },
+  "stackStatusWidget": {
+    "title": "Piles",
+    "loadingStacks": "Chargement des piles...",
+    "noStacksFound": "Aucune pile trouvée",
+    "service_one": "Service {{count}}",
+    "service_other": "Services {{count}}",
+    "viewAll": "Tout afficher"
+  }
+}

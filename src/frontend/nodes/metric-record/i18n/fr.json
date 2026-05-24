@@ -1,0 +1,18 @@
+{
+  "label": "Enregistrement métrique",
+  "description": "Conserver un échantillon de métrique de workflow à partir du message actuel",
+  "config": {
+    "metric_name": "Nom de la métrique",
+    "property": "Propriété",
+    "metric_type": "Type métrique",
+    "unit": "Unité",
+    "labels": "Étiquettes"
+  },
+  "options": {
+    "metric_type": {
+      "gauge": "Jauge",
+      "counter": "Comptoir",
+      "event": "Événement"
+    }
+  }
+}

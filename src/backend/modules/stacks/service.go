@@ -58,6 +58,195 @@ func NewService(db *sql.DB, dockerPool *docker.ClientPool, dataDir string) *Serv
 	return &Service{db: db, dockerPool: dockerPool, dataDir: dataDir}
 }
 
+func scanContainerStackLink(rows interface {
+	Scan(dest ...interface{}) error
+}) (*ContainerStackLink, error) {
+	var link ContainerStackLink
+	var serviceName sql.NullString
+	if err := rows.Scan(
+		&link.ID,
+		&link.EnvironmentID,
+		&link.ContainerID,
+		&link.StackName,
+		&serviceName,
+		&link.CreatedAt,
+		&link.UpdatedAt,
+	); err != nil {
+		return nil, err
+	}
+	if serviceName.Valid {
+		link.ServiceName = serviceName.String
+	}
+	return &link, nil
+}
+
+func (s *Service) containerStackLinksByContainer(envID string) (map[string]ContainerStackLink, error) {
+	rows, err := s.db.Query(`
+		SELECT id, environment_id, container_id, stack_name, service_name, created_at, updated_at
+		FROM container_stack_links
+		WHERE environment_id = ?
+		LIMIT 1000
+	`, envID)
+	if err != nil {
+		return nil, fmt.Errorf("querying container stack links: %w", err)
+	}
+	defer rows.Close()
+
+	links := make(map[string]ContainerStackLink)
+	for rows.Next() {
+		link, err := scanContainerStackLink(rows)
+		if err != nil {
+			return nil, fmt.Errorf("scanning container stack link: %w", err)
+		}
+		links[link.ContainerID] = *link
+	}
+	return links, rows.Err()
+}
+
+// ContainerStackLink returns the manual stack link for a container, if one exists.
+func (s *Service) ContainerStackLink(envID, containerID string) (*ContainerStackLink, error) {
+	row := s.db.QueryRow(`
+		SELECT id, environment_id, container_id, stack_name, service_name, created_at, updated_at
+		FROM container_stack_links
+		WHERE environment_id = ? AND container_id = ?
+	`, envID, containerID)
+
+	link, err := scanContainerStackLink(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("querying container stack link: %w", err)
+	}
+	return link, nil
+}
+
+func (s *Service) stackNameExists(ctx context.Context, envID, stackName string) (bool, error) {
+	var count int
+	if err := s.db.QueryRow(`
+		SELECT COUNT(*) FROM stacks
+		WHERE name = ? AND (environment_id = ? OR ? = '')
+	`, stackName, envID, envID).Scan(&count); err != nil {
+		return false, fmt.Errorf("checking stack link target: %w", err)
+	}
+	if count > 0 {
+		return true, nil
+	}
+
+	cli, err := s.dockerPool.Get(envID)
+	if err != nil {
+		return false, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	listCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	containers, err := cli.ContainerList(listCtx, container.ListOptions{
+		All: true,
+		Filters: filters.NewArgs(
+			filters.Arg("label", "com.docker.compose.project="+stackName),
+		),
+	})
+	if err != nil {
+		return false, fmt.Errorf("listing stack containers: %w", err)
+	}
+	return len(containers) > 0, nil
+}
+
+func linkedServiceName(c types.Container, link ContainerStackLink) string {
+	if link.ServiceName != "" {
+		return link.ServiceName
+	}
+	if svc := c.Labels["com.docker.compose.service"]; svc != "" {
+		return svc
+	}
+	if len(c.Names) > 0 {
+		return sanitizeServiceName(strings.TrimPrefix(c.Names[0], "/"))
+	}
+	return c.ID[:min(len(c.ID), 12)]
+}
+
+func applyManualStackLinkLabels(c types.Container, link ContainerStackLink) types.Container {
+	labels := make(map[string]string, len(c.Labels)+2)
+	for key, value := range c.Labels {
+		labels[key] = value
+	}
+	labels["com.docker.compose.project"] = link.StackName
+	labels["com.docker.compose.service"] = linkedServiceName(c, link)
+	c.Labels = labels
+	return c
+}
+
+// LinkContainer creates or replaces the manual relationship between a container and stack.
+func (s *Service) LinkContainer(ctx context.Context, envID string, req LinkContainerRequest) (*ContainerStackLink, error) {
+	containerID := strings.TrimSpace(req.ContainerID)
+	stackName := sanitizeName(req.StackName)
+	if containerID == "" {
+		return nil, fmt.Errorf("container id is required")
+	}
+	if stackName == "" {
+		return nil, fmt.Errorf("stack name is required")
+	}
+
+	exists, err := s.stackNameExists(ctx, envID, stackName)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, fmt.Errorf("stack not found")
+	}
+
+	cli, err := s.dockerPool.Get(envID)
+	if err != nil {
+		return nil, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	inspectCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	info, err := cli.ContainerInspect(inspectCtx, containerID)
+	if err != nil {
+		return nil, fmt.Errorf("inspecting container: %w", err)
+	}
+
+	serviceName := strings.TrimSpace(req.ServiceName)
+	if serviceName == "" {
+		serviceName = info.Config.Labels["com.docker.compose.service"]
+	}
+	if serviceName == "" {
+		serviceName = sanitizeServiceName(strings.TrimPrefix(info.Name, "/"))
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	id := xid.New().String()
+	_, err = s.db.Exec(`
+		INSERT INTO container_stack_links (id, environment_id, container_id, stack_name, service_name, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+		ON CONFLICT(environment_id, container_id) DO UPDATE SET
+			stack_name = excluded.stack_name,
+			service_name = excluded.service_name,
+			updated_at = excluded.updated_at
+	`, id, envID, info.ID, stackName, serviceName, now, now)
+	if err != nil {
+		return nil, fmt.Errorf("saving container stack link: %w", err)
+	}
+
+	return s.ContainerStackLink(envID, info.ID)
+}
+
+// UnlinkContainer removes a manual stack link for a container.
+func (s *Service) UnlinkContainer(envID, containerID string) error {
+	result, err := s.db.Exec(`
+		DELETE FROM container_stack_links
+		WHERE environment_id = ? AND container_id = ?
+	`, envID, containerID)
+	if err != nil {
+		return fmt.Errorf("deleting container stack link: %w", err)
+	}
+	_ = mdb.RowsAffected(result)
+	return nil
+}
+
 // List returns all stacks for an environment by merging DB-managed stacks with
 // stacks discovered from Docker containers (via com.docker.compose.project labels).
 func (s *Service) List(ctx context.Context, envID string) ([]Stack, error) {
@@ -109,8 +298,8 @@ func (s *Service) List(ctx context.Context, envID string) ([]Stack, error) {
 	return result, nil
 }
 
-// discoverFromDocker finds compose stacks by listing containers with
-// the com.docker.compose.project label and grouping by project name.
+// discoverFromDocker finds compose stacks by listing containers with either
+// Docker Compose labels or McHarbor manual stack links and grouping by project name.
 func (s *Service) discoverFromDocker(ctx context.Context, envID string) (map[string]Stack, error) {
 	cli, err := s.dockerPool.Get(envID)
 	if err != nil {
@@ -122,12 +311,14 @@ func (s *Service) discoverFromDocker(ctx context.Context, envID string) (map[str
 
 	containers, err := cli.ContainerList(ctx, container.ListOptions{
 		All: true,
-		Filters: filters.NewArgs(
-			filters.Arg("label", "com.docker.compose.project"),
-		),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("listing compose containers: %w", err)
+	}
+
+	links, err := s.containerStackLinksByContainer(envID)
+	if err != nil {
+		return nil, err
 	}
 
 	// Group containers by compose project
@@ -139,11 +330,15 @@ func (s *Service) discoverFromDocker(ctx context.Context, envID string) (map[str
 
 	for _, c := range containers {
 		projectName := c.Labels["com.docker.compose.project"]
+		svcName := c.Labels["com.docker.compose.service"]
+		if link, ok := links[c.ID]; ok {
+			projectName = link.StackName
+			svcName = linkedServiceName(c, link)
+		}
 		if projectName == "" {
 			continue
 		}
 
-		svcName := c.Labels["com.docker.compose.service"]
 		status := "stopped"
 		if c.State == "running" {
 			status = "running"
@@ -522,7 +717,7 @@ func (s *Service) ComposeContent(name string) (string, error) {
 	return string(data), nil
 }
 
-// StackContainers lists all containers that belong to a compose project.
+// StackContainers lists all containers that belong to a compose project via Docker labels or McHarbor links.
 func (s *Service) StackContainers(ctx context.Context, envID, projectName string) ([]types.Container, error) {
 	cli, err := s.dockerPool.Get(envID)
 	if err != nil {
@@ -532,12 +727,30 @@ func (s *Service) StackContainers(ctx context.Context, envID, projectName string
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	return cli.ContainerList(ctx, container.ListOptions{
-		All: true,
-		Filters: filters.NewArgs(
-			filters.Arg("label", "com.docker.compose.project="+projectName),
-		),
-	})
+	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
+	if err != nil {
+		return nil, fmt.Errorf("listing containers: %w", err)
+	}
+
+	links, err := s.containerStackLinksByContainer(envID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]types.Container, 0)
+	for _, c := range containers {
+		if link, ok := links[c.ID]; ok {
+			if link.StackName == projectName {
+				result = append(result, applyManualStackLinkLabels(c, link))
+			}
+			continue
+		}
+		if c.Labels["com.docker.compose.project"] == projectName {
+			result = append(result, c)
+		}
+	}
+
+	return result, nil
 }
 
 // StopStack stops all containers in a stack via Docker SDK.
@@ -1609,6 +1822,15 @@ func (s *Service) Adopt(ctx context.Context, envID string, req AdoptRequest) (*S
 	`, id, safeName, &envID, projectPath, status, description, now, now)
 	if err != nil {
 		return nil, fmt.Errorf("inserting stack: %w", err)
+	}
+
+	if req.ContainerID != "" {
+		if _, err := s.LinkContainer(ctx, envID, LinkContainerRequest{
+			ContainerID: req.ContainerID,
+			StackName:   safeName,
+		}); err != nil {
+			return nil, fmt.Errorf("linking adopted container: %w", err)
+		}
 	}
 
 	return s.ByName(safeName)

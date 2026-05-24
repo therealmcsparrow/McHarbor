@@ -1,0 +1,7 @@
+{
+  "label": "Link para fora",
+  "description": "Armazene a mensagem atual para outro fluxo de trabalho consumir",
+  "config": {
+    "name": "Nome"
+  }
+}

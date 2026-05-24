@@ -1,0 +1,14 @@
+{
+  "widgets": {
+    "podStatus": {
+      "label": "Estado del módulo",
+      "description": "Descripción general de las fases del pod Kubernetes"
+    }
+  },
+  "podStatusWidget": {
+    "title": "Estado del módulo",
+    "pods": "vainas",
+    "noPods": "No se encontraron vainas",
+    "notAvailable": "Kubernetes no disponible"
+  }
+}

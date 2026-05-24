@@ -147,7 +147,8 @@
     "updateSelected": "Selectie bijwerken",
     "reinstallSelected": "Selectie opnieuw installeren",
     "confirmTitle": "Batchactie bevestigen",
-    "confirmDescription": "Weet u zeker dat u {{count}} items wilt {{action}}?"
+    "confirmDescription": "Weet u zeker dat u {{count}} items wilt {{action}}?",
+    "confirmPruneDescription": "Verwijder ongebruikte resources die niet meer worden gebruikt."
   },
   "errors": {
     "somethingWentWrong": "Er ging iets mis",
@@ -475,7 +476,7 @@
     "input": "Invoer",
     "config": "Configuratie",
     "output": "Uitvoer",
-    "data": "Gegevens",
+    "data": "Data",
     "noDebugMessages": "Nog geen debugberichten.",
     "noDebugDescription": "Voer een workflow uit om uitvoeringstrace en payload gegevens hier te zien.",
     "entries": "{{count}} items",
@@ -592,16 +593,14 @@
     "selectLinkOutput": "Selecteer link-uitvoer...",
     "noLinkOutputsFound": "Geen link-uitvoeren gevonden",
     "conditionLabel": "Voorwaarde {{count}}",
-    "removeCondition": "Voorwaarde verwijderen",
-    "field": "Veld",
-    "value": "Waarde",
-    "input": "Invoer",
-    "config": "Configuratie",
-    "output": "Uitvoer",
-    "data": "Data",
-    "skipped": "Overgeslagen",
-    "disabled": "Uitgeschakeld",
-    "selectColor": "Kleur {{color}} selecteren"
+    "selectColor": "Kleur {{color}} selecteren",
+    "selectWebhook": "Selecteer webhook...",
+    "noWebhooksFound": "Geen actieve webhooks gevonden",
+    "selectRegistry": "Selecteer registry...",
+    "useDefaultRegistry": "Standaardregistry gebruiken",
+    "noRegistriesFound": "Geen registries gevonden",
+    "fieldTypeWebhookSelect": "Selecteert een actieve geconfigureerde outbound webhook.",
+    "fieldTypeRegistrySelect": "Gebruikt een geconfigureerde registry. Laat leeg om terug te vallen op de standaardregistry."
   },
   "store": {
     "title": "Store",
@@ -719,16 +718,38 @@
       "deleteFailed": "Aangepaste node verwijderen mislukt"
     }
   },
-  "select": {
-    "placeholder": "Selecteer...",
-    "searchPlaceholder": "Zoeken...",
-    "noResults": "Geen resultaten"
-  },
   "labels": {
     "yes": "Ja",
     "no": "Nee",
     "all": "Alles",
     "resource": "Resource",
     "optional": "optioneel"
+  },
+  "profile": {
+    "menuItem": "Profiel",
+    "title": "Profiel",
+    "description": "Beheer je accountvoorkeuren.",
+    "account": {
+      "username": "Gebruikersnaam",
+      "displayName": "Weergavenaam",
+      "email": "E-mail",
+      "noEmail": "Geen e-mailadres",
+      "unknownUser": "Onbekende gebruiker",
+      "editTitle": "Accountgegevens",
+      "saveProfile": "Profiel opslaan",
+      "systemAccount": "Het ingebouwde systeemaccount kan niet worden bewerkt.",
+      "toast": {
+        "updated": "Profiel bijgewerkt",
+        "updateFailed": "Profiel bijwerken mislukt"
+      }
+    },
+    "preferences": {
+      "title": "Voorkeuren",
+      "description": "Kies hoe McHarbor eruitziet en welke taal wordt gebruikt.",
+      "themeLightDescription": "Gebruik een lichte interface voor werken bij daglicht.",
+      "themeDarkDescription": "Gebruik de donkere McHarbor-interface.",
+      "themeSystemDescription": "Volg de instelling van je browser of besturingssysteem.",
+      "languageDescription": "Taalwijzigingen worden direct toegepast en opgeslagen in je gebruikersprofiel."
+    }
   }
 }

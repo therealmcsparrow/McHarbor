@@ -13,6 +13,7 @@ import {
   IconArrowLeft,
   IconExternalLink,
   IconArrowsTransferUp,
+  IconLink,
   IconPencil,
   IconCheck,
   IconX,
@@ -104,10 +105,12 @@ type ContainerDetailHeaderProps = {
   onSave: () => void;
   onCancelEdit: () => void;
   saving?: boolean;
+  stackName?: string | null;
   onAction: (action: string) => void;
   onKill: () => void;
   onRemove: () => void;
   onTakeOver: () => void;
+  onRelink: () => void;
 };
 
 export function ContainerDetailHeader({
@@ -120,14 +123,17 @@ export function ContainerDetailHeader({
   onSave,
   onCancelEdit,
   saving,
+  stackName,
   onAction,
   onKill,
   onRemove,
   onTakeOver,
+  onRelink,
 }: ContainerDetailHeaderProps) {
   const navigate = useNavigate();
   const { t } = useTranslation('containers');
   const state = container.State?.Status ?? 'unknown';
+  const resolvedStackName = stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
 
   return (
     <div className="flex flex-1 items-center justify-between">
@@ -152,13 +158,13 @@ export function ContainerDetailHeader({
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-semibold text-foreground">{name}</h1>
             <Badge variant={STATE_VARIANTS[state] ?? 'secondary'} className="text-[10px] px-1.5 py-0">{state}</Badge>
-            {container.Config?.Labels?.['com.docker.compose.project'] ? (
+            {resolvedStackName ? (
               <Badge
                 variant="default"
                 className="text-[10px] px-1.5 py-0 cursor-pointer"
-                onClick={() => navigate(`/stacks/${container.Config.Labels['com.docker.compose.project']}`)}
+                onClick={() => navigate(`/stacks/${resolvedStackName}`)}
               >
-                {container.Config.Labels['com.docker.compose.project']}
+                {resolvedStackName}
               </Badge>
             ) : (
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
@@ -232,6 +238,12 @@ export function ContainerDetailHeader({
                 icon={<IconExternalLink className="size-3.5" />}
               />
             )}
+            <HeaderActionButton
+              tooltip={t('actions.relinkStack')}
+              onClick={onRelink}
+              variant="secondary"
+              icon={<IconLink className="size-3.5" />}
+            />
             {!container.Config?.Labels?.['com.docker.compose.project'] && (
               <HeaderActionButton
                 tooltip={t('actions.takeOver')}

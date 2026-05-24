@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "resourceDonut": {
+      "label": "Rosquinha de Recursos",
+      "description": "Gráfico de pizza de distribuição de recursos"
+    }
+  },
+  "resourceDonutWidget": {
+    "title": "Recursos",
+    "noResources": "Sem recursos",
+    "running": "Correndo",
+    "stopped": "Parou",
+    "images": "Imagens",
+    "volumes": "Volumes",
+    "networks": "Redes",
+    "total": "total"
+  }
+}

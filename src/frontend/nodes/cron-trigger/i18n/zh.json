@@ -1,0 +1,8 @@
+{
+  "label": "定时触发器",
+  "description": "从 cron 表达式和时区发出消息",
+  "config": {
+    "cron": "克朗表达式",
+    "timezone": "时区"
+  }
+}

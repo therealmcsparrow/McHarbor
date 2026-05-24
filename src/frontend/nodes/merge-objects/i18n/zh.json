@@ -1,0 +1,8 @@
+{
+  "label": "合并对象",
+  "description": "将多个源对象合并为一个输出",
+  "config": {
+    "sources": "来源",
+    "output_property": "输出属性"
+  }
+}

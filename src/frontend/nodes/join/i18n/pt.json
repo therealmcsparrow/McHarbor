@@ -1,0 +1,15 @@
+{
+  "label": "Juntar",
+  "description": "Junte várias filiais recebidas em uma única mensagem",
+  "config": {
+    "input_count": "Contagem de entrada",
+    "combine_mode": "Modo Combinar"
+  },
+  "options": {
+    "combine_mode": {
+      "last": "Última mensagem",
+      "merge": "Mesclar objetos",
+      "array": "Variedade"
+    }
+  }
+}

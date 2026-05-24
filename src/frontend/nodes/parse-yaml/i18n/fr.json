@@ -1,0 +1,7 @@
+{
+  "label": "Analyser YAML",
+  "description": "Analyser YAML dans un objet imbriqué",
+  "config": {
+    "property": "Propriété"
+  }
+}

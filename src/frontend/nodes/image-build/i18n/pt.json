@@ -1,0 +1,13 @@
+{
+  "label": "Construção de imagem",
+  "description": "Crie uma imagem Docker a partir de um contexto de compilação gerenciado por fluxo de trabalho",
+  "config": {
+    "environment": "Ambiente",
+    "tag": "Marcação",
+    "dockerfile": "Dockerfile",
+    "context_path": "Caminho de Contexto",
+    "target": "Estágio Alvo",
+    "build_args": "Construir argumentos",
+    "no_cache": "Sem cache"
+  }
+}

@@ -11,6 +11,7 @@ import {
   IconArrowDown,
   IconTrash,
   IconArrowsTransferUp,
+  IconLink,
   IconPencil,
   IconCheck,
   IconX,
@@ -67,6 +68,7 @@ type StackDetailHeaderProps = {
   onAction: (action: string) => void;
   onRemove: () => void;
   onTakeOver: () => void;
+  onLinkContainer: () => void;
   onEdit?: () => void;
   onSave?: () => void;
   onCancelEdit?: () => void;
@@ -82,6 +84,7 @@ export function StackDetailHeader({
   onAction,
   onRemove,
   onTakeOver,
+  onLinkContainer,
   onEdit,
   onSave,
   onCancelEdit,
@@ -194,6 +197,12 @@ export function StackDetailHeader({
                 icon={<IconArrowsTransferUp className="size-3.5" />}
               />
             )}
+            <HeaderActionButton
+              tooltip={t('link.linkContainer')}
+              onClick={onLinkContainer}
+              variant="secondary"
+              icon={<IconLink className="size-3.5" />}
+            />
             <div className="h-5 w-px bg-border mx-0.5" />
             <HeaderActionButton
               tooltip={t('actions.remove')}

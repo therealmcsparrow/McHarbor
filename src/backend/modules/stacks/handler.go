@@ -555,6 +555,95 @@ func (h *Handler) HandleAdopt(w http.ResponseWriter, r *http.Request) {
 	response.Created(w, st)
 }
 
+// HandleGetContainerLink returns the manual stack link for a container.
+// GET /stacks/links?containerId=...
+func (h *Handler) HandleGetContainerLink(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	containerID := r.URL.Query().Get("containerId")
+	if containerID == "" {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+	link, err := h.service.ContainerStackLink(envID, containerID)
+	if err != nil {
+		h.app.Logger.Error("failed to get container stack link", "container", containerID, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrStackLinkFailed)
+		return
+	}
+
+	response.OK(w, link)
+}
+
+// HandleLinkContainer creates or replaces a manual container-to-stack link.
+// POST /stacks/links
+func (h *Handler) HandleLinkContainer(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	var req LinkContainerRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	if req.ContainerID == "" || req.StackName == "" {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+	link, err := h.service.LinkContainer(r.Context(), envID, req)
+	if err != nil {
+		h.app.Logger.Error("failed to link container to stack", "container", req.ContainerID, "stack", req.StackName, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrStackLinkFailed)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "link",
+		EntityType: "container",
+		EntityID:   link.ContainerID,
+		EntityName: link.StackName,
+	})
+	h.app.Logger.Info("container linked to stack", "container", link.ContainerID, "stack", link.StackName, "user", user.Username)
+	response.OK(w, link)
+}
+
+// HandleUnlinkContainer removes a manual container-to-stack link.
+// DELETE /stacks/links/{containerId}
+func (h *Handler) HandleUnlinkContainer(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	containerID := chi.URLParam(r, "containerId")
+	envID := response.ParseEnvID(r)
+	if err := h.service.UnlinkContainer(envID, containerID); err != nil {
+		h.app.Logger.Error("failed to unlink container from stack", "container", containerID, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrStackLinkFailed)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "unlink",
+		EntityType: "container",
+		EntityID:   containerID,
+	})
+	h.app.Logger.Info("container unlinked from stack", "container", containerID, "user", user.Username)
+	response.NoContent(w)
+}
+
 // HandleListWebhooks returns all webhooks for a stack.
 // GET /stacks/{name}/webhooks
 func (h *Handler) HandleListWebhooks(w http.ResponseWriter, r *http.Request) {

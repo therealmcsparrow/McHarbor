@@ -3,12 +3,15 @@
 
 import { create } from 'zustand';
 import { api } from '@core/api/client';
+import { useLanguageStore } from '@resources/stores/language';
+import type { SupportedLanguage } from '@core/i18n';
 
 type User = {
   id: string;
   username: string;
   displayName: string | null;
   email: string | null;
+  preferredLanguage: SupportedLanguage;
 };
 
 export type OIDCProvider = {
@@ -27,7 +30,14 @@ type AuthState = {
   login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   setup: (username: string, password: string, email?: string) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (input: { displayName: string; email: string }) => Promise<{ success: boolean; error?: string }>;
+  updatePreferences: (input: { preferredLanguage: SupportedLanguage }) => Promise<{ success: boolean; error?: string }>;
 };
+
+function applyUserLanguage(user: User | null) {
+  if (!user?.preferredLanguage) return;
+  useLanguageStore.getState().setLanguage(user.preferredLanguage);
+}
 
 export const useAuth = create<AuthState>((set) => ({
   user: null,
@@ -50,8 +60,9 @@ export const useAuth = create<AuthState>((set) => ({
 
     // If auth is disabled, create a synthetic user (check this before needsSetup)
     if (statusRes.success && statusRes.data?.authDisabled) {
+      const language = useLanguageStore.getState().language;
       set({
-        user: { id: 'system', username: 'admin', displayName: 'Admin', email: null },
+        user: { id: 'system', username: 'admin', displayName: 'Admin', email: null, preferredLanguage: language },
         isAuthenticated: true,
         needsSetup: false,
         oidcProviders,
@@ -69,6 +80,7 @@ export const useAuth = create<AuthState>((set) => ({
     // Try to get the current session (protected endpoint)
     const sessionRes = await api.get<User>('/auth/session');
     if (sessionRes.success && sessionRes.data) {
+      applyUserLanguage(sessionRes.data);
       set({
         user: sessionRes.data,
         isAuthenticated: true,
@@ -84,6 +96,7 @@ export const useAuth = create<AuthState>((set) => ({
   login: async (username: string, password: string) => {
     const res = await api.post<User>('/auth/login', { username, password });
     if (res.success && res.data) {
+      applyUserLanguage(res.data);
       set({ user: res.data, isAuthenticated: true });
       return { success: true };
     }
@@ -99,9 +112,30 @@ export const useAuth = create<AuthState>((set) => ({
   setup: async (username: string, password: string, email?: string) => {
     const res = await api.post<User>('/auth/setup', { username, password, email });
     if (res.success && res.data) {
+      applyUserLanguage(res.data);
       set({ user: res.data, isAuthenticated: true, needsSetup: false });
       return { success: true };
     }
     return { success: false, error: res.error ?? 'Setup failed' };
+  },
+
+  updateProfile: async ({ displayName, email }) => {
+    const res = await api.put<User>('/auth/profile', { displayName, email });
+    if (res.success && res.data) {
+      set({ user: res.data });
+      return { success: true };
+    }
+    return { success: false, error: res.error ?? 'Saving profile failed' };
+  },
+
+  updatePreferences: async ({ preferredLanguage }) => {
+    useLanguageStore.getState().setLanguage(preferredLanguage);
+    const res = await api.put<User>('/auth/preferences', { preferredLanguage });
+    if (res.success && res.data) {
+      set({ user: res.data });
+      applyUserLanguage(res.data);
+      return { success: true };
+    }
+    return { success: false, error: res.error ?? 'Saving preferences failed' };
   },
 }));

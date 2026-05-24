@@ -1,0 +1,7 @@
+{
+  "label": "解析YAML",
+  "description": "将 YAML 解析为嵌套对象",
+  "config": {
+    "property": "财产"
+  }
+}

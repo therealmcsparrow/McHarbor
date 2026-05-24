@@ -1,0 +1,9 @@
+{
+  "label": "图片标签",
+  "description": "使用新的目标参考标记图像",
+  "config": {
+    "environment": "环境",
+    "source": "源图像",
+    "target": "目标图像"
+  }
+}

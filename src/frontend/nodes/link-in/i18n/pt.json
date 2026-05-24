@@ -1,0 +1,7 @@
+{
+  "label": "Vincular",
+  "description": "Receber a mensagem mais recente de uma saída de link em outro fluxo de trabalho",
+  "config": {
+    "source": "Saída de origem"
+  }
+}

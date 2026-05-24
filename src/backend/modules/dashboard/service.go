@@ -26,25 +26,27 @@ type TimeValue struct {
 
 // Stats holds overall Docker resource counts.
 type Stats struct {
-	Containers       ContainerStats `json:"containers"`
-	Images           int            `json:"images"`
-	Volumes          int            `json:"volumes"`
-	Networks         int            `json:"networks"`
-	Stacks           int            `json:"stacks"`
-	CPUHistory       []TimeValue    `json:"cpuHistory,omitempty"`
-	MemoryHistory    []TimeValue    `json:"memoryHistory,omitempty"`
-	NetworkRxHistory []TimeValue    `json:"networkRxHistory,omitempty"`
-	NetworkTxHistory []TimeValue    `json:"networkTxHistory,omitempty"`
-	BlockReadHistory []TimeValue    `json:"blockReadHistory,omitempty"`
-	BlockWriteHistory []TimeValue   `json:"blockWriteHistory,omitempty"`
+	Containers        ContainerStats `json:"containers"`
+	Images            int            `json:"images"`
+	Volumes           int            `json:"volumes"`
+	Networks          int            `json:"networks"`
+	Stacks            int            `json:"stacks"`
+	CPUHistory        []TimeValue    `json:"cpuHistory,omitempty"`
+	MemoryHistory     []TimeValue    `json:"memoryHistory,omitempty"`
+	NetworkRxHistory  []TimeValue    `json:"networkRxHistory,omitempty"`
+	NetworkTxHistory  []TimeValue    `json:"networkTxHistory,omitempty"`
+	BlockReadHistory  []TimeValue    `json:"blockReadHistory,omitempty"`
+	BlockWriteHistory []TimeValue    `json:"blockWriteHistory,omitempty"`
 }
 
 // ContainerStats breaks down container counts by state.
 type ContainerStats struct {
-	Total   int `json:"total"`
-	Running int `json:"running"`
-	Stopped int `json:"stopped"`
-	Paused  int `json:"paused"`
+	Total      int `json:"total"`
+	Running    int `json:"running"`
+	Stopped    int `json:"stopped"`
+	Paused     int `json:"paused"`
+	Restarting int `json:"restarting"`
+	Killed     int `json:"killed"`
 }
 
 // Metric represents a single host metrics data point.
@@ -53,13 +55,13 @@ type Metric struct {
 	EnvironmentID string `json:"environmentId"`
 	CPUPercent    *int   `json:"cpuPercent,omitempty"`
 	MemoryPercent *int   `json:"memoryPercent,omitempty"`
-	MemoryUsed   *int64 `json:"memoryUsed,omitempty"`
-	MemoryTotal  *int64 `json:"memoryTotal,omitempty"`
+	MemoryUsed    *int64 `json:"memoryUsed,omitempty"`
+	MemoryTotal   *int64 `json:"memoryTotal,omitempty"`
 	NetRx         *int64 `json:"netRx,omitempty"`
 	NetTx         *int64 `json:"netTx,omitempty"`
 	BlockRead     *int64 `json:"blockRead,omitempty"`
 	BlockWrite    *int64 `json:"blockWrite,omitempty"`
-	Timestamp    string `json:"timestamp"`
+	Timestamp     string `json:"timestamp"`
 }
 
 // Service handles dashboard data aggregation.
@@ -310,6 +312,10 @@ func (s *Service) getContainerStats(ctx context.Context, cli *dockerclient.Clien
 			stats.Running++
 		case "paused":
 			stats.Paused++
+		case "restarting":
+			stats.Restarting++
+		case "dead":
+			stats.Killed++
 		default:
 			stats.Stopped++
 		}

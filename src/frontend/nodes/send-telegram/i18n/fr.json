@@ -1,0 +1,23 @@
+{
+  "label": "Envoyer Telegram",
+  "description": "Envoyer un message de robot Telegram",
+  "config": {
+    "communication_mode": "Livraison",
+    "channel_id": "Canal de communication",
+    "bot_token": "Jeton de robot",
+    "chat_id": "Identifiant de discussion",
+    "message": "Message",
+    "parse_mode": "Mode d'analyse"
+  },
+  "options": {
+    "parse_mode": {
+      "": "Texte brut",
+      "Markdown": "Réduction",
+      "HTML": "HTML"
+    },
+    "communication_mode": {
+      "configured": "Canal configur?",
+      "custom": "Autre"
+    }
+  }
+}

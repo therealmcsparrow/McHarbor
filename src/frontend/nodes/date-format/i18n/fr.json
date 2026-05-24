@@ -1,0 +1,9 @@
+{
+  "label": "Format des dates",
+  "description": "Analyser et reformater une date ou un horodatage",
+  "config": {
+    "property": "Propriété",
+    "output_format": "Format de sortie",
+    "timezone": "Fuseau horaire"
+  }
+}

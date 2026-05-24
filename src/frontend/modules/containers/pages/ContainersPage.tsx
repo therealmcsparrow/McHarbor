@@ -16,7 +16,7 @@ import { ContainersPageActions } from '../components/ContainersPageActions';
 import { useContainerBatchActions } from '../hooks/useContainerBatchActions';
 import { useContainerChangeHighlights } from '../hooks/useContainerChangeHighlights';
 import { useContainerColumns } from '../hooks/useContainerColumns';
-import { useContainers, useContainerAction } from '../hooks/useContainers';
+import { useContainers, useContainerAction, usePruneContainers } from '../hooks/useContainers';
 import { useContainersBulkStats } from '../hooks/useContainersBulkStats';
 import {
   useCheckContainerUpdates,
@@ -34,6 +34,7 @@ export default function ContainersPage() {
   const { data: statsMap } = useContainersBulkStats();
   const { highlightContainerChangesEnabled } = useCurrentEnvironmentActivitySettings();
   const action = useContainerAction();
+  const pruneContainers = usePruneContainers();
   const checkUpdates = useCheckContainerUpdates();
   const containerOperations = useContainerOperationActions();
   const batchProgress = useBatchProgressOperation();
@@ -44,6 +45,7 @@ export default function ContainersPage() {
   const [logsTarget, setLogsTarget] = useState<ContainerInfo | null>(null);
   const [takeOverTarget, setTakeOverTarget] = useState<ContainerInfo | null>(null);
   const [reinstallAllConfirmOpen, setReinstallAllConfirmOpen] = useState(false);
+  const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
 
   const updateAvailableIDs = new Set(
     updateResults ? [...updateResults.values()].filter((result) => result.updateAvailable).map((result) => result.containerId) : [],
@@ -118,6 +120,7 @@ export default function ContainersPage() {
             onCheckUpdates={() => checkUpdates.mutate(undefined)}
             onUpdateAll={() => runContainerOperation('update', updateTargets)}
             onReinstallAll={() => setReinstallAllConfirmOpen(true)}
+            onPruneUnused={() => setPruneConfirmOpen(true)}
             onCreate={() => navigate('/containers/create')}
             onViewModeChange={setViewMode}
             t={t}
@@ -185,6 +188,19 @@ export default function ContainersPage() {
           setReinstallAllConfirmOpen(false);
         }}
         loading={batchProgress.isRunning}
+      />
+
+      <ConfirmDialog
+        open={pruneConfirmOpen}
+        onOpenChange={setPruneConfirmOpen}
+        title={t('pruneUnused')}
+        description={t('pruneDescription')}
+        confirmLabel={t('pruneUnused')}
+        onConfirm={() => {
+          pruneContainers.mutate();
+          setPruneConfirmOpen(false);
+        }}
+        loading={pruneContainers.isPending}
       />
     </div>
   );

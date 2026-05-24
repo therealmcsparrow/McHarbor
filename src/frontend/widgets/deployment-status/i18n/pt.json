@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "deploymentStatus": {
+      "label": "Status de implantação",
+      "description": "Status da réplica de implantação Kubernetes"
+    }
+  },
+  "deploymentStatusWidget": {
+    "title": "Status de implantação",
+    "name": "Nome",
+    "namespace": "Espaço para nome",
+    "replicas": "Réplicas",
+    "status": "Status",
+    "healthy": "Saudável",
+    "progressing": "Progredindo",
+    "noDeployments": "Nenhuma implantação encontrada",
+    "notAvailable": "Kubernetes não disponível"
+  }
+}

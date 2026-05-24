@@ -1,0 +1,7 @@
+{
+  "label": "Informations Docker",
+  "description": "Charger les informations du démon Docker à partir d'un environnement",
+  "config": {
+    "environment": "Environnement"
+  }
+}

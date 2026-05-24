@@ -1,0 +1,8 @@
+{
+  "label": "卷列表",
+  "description": "列出 Docker 卷",
+  "config": {
+    "environment": "环境",
+    "filter_dangling": "只有悬空"
+  }
+}

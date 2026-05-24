@@ -1,0 +1,8 @@
+{
+  "label": "Definir variável",
+  "description": "Armazene um valor no contexto do fluxo",
+  "config": {
+    "name": "Nome da variável",
+    "value": "Valor"
+  }
+}

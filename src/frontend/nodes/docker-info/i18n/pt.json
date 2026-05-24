@@ -1,0 +1,7 @@
+{
+  "label": "Informações Docker",
+  "description": "Carregar informações do daemon Docker de um ambiente",
+  "config": {
+    "environment": "Ambiente"
+  }
+}

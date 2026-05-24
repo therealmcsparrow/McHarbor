@@ -1,0 +1,7 @@
+{
+  "label": "Laço",
+  "description": "Iterar sobre um array da mensagem atual",
+  "config": {
+    "items_field": "Campo de Itens"
+  }
+}

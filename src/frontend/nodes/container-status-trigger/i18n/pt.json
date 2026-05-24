@@ -1,0 +1,18 @@
+{
+  "label": "Acionador de status do contêiner",
+  "description": "Iniciar um fluxo de trabalho quando um contêiner mudar de estado",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "status": "Evento de status"
+  },
+  "options": {
+    "status": {
+      "any": "Qualquer",
+      "start": "Começar",
+      "stop": "Parar",
+      "die": "Morrer",
+      "health_status": "Estado de saúde"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Status da pilha",
+  "description": "Inspecione o status de uma pilha de composição",
+  "config": {
+    "environment": "Ambiente",
+    "stack_name": "Nome da pilha"
+  }
+}

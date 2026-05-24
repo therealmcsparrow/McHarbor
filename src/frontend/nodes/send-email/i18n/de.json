@@ -5,6 +5,32 @@
     "server_id": "E-Mail-Server",
     "to": "An",
     "subject": "Betreff",
-    "body": "Body"
+    "body": "Body",
+    "delivery_mode": "Zustellung",
+    "smtp_host": "SMTP-Host",
+    "smtp_port": "SMTP-Port",
+    "smtp_encryption": "Verschluesselung",
+    "smtp_auth_method": "Authentifizierung",
+    "smtp_username": "Benutzername",
+    "smtp_password": "Passwort",
+    "from_address": "Absenderadresse",
+    "from_name": "Absendername"
+  },
+  "options": {
+    "delivery_mode": {
+      "configured": "Configured Email Server",
+      "custom": "Other"
+    },
+    "smtp_encryption": {
+      "none": "None",
+      "starttls": "STARTTLS",
+      "ssl_tls": "SSL/TLS"
+    },
+    "smtp_auth_method": {
+      "none": "None",
+      "plain": "Plain",
+      "login": "Login",
+      "cram_md5": "CRAM-MD5"
+    }
   }
 }

@@ -1,0 +1,18 @@
+{
+  "label": "Registro Métrico",
+  "description": "Persistir uma amostra de métrica de fluxo de trabalho da mensagem atual",
+  "config": {
+    "metric_name": "Nome da métrica",
+    "property": "Propriedade",
+    "metric_type": "Tipo de métrica",
+    "unit": "Unidade",
+    "labels": "Etiquetas"
+  },
+  "options": {
+    "metric_type": {
+      "gauge": "Medidor",
+      "counter": "Contador",
+      "event": "Evento"
+    }
+  }
+}

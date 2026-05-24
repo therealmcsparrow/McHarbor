@@ -1,0 +1,11 @@
+{
+  "label": "网络创建",
+  "description": "创建 Docker 网络",
+  "config": {
+    "environment": "环境",
+    "name": "姓名",
+    "driver": "司机",
+    "internal": "内部的",
+    "subnet": "子网"
+  }
+}

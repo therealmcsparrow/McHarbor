@@ -1,0 +1,7 @@
+{
+  "label": "Boucle",
+  "description": "Parcourez un tableau à partir du message actuel",
+  "config": {
+    "items_field": "Champ Articles"
+  }
+}

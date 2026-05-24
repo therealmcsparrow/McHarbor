@@ -1,0 +1,21 @@
+{
+  "title": "Tableau de bord",
+  "description": "Présentation de votre environnement Docker",
+  "addWidget": "Ajouter un widget",
+  "editDashboard": "Modifier le tableau de bord",
+  "doneEditing": "Modification terminée",
+  "edit": "Modifier",
+  "done": "Fait",
+  "reset": "Réinitialiser",
+  "loading": "Chargement...",
+  "addWidgets": "Ajouter des widgets",
+  "addWidgetsDescription": "Sélectionnez les widgets à ajouter à votre tableau de bord",
+  "categories": {
+    "resources": "Ressources",
+    "host": "Hôte",
+    "metrics": "Métrique",
+    "monitoring": "Surveillance",
+    "operations": "Opérations",
+    "kubernetes": "Kubernetes"
+  }
+}

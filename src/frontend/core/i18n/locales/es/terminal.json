@@ -1,0 +1,13 @@
+{
+  "title": "Terminal",
+  "description": "Shell interactivo en contenedores en ejecución",
+  "selectContainer": "Seleccione un contenedor",
+  "selectContainerPlaceholder": "Seleccione un contenedor...",
+  "selectShell": "Caparazón",
+  "connect": "Conectar",
+  "disconnect": "Desconectar",
+  "connecting": "Conectando...",
+  "connected": "Conectado",
+  "disconnected": "Desconectado",
+  "reconnect": "Reconectar"
+}

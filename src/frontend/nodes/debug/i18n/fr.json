@@ -1,0 +1,8 @@
+{
+  "label": "Déboguer",
+  "description": "Émettre le message actuel au flux de débogage",
+  "config": {
+    "property": "Propriété",
+    "full_message": "Afficher le message complet"
+  }
+}

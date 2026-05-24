@@ -1,0 +1,8 @@
+{
+  "label": "Limite de taxa",
+  "description": "Acelere o rendimento do fluxo de trabalho com uma política de taxas simples",
+  "config": {
+    "limit": "Limite",
+    "window_seconds": "Janela (segundos)"
+  }
+}

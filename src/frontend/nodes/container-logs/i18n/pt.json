@@ -1,0 +1,10 @@
+{
+  "label": "Registros de contêiner",
+  "description": "Ler logs recentes de um contêiner",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "tail": "Linhas traseiras",
+    "since": "Desde"
+  }
+}

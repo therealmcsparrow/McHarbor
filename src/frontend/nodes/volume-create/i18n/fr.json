@@ -1,0 +1,10 @@
+{
+  "label": "Création de volumes",
+  "description": "Créer un volume Docker",
+  "config": {
+    "environment": "Environnement",
+    "name": "Nom",
+    "driver": "Conducteur",
+    "labels": "Étiquettes"
+  }
+}

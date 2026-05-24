@@ -1,0 +1,18 @@
+{
+  "label": "Implementación de pila",
+  "description": "Implemente una pila Docker Compose a partir de datos de flujo de trabajo, YAML en línea o un archivo guardado",
+  "config": {
+    "environment": "Ambiente",
+    "stack_name": "Nombre de la pila",
+    "compose_source": "Fuente Compose",
+    "compose_content": "Contenido Compose",
+    "compose_path": "Ruta Compose"
+  },
+  "options": {
+    "compose_source": {
+      "message": "Mensaje",
+      "inline": "YAML en línea",
+      "file": "Ruta del archivo"
+    }
+  }
+}

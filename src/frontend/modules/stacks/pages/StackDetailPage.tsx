@@ -15,6 +15,7 @@ import {
   IconWebhook,
 } from "@tabler/icons-react";
 import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
+import { LinkContainerDialog } from "@resources/components/LinkContainerDialog";
 import { Button } from "@resources/components/ui/Button";
 import { Spinner } from "@resources/components/ui/Spinner";
 import { useHeaderSlot } from "@resources/stores/headerSlot";
@@ -67,6 +68,7 @@ export default function StackDetailPage() {
   const [activeTab, setActiveTab] = useState<DetailTabId>("overview");
   const [removeOpen, setRemoveOpen] = useState(false);
   const [takeOverOpen, setTakeOverOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
   const setHeaderActive = useHeaderSlot((s) => s.setActive);
 
   // Edit mode state
@@ -148,6 +150,7 @@ export default function StackDetailPage() {
             onAction={(a) => action.mutate({ name: stack.name, action: a })}
             onRemove={() => setRemoveOpen(true)}
             onTakeOver={() => setTakeOverOpen(true)}
+            onLinkContainer={() => setLinkOpen(true)}
             onEdit={handleStartEdit}
             onSave={handleSave}
             onCancelEdit={handleCancelEdit}
@@ -228,6 +231,13 @@ export default function StackDetailPage() {
         open={takeOverOpen}
         onOpenChange={setTakeOverOpen}
         stackName={stack.name}
+      />
+
+      <LinkContainerDialog
+        open={linkOpen}
+        onOpenChange={setLinkOpen}
+        initialStackName={stack.name}
+        fixedStack
       />
 
       <ConfirmDialog

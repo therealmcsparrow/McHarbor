@@ -12,6 +12,8 @@ import (
 
 	"github.com/rs/xid"
 	"golang.org/x/crypto/argon2"
+
+	"github.com/therealmcsparrow/mcharbor/core/db"
 )
 
 const (
@@ -28,10 +30,11 @@ const (
 
 // User represents an authenticated user.
 type User struct {
-	ID          string  `json:"id"`
-	Username    string  `json:"username"`
-	DisplayName *string `json:"displayName"`
-	Email       *string `json:"email"`
+	ID                string  `json:"id"`
+	Username          string  `json:"username"`
+	DisplayName       *string `json:"displayName"`
+	Email             *string `json:"email"`
+	PreferredLanguage string  `json:"preferredLanguage"`
 }
 
 // AuthResult is returned from login/register.
@@ -116,14 +119,14 @@ func VerifyPassword(password, encoded string) (bool, error) {
 
 // Login authenticates a user with username/password.
 func (s *Service) Login(username, password string) (*AuthResult, error) {
-	var id, passwordHash string
+	var id, passwordHash, preferredLanguage string
 	var displayName, email sql.NullString
 	var isActive bool
 
 	err := s.db.QueryRow(
-		"SELECT id, password_hash, display_name, email, is_active FROM users WHERE username = ?",
+		"SELECT id, password_hash, display_name, email, is_active, COALESCE(preferred_language, 'en') FROM users WHERE username = ?",
 		username,
-	).Scan(&id, &passwordHash, &displayName, &email, &isActive)
+	).Scan(&id, &passwordHash, &displayName, &email, &isActive, &preferredLanguage)
 
 	if err == sql.ErrNoRows {
 		return &AuthResult{Success: false, Error: "Invalid username or password"}, nil
@@ -141,8 +144,9 @@ func (s *Service) Login(username, password string) (*AuthResult, error) {
 		return &AuthResult{Success: false, Error: "Invalid username or password"}, nil
 	}
 
-	// Update last login
-	s.db.Exec("UPDATE users SET last_login = ? WHERE id = ?", time.Now().UTC().Format(time.RFC3339), id)
+	if _, err := s.db.Exec("UPDATE users SET last_login = ? WHERE id = ?", time.Now().UTC().Format(time.RFC3339), id); err != nil {
+		return nil, fmt.Errorf("updating last login: %w", err)
+	}
 
 	// Create session
 	sessionID, err := s.CreateSession(id)
@@ -150,7 +154,7 @@ func (s *Service) Login(username, password string) (*AuthResult, error) {
 		return nil, fmt.Errorf("creating session: %w", err)
 	}
 
-	user := &User{ID: id, Username: username}
+	user := &User{ID: id, Username: username, PreferredLanguage: normalizePreferredLanguage(preferredLanguage)}
 	if displayName.Valid {
 		user.DisplayName = &displayName.String
 	}
@@ -165,7 +169,9 @@ func (s *Service) Login(username, password string) (*AuthResult, error) {
 func (s *Service) Register(username, password string, email *string) (*AuthResult, error) {
 	// Check if username exists
 	var count int
-	s.db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", username).Scan(&count)
+	if err := s.db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", username).Scan(&count); err != nil {
+		return nil, fmt.Errorf("checking username: %w", err)
+	}
 	if count > 0 {
 		return &AuthResult{Success: false, Error: "Username already taken"}, nil
 	}
@@ -188,9 +194,13 @@ func (s *Service) Register(username, password string, email *string) (*AuthResul
 
 	// Auto-assign Admin role if this is the first user
 	var userCount int
-	s.db.QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount)
+	if err := s.db.QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount); err != nil {
+		return nil, fmt.Errorf("counting users: %w", err)
+	}
 	if userCount == 1 {
-		s.AssignAdminRole(id)
+		if err := s.AssignAdminRole(id); err != nil {
+			return nil, err
+		}
 	}
 
 	sessionID, err := s.CreateSession(id)
@@ -198,7 +208,7 @@ func (s *Service) Register(username, password string, email *string) (*AuthResul
 		return nil, fmt.Errorf("creating session: %w", err)
 	}
 
-	user := &User{ID: id, Username: username}
+	user := &User{ID: id, Username: username, PreferredLanguage: "en"}
 	if email != nil {
 		user.Email = email
 	}
@@ -246,13 +256,13 @@ func (s *Service) ValidateSession(sessionID string) (*User, error) {
 		return nil, nil
 	}
 
-	var username string
+	var username, preferredLanguage string
 	var displayName, email sql.NullString
 	var isActive bool
 
 	err = s.db.QueryRow(
-		"SELECT username, display_name, email, is_active FROM users WHERE id = ?", userID,
-	).Scan(&username, &displayName, &email, &isActive)
+		"SELECT username, display_name, email, is_active, COALESCE(preferred_language, 'en') FROM users WHERE id = ?", userID,
+	).Scan(&username, &displayName, &email, &isActive, &preferredLanguage)
 
 	if err == sql.ErrNoRows || !isActive {
 		return nil, nil
@@ -261,7 +271,7 @@ func (s *Service) ValidateSession(sessionID string) (*User, error) {
 		return nil, fmt.Errorf("querying user: %w", err)
 	}
 
-	user := &User{ID: userID, Username: username}
+	user := &User{ID: userID, Username: username, PreferredLanguage: normalizePreferredLanguage(preferredLanguage)}
 	if displayName.Valid {
 		user.DisplayName = &displayName.String
 	}
@@ -274,13 +284,17 @@ func (s *Service) ValidateSession(sessionID string) (*User, error) {
 
 // DestroySession removes a session.
 func (s *Service) DestroySession(sessionID string) {
-	s.db.Exec("DELETE FROM sessions WHERE id = ?", sessionID)
+	if _, err := s.db.Exec("DELETE FROM sessions WHERE id = ?", sessionID); err != nil {
+		return
+	}
 }
 
 // HasAnyUser returns true if at least one user exists.
 func (s *Service) HasAnyUser() bool {
 	var count int
-	s.db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	if err := s.db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count); err != nil {
+		return false
+	}
 	return count > 0
 }
 
@@ -296,13 +310,13 @@ func (s *Service) SetAuthEnabled(enabled bool) {
 
 // ValidateUserByID loads a user by ID (for API key middleware).
 func (s *Service) ValidateUserByID(userID string) (*User, error) {
-	var username string
+	var username, preferredLanguage string
 	var displayName, email sql.NullString
 	var isActive bool
 
 	err := s.db.QueryRow(
-		"SELECT username, display_name, email, is_active FROM users WHERE id = ?", userID,
-	).Scan(&username, &displayName, &email, &isActive)
+		"SELECT username, display_name, email, is_active, COALESCE(preferred_language, 'en') FROM users WHERE id = ?", userID,
+	).Scan(&username, &displayName, &email, &isActive, &preferredLanguage)
 
 	if err == sql.ErrNoRows || !isActive {
 		return nil, nil
@@ -311,7 +325,7 @@ func (s *Service) ValidateUserByID(userID string) (*User, error) {
 		return nil, fmt.Errorf("querying user by id: %w", err)
 	}
 
-	user := &User{ID: userID, Username: username}
+	user := &User{ID: userID, Username: username, PreferredLanguage: normalizePreferredLanguage(preferredLanguage)}
 	if displayName.Valid {
 		user.DisplayName = &displayName.String
 	}
@@ -320,6 +334,55 @@ func (s *Service) ValidateUserByID(userID string) (*User, error) {
 	}
 
 	return user, nil
+}
+
+// UpdatePreferredLanguage stores the user's preferred UI language.
+func (s *Service) UpdatePreferredLanguage(userID string, lang string) (*User, error) {
+	normalized := normalizePreferredLanguage(lang)
+	result, err := s.db.Exec(
+		"UPDATE users SET preferred_language = ?, updated_at = ? WHERE id = ?",
+		normalized, time.Now().UTC().Format(time.RFC3339), userID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("updating preferred language: %w", err)
+	}
+	if db.RowsAffected(result) == 0 {
+		return nil, nil
+	}
+
+	return s.ValidateUserByID(userID)
+}
+
+// UpdateProfile stores editable profile details for a local user.
+func (s *Service) UpdateProfile(userID string, displayName string, email string) (*User, error) {
+	result, err := s.db.Exec(
+		"UPDATE users SET display_name = ?, email = ?, updated_at = ? WHERE id = ?",
+		nullableString(displayName), nullableString(email), time.Now().UTC().Format(time.RFC3339), userID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("updating profile: %w", err)
+	}
+	if db.RowsAffected(result) == 0 {
+		return nil, nil
+	}
+
+	return s.ValidateUserByID(userID)
+}
+
+func normalizePreferredLanguage(value string) string {
+	switch value {
+	case "nl", "de", "es", "fr", "pt", "zh":
+		return value
+	default:
+		return "en"
+	}
+}
+
+func nullableString(value string) interface{} {
+	if value == "" {
+		return nil
+	}
+	return value
 }
 
 // AssignAdminRole assigns the Admin system role to a user and adds them to the Admins group (used during initial setup).

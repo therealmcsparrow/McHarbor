@@ -1,0 +1,9 @@
+{
+  "label": "Obter KV",
+  "description": "Ler um valor do armazenamento de valores-chave do fluxo de trabalho",
+  "config": {
+    "key": "Chave",
+    "output_property": "Propriedade de saída",
+    "default_value": "Valor padrão"
+  }
+}

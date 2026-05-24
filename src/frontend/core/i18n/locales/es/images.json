@@ -1,0 +1,92 @@
+{
+  "title": "Imágenes",
+  "description": "Imágenes {{count}}",
+  "searchPlaceholder": "Buscar imágenes...",
+  "emptyMessage": "No se encontraron imágenes",
+  "tableView": "Vista de tabla",
+  "cardView": "Vista de tarjeta",
+  "notFound": "Imagen no encontrada.",
+  "pruneUnused": "Podar sin usar",
+  "pruneDescription": "Elimine las imágenes no utilizadas a las que no hacen referencia los contenedores.",
+  "columns": {
+    "repoTag": "Repositorio:Etiqueta",
+    "status": "Estado",
+    "repository": "Repositorio",
+    "tag": "Etiqueta",
+    "id": "ID",
+    "size": "Tamaño",
+    "created": "Creado",
+    "actions": "Comportamiento"
+  },
+  "badges": {
+    "inUse": "en uso",
+    "unused": "no usado"
+  },
+  "pull": {
+    "title": "Extraer imagen",
+    "description": "Ingrese el nombre de la imagen y la etiqueta para extraer.",
+    "imageName": "Nombre de la imagen",
+    "placeholder": "p.ej. nginx: último",
+    "submit": "Jalar",
+    "pulling": "Tracción..."
+  },
+  "toast": {
+    "removed": "Imagen eliminada",
+    "pulled": "Imagen extraída correctamente",
+    "tagged": "Imagen etiquetada",
+    "pruned": "Imágenes no utilizadas eliminadas",
+    "exported": "Exportación de imágenes iniciada",
+    "imported": "Imagen importada exitosamente"
+  },
+  "export": {
+    "title": "Exportar imagen"
+  },
+  "import": {
+    "title": "Importar imagen",
+    "description": "Extraiga de un registro o cargue un archivo tar.",
+    "registryTab": "Registro",
+    "fileTab": "Archivo",
+    "selectFile": "Seleccione el archivo .tar",
+    "selectedFile": "Seleccionado: {{name}}",
+    "submit": "Importar",
+    "importing": "Importador..."
+  },
+  "confirm": {
+    "removeTitle": "Quitar imagen",
+    "removeDescription": "Esto eliminará esta imagen del host Docker."
+  },
+  "detail": {
+    "back": "Atrás",
+    "imageDetails": "Detalles de la imagen",
+    "config": "configuración",
+    "labels": "Etiquetas",
+    "layerHistory": "Historial de capas",
+    "noLayerHistory": "Sin historial de capas",
+    "noLabels": "Sin etiquetas",
+    "noEnvVars": "Sin variables de entorno",
+    "fields": {
+      "id": "ID",
+      "tags": "Etiquetas",
+      "size": "Tamaño",
+      "created": "Creado",
+      "architecture": "Arquitectura",
+      "os": "OS",
+      "dockerVersion": "Versión Docker",
+      "author": "Autor",
+      "digests": "resúmenes",
+      "cmd": "comando",
+      "entrypoint": "Punto de entrada",
+      "workingDir": "Directorio de trabajo",
+      "user": "Usuario",
+      "stopSignal": "Detener Signal",
+      "exposedPorts": "Puertos expuestos",
+      "volumes": "Volúmenes",
+      "environment": "Ambiente"
+    },
+    "history": {
+      "instruction": "Instrucción",
+      "size": "Tamaño",
+      "created": "Creado"
+    }
+  }
+}

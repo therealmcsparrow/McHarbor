@@ -1,0 +1,15 @@
+{
+  "label": "转变",
+  "description": "将消息路由到动态案例输出",
+  "config": {
+    "property": "财产",
+    "check_type": "支票类型"
+  },
+  "options": {
+    "check_type": {
+      "value": "价值",
+      "type": "类型",
+      "regex": "正则表达式"
+    }
+  }
+}

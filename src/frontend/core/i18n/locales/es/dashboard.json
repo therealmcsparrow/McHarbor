@@ -1,0 +1,21 @@
+{
+  "title": "Panel",
+  "description": "Descripción general de su entorno Docker",
+  "addWidget": "Agregar widget",
+  "editDashboard": "Editar panel",
+  "doneEditing": "Edición terminada",
+  "edit": "Editar",
+  "done": "Hecho",
+  "reset": "Reiniciar",
+  "loading": "Cargando...",
+  "addWidgets": "Agregar widgets",
+  "addWidgetsDescription": "Seleccione widgets para agregar a su panel",
+  "categories": {
+    "resources": "Recursos",
+    "host": "Anfitrión",
+    "metrics": "Métrica",
+    "monitoring": "Escucha",
+    "operations": "Operaciones",
+    "kubernetes": "Kubernetes"
+  }
+}

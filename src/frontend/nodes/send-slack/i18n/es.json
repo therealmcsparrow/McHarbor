@@ -1,0 +1,18 @@
+{
+  "label": "Enviar Slack",
+  "description": "Enviar un mensaje a un webhook Slack",
+  "config": {
+    "communication_mode": "Entrega",
+    "channel_id": "Canal de comunicaci?n",
+    "webhook_url": "URL de webhook",
+    "channel": "Canal",
+    "username": "Nombre de usuario",
+    "message": "Mensaje"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Canal configurado",
+      "custom": "Otro"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "quickActions": {
+      "label": "快速行动",
+      "description": "常见维护操作"
+    }
+  },
+  "quickActionsWidget": {
+    "title": "快速行动",
+    "pruneImages": "修剪图像",
+    "pruneImagesDesc": "删除所有未使用的图像。此操作无法撤消。",
+    "pruneVolumes": "修剪卷",
+    "pruneVolumesDesc": "删除所有未使用的卷。此操作无法撤消。",
+    "confirm": "确认"
+  }
+}

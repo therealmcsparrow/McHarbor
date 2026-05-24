@@ -1,0 +1,15 @@
+{
+  "label": "Rejoindre",
+  "description": "Rejoignez plusieurs branches entrantes dans un seul message",
+  "config": {
+    "input_count": "Nombre d'entrées",
+    "combine_mode": "Mode Combiner"
+  },
+  "options": {
+    "combine_mode": {
+      "last": "Dernier message",
+      "merge": "Fusionner des objets",
+      "array": "Tableau"
+    }
+  }
+}

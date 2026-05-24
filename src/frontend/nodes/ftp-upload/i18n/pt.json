@@ -1,0 +1,25 @@
+{
+  "label": "Carregar FTP",
+  "description": "Carregar dados de fluxo de trabalho ou um arquivo salvo com FTP ou SFTP",
+  "config": {
+    "host": "Hospedar",
+    "port": "Porta",
+    "username": "Nome de usuário",
+    "password": "Senha",
+    "protocol": "Protocolo",
+    "remote_path": "Caminho Remoto",
+    "source_mode": "Modo Fonte",
+    "property": "Propriedade",
+    "local_path": "Caminho local"
+  },
+  "options": {
+    "protocol": {
+      "ftp": "FTP",
+      "sftp": "SFTP"
+    },
+    "source_mode": {
+      "payload": "Propriedade da mensagem",
+      "file": "Caminho do arquivo"
+    }
+  }
+}

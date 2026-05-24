@@ -21,7 +21,7 @@ func buildSpec() map[string]any {
 		"openapi": "3.1.0",
 		"info": map[string]any{
 			"title":   "McHarbor API",
-			"version": "1.1.15",
+			"version": "1.1.22-dev",
 			"summary": "REST, SSE, and WebSocket surface for McHarbor",
 			"description": "McHarbor exposes a self-hosted control plane API for Docker, Kubernetes, remote agents, workflows, notifications, store content, and operational telemetry. " +
 				"Most routes return the shared { success, data?, error?, message?, code? } envelope and require either the session cookie or a Bearer API key. " +
@@ -981,6 +981,47 @@ func buildPaths() map[string]any {
 				Responses: map[string]any{
 					"201": createdResponse("Stack created", schemaRef("StackSummary")),
 					"400": errorResponse("Malformed stack payload"),
+				},
+			}),
+		),
+		"/stacks/links": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "Read a container stack link",
+				Description: "Returns the persisted McHarbor link that associates a container with a Compose stack.",
+				OperationID: "stacksContainerLinkRead",
+				Tags:        []string{"stacks"},
+				Parameters:  []any{paramRef("EnvID"), queryParam("containerId", "Container identifier", true)},
+				Responses: map[string]any{
+					"200": okResponse("Container stack link", nullable(schemaRef("ContainerStackLink"))),
+					"400": errorResponse("Container identifier is required"),
+				},
+			}),
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Link a container to a stack",
+				Description: "Creates or replaces the persisted McHarbor link between a container and a Compose stack.",
+				OperationID: "stacksContainerLinkCreate",
+				Tags:        []string{"stacks"},
+				Parameters:  []any{paramRef("EnvID")},
+				RequestBody: jsonRequest("Container stack link payload", schemaRef("LinkContainerRequest"), true),
+				Responses: map[string]any{
+					"200": okResponse("Container stack link", schemaRef("ContainerStackLink")),
+					"400": errorResponse("Malformed container stack link payload"),
+					"500": errorResponse("Container stack link failed"),
+				},
+			}),
+		),
+		"/stacks/links/{containerId}": path(
+			op(operationSpec{
+				Method:      "DELETE",
+				Summary:     "Unlink a container from a stack",
+				Description: "Removes the persisted McHarbor link between a container and a Compose stack.",
+				OperationID: "stacksContainerLinkDelete",
+				Tags:        []string{"stacks"},
+				Parameters:  []any{paramRef("EnvID"), pathParam("containerId", "Container identifier")},
+				Responses: map[string]any{
+					"204": noContentResponse("Container stack link removed"),
 				},
 			}),
 		),
@@ -2134,6 +2175,28 @@ func buildSchemas() map[string]any {
 			},
 			"required": []string{"name", "compose"},
 		},
+		"ContainerStackLink": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"id":            map[string]any{"type": "string"},
+				"environmentId": map[string]any{"type": "string"},
+				"containerId":   map[string]any{"type": "string"},
+				"stackName":     map[string]any{"type": "string"},
+				"serviceName":   map[string]any{"type": "string"},
+				"createdAt":     map[string]any{"type": "string", "format": "date-time"},
+				"updatedAt":     map[string]any{"type": "string", "format": "date-time"},
+			},
+			"required": []string{"id", "environmentId", "containerId", "stackName", "createdAt", "updatedAt"},
+		},
+		"LinkContainerRequest": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"containerId": map[string]any{"type": "string"},
+				"stackName":   map[string]any{"type": "string"},
+				"serviceName": map[string]any{"type": "string"},
+			},
+			"required": []string{"containerId", "stackName"},
+		},
 		"KubernetesObject": map[string]any{
 			"type": "object",
 			"properties": map[string]any{
@@ -2346,6 +2409,15 @@ func op(spec operationSpec) map[string]any {
 
 func schemaRef(name string) map[string]any {
 	return map[string]any{"$ref": "#/components/schemas/" + name}
+}
+
+func nullable(schema any) map[string]any {
+	return map[string]any{
+		"oneOf": []any{
+			schema,
+			map[string]any{"type": "null"},
+		},
+	}
 }
 
 func paramRef(name string) map[string]any {

@@ -1,0 +1,19 @@
+{
+  "label": "Condition",
+  "description": "Acheminer un message en fonction d'une condition",
+  "config": {
+    "field": "Champ",
+    "operator": "Opérateur",
+    "value": "Valeur"
+  },
+  "options": {
+    "operator": {
+      "==": "Égal",
+      "!=": "Pas égal",
+      "contains": "Contient",
+      "regex": "Correspond à l'expression régulière",
+      "is_empty": "Est vide",
+      "is_not_empty": "N'est pas vide"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "label": "Enlace de salida",
+  "description": "Almacene el mensaje actual para que lo consuma otro flujo de trabajo",
+  "config": {
+    "name": "Nombre"
+  }
+}

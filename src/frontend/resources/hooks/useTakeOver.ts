@@ -50,8 +50,10 @@ export function useAdoptStack() {
         .then(assertSuccess),
     meta: { success: t('takeOver.success') },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['container-stack-link'] });
       queryClient.invalidateQueries({ queryKey: ['stacks'] });
       queryClient.invalidateQueries({ queryKey: ['containers'] });
+      queryClient.invalidateQueries({ queryKey: ['stack-containers'] });
     },
   });
 }

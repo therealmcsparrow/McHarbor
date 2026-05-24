@@ -1,0 +1,18 @@
+{
+  "widgets": {
+    "containerList": {
+      "label": "Lista de contêineres",
+      "description": "Lista compacta de contêineres com status"
+    }
+  },
+  "containerListWidget": {
+    "title": "Recipientes",
+    "loadingContainers": "Carregando contêineres...",
+    "noContainersFound": "Nenhum contêiner encontrado",
+    "name": "Nome",
+    "image": "Imagem",
+    "state": "Estado",
+    "viewAll": "Ver tudo ({{count}})",
+    "viewAllArrow": "Ver tudo"
+  }
+}

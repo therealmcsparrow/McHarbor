@@ -1,0 +1,21 @@
+{
+  "title": "Painel",
+  "description": "Visão geral do seu ambiente Docker",
+  "addWidget": "Adicionar widget",
+  "editDashboard": "Editar painel",
+  "doneEditing": "Edição concluída",
+  "edit": "Editar",
+  "done": "Feito",
+  "reset": "Reiniciar",
+  "loading": "Carregando...",
+  "addWidgets": "Adicionar widgets",
+  "addWidgetsDescription": "Selecione widgets para adicionar ao seu painel",
+  "categories": {
+    "resources": "Recursos",
+    "host": "Hospedar",
+    "metrics": "Métricas",
+    "monitoring": "Monitoramento",
+    "operations": "Operações",
+    "kubernetes": "Kubernetes"
+  }
+}

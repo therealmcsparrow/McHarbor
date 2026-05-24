@@ -1,0 +1,13 @@
+{
+  "title": "terminal",
+  "description": "Shell interativo em contêineres em execução",
+  "selectContainer": "Selecione um contêiner",
+  "selectContainerPlaceholder": "Selecione um contêiner...",
+  "selectShell": "Concha",
+  "connect": "Conectar",
+  "disconnect": "Desconectar",
+  "connecting": "Conectando...",
+  "connected": "Conectado",
+  "disconnected": "Desconectado",
+  "reconnect": "Reconectar"
+}

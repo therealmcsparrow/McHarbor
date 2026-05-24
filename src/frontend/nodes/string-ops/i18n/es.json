@@ -1,0 +1,22 @@
+{
+  "label": "Operaciones de cuerda",
+  "description": "Aplicar operaciones de cadena comunes a un valor",
+  "config": {
+    "property": "Propiedad",
+    "operation": "Operación",
+    "arg1": "argumento 1",
+    "arg2": "argumento 2"
+  },
+  "options": {
+    "operation": {
+      "uppercase": "Mayúsculas",
+      "lowercase": "Minúsculas",
+      "trim": "Recortar",
+      "replace": "Reemplazar",
+      "split": "Dividir",
+      "join": "Unirse",
+      "substring": "Subcadena",
+      "reverse": "Contrarrestar"
+    }
+  }
+}

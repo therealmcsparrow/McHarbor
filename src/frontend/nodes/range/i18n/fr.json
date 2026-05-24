@@ -1,0 +1,7 @@
+{
+  "label": "Gamme",
+  "description": "Lire une propriété de tableau et attacher des métadonnées de plage",
+  "config": {
+    "property": "Propriété"
+  }
+}

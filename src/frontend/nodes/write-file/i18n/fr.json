@@ -1,0 +1,20 @@
+{
+  "label": "Écrire un fichier",
+  "description": "Écrire les données du message dans un fichier dans le répertoire de données du workflow",
+  "config": {
+    "path": "Chemin",
+    "property": "Propriété",
+    "mode": "Mode",
+    "encoding": "Codage"
+  },
+  "options": {
+    "mode": {
+      "overwrite": "Écraser",
+      "append": "Ajouter"
+    },
+    "encoding": {
+      "utf-8": "UTF-8",
+      "base64": "Base64"
+    }
+  }
+}

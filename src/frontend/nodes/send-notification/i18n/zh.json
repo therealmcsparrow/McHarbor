@@ -1,0 +1,8 @@
+{
+  "label": "发送内部通知",
+  "description": "在 McHarbor 内发送应用内通知",
+  "config": {
+    "title": "标题",
+    "message": "信息"
+  }
+}

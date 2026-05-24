@@ -1,0 +1,19 @@
+{
+  "label": "Demande HTTP",
+  "description": "Envoyer une requête HTTP et stocker la réponse sur le message",
+  "config": {
+    "url": "URL",
+    "method": "Méthode",
+    "headers": "En-têtes",
+    "body_source": "Source du corps"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "topCpuConsumers": {
+      "label": "Principais consumidores de CPU",
+      "description": "Contêineres com maior uso de CPU"
+    },
+    "topMemoryConsumers": {
+      "label": "Principais consumidores de memória",
+      "description": "Contêineres com maior uso de memória"
+    }
+  },
+  "topConsumersWidget": {
+    "cpuTitle": "Principais consumidores de CPU",
+    "memoryTitle": "Principais consumidores de memória",
+    "noData": "Nenhuma estatística de contêiner disponível"
+  }
+}

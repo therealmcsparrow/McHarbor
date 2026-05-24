@@ -1,0 +1,8 @@
+{
+  "label": "Réponse HTTP",
+  "description": "Définir le code d'état sortant et les en-têtes sur le message",
+  "config": {
+    "status_code": "Code d'état",
+    "headers": "En-têtes"
+  }
+}

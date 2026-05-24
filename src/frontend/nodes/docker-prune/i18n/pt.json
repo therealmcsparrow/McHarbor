@@ -1,0 +1,17 @@
+{
+  "label": "Ameixa Docker",
+  "description": "Remover recursos Docker não utilizados de um ambiente",
+  "config": {
+    "environment": "Ambiente",
+    "resource": "Recurso"
+  },
+  "options": {
+    "resource": {
+      "all": "Todos",
+      "containers": "Recipientes",
+      "images": "Imagens",
+      "volumes": "Volumes",
+      "networks": "Redes"
+    }
+  }
+}

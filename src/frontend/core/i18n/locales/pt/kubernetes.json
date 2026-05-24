@@ -1,0 +1,94 @@
+{
+  "pods": {
+    "title": "Vagens",
+    "description": "Módulos {{count}}",
+    "searchPlaceholder": "Pesquisar pods...",
+    "emptyMessage": "Nenhum pod encontrado",
+    "columns": {
+      "name": "Nome",
+      "namespace": "Espaço para nome",
+      "status": "Status",
+      "ready": "Preparar",
+      "restarts": "Reinicia",
+      "age": "Idade",
+      "node": "Nó",
+      "ip": "IP",
+      "actions": "Ações"
+    },
+    "detail": {
+      "notFound": "Pod não encontrado",
+      "status": "Status",
+      "ready": "Preparar",
+      "node": "Nó",
+      "ip": "IP",
+      "containers": "Recipientes",
+      "restartCount": "{{count}} reinicia"
+    },
+    "toast": {
+      "deleted": "Pod excluído"
+    },
+    "confirm": {
+      "deleteTitle": "Excluir pod",
+      "deleteDescription": "Tem certeza de que deseja excluir este pod?"
+    }
+  },
+  "deployments": {
+    "title": "Implantações",
+    "description": "Implantações {{count}}",
+    "searchPlaceholder": "Pesquisar implantações...",
+    "emptyMessage": "Nenhuma implantação encontrada",
+    "columns": {
+      "name": "Nome",
+      "namespace": "Espaço para nome",
+      "ready": "Preparar",
+      "upToDate": "Atualizado",
+      "available": "Disponível",
+      "images": "Imagens",
+      "replicas": "Réplicas",
+      "age": "Idade",
+      "actions": "Ações"
+    },
+    "detail": {
+      "notFound": "Implantação não encontrada",
+      "ready": "Preparar",
+      "upToDate": "Atualizado",
+      "available": "Disponível",
+      "strategy": "Estratégia",
+      "conditions": "Condições"
+    },
+    "toast": {
+      "scaled": "Implantação escalonada",
+      "restarted": "Implantação reiniciada",
+      "deleted": "Implantação excluída"
+    },
+    "confirm": {
+      "deleteTitle": "Excluir implantação",
+      "deleteDescription": "Tem certeza de que deseja excluir esta implantação?"
+    }
+  },
+  "services": {
+    "title": "Serviços",
+    "description": "Serviços {{count}}",
+    "searchPlaceholder": "Pesquisar serviços...",
+    "emptyMessage": "Nenhum serviço encontrado",
+    "columns": {
+      "name": "Nome",
+      "namespace": "Espaço para nome",
+      "type": "Tipo",
+      "clusterIP": "IP do cluster",
+      "ports": "Portas",
+      "age": "Idade"
+    }
+  },
+  "namespaces": {
+    "title": "Espaços para nome",
+    "description": "Namespaces {{count}}",
+    "searchPlaceholder": "Pesquisar namespaces...",
+    "emptyMessage": "Nenhum namespace encontrado",
+    "columns": {
+      "name": "Nome",
+      "status": "Status",
+      "age": "Idade"
+    }
+  }
+}

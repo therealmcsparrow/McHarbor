@@ -1,0 +1,19 @@
+{
+  "label": "Extraction d'images Docker",
+  "description": "Extraire une image d'un registre",
+  "config": {
+    "environment": "Environment",
+    "image": "Image",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry URL",
+    "registry_username": "Registry Username",
+    "registry_password": "Registry Password"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
+  }
+}

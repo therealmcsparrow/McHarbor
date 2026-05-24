@@ -1,0 +1,8 @@
+{
+  "label": "Consulta SQL",
+  "description": "Ejecute una consulta SQL de solo lectura en la base de datos del flujo de trabajo",
+  "config": {
+    "query": "Consulta",
+    "output_property": "Propiedad de salida"
+  }
+}

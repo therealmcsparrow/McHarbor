@@ -2,10 +2,18 @@
   "label": "Send Gotify",
   "description": "Send a Gotify notification",
   "config": {
+    "communication_mode": "Aflevering",
+    "channel_id": "Communicatiekanaal",
     "server_url": "Server-URL",
     "app_token": "App Token",
     "title": "Titel",
     "message": "Bericht",
     "priority": "Prioriteit"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Geconfigureerd kanaal",
+      "custom": "Andere"
+    }
   }
 }

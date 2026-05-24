@@ -1,0 +1,8 @@
+{
+  "label": "Respuesta HTTP",
+  "description": "Establecer el código de estado saliente y los encabezados del mensaje",
+  "config": {
+    "status_code": "Código de estado",
+    "headers": "Encabezados"
+  }
+}

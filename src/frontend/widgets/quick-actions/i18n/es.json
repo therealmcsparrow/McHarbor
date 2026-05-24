@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "quickActions": {
+      "label": "Acciones rápidas",
+      "description": "Operaciones de mantenimiento comunes"
+    }
+  },
+  "quickActionsWidget": {
+    "title": "Acciones rápidas",
+    "pruneImages": "Podar imágenes",
+    "pruneImagesDesc": "Elimina todas las imágenes no utilizadas. Esto no se puede deshacer.",
+    "pruneVolumes": "Podar volúmenes",
+    "pruneVolumesDesc": "Elimine todos los volúmenes no utilizados. Esto no se puede deshacer.",
+    "confirm": "Confirmar"
+  }
+}

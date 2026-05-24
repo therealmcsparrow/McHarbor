@@ -1,0 +1,16 @@
+{
+  "label": "Potência do contêiner",
+  "description": "Habilite ou desabilite um contêiner usando a ação do Power Helper",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "action": "Ação",
+    "timeout": "Tempo limite (segundos)"
+  },
+  "options": {
+    "action": {
+      "enable": "Habilitar",
+      "disable": "Desativar"
+    }
+  }
+}

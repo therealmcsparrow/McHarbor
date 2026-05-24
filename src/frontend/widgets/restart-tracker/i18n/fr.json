@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "restartTracker": {
+      "label": "Redémarrer le traqueur",
+      "description": "Conteneurs avec le plus de redémarrages"
+    }
+  },
+  "restartTrackerWidget": {
+    "title": "Redémarrer le traqueur",
+    "container": "Récipient",
+    "restarts": "Redémarre",
+    "state": "État",
+    "noRestarts": "Aucun redémarrage de conteneur détecté"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "label": "Déclencheur métrique",
+  "description": "Démarrer un workflow lorsque les métriques du conteneur sont vérifiées",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient",
+    "conditions": "Conditions métriques",
+    "logic": "Logique des conditions",
+    "interval": "Intervalle (secondes)",
+    "cooldown": "Temps de recharge (secondes)"
+  },
+  "options": {
+    "logic": {
+      "and": "AND",
+      "or": "OR"
+    }
+  }
+}

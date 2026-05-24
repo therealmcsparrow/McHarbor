@@ -1,0 +1,7 @@
+{
+  "label": "Lien vers",
+  "description": "Recevoir le dernier message d'une sortie de lien dans un autre workflow",
+  "config": {
+    "source": "Sortie source"
+  }
+}

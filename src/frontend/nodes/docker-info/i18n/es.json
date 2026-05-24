@@ -1,0 +1,7 @@
+{
+  "label": "Información sobre Docker",
+  "description": "Cargar información del demonio Docker desde un entorno",
+  "config": {
+    "environment": "Ambiente"
+  }
+}

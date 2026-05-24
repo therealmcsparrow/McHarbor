@@ -1,0 +1,9 @@
+{
+  "label": "Compose 向下",
+  "description": "停止并删除撰写堆栈",
+  "config": {
+    "environment": "环境",
+    "stack_name": "堆栈名称",
+    "remove_volumes": "删除卷"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "label": "Compose inativo",
+  "description": "Pare e remova uma pilha de composição",
+  "config": {
+    "environment": "Ambiente",
+    "stack_name": "Nome da pilha",
+    "remove_volumes": "Remover volumes"
+  }
+}

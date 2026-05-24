@@ -1,0 +1,8 @@
+{
+  "label": "Silbido",
+  "description": "Comprobar si se puede acceder a un host a través de TCP",
+  "config": {
+    "host": "Anfitrión",
+    "timeout": "Tiempo de espera (segundos)"
+  }
+}

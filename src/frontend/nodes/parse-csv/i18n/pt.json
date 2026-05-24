@@ -1,0 +1,9 @@
+{
+  "label": "Analisar CSV",
+  "description": "Analise texto CSV ou TSV em linhas estruturadas",
+  "config": {
+    "property": "Propriedade",
+    "delimiter": "Delimitador",
+    "has_headers": "Tem cabeçalhos"
+  }
+}

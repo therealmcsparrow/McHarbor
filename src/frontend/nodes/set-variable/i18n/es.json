@@ -1,0 +1,8 @@
+{
+  "label": "Establecer variable",
+  "description": "Almacenar un valor en el contexto de flujo.",
+  "config": {
+    "name": "Nombre de la variable",
+    "value": "Valor"
+  }
+}

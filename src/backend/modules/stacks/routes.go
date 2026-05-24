@@ -21,6 +21,9 @@ func Mount(app *router.AppDeps) {
 			r.With(rbac.RequireAnyStackPermission(app.RBACService, rbac.PermStacksView)).Post("/check-updates", h.HandleCheckImageUpdates)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStacksManage)).Post("/adopt/preview", h.HandleAdoptPreview)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStacksManage)).Post("/adopt", h.HandleAdopt)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStacksView)).Get("/links", h.HandleGetContainerLink)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStacksManage)).Post("/links", h.HandleLinkContainer)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStacksManage)).Delete("/links/{containerId}", h.HandleUnlinkContainer)
 
 			r.Route("/{name}", func(r chi.Router) {
 				r.With(rbac.RequireStackPermission(app.RBACService, rbac.PermStacksView, "name")).Get("/", h.HandleGetDetail)

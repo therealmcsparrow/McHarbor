@@ -1,0 +1,18 @@
+{
+  "label": "DNS查询",
+  "description": "解析主机名的 DNS 记录",
+  "config": {
+    "hostname": "主机名",
+    "record_type": "记录类型"
+  },
+  "options": {
+    "record_type": {
+      "A": "A",
+      "AAAA": "AAAA",
+      "MX": "MX",
+      "TXT": "TXT",
+      "CNAME": "CNAME",
+      "NS": "NS"
+    }
+  }
+}

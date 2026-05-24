@@ -2,11 +2,19 @@
   "label": "Send ntfy",
   "description": "Publish a message to an ntfy topic",
   "config": {
+    "communication_mode": "Aflevering",
+    "channel_id": "Communicatiekanaal",
     "server_url": "Server-URL",
     "topic": "Topic",
     "title": "Titel",
     "message": "Bericht",
     "priority": "Prioriteit",
     "tags": "Tags"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Geconfigureerd kanaal",
+      "custom": "Andere"
+    }
   }
 }

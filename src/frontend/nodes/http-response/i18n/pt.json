@@ -1,0 +1,8 @@
+{
+  "label": "Resposta HTTP",
+  "description": "Defina o código de status de saída e os cabeçalhos da mensagem",
+  "config": {
+    "status_code": "Código de status",
+    "headers": "Cabeçalhos"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Estatísticas de contêiner",
+  "description": "Ler métricas de tempo de execução únicas para um contêiner",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente"
+  }
+}

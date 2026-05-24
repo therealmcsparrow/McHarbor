@@ -1,0 +1,15 @@
+{
+  "label": "Unirse",
+  "description": "Une varias ramas entrantes en un solo mensaje",
+  "config": {
+    "input_count": "Conteo de entradas",
+    "combine_mode": "Modo combinado"
+  },
+  "options": {
+    "combine_mode": {
+      "last": "Último mensaje",
+      "merge": "Fusionar objetos",
+      "array": "Formación"
+    }
+  }
+}

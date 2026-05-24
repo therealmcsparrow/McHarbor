@@ -1,0 +1,8 @@
+{
+  "label": "Modèle",
+  "description": "Afficher un modèle de texte à l'aide des valeurs du message de workflow",
+  "config": {
+    "template": "Modèle",
+    "output_property": "Propriété de sortie"
+  }
+}

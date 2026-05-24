@@ -1,0 +1,8 @@
+{
+  "label": "Pingar",
+  "description": "Verifique se um host pode ser acessado por TCP",
+  "config": {
+    "host": "Hospedar",
+    "timeout": "Tempo limite (segundos)"
+  }
+}

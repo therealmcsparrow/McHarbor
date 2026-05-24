@@ -7,6 +7,8 @@
   "noContainersFound": "Keine Container gefunden",
   "containerNotFound": "Container nicht gefunden.",
   "createContainer": "Container erstellen",
+  "pruneUnused": "Ungenutzte bereinigen",
+  "pruneDescription": "Entfernt gestoppte Container, die nicht mehr laufen.",
   "tableView": "Tabellenansicht",
   "cardView": "Kartenansicht",
   "columns": {
@@ -47,6 +49,7 @@
     "reconnect": "Erneut verbinden",
     "actionCompleted": "Aktion abgeschlossen",
     "takeOver": "Übernehmen",
+    "relinkStack": "Stack neu verknüpfen",
     "edit": "Bearbeiten"
   },
   "detail": {
@@ -86,7 +89,8 @@
     "recreated": "Container neu erstellt",
     "updated": "Container aktualisiert",
     "reinstalled": "Container neu installiert",
-    "resumed": "Container fortgesetzt"
+    "resumed": "Container fortgesetzt",
+    "pruned": "Ungenutzte Container bereinigt"
   },
   "confirm": {
     "stopTitle": "Container stoppen",

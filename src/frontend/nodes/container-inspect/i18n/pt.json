@@ -1,0 +1,8 @@
+{
+  "label": "Inspeção de contêiner",
+  "description": "Inspecione um único contêiner",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente"
+  }
+}

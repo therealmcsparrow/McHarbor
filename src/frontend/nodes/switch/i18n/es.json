@@ -1,0 +1,15 @@
+{
+  "label": "Cambiar",
+  "description": "Enrutar un mensaje a salidas de casos dinámicos",
+  "config": {
+    "property": "Propiedad",
+    "check_type": "Tipo de cheque"
+  },
+  "options": {
+    "check_type": {
+      "value": "Valor",
+      "type": "Tipo",
+      "regex": "expresión regular"
+    }
+  }
+}

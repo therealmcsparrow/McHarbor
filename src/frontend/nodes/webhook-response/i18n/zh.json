@@ -1,0 +1,9 @@
+{
+  "label": "Webhook 响应",
+  "description": "为 webhook 触发的流准备 HTTP 响应",
+  "config": {
+    "status_code": "状态码",
+    "content_type": "内容类型",
+    "body": "身体"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "label": "Docker podar",
+  "description": "Eliminar recursos Docker no utilizados de un entorno",
+  "config": {
+    "environment": "Ambiente",
+    "resource": "Recurso"
+  },
+  "options": {
+    "resource": {
+      "all": "Todo",
+      "containers": "Contenedores",
+      "images": "Imágenes",
+      "volumes": "Volúmenes",
+      "networks": "Redes"
+    }
+  }
+}

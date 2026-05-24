@@ -1,0 +1,15 @@
+{
+  "label": "Registro",
+  "description": "Escribir un mensaje en el flujo de registro del flujo de trabajo",
+  "config": {
+    "level": "Nivel",
+    "message": "Mensaje"
+  },
+  "options": {
+    "level": {
+      "info": "Información",
+      "warn": "Advertir",
+      "error": "Error"
+    }
+  }
+}

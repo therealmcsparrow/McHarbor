@@ -1,0 +1,8 @@
+{
+  "label": "Quitar red",
+  "description": "Eliminar una red Docker",
+  "config": {
+    "environment": "Ambiente",
+    "name": "Nombre"
+  }
+}

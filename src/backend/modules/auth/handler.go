@@ -5,6 +5,8 @@ package auth
 
 import (
 	"net/http"
+	"net/mail"
+	"strings"
 	"time"
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
@@ -40,6 +42,15 @@ type setupRequest struct {
 	Username string  `json:"username"`
 	Password string  `json:"password"`
 	Email    *string `json:"email,omitempty"`
+}
+
+type preferencesRequest struct {
+	PreferredLanguage string `json:"preferredLanguage"`
+}
+
+type profileRequest struct {
+	DisplayName string `json:"displayName"`
+	Email       string `json:"email"`
 }
 
 // HandleLogin authenticates a user and sets a session cookie.
@@ -128,6 +139,97 @@ func (h *Handler) HandleSession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, user)
+}
+
+// HandleUpdatePreferences updates preferences for the current authenticated user.
+func (h *Handler) HandleUpdatePreferences(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	var req preferencesRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	if !isSupportedPreferredLanguage(req.PreferredLanguage) {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	updated, err := h.app.AuthService.UpdatePreferredLanguage(user.ID, req.PreferredLanguage)
+	if err != nil {
+		h.app.Logger.Error("auth: update preferences error", "error", err, "userId", user.ID)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+	if updated == nil {
+		response.NotFoundCode(w, r, i18n.ErrUserNotFound)
+		return
+	}
+
+	response.OK(w, updated)
+}
+
+// HandleUpdateProfile updates editable account details for the current authenticated user.
+func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	var req profileRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	displayName := strings.TrimSpace(req.DisplayName)
+	email := strings.TrimSpace(req.Email)
+	if len(displayName) > 120 || len(email) > 254 {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	if email != "" {
+		parsed, err := mail.ParseAddress(email)
+		if err != nil {
+			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+			return
+		}
+		email = parsed.Address
+	}
+
+	updated, err := h.app.AuthService.UpdateProfile(user.ID, displayName, email)
+	if err != nil {
+		h.app.Logger.Error("auth: update profile error", "error", err, "userId", user.ID)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+	if updated == nil {
+		response.NotFoundCode(w, r, i18n.ErrUserNotFound)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "update_profile",
+		EntityType: "user",
+		EntityID:   user.ID,
+		EntityName: user.Username,
+	})
+
+	response.OK(w, updated)
+}
+
+func isSupportedPreferredLanguage(value string) bool {
+	switch value {
+	case "en", "nl", "de", "es", "fr", "pt", "zh":
+		return true
+	default:
+		return false
+	}
 }
 
 // HandleStatus returns public auth status (needsSetup, authDisabled, oidcProviders).

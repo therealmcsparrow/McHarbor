@@ -1,0 +1,40 @@
+{
+  "title": "Volúmenes",
+  "description": "volúmenes {{count}}",
+  "searchPlaceholder": "Volúmenes de búsqueda...",
+  "emptyMessage": "No se encontraron volúmenes",
+  "tableView": "Vista de tabla",
+  "cardView": "Vista de tarjeta",
+  "pruneUnused": "Podar sin usar",
+  "pruneDescription": "Elimine los volúmenes que no estén adjuntos a ningún contenedor.",
+  "columns": {
+    "name": "Nombre",
+    "driver": "Conductor",
+    "usage": "Uso",
+    "mountpoint": "punto de montaje",
+    "created": "Creado",
+    "actions": "Comportamiento"
+  },
+  "badges": {
+    "inUse": "en uso",
+    "unused": "no usado"
+  },
+  "create": {
+    "title": "Crear volumen",
+    "description": "Especifique el nombre del volumen y el controlador.",
+    "name": "Nombre del volumen",
+    "driver": "Conductor",
+    "driverPlaceholder": "Controlador (predeterminado: local)",
+    "submit": "Crear",
+    "creating": "Creando..."
+  },
+  "toast": {
+    "created": "Volumen creado",
+    "removed": "Volumen eliminado",
+    "pruned": "Volúmenes no utilizados podados"
+  },
+  "confirm": {
+    "removeTitle": "Quitar volumen",
+    "removeDescription": "Esto eliminará permanentemente este volumen y todos sus datos."
+  }
+}

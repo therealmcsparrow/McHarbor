@@ -35,7 +35,7 @@ type Handler struct {
 // NewHandler creates a new container handler.
 func NewHandler(app *router.AppDeps) *Handler {
 	return &Handler{
-		svc:      NewService(app.DockerPool),
+		svc:      NewService(app.DockerPool, app.DB),
 		stackSvc: newStackStore(app.DB),
 		app:      app,
 	}
@@ -128,6 +128,37 @@ func (h *Handler) HandleBulkStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, metrics)
+}
+
+// HandlePrune removes stopped containers.
+// POST /containers/prune
+func (h *Handler) HandlePrune(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+
+	report, err := h.svc.Prune(r.Context(), envID)
+	if err != nil {
+		h.app.Logger.Error("prune containers failed", "env", envID, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrContainerPruneFailed)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:        "prune",
+		EntityType:    "container",
+		EntityID:      "containers",
+		EntityName:    "unused containers",
+		Details:       "removed_stopped_containers",
+		EnvironmentID: envID,
+	})
+	h.app.Logger.Info("containers pruned", "env", envID, "deleted", len(report.ContainersDeleted), "user", user.Username)
+
+	response.OK(w, report)
 }
 
 // HandleCreate creates a new container.

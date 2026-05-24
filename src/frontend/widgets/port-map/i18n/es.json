@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "portMap": {
+      "label": "Mapa del puerto",
+      "description": "Asignaciones de puertos de host a contenedor"
+    }
+  },
+  "portMapWidget": {
+    "title": "Mapa del puerto",
+    "container": "Recipiente",
+    "mapping": "Anfitrión → Contenedor",
+    "protocol": "Protocolo",
+    "noPorts": "No se encontraron puertos publicados"
+  }
+}

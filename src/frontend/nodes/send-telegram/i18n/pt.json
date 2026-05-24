@@ -1,0 +1,23 @@
+{
+  "label": "Enviar Telegram",
+  "description": "Envie uma mensagem do bot Telegram",
+  "config": {
+    "communication_mode": "Entrega",
+    "channel_id": "Canal de comunica??o",
+    "bot_token": "Token de bot",
+    "chat_id": "ID do bate-papo",
+    "message": "Mensagem",
+    "parse_mode": "Modo de análise"
+  },
+  "options": {
+    "parse_mode": {
+      "": "Texto Simples",
+      "Markdown": "Remarcação",
+      "HTML": "HTML"
+    },
+    "communication_mode": {
+      "configured": "Canal configurado",
+      "custom": "Outro"
+    }
+  }
+}

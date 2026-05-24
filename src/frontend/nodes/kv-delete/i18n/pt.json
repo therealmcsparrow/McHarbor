@@ -1,0 +1,7 @@
+{
+  "label": "Excluir KV",
+  "description": "Excluir um valor do armazenamento de valores-chave do fluxo de trabalho",
+  "config": {
+    "key": "Chave"
+  }
+}

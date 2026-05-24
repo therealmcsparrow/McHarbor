@@ -1,0 +1,25 @@
+{
+  "label": "Subir FTP",
+  "description": "Cargue datos de flujo de trabajo o un archivo guardado con FTP o SFTP",
+  "config": {
+    "host": "Anfitrión",
+    "port": "Puerto",
+    "username": "Nombre de usuario",
+    "password": "Contraseña",
+    "protocol": "Protocolo",
+    "remote_path": "Ruta remota",
+    "source_mode": "Modo fuente",
+    "property": "Propiedad",
+    "local_path": "Ruta Local"
+  },
+  "options": {
+    "protocol": {
+      "ftp": "FTP",
+      "sftp": "SFTP"
+    },
+    "source_mode": {
+      "payload": "Propiedad del mensaje",
+      "file": "Ruta del archivo"
+    }
+  }
+}

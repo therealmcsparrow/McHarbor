@@ -3,6 +3,8 @@
   "description": "Docker- en Kubernetes-verbindingen beheren",
   "searchPlaceholder": "Omgevingen zoeken...",
   "addEnvironment": "Omgeving toevoegen",
+  "tableView": "Tabelweergave",
+  "cardView": "Kaartweergave",
   "emptyMessage": "Geen omgevingen geconfigureerd",
   "columns": {
     "name": "Naam",
@@ -30,6 +32,21 @@
     "ssh": "SSH",
     "agent": "Remote Agent",
     "podman": "Podman"
+  },
+  "card": {
+    "cpu": "CPU",
+    "ram": "RAM",
+    "containers": "Containers",
+    "running": "Actief",
+    "stopped": "Gestopt",
+    "restarting": "Herstart",
+    "killed": "Gedood",
+    "needsUpdates": "Updates nodig",
+    "loadingMetrics": "Metrics laden...",
+    "unavailable": "Niet beschikbaar",
+    "versionUnknown": "Versie onbekend",
+    "open": "Omgeving openen",
+    "noMatches": "Geen omgevingen komen overeen met je zoekopdracht"
   },
   "create": {
     "title": "Omgeving toevoegen",

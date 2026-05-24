@@ -1,0 +1,15 @@
+{
+  "label": "Agregar",
+  "description": "Colete itens para agregação posterior no executor",
+  "config": {
+    "group_by": "Agrupar por",
+    "mode": "Modo"
+  },
+  "options": {
+    "mode": {
+      "list": "Lista",
+      "count": "Contar",
+      "sum": "Soma"
+    }
+  }
+}

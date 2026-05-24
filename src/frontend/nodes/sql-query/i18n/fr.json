@@ -1,0 +1,8 @@
+{
+  "label": "Requête SQL",
+  "description": "Exécutez une requête SQL en lecture seule sur la base de données de workflow",
+  "config": {
+    "query": "Requête",
+    "output_property": "Propriété de sortie"
+  }
+}

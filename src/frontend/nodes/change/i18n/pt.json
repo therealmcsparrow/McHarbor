@@ -1,0 +1,21 @@
+{
+  "label": "Mudar",
+  "description": "Definir ou excluir um valor em msg, fluxo ou escopo global",
+  "config": {
+    "action_type": "Ação",
+    "scope": "Escopo",
+    "property": "Propriedade",
+    "value": "Valor"
+  },
+  "options": {
+    "action_type": {
+      "set": "Definir",
+      "delete": "Excluir"
+    },
+    "scope": {
+      "msg": "mensagem",
+      "flow": "fluxo",
+      "global": "global"
+    }
+  }
+}

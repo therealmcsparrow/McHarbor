@@ -1,0 +1,19 @@
+{
+  "label": "健康）状况",
+  "description": "根据条件路由消息",
+  "config": {
+    "field": "场地",
+    "operator": "操作员",
+    "value": "价值"
+  },
+  "options": {
+    "operator": {
+      "==": "等于",
+      "!=": "不等于",
+      "contains": "包含",
+      "regex": "匹配正则表达式",
+      "is_empty": "为空",
+      "is_not_empty": "不为空"
+    }
+  }
+}

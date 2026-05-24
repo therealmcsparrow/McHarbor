@@ -4,6 +4,17 @@
   "config": {
     "environment": "Omgeving",
     "term": "Zoekterm",
-    "limit": "Limiet"
+    "limit": "Limiet",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry-URL",
+    "registry_username": "Registry-gebruikersnaam",
+    "registry_password": "Registry-wachtwoord"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
   }
 }

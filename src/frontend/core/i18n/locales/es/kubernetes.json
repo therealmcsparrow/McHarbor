@@ -1,0 +1,94 @@
+{
+  "pods": {
+    "title": "vainas",
+    "description": "vainas {{count}}",
+    "searchPlaceholder": "Grupos de búsqueda...",
+    "emptyMessage": "No se encontraron vainas",
+    "columns": {
+      "name": "Nombre",
+      "namespace": "Espacio de nombres",
+      "status": "Estado",
+      "ready": "Listo",
+      "restarts": "Se reinicia",
+      "age": "Edad",
+      "node": "Nodo",
+      "ip": "IP",
+      "actions": "Comportamiento"
+    },
+    "detail": {
+      "notFound": "Pod no encontrado",
+      "status": "Estado",
+      "ready": "Listo",
+      "node": "Nodo",
+      "ip": "IP",
+      "containers": "Contenedores",
+      "restartCount": "{{count}} se reinicia"
+    },
+    "toast": {
+      "deleted": "Pod eliminado"
+    },
+    "confirm": {
+      "deleteTitle": "Eliminar módulo",
+      "deleteDescription": "¿Está seguro de que desea eliminar este pod?"
+    }
+  },
+  "deployments": {
+    "title": "Implementaciones",
+    "description": "Implementaciones {{count}}",
+    "searchPlaceholder": "Buscar implementaciones...",
+    "emptyMessage": "No se encontraron implementaciones",
+    "columns": {
+      "name": "Nombre",
+      "namespace": "Espacio de nombres",
+      "ready": "Listo",
+      "upToDate": "A hoy",
+      "available": "Disponible",
+      "images": "Imágenes",
+      "replicas": "Réplicas",
+      "age": "Edad",
+      "actions": "Comportamiento"
+    },
+    "detail": {
+      "notFound": "Implementación no encontrada",
+      "ready": "Listo",
+      "upToDate": "A hoy",
+      "available": "Disponible",
+      "strategy": "Estrategia",
+      "conditions": "Condiciones"
+    },
+    "toast": {
+      "scaled": "Implementación escalada",
+      "restarted": "Implementación reiniciada",
+      "deleted": "Implementación eliminada"
+    },
+    "confirm": {
+      "deleteTitle": "Eliminar implementación",
+      "deleteDescription": "¿Está seguro de que desea eliminar esta implementación?"
+    }
+  },
+  "services": {
+    "title": "Servicios",
+    "description": "Servicios {{count}}",
+    "searchPlaceholder": "Servicios de búsqueda...",
+    "emptyMessage": "No se encontraron servicios",
+    "columns": {
+      "name": "Nombre",
+      "namespace": "Espacio de nombres",
+      "type": "Tipo",
+      "clusterIP": "IP del clúster",
+      "ports": "Puertos",
+      "age": "Edad"
+    }
+  },
+  "namespaces": {
+    "title": "Espacios de nombres",
+    "description": "Espacios de nombres {{count}}",
+    "searchPlaceholder": "Buscar espacios de nombres...",
+    "emptyMessage": "No se encontraron espacios de nombres",
+    "columns": {
+      "name": "Nombre",
+      "status": "Estado",
+      "age": "Edad"
+    }
+  }
+}

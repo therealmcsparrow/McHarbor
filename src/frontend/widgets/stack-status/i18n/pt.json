@@ -1,0 +1,16 @@
+{
+  "widgets": {
+    "stackStatus": {
+      "label": "Status da pilha",
+      "description": "Visão geral das pilhas de composição"
+    }
+  },
+  "stackStatusWidget": {
+    "title": "Pilhas",
+    "loadingStacks": "Carregando pilhas...",
+    "noStacksFound": "Nenhuma pilha encontrada",
+    "service_one": "Serviço {{count}}",
+    "service_other": "Serviços {{count}}",
+    "viewAll": "Ver tudo"
+  }
+}

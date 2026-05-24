@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@resources/components/ui/Spinner';
+import { useContainerStackLink } from '@resources/hooks/useStackLinks';
 import { useHeaderSlot } from '@resources/stores/headerSlot';
 import { useContainer, useContainerAction } from '../hooks/useContainers';
 import { useContainerEdit } from '../hooks/useContainerEdit';
@@ -30,12 +31,14 @@ export default function ContainerDetailPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('containers');
   const { data: container, isLoading } = useContainer(id ?? '');
+  const { data: stackLink } = useContainerStackLink(id);
   const action = useContainerAction();
   const edit = useContainerEdit(container);
   const [confirmKill, setConfirmKill] = useState(false);
   const [recreateConfirmOpen, setRecreateConfirmOpen] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [takeOverOpen, setTakeOverOpen] = useState(false);
+  const [relinkOpen, setRelinkOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DetailTabId>('overview');
   const setHeaderActive = useHeaderSlot((store) => store.setActive);
 
@@ -63,6 +66,7 @@ export default function ContainerDetailPage() {
   const name = (container.Name ?? '').replace(/^\//, '');
   const isRunning = (container.State?.Status ?? 'unknown') === 'running';
   const webURL = isRunning ? getInspectWebUrl(container.NetworkSettings?.Ports) : null;
+  const linkedStackName = stackLink?.stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
   const isComposeManaged = !!container.Config?.Labels?.['com.docker.compose.project'];
 
   return (
@@ -79,10 +83,12 @@ export default function ContainerDetailPage() {
             onSave={handleSave}
             onCancelEdit={edit.cancelEditing}
             saving={edit.isSaving}
+            stackName={linkedStackName}
             onAction={(nextAction) => action.mutate({ id: container.Id, action: nextAction })}
             onKill={() => setConfirmKill(true)}
             onRemove={() => setRemoveDialogOpen(true)}
             onTakeOver={() => setTakeOverOpen(true)}
+            onRelink={() => setRelinkOpen(true)}
           />,
           document.getElementById('header-slot')!,
         )}
@@ -125,6 +131,8 @@ export default function ContainerDetailPage() {
         recreateConfirmOpen={recreateConfirmOpen}
         removeDialogOpen={removeDialogOpen}
         takeOverOpen={takeOverOpen}
+        relinkOpen={relinkOpen}
+        linkedStackName={linkedStackName}
         actionPending={action.isPending}
         editSaving={edit.isSaving}
         changedFields={edit.changes.changedConfigFields}
@@ -132,6 +140,7 @@ export default function ContainerDetailPage() {
         onRecreateConfirmChange={setRecreateConfirmOpen}
         onRemoveDialogChange={setRemoveDialogOpen}
         onTakeOverChange={setTakeOverOpen}
+        onRelinkChange={setRelinkOpen}
         onKill={() => {
           action.mutate({ id: container.Id, action: 'kill' });
           setConfirmKill(false);

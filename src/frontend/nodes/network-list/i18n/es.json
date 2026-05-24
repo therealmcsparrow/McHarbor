@@ -1,0 +1,7 @@
+{
+  "label": "Lista de redes",
+  "description": "Listar redes Docker",
+  "config": {
+    "environment": "Ambiente"
+  }
+}

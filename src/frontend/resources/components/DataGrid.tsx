@@ -88,10 +88,27 @@ export function DataGrid<T>({
   const resolvedSearchPlaceholder = searchPlaceholder ?? t('dataGrid.search');
   const resolvedEmptyMessage = emptyMessage ?? t('dataGrid.noData');
 
-  // Reset selection when data changes
+  // Keep selection stable across polling refreshes, but drop rows that no longer exist.
   useEffect(() => {
-    setRowSelection({});
-  }, [data]);
+    if (!selectable) return;
+
+    const currentRowIds = new Set(
+      data.map((row, index) => (getRowId ? getRowId(row) : String(index)))
+    );
+
+    setRowSelection((prev) => {
+      let changed = false;
+      const next: RowSelectionState = {};
+      for (const [rowId, selected] of Object.entries(prev)) {
+        if (currentRowIds.has(rowId)) {
+          next[rowId] = selected;
+        } else {
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [data, getRowId, selectable]);
 
   const handleRowSelectionChange = useCallback(
     (updaterOrValue: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => {

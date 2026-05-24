@@ -1,0 +1,19 @@
+{
+  "label": "Solicitação HTTP",
+  "description": "Envie uma solicitação HTTP e armazene a resposta na mensagem",
+  "config": {
+    "url": "URL",
+    "method": "Método",
+    "headers": "Cabeçalhos",
+    "body_source": "Fonte Corporal"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

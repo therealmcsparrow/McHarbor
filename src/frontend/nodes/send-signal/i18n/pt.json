@@ -1,0 +1,18 @@
+{
+  "label": "Enviar Signal",
+  "description": "Envie uma mensagem através de uma ponte Signal API",
+  "config": {
+    "communication_mode": "Entrega",
+    "channel_id": "Canal de comunica??o",
+    "api_url": "API URL",
+    "sender": "Remetente",
+    "recipient": "Destinatário",
+    "message": "Mensagem"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Canal configurado",
+      "custom": "Outro"
+    }
+  }
+}

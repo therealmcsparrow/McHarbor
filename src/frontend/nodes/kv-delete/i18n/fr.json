@@ -1,0 +1,7 @@
+{
+  "label": "KV Supprimer",
+  "description": "Supprimer une valeur du magasin clé-valeur du workflow",
+  "config": {
+    "key": "Clé"
+  }
+}

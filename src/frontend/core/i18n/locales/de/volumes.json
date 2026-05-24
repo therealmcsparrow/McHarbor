@@ -5,6 +5,8 @@
   "emptyMessage": "Keine Volumes gefunden",
   "tableView": "Tabellenansicht",
   "cardView": "Kartenansicht",
+  "pruneUnused": "Ungenutzte bereinigen",
+  "pruneDescription": "Entfernt Volumes, die keinem Container zugeordnet sind.",
   "columns": {
     "name": "Name",
     "driver": "Treiber",

@@ -1,0 +1,18 @@
+{
+  "label": "Gatilho de Métrica",
+  "description": "Iniciar um fluxo de trabalho quando as métricas do contêiner forem verificadas",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "conditions": "Condições Métricas",
+    "logic": "Lógica de Condição",
+    "interval": "Intervalo (segundos)",
+    "cooldown": "Tempo de espera (segundos)"
+  },
+  "options": {
+    "logic": {
+      "and": "AND",
+      "or": "OR"
+    }
+  }
+}

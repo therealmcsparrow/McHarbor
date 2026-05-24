@@ -1,0 +1,15 @@
+{
+  "widgets": {
+    "portMap": {
+      "label": "港口地图",
+      "description": "主机到容器的端口映射"
+    }
+  },
+  "portMapWidget": {
+    "title": "港口地图",
+    "container": "容器",
+    "mapping": "主机 → 容器",
+    "protocol": "协议",
+    "noPorts": "未找到已发布的端口"
+  }
+}

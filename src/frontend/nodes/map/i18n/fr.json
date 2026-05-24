@@ -1,0 +1,8 @@
+{
+  "label": "Carte",
+  "description": "Mapper les clés d'objet de tableau à une nouvelle forme",
+  "config": {
+    "property": "Propriété",
+    "mapping": "Cartographie"
+  }
+}

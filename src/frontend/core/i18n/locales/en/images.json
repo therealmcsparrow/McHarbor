@@ -6,6 +6,8 @@
   "tableView": "Table view",
   "cardView": "Card view",
   "notFound": "Image not found.",
+  "pruneUnused": "Prune Unused",
+  "pruneDescription": "Remove unused images that are not referenced by containers.",
   "columns": {
     "repoTag": "Repository:Tag",
     "status": "Status",

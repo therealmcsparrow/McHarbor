@@ -12,6 +12,7 @@ import {
   useStacks,
   useStackAction,
   useDeleteStack,
+  usePruneStack,
   useUpdateStack,
 } from "../hooks/useStacks";
 import { useCheckStackUpdates } from "../hooks/useStackUpdates";
@@ -33,6 +34,7 @@ export default function StacksPage() {
   const { data: statsMap } = useContainersBulkStats();
   const action = useStackAction();
   const deleteStack = useDeleteStack();
+  const pruneStack = usePruneStack();
   const updateStack = useUpdateStack();
   const checkUpdates = useCheckStackUpdates();
   const { viewMode, setViewMode } = useStacksViewStore();
@@ -59,11 +61,17 @@ export default function StacksPage() {
     (typeof stacks)[number] | null
   >(null);
   const [reinstallAllConfirmOpen, setReinstallAllConfirmOpen] = useState(false);
+  const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
 
   const handleAction = (name: string, act: string) =>
     action.mutate({ name, action: act });
   const handleDelete = (name: string) => deleteStack.mutate(name);
   const updatesAvailable = updateAvailableTargets.length;
+  const pruneTargets = stacks.filter((stack) => stack.type === "managed");
+
+  async function pruneUnusedServices() {
+    await Promise.allSettled(pruneTargets.map((stack) => pruneStack.mutateAsync(stack.name)));
+  }
 
   const columns = useStackTableColumns({
     onEdit: setEditTarget,
@@ -99,11 +107,13 @@ export default function StacksPage() {
             batchRunning={batchProgress.isRunning}
             updatesAvailable={updatesAvailable}
             reinstallCount={reinstallTargets.length}
+            pruneRunning={pruneStack.isPending}
             onCheckUpdates={() => checkUpdates.mutate(undefined)}
             onUpdateAll={() =>
               runStackOperation("update", updateAvailableTargets)
             }
             onReinstallAll={() => setReinstallAllConfirmOpen(true)}
+            onPruneUnused={() => setPruneConfirmOpen(true)}
           />
         }
       />
@@ -184,6 +194,19 @@ export default function StacksPage() {
           setReinstallAllConfirmOpen(false);
         }}
         loading={batchProgress.isRunning}
+      />
+
+      <ConfirmDialog
+        open={pruneConfirmOpen}
+        onOpenChange={setPruneConfirmOpen}
+        title={t("prune.button")}
+        description={tc("batch.confirmPruneDescription")}
+        confirmLabel={t("prune.button")}
+        onConfirm={() => {
+          void pruneUnusedServices();
+          setPruneConfirmOpen(false);
+        }}
+        loading={pruneStack.isPending}
       />
 
       <OperationProgressDialog

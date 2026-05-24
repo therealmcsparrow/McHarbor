@@ -1,0 +1,33 @@
+{
+  "widgets": {
+    "cpuCores": {
+      "label": "Cœurs de processeur",
+      "description": "Nombre de cœurs et architecture du processeur hôte"
+    },
+    "totalMemory": {
+      "label": "Mémoire totale",
+      "description": "Mémoire totale de l'hôte"
+    },
+    "dockerVersion": {
+      "label": "Version Docker",
+      "description": "Version du moteur Docker et nom d'hôte"
+    },
+    "diskUsage": {
+      "label": "Utilisation du disque",
+      "description": "Répartition totale de l'utilisation du disque"
+    },
+    "uptime": {
+      "label": "Temps de disponibilité",
+      "description": "Disponibilité du système hôte"
+    }
+  },
+  "hostInfoWidget": {
+    "cpuCores": "Cœurs de processeur",
+    "totalMemory": "Mémoire totale",
+    "dockerVersion": "Version Docker",
+    "diskUsage": "Utilisation du disque",
+    "uptime": "Temps de disponibilité",
+    "cores": "noyaux",
+    "imagesVolumes": "Images : {{images}}, Volumes : {{volumes}}"
+  }
+}

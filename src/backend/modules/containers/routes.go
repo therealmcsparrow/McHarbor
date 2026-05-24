@@ -19,6 +19,7 @@ func Mount(app *router.AppDeps) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersView)).Get("/", h.HandleList)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersView)).Get("/stats/summary", h.HandleBulkStats)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersView)).Post("/check-updates", h.HandleCheckImageUpdates)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/prune", h.HandlePrune)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/", h.HandleCreate)
 
 			r.Route("/{id}", func(r chi.Router) {

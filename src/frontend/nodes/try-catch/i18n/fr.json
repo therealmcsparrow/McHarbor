@@ -1,0 +1,7 @@
+{
+  "label": "Essayez d'attraper",
+  "description": "Protégez l’exécution en aval et acheminez les échecs vers une branche catch",
+  "config": {
+    "error_property": "Propriété d'erreur"
+  }
+}

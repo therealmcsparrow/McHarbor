@@ -5,6 +5,8 @@
   "emptyMessage": "No volumes found",
   "tableView": "Table view",
   "cardView": "Card view",
+  "pruneUnused": "Prune Unused",
+  "pruneDescription": "Remove volumes that are not attached to any container.",
   "columns": {
     "name": "Name",
     "driver": "Driver",

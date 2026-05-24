@@ -1,0 +1,7 @@
+{
+  "label": "Tente pegar",
+  "description": "Proteja a execução downstream e encaminhe falhas para uma ramificação catch",
+  "config": {
+    "error_property": "Propriedade de erro"
+  }
+}

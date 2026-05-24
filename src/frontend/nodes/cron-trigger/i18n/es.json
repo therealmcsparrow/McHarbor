@@ -1,0 +1,8 @@
+{
+  "label": "Activador cron",
+  "description": "Emitir un mensaje desde una expresión cron y zona horaria",
+  "config": {
+    "cron": "Expresión cron",
+    "timezone": "Zona horaria"
+  }
+}

@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { IconDownload, IconLayoutGrid, IconLayoutList } from '@tabler/icons-react';
+import { IconDownload, IconFilterOff, IconLayoutGrid, IconLayoutList } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { DataGrid } from '@resources/components/DataGrid';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
@@ -35,6 +35,7 @@ export default function ImagesPage() {
   const { viewMode, setViewMode } = useImagesViewStore();
   const [importOpen, setImportOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
+  const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
 
   function handleExport(image: ImageInfo) {
     const name = image.RepoTags?.[0] ?? image.Id?.replace('sha256:', '').slice(0, 12) ?? 'image';
@@ -49,7 +50,6 @@ export default function ImagesPage() {
         removeImage.mutate(row.Id);
       }
     },
-    onPrune: () => pruneImages.mutate(),
   });
 
   return (
@@ -61,6 +61,9 @@ export default function ImagesPage() {
           <>
             <Button onClick={() => setImportOpen(true)}>
               <IconDownload className="h-4 w-4" /> {t('import.title')}
+            </Button>
+            <Button variant="outline" onClick={() => setPruneConfirmOpen(true)}>
+              <IconFilterOff className="h-4 w-4" /> {t('pruneUnused')}
             </Button>
             <div className="h-6 w-px bg-border" />
             <div className="flex items-center rounded-lg border border-border">
@@ -136,6 +139,19 @@ export default function ImagesPage() {
           setConfirmTarget(null);
         }}
         loading={removeImage.isPending}
+      />
+
+      <ConfirmDialog
+        open={pruneConfirmOpen}
+        onOpenChange={setPruneConfirmOpen}
+        title={t('pruneUnused')}
+        description={t('pruneDescription')}
+        confirmLabel={t('pruneUnused')}
+        onConfirm={() => {
+          pruneImages.mutate();
+          setPruneConfirmOpen(false);
+        }}
+        loading={pruneImages.isPending}
       />
     </div>
   );

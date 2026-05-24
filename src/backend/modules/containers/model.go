@@ -11,22 +11,22 @@ import (
 
 // CreateRequest is the JSON body for POST /containers.
 type CreateRequest struct {
-	Name         string                        `json:"name"`
-	Image        string                        `json:"image"`
-	Cmd          []string                      `json:"cmd,omitempty"`
-	Env          []string                      `json:"env,omitempty"`
-	Labels       map[string]string             `json:"labels,omitempty"`
-	ExposedPorts nat.PortSet                   `json:"exposedPorts,omitempty"`
-	HostConfig   *container.HostConfig         `json:"hostConfig,omitempty"`
+	Name          string                         `json:"name"`
+	Image         string                         `json:"image"`
+	Cmd           []string                       `json:"cmd,omitempty"`
+	Env           []string                       `json:"env,omitempty"`
+	Labels        map[string]string              `json:"labels,omitempty"`
+	ExposedPorts  nat.PortSet                    `json:"exposedPorts,omitempty"`
+	HostConfig    *container.HostConfig          `json:"hostConfig,omitempty"`
 	NetworkConfig *networkTypes.NetworkingConfig `json:"networkingConfig,omitempty"`
-	Volumes      map[string]struct{}           `json:"volumes,omitempty"`
-	WorkingDir   string                        `json:"workingDir,omitempty"`
-	Entrypoint   []string                      `json:"entrypoint,omitempty"`
-	User         string                        `json:"user,omitempty"`
-	Hostname     string                        `json:"hostname,omitempty"`
-	Domainname   string                        `json:"domainname,omitempty"`
-	Tty          bool                          `json:"tty,omitempty"`
-	OpenStdin    bool                          `json:"openStdin,omitempty"`
+	Volumes       map[string]struct{}            `json:"volumes,omitempty"`
+	WorkingDir    string                         `json:"workingDir,omitempty"`
+	Entrypoint    []string                       `json:"entrypoint,omitempty"`
+	User          string                         `json:"user,omitempty"`
+	Hostname      string                         `json:"hostname,omitempty"`
+	Domainname    string                         `json:"domainname,omitempty"`
+	Tty           bool                           `json:"tty,omitempty"`
+	OpenStdin     bool                           `json:"openStdin,omitempty"`
 }
 
 // UpdateRequest is the JSON body for POST /containers/{id}/update.
@@ -53,8 +53,8 @@ type PortBindingSpec struct {
 // HealthcheckSpec mirrors a Docker healthcheck configuration.
 type HealthcheckSpec struct {
 	Test        []string `json:"test"`
-	Interval    int64    `json:"interval,omitempty"`    // nanoseconds
-	Timeout     int64    `json:"timeout,omitempty"`     // nanoseconds
+	Interval    int64    `json:"interval,omitempty"` // nanoseconds
+	Timeout     int64    `json:"timeout,omitempty"`  // nanoseconds
 	Retries     int      `json:"retries,omitempty"`
 	StartPeriod int64    `json:"startPeriod,omitempty"` // nanoseconds
 }
@@ -129,18 +129,20 @@ type ShellResult struct {
 // ContainerSummary is a simplified container info for list responses.
 // JSON tags use PascalCase to match Docker API convention and frontend types.
 type ContainerSummary struct {
-	ID              string                       `json:"Id"`
-	Names           []string                     `json:"Names"`
-	Image           string                       `json:"Image"`
-	ImageID         string                       `json:"ImageID"`
-	Command         string                       `json:"Command"`
-	Created         int64                        `json:"Created"`
-	State           string                       `json:"State"`
-	Status          string                       `json:"Status"`
-	Ports           []PortBinding                `json:"Ports"`
-	Labels          map[string]string            `json:"Labels"`
-	NetworkSettings *ContainerNetworkSettings    `json:"NetworkSettings,omitempty"`
-	Mounts          []ContainerMountSummary      `json:"Mounts"`
+	ID              string                    `json:"Id"`
+	Names           []string                  `json:"Names"`
+	Image           string                    `json:"Image"`
+	ImageID         string                    `json:"ImageID"`
+	Command         string                    `json:"Command"`
+	Created         int64                     `json:"Created"`
+	State           string                    `json:"State"`
+	Status          string                    `json:"Status"`
+	Ports           []PortBinding             `json:"Ports"`
+	Labels          map[string]string         `json:"Labels"`
+	StackName       string                    `json:"StackName,omitempty"`
+	StackService    string                    `json:"StackService,omitempty"`
+	NetworkSettings *ContainerNetworkSettings `json:"NetworkSettings,omitempty"`
+	Mounts          []ContainerMountSummary   `json:"Mounts"`
 }
 
 // ContainerNetworkSettings holds network info for the list response.
@@ -150,8 +152,8 @@ type ContainerNetworkSettings struct {
 
 // ContainerNetworkInfo holds per-network info.
 type ContainerNetworkInfo struct {
-	IPAddress string `json:"IPAddress"`
-	Gateway   string `json:"Gateway"`
+	IPAddress  string `json:"IPAddress"`
+	Gateway    string `json:"Gateway"`
 	MacAddress string `json:"MacAddress"`
 }
 
@@ -189,10 +191,10 @@ type PortBinding struct {
 
 // RemoveExtendedRequest is the JSON body for POST /containers/{id}/remove.
 type RemoveExtendedRequest struct {
-	Force        bool `json:"force"`
+	Force         bool `json:"force"`
 	RemoveVolumes bool `json:"removeVolumes"`
-	RemoveImage  bool `json:"removeImage"`
-	RemoveStack  bool `json:"removeStack"`
+	RemoveImage   bool `json:"removeImage"`
+	RemoveStack   bool `json:"removeStack"`
 }
 
 // RemoveExtendedResult reports which resources were removed.
@@ -205,8 +207,8 @@ type RemoveExtendedResult struct {
 // ContainerService represents an OS-level service detected inside a container.
 type ContainerService struct {
 	Name   string `json:"name"`
-	Status string `json:"status"`          // "running", "stopped", "failed", etc.
-	Sub    string `json:"sub,omitempty"`    // sub-state (systemd: "running", "exited", "dead")
+	Status string `json:"status"`        // "running", "stopped", "failed", etc.
+	Sub    string `json:"sub,omitempty"` // sub-state (systemd: "running", "exited", "dead")
 }
 
 // ContainerServicesResult holds detected init system and its services.

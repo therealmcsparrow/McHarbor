@@ -1,0 +1,19 @@
+{
+  "widgets": {
+    "deploymentStatus": {
+      "label": "部署状态",
+      "description": "Kubernetes部署副本状态"
+    }
+  },
+  "deploymentStatusWidget": {
+    "title": "部署状态",
+    "name": "姓名",
+    "namespace": "命名空间",
+    "replicas": "复制品",
+    "status": "地位",
+    "healthy": "健康",
+    "progressing": "进展中",
+    "noDeployments": "未找到部署",
+    "notAvailable": "Kubernetes 不可用"
+  }
+}

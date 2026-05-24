@@ -1,0 +1,36 @@
+{
+  "label": "Enviar e-mail",
+  "description": "Envie um email através de um servidor de email configurado",
+  "config": {
+    "server_id": "Email Server",
+    "to": "To",
+    "subject": "Subject",
+    "body": "Body",
+    "delivery_mode": "Delivery",
+    "smtp_host": "SMTP Host",
+    "smtp_port": "SMTP Port",
+    "smtp_encryption": "Encryption",
+    "smtp_auth_method": "Auth Method",
+    "smtp_username": "Username",
+    "smtp_password": "Password",
+    "from_address": "From Address",
+    "from_name": "From Name"
+  },
+  "options": {
+    "delivery_mode": {
+      "configured": "Configured Email Server",
+      "custom": "Other"
+    },
+    "smtp_encryption": {
+      "none": "None",
+      "starttls": "STARTTLS",
+      "ssl_tls": "SSL/TLS"
+    },
+    "smtp_auth_method": {
+      "none": "None",
+      "plain": "Plain",
+      "login": "Login",
+      "cram_md5": "CRAM-MD5"
+    }
+  }
+}

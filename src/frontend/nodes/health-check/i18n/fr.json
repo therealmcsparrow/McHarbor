@@ -1,0 +1,20 @@
+{
+  "label": "Bilan de santé",
+  "description": "Vérifiez un point de terminaison HTTP et une branche sur l'état de santé",
+  "config": {
+    "url": "URL",
+    "method": "Méthode",
+    "expected_status": "Statut attendu",
+    "timeout": "Délai d'expiration (secondes)",
+    "retries": "Nouvelles tentatives"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    }
+  }
+}

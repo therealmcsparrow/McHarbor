@@ -1,0 +1,27 @@
+{
+  "widgets": {
+    "containers": {
+      "label": "集装箱",
+      "description": "正在运行/stopped 的容器总数"
+    },
+    "images": {
+      "label": "图片",
+      "description": "图片总数"
+    },
+    "volumes": {
+      "label": "卷",
+      "description": "总卷数"
+    },
+    "networks": {
+      "label": "网络",
+      "description": "网络总数"
+    }
+  },
+  "resourceSummaryWidget": {
+    "containers": "集装箱",
+    "images": "图片",
+    "volumes": "卷",
+    "networks": "网络",
+    "runningStoppedDescription": "{{running}} 运行，{{stopped}} 停止"
+  }
+}

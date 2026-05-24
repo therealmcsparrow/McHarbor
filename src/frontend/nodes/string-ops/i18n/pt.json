@@ -1,0 +1,22 @@
+{
+  "label": "Operações de cordas",
+  "description": "Aplicar operações de string comuns a um valor",
+  "config": {
+    "property": "Propriedade",
+    "operation": "Operação",
+    "arg1": "Argumento 1",
+    "arg2": "Argumento 2"
+  },
+  "options": {
+    "operation": {
+      "uppercase": "Maiúsculas",
+      "lowercase": "Minúsculas",
+      "trim": "Aparar",
+      "replace": "Substituir",
+      "split": "Dividir",
+      "join": "Juntar",
+      "substring": "Substring",
+      "reverse": "Reverter"
+    }
+  }
+}

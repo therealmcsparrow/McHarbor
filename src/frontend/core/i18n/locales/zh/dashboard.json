@@ -1,0 +1,21 @@
+{
+  "title": "仪表板",
+  "description": "Docker 环境概述",
+  "addWidget": "添加小部件",
+  "editDashboard": "编辑仪表板",
+  "doneEditing": "编辑完成",
+  "edit": "编辑",
+  "done": "完毕",
+  "reset": "重置",
+  "loading": "加载中...",
+  "addWidgets": "添加小部件",
+  "addWidgetsDescription": "选择要添加到仪表板的小部件",
+  "categories": {
+    "resources": "资源",
+    "host": "主持人",
+    "metrics": "指标",
+    "monitoring": "监控",
+    "operations": "运营",
+    "kubernetes": "Kubernetes"
+  }
+}

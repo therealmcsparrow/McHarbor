@@ -1,0 +1,20 @@
+{
+  "label": "Afirmar",
+  "description": "Afirmar que una condición es verdadera y basarse en el resultado.",
+  "config": {
+    "field": "Campo",
+    "operator": "Operador",
+    "value": "Valor",
+    "message": "Mensaje de error"
+  },
+  "options": {
+    "operator": {
+      "==": "igual",
+      "!=": "No igual",
+      "contains": "Contiene",
+      "regex": "Coincide con expresiones regulares",
+      "is_empty": "esta vacio",
+      "is_not_empty": "no esta vacio"
+    }
+  }
+}

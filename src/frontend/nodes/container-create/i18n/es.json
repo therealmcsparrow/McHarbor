@@ -1,0 +1,21 @@
+{
+  "label": "Crear contenedor",
+  "description": "Crear un nuevo contenedor a partir de una imagen.",
+  "config": {
+    "environment": "Ambiente",
+    "image": "Imagen",
+    "name": "Nombre",
+    "ports": "Puertos",
+    "env_vars": "Variables de entorno",
+    "restart_policy": "Reiniciar política",
+    "auto_start": "Inicio automático"
+  },
+  "options": {
+    "restart_policy": {
+      "no": "No",
+      "always": "Siempre",
+      "on-failure": "Sobre el fracaso",
+      "unless-stopped": "A menos que se detenga"
+    }
+  }
+}

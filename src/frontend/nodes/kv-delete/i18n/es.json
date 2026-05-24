@@ -1,0 +1,7 @@
+{
+  "label": "KV Eliminar",
+  "description": "Eliminar un valor del almacén de valores-clave del flujo de trabajo",
+  "config": {
+    "key": "Llave"
+  }
+}

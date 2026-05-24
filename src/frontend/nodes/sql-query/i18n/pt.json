@@ -1,0 +1,8 @@
+{
+  "label": "Consulta SQL",
+  "description": "Execute uma consulta SQL somente leitura no banco de dados de fluxo de trabalho",
+  "config": {
+    "query": "Consulta",
+    "output_property": "Propriedade de saída"
+  }
+}

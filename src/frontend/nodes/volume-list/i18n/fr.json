@@ -1,0 +1,8 @@
+{
+  "label": "Liste des volumes",
+  "description": "Répertorier les volumes Docker",
+  "config": {
+    "environment": "Environnement",
+    "filter_dangling": "Seulement pendant"
+  }
+}

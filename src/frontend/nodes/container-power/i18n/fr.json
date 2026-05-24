@@ -1,0 +1,16 @@
+{
+  "label": "Puissance du conteneur",
+  "description": "Activer ou désactiver un conteneur à l'aide de l'action d'assistance puissante",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient",
+    "action": "Action",
+    "timeout": "Délai d'expiration (secondes)"
+  },
+  "options": {
+    "action": {
+      "enable": "Activer",
+      "disable": "Désactiver"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "label": "Deduplicar",
+  "description": "Eliminar elementos duplicados de una matriz",
+  "config": {
+    "property": "Propiedad",
+    "unique_by": "Único por"
+  }
+}

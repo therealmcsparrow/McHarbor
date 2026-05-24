@@ -1,0 +1,18 @@
+{
+  "label": "Déclencheur d'état du conteneur",
+  "description": "Démarrer un workflow lorsqu'un conteneur change d'état",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient",
+    "status": "Événement de statut"
+  },
+  "options": {
+    "status": {
+      "any": "N'importe lequel",
+      "start": "Commencer",
+      "stop": "Arrêt",
+      "die": "Mourir",
+      "health_status": "État de santé"
+    }
+  }
+}

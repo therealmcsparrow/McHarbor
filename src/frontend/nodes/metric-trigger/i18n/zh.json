@@ -1,0 +1,18 @@
+{
+  "label": "指标触发",
+  "description": "检查容器指标后启动工作流程",
+  "config": {
+    "environment": "环境",
+    "container": "容器",
+    "conditions": "公制条件",
+    "logic": "条件逻辑",
+    "interval": "间隔（秒）",
+    "cooldown": "冷却时间（秒）"
+  },
+  "options": {
+    "logic": {
+      "and": "AND",
+      "or": "OR"
+    }
+  }
+}

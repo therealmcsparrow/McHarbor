@@ -1,0 +1,7 @@
+{
+  "label": "Liste des piles",
+  "description": "Répertorier les piles de composition par étiquette de projet",
+  "config": {
+    "environment": "Environnement"
+  }
+}

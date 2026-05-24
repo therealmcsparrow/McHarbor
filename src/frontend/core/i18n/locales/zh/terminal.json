@@ -1,0 +1,13 @@
+{
+  "title": "终端",
+  "description": "交互式 shell 进入正在运行的容器",
+  "selectContainer": "选择一个容器",
+  "selectContainerPlaceholder": "选择一个容器...",
+  "selectShell": "壳",
+  "connect": "连接",
+  "disconnect": "断开",
+  "connecting": "正在连接...",
+  "connected": "已连接",
+  "disconnected": "已断开连接",
+  "reconnect": "重新连接"
+}

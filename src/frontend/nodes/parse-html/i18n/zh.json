@@ -1,0 +1,17 @@
+{
+  "label": "解析 HTML",
+  "description": "从 HTML 内容中提取文本、HTML 或属性",
+  "config": {
+    "property": "财产",
+    "selector": "选择器",
+    "output_type": "输出类型",
+    "attribute": "属性"
+  },
+  "options": {
+    "output_type": {
+      "text": "文本",
+      "html": "HTML",
+      "attribute": "属性"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "label": "Enviar Gotify",
+  "description": "Enviar una notificación Gotify",
+  "config": {
+    "communication_mode": "Entrega",
+    "channel_id": "Canal de comunicaci?n",
+    "server_url": "URL del servidor",
+    "app_token": "Ficha de aplicación",
+    "title": "Título",
+    "message": "Mensaje",
+    "priority": "Prioridad"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Canal configurado",
+      "custom": "Otro"
+    }
+  }
+}

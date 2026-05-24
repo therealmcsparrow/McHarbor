@@ -2,6 +2,8 @@
   "label": "Send Telegram",
   "description": "Send a Telegram bot message",
   "config": {
+    "communication_mode": "Delivery",
+    "channel_id": "Communication Channel",
     "bot_token": "Bot Token",
     "chat_id": "Chat ID",
     "message": "Message",
@@ -12,6 +14,10 @@
       "": "Plain Text",
       "Markdown": "Markdown",
       "HTML": "HTML"
+    },
+    "communication_mode": {
+      "configured": "Configured Channel",
+      "custom": "Other"
     }
   }
 }

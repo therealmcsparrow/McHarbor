@@ -1,0 +1,8 @@
+{
+  "label": "Omitir",
+  "description": "Eliminar campos seleccionados de un objeto",
+  "config": {
+    "property": "Propiedad",
+    "fields": "Campos"
+  }
+}

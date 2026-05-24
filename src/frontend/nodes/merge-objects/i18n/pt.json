@@ -1,0 +1,8 @@
+{
+  "label": "Mesclar objetos",
+  "description": "Mesclar vários objetos de origem em uma saída",
+  "config": {
+    "sources": "Fontes",
+    "output_property": "Propriedade de saída"
+  }
+}

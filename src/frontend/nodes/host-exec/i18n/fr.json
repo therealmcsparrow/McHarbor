@@ -1,0 +1,9 @@
+{
+  "label": "Exécutif hôte",
+  "description": "Exécuter une commande hôte via un conteneur temporaire",
+  "config": {
+    "environment": "Environnement",
+    "command": "Commande",
+    "timeout": "Délai d'expiration (secondes)"
+  }
+}

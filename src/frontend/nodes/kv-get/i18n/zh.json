@@ -1,0 +1,9 @@
+{
+  "label": "获取KV值",
+  "description": "从工作流键值存储中读取值",
+  "config": {
+    "key": "钥匙",
+    "output_property": "输出属性",
+    "default_value": "默认值"
+  }
+}

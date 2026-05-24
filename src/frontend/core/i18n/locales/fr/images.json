@@ -1,0 +1,92 @@
+{
+  "title": "Images",
+  "description": "Images {{count}}",
+  "searchPlaceholder": "Rechercher des images...",
+  "emptyMessage": "Aucune image trouvée",
+  "tableView": "Vue tableau",
+  "cardView": "Vue carte",
+  "notFound": "Image introuvable.",
+  "pruneUnused": "Tailler inutilisé",
+  "pruneDescription": "Supprimez les images inutilisées qui ne sont pas référencées par les conteneurs.",
+  "columns": {
+    "repoTag": "Référentiel : balise",
+    "status": "Statut",
+    "repository": "Dépôt",
+    "tag": "Étiqueter",
+    "id": "ID",
+    "size": "Taille",
+    "created": "Créé",
+    "actions": "Actes"
+  },
+  "badges": {
+    "inUse": "utilisé",
+    "unused": "inutilisé"
+  },
+  "pull": {
+    "title": "Extraire l'image",
+    "description": "Entrez le nom de l'image et la balise à extraire.",
+    "imageName": "Nom de l'image",
+    "placeholder": "par ex. nginx : dernier",
+    "submit": "Tirer",
+    "pulling": "Tirer..."
+  },
+  "toast": {
+    "removed": "Image supprimée",
+    "pulled": "Image extraite avec succès",
+    "tagged": "Image taguée",
+    "pruned": "Images inutilisées supprimées",
+    "exported": "L'exportation de l'image a démarré",
+    "imported": "Image importée avec succès"
+  },
+  "export": {
+    "title": "Exporter une image"
+  },
+  "import": {
+    "title": "Importer une image",
+    "description": "Extrayez un registre ou téléchargez une archive tar.",
+    "registryTab": "Enregistrement",
+    "fileTab": "Déposer",
+    "selectFile": "Sélectionnez le fichier .tar",
+    "selectedFile": "Sélectionné : {{name}}",
+    "submit": "Importer",
+    "importing": "Importation..."
+  },
+  "confirm": {
+    "removeTitle": "Supprimer l'image",
+    "removeDescription": "Cela supprimera cette image de l'hôte Docker."
+  },
+  "detail": {
+    "back": "Dos",
+    "imageDetails": "Détails de l'image",
+    "config": "Configuration",
+    "labels": "Étiquettes",
+    "layerHistory": "Historique des calques",
+    "noLayerHistory": "Pas d'historique des couches",
+    "noLabels": "Pas d'étiquettes",
+    "noEnvVars": "Aucune variable d'environnement",
+    "fields": {
+      "id": "ID",
+      "tags": "Balises",
+      "size": "Taille",
+      "created": "Créé",
+      "architecture": "Architecture",
+      "os": "OS",
+      "dockerVersion": "Version Docker",
+      "author": "Auteur",
+      "digests": "Résumés",
+      "cmd": "Commande",
+      "entrypoint": "Point d'entrée",
+      "workingDir": "Directeur de travail",
+      "user": "Utilisateur",
+      "stopSignal": "Arrêtez Signal",
+      "exposedPorts": "Ports exposés",
+      "volumes": "Volumes",
+      "environment": "Environnement"
+    },
+    "history": {
+      "instruction": "Instruction",
+      "size": "Taille",
+      "created": "Créé"
+    }
+  }
+}

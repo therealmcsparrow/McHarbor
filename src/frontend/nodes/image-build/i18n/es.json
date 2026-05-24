@@ -1,0 +1,13 @@
+{
+  "label": "Creación de imágenes",
+  "description": "Cree una imagen Docker a partir de un contexto de compilación administrado por flujo de trabajo",
+  "config": {
+    "environment": "Ambiente",
+    "tag": "Etiqueta",
+    "dockerfile": "archivo acoplable",
+    "context_path": "Ruta de contexto",
+    "target": "Etapa objetivo",
+    "build_args": "Construir argumentos",
+    "no_cache": "Sin caché"
+  }
+}

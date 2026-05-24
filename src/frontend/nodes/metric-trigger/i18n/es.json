@@ -1,0 +1,18 @@
+{
+  "label": "Activador métrico",
+  "description": "Iniciar un flujo de trabajo cuando se verifican las métricas del contenedor",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Recipiente",
+    "conditions": "Condiciones métricas",
+    "logic": "Lógica de condición",
+    "interval": "Intervalo (segundos)",
+    "cooldown": "Enfriamiento (segundos)"
+  },
+  "options": {
+    "logic": {
+      "and": "AND",
+      "or": "OR"
+    }
+  }
+}

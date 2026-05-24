@@ -35,6 +35,15 @@ export type UserGroup = {
   isSystem: boolean;
 };
 
+export type CreateUserInput = {
+  username: string;
+  password: string;
+  displayName?: string;
+  email?: string;
+  roleId?: string;
+  isActive: boolean;
+};
+
 export function useUsers() {
   return useQuery({
     queryKey: ['users'],
@@ -42,6 +51,20 @@ export function useUsers() {
       api
         .get<PaginatedData<UserItem>>('/users', { per_page: '100' })
         .then((r) => r.data?.items ?? []),
+  });
+}
+
+export function useCreateUser() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('security');
+
+  return useMutation({
+    mutationFn: (body: CreateUserInput) =>
+      api.post<UserItem>('/users', body).then(assertSuccess),
+    meta: { success: () => t('toast.userCreated') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
   });
 }
 

@@ -1,0 +1,25 @@
+{
+  "label": "Enviar webhook",
+  "description": "Enviar un webhook saliente con datos del mensaje",
+  "config": {
+    "url": "URL",
+    "method": "Method",
+    "headers": "Headers",
+    "body_source": "Body Source",
+    "delivery_mode": "Delivery",
+    "webhook_id": "Webhook"
+  },
+  "options": {
+    "method": {
+      "GET": "GET",
+      "POST": "POST",
+      "PUT": "PUT",
+      "PATCH": "PATCH",
+      "DELETE": "DELETE"
+    },
+    "delivery_mode": {
+      "configured": "Configured Webhook",
+      "custom": "Other"
+    }
+  }
+}

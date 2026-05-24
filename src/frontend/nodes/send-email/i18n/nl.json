@@ -5,6 +5,32 @@
     "server_id": "E-mailserver",
     "to": "Aan",
     "subject": "Onderwerp",
-    "body": "Body"
+    "body": "Body",
+    "delivery_mode": "Levering",
+    "smtp_host": "SMTP-host",
+    "smtp_port": "SMTP-poort",
+    "smtp_encryption": "Versleuteling",
+    "smtp_auth_method": "Authenticatiemethode",
+    "smtp_username": "Gebruikersnaam",
+    "smtp_password": "Wachtwoord",
+    "from_address": "Afzenderadres",
+    "from_name": "Afzendernaam"
+  },
+  "options": {
+    "delivery_mode": {
+      "configured": "Configured Email Server",
+      "custom": "Other"
+    },
+    "smtp_encryption": {
+      "none": "None",
+      "starttls": "STARTTLS",
+      "ssl_tls": "SSL/TLS"
+    },
+    "smtp_auth_method": {
+      "none": "None",
+      "plain": "Plain",
+      "login": "Login",
+      "cram_md5": "CRAM-MD5"
+    }
   }
 }

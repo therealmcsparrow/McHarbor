@@ -1,0 +1,7 @@
+{
+  "label": "Bucle",
+  "description": "Iterar sobre una matriz del mensaje actual",
+  "config": {
+    "items_field": "Campo de artículos"
+  }
+}

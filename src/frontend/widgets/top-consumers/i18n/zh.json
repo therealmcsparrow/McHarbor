@@ -1,0 +1,17 @@
+{
+  "widgets": {
+    "topCpuConsumers": {
+      "label": "CPU 消费者最多",
+      "description": "CPU 使用率最高的容器"
+    },
+    "topMemoryConsumers": {
+      "label": "主要内存消费者",
+      "description": "内存使用率最高的容器"
+    }
+  },
+  "topConsumersWidget": {
+    "cpuTitle": "CPU 消费者最多",
+    "memoryTitle": "主要内存消费者",
+    "noData": "没有可用的容器统计信息"
+  }
+}

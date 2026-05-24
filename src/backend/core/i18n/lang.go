@@ -15,6 +15,10 @@ const (
 	EN Lang = "en"
 	NL Lang = "nl"
 	DE Lang = "de"
+	ES Lang = "es"
+	FR Lang = "fr"
+	PT Lang = "pt"
+	ZH Lang = "zh"
 )
 
 // Default is the fallback language.
@@ -23,7 +27,7 @@ const Default = EN
 type ctxKey struct{}
 
 // supported holds all available languages.
-var supported = []Lang{EN, NL, DE}
+var supported = []Lang{EN, NL, DE, ES, FR, PT, ZH}
 
 // Supported returns the list of supported languages.
 func Supported() []Lang { return supported }

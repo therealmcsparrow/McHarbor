@@ -147,7 +147,8 @@
     "updateSelected": "Update Selected",
     "reinstallSelected": "Reinstall Selected",
     "confirmTitle": "Confirm Batch Action",
-    "confirmDescription": "Are you sure you want to {{action}} {{count}} items?"
+    "confirmDescription": "Are you sure you want to {{action}} {{count}} items?",
+    "confirmPruneDescription": "Remove unused resources that are no longer referenced."
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -592,7 +593,14 @@
     "selectLinkOutput": "Select link output...",
     "noLinkOutputsFound": "No link outputs found",
     "conditionLabel": "Condition {{count}}",
-    "selectColor": "Select color {{color}}"
+    "selectColor": "Select color {{color}}",
+    "selectWebhook": "Select webhook...",
+    "noWebhooksFound": "No active webhooks found",
+    "selectRegistry": "Select registry...",
+    "useDefaultRegistry": "Use default registry",
+    "noRegistriesFound": "No registries found",
+    "fieldTypeWebhookSelect": "Selects an active configured outbound webhook.",
+    "fieldTypeRegistrySelect": "Uses a configured registry. Leave it empty to fall back to the default registry."
   },
   "store": {
     "title": "Store",
@@ -716,5 +724,32 @@
     "all": "All",
     "resource": "Resource",
     "optional": "optional"
+  },
+  "profile": {
+    "menuItem": "Profile",
+    "title": "Profile",
+    "description": "Manage your account preferences.",
+    "account": {
+      "username": "Username",
+      "displayName": "Display name",
+      "email": "Email",
+      "noEmail": "No email address",
+      "unknownUser": "Unknown user",
+      "editTitle": "Account details",
+      "saveProfile": "Save profile",
+      "systemAccount": "The built-in system account cannot be edited.",
+      "toast": {
+        "updated": "Profile updated",
+        "updateFailed": "Failed to update profile"
+      }
+    },
+    "preferences": {
+      "title": "Preferences",
+      "description": "Choose how McHarbor looks and which language it uses.",
+      "themeLightDescription": "Use a bright interface for daylight work.",
+      "themeDarkDescription": "Use the dark-first McHarbor interface.",
+      "themeSystemDescription": "Follow your browser or operating system setting.",
+      "languageDescription": "Language changes apply immediately and are saved to your user profile."
+    }
   }
 }

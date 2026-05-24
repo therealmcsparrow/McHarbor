@@ -1,0 +1,18 @@
+{
+  "label": "发送 Whatsapp",
+  "description": "通过 API 发送 WhatsApp 消息",
+  "config": {
+    "communication_mode": "????",
+    "channel_id": "????",
+    "api_url": "API URL",
+    "access_token": "访问令牌",
+    "phone_number": "电话号码",
+    "message": "信息"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "?????",
+      "custom": "??"
+    }
+  }
+}

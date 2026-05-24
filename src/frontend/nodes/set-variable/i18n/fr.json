@@ -1,0 +1,8 @@
+{
+  "label": "Définir une variable",
+  "description": "Stocker une valeur sur le contexte de flux",
+  "config": {
+    "name": "Nom de la variable",
+    "value": "Valeur"
+  }
+}

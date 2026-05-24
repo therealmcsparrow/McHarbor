@@ -5,6 +5,8 @@
   "emptyMessage": "Geen volumes gevonden",
   "tableView": "Tabelweergave",
   "cardView": "Kaartweergave",
+  "pruneUnused": "Ongebruikte opschonen",
+  "pruneDescription": "Verwijder volumes die niet aan een container gekoppeld zijn.",
   "columns": {
     "name": "Naam",
     "driver": "Driver",

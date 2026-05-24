@@ -1,0 +1,8 @@
+{
+  "label": "Gatilho Cron",
+  "description": "Emitir uma mensagem de uma expressão cron e fuso horário",
+  "config": {
+    "cron": "Expressão Cron",
+    "timezone": "Fuso horário"
+  }
+}

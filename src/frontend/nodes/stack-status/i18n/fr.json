@@ -1,0 +1,8 @@
+{
+  "label": "Statut de la pile",
+  "description": "Inspecter l'état d'une pile de composition",
+  "config": {
+    "environment": "Environnement",
+    "stack_name": "Nom de la pile"
+  }
+}

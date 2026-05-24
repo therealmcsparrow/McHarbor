@@ -1,0 +1,7 @@
+{
+  "label": "Retard",
+  "description": "Suspendre l'exécution du workflow pendant quelques secondes",
+  "config": {
+    "seconds": "Secondes"
+  }
+}

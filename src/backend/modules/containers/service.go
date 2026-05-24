@@ -7,6 +7,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -35,11 +36,12 @@ import (
 // Service wraps Docker SDK container operations.
 type Service struct {
 	pool *docker.ClientPool
+	db   *sql.DB
 }
 
 // NewService creates a new container service.
-func NewService(pool *docker.ClientPool) *Service {
-	return &Service{pool: pool}
+func NewService(pool *docker.ClientPool, db *sql.DB) *Service {
+	return &Service{pool: pool, db: db}
 }
 
 // getClient returns a Docker client for the given environment.
@@ -49,6 +51,35 @@ func (s *Service) getClient(envID string) (*client.Client, error) {
 		return nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 	return c, nil
+}
+
+type containerStackLink struct {
+	StackName    string
+	StackService string
+}
+
+func (s *Service) stackLinksByContainer(envID string) (map[string]containerStackLink, error) {
+	rows, err := s.db.Query(`
+		SELECT container_id, stack_name, COALESCE(service_name, '')
+		FROM container_stack_links
+		WHERE environment_id = ?
+		LIMIT 1000
+	`, envID)
+	if err != nil {
+		return nil, fmt.Errorf("querying container stack links: %w", err)
+	}
+	defer rows.Close()
+
+	links := make(map[string]containerStackLink)
+	for rows.Next() {
+		var id string
+		var link containerStackLink
+		if err := rows.Scan(&id, &link.StackName, &link.StackService); err != nil {
+			return nil, fmt.Errorf("scanning container stack link: %w", err)
+		}
+		links[id] = link
+	}
+	return links, rows.Err()
 }
 
 // List returns all containers, optionally including stopped ones.
@@ -64,6 +95,11 @@ func (s *Service) List(ctx context.Context, envID string, all bool) ([]Container
 	containers, err := cli.ContainerList(ctx, container.ListOptions{All: all})
 	if err != nil {
 		return nil, fmt.Errorf("listing containers: %w", err)
+	}
+
+	links, err := s.stackLinksByContainer(envID)
+	if err != nil {
+		return nil, err
 	}
 
 	result := make([]ContainerSummary, 0, len(containers))
@@ -104,7 +140,7 @@ func (s *Service) List(ctx context.Context, envID string, all bool) ([]Container
 			})
 		}
 
-		result = append(result, ContainerSummary{
+		summary := ContainerSummary{
 			ID:              c.ID,
 			Names:           c.Names,
 			Image:           c.Image,
@@ -117,7 +153,12 @@ func (s *Service) List(ctx context.Context, envID string, all bool) ([]Container
 			Labels:          c.Labels,
 			NetworkSettings: netSettings,
 			Mounts:          mounts,
-		})
+		}
+		if link, ok := links[c.ID]; ok {
+			summary.StackName = link.StackName
+			summary.StackService = link.StackService
+		}
+		result = append(result, summary)
 	}
 
 	return result, nil

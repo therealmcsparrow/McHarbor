@@ -1,0 +1,17 @@
+{
+  "label": "Attente du conteneur",
+  "description": "Attendre qu'un conteneur atteigne une condition",
+  "config": {
+    "environment": "Environnement",
+    "container": "Récipient",
+    "condition": "Condition",
+    "timeout": "Délai d'expiration (secondes)"
+  },
+  "options": {
+    "condition": {
+      "not-running": "Ne fonctionne pas",
+      "next-exit": "Prochaine sortie",
+      "removed": "Supprimé"
+    }
+  }
+}

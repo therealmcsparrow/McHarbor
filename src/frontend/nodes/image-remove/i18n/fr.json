@@ -1,0 +1,10 @@
+{
+  "label": "Image Supprimer",
+  "description": "Supprimer une image Docker",
+  "config": {
+    "environment": "Environnement",
+    "image": "Image",
+    "force": "Forcer",
+    "prune_children": "Tailler les enfants"
+  }
+}

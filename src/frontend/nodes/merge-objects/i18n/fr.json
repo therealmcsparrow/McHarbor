@@ -1,0 +1,8 @@
+{
+  "label": "Fusionner des objets",
+  "description": "Fusionner plusieurs objets sources en une seule sortie",
+  "config": {
+    "sources": "Sources",
+    "output_property": "Propriété de sortie"
+  }
+}

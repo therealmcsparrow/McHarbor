@@ -3,6 +3,17 @@
   "description": "Push an image to its configured registry",
   "config": {
     "environment": "Umgebung",
-    "image": "Image"
+    "image": "Image",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "registry_url": "Registry-URL",
+    "registry_username": "Registry-Benutzername",
+    "registry_password": "Registry-Passwort"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
   }
 }

@@ -1,0 +1,7 @@
+{
+  "label": "Analyser XML",
+  "description": "Analyser XML dans un objet imbriqué",
+  "config": {
+    "property": "Propriété"
+  }
+}

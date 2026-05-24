@@ -1,0 +1,7 @@
+{
+  "label": "Analisar XML",
+  "description": "Analisar XML em um objeto aninhado",
+  "config": {
+    "property": "Propriedade"
+  }
+}

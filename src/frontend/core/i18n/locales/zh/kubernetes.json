@@ -1,0 +1,94 @@
+{
+  "pods": {
+    "title": "豆荚",
+    "description": "{{count}} 吊舱",
+    "searchPlaceholder": "搜索 Pod...",
+    "emptyMessage": "未找到豆荚",
+    "columns": {
+      "name": "姓名",
+      "namespace": "命名空间",
+      "status": "地位",
+      "ready": "准备好",
+      "restarts": "重新启动",
+      "age": "年龄",
+      "node": "节点",
+      "ip": "IP",
+      "actions": "行动"
+    },
+    "detail": {
+      "notFound": "未找到 Pod",
+      "status": "地位",
+      "ready": "准备好",
+      "node": "节点",
+      "ip": "IP",
+      "containers": "集装箱",
+      "restartCount": "{{count}} 重新启动"
+    },
+    "toast": {
+      "deleted": "Pod 已删除"
+    },
+    "confirm": {
+      "deleteTitle": "删除 Pod",
+      "deleteDescription": "您确定要删除该 Pod 吗？"
+    }
+  },
+  "deployments": {
+    "title": "部署",
+    "description": "{{count}} 部署",
+    "searchPlaceholder": "搜索部署...",
+    "emptyMessage": "未找到部署",
+    "columns": {
+      "name": "姓名",
+      "namespace": "命名空间",
+      "ready": "准备好",
+      "upToDate": "最新",
+      "available": "可用的",
+      "images": "图片",
+      "replicas": "复制品",
+      "age": "年龄",
+      "actions": "行动"
+    },
+    "detail": {
+      "notFound": "未找到部署",
+      "ready": "准备好",
+      "upToDate": "最新",
+      "available": "可用的",
+      "strategy": "战略",
+      "conditions": "状况"
+    },
+    "toast": {
+      "scaled": "扩展部署",
+      "restarted": "部署已重新启动",
+      "deleted": "部署已删除"
+    },
+    "confirm": {
+      "deleteTitle": "删除部署",
+      "deleteDescription": "您确定要删除此部署吗？"
+    }
+  },
+  "services": {
+    "title": "服务",
+    "description": "{{count}}服务",
+    "searchPlaceholder": "搜索服务...",
+    "emptyMessage": "没有找到服务",
+    "columns": {
+      "name": "姓名",
+      "namespace": "命名空间",
+      "type": "类型",
+      "clusterIP": "集群IP",
+      "ports": "港口",
+      "age": "年龄"
+    }
+  },
+  "namespaces": {
+    "title": "命名空间",
+    "description": "{{count}} 命名空间",
+    "searchPlaceholder": "搜索命名空间...",
+    "emptyMessage": "未找到名称空间",
+    "columns": {
+      "name": "姓名",
+      "status": "地位",
+      "age": "年龄"
+    }
+  }
+}

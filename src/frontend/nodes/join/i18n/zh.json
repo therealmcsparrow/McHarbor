@@ -1,0 +1,15 @@
+{
+  "label": "加入",
+  "description": "将多个传入分支连接到一条消息中",
+  "config": {
+    "input_count": "输入计数",
+    "combine_mode": "组合模式"
+  },
+  "options": {
+    "combine_mode": {
+      "last": "最后留言",
+      "merge": "合并对象",
+      "array": "大批"
+    }
+  }
+}

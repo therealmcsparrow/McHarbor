@@ -7,6 +7,8 @@
   "noContainersFound": "No containers found",
   "containerNotFound": "Container not found.",
   "createContainer": "Create Container",
+  "pruneUnused": "Prune Unused",
+  "pruneDescription": "Remove stopped containers that are no longer running.",
   "tableView": "Table view",
   "cardView": "Card view",
   "columns": {
@@ -47,6 +49,7 @@
     "reconnect": "Reconnect",
     "actionCompleted": "Action completed",
     "takeOver": "Take Over",
+    "relinkStack": "Relink Stack",
     "edit": "Edit"
   },
   "detail": {
@@ -86,7 +89,8 @@
     "recreated": "Container recreated",
     "updated": "Container updated",
     "reinstalled": "Container reinstalled",
-    "resumed": "Container resumed"
+    "resumed": "Container resumed",
+    "pruned": "Unused containers pruned"
   },
   "confirm": {
     "stopTitle": "Stop Container",

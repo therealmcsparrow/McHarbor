@@ -1,0 +1,8 @@
+{
+  "label": "节点脚本",
+  "description": "针对当前工作流程消息运行自定义 JavaScript",
+  "config": {
+    "code": "代码",
+    "timeout": "超时（秒）"
+  }
+}

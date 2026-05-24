@@ -1,0 +1,15 @@
+{
+  "label": "Agregar",
+  "description": "Recopilar elementos para su posterior agregación en el ejecutor.",
+  "config": {
+    "group_by": "Agrupar por",
+    "mode": "Modo"
+  },
+  "options": {
+    "mode": {
+      "list": "Lista",
+      "count": "Contar",
+      "sum": "Suma"
+    }
+  }
+}

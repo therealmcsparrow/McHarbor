@@ -4,8 +4,10 @@
   "config": {
     "url": "URL",
     "method": "Methode",
-    "headers": "Header",
-    "body_source": "Body Source"
+    "headers": "Headers",
+    "body_source": "Body-Quelle",
+    "delivery_mode": "Zustellung",
+    "webhook_id": "Webhook"
   },
   "options": {
     "method": {
@@ -14,6 +16,10 @@
       "PUT": "PUT",
       "PATCH": "PATCH",
       "DELETE": "DELETE"
+    },
+    "delivery_mode": {
+      "configured": "Configured Webhook",
+      "custom": "Other"
     }
   }
 }

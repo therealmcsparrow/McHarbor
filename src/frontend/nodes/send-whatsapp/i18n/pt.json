@@ -1,0 +1,18 @@
+{
+  "label": "Enviar Whatsapp",
+  "description": "Envie uma mensagem WhatsApp através de um API",
+  "config": {
+    "communication_mode": "Entrega",
+    "channel_id": "Canal de comunica??o",
+    "api_url": "API URL",
+    "access_token": "Token de acesso",
+    "phone_number": "Número de telefone",
+    "message": "Mensagem"
+  },
+  "options": {
+    "communication_mode": {
+      "configured": "Canal configurado",
+      "custom": "Outro"
+    }
+  }
+}

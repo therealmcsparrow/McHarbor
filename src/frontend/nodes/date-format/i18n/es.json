@@ -1,0 +1,9 @@
+{
+  "label": "Formato de fecha",
+  "description": "Analizar y reformatear una fecha o marca de tiempo",
+  "config": {
+    "property": "Propiedad",
+    "output_format": "Formato de salida",
+    "timezone": "Zona horaria"
+  }
+}

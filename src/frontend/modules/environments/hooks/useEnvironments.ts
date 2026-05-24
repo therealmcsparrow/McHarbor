@@ -4,6 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 import type { HostMetrics } from '@core/types/docker';
+import { assertSuccess } from '@resources/utils/api-mutation';
 
 type EnvironmentInfo = {
   id: string;
@@ -35,7 +36,14 @@ type EnvironmentInfo = {
 };
 
 type DashboardStats = {
-  containers: { total: number; running: number; stopped: number; paused: number };
+  containers: {
+    total: number;
+    running: number;
+    stopped: number;
+    paused: number;
+    restarting: number;
+    killed: number;
+  };
   images: number;
   volumes: number;
   networks: number;
@@ -47,7 +55,19 @@ type DashboardStats = {
   blockWriteHistory?: Array<{ timestamp: string; value: number }>;
 };
 
-export type { EnvironmentInfo, DashboardStats };
+type EnvironmentUpdateSummary = {
+  checked: number;
+  available: number;
+  errors: number;
+};
+
+type EnvironmentImageUpdateResult = {
+  containerId: string;
+  updateAvailable: boolean;
+  error?: string;
+};
+
+export type { EnvironmentInfo, DashboardStats, EnvironmentUpdateSummary };
 
 export function useEnvironment(id: string) {
   return useQuery({
@@ -65,6 +85,31 @@ export function useEnvironmentMetrics(envId: string, enabled = true) {
       api.get<DashboardStats>('/dashboard/stats', { env: envId }).then((r) => r.data),
     refetchInterval: enabled ? 15_000 : false,
     enabled: enabled && !!envId,
+  });
+}
+
+export function useEnvironmentUpdateSummary(envId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['environment-update-summary', envId],
+    queryFn: async (): Promise<EnvironmentUpdateSummary> => {
+      const results = await api
+        .post<EnvironmentImageUpdateResult[]>(
+          `/containers/check-updates?env=${encodeURIComponent(envId)}`,
+          {}
+        )
+        .then(assertSuccess);
+
+      return {
+        checked: results.length,
+        available: results.filter((result) => result.updateAvailable).length,
+        errors: results.filter((result) => !!result.error).length,
+      };
+    },
+    enabled: enabled && !!envId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 }
 

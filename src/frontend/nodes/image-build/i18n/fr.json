@@ -1,0 +1,13 @@
+{
+  "label": "Création d'images",
+  "description": "Créer une image Docker à partir d'un contexte de génération géré par workflow",
+  "config": {
+    "environment": "Environnement",
+    "tag": "Étiqueter",
+    "dockerfile": "Fichier Docker",
+    "context_path": "Chemin de contexte",
+    "target": "Étape cible",
+    "build_args": "Construire des arguments",
+    "no_cache": "Pas de cache"
+  }
+}
