@@ -2,7 +2,7 @@
 
 Development-only changes for McHarbor are documented in this file.
 
-## [1.1.22-dev] - 2026-05-24
+## [1.2.0] - 2026-05-24 (Public Release)
 
 ### Added
 
@@ -19,7 +19,7 @@ Development-only changes for McHarbor are documented in this file.
 - Updated workflow node requirement inference so conditionally hidden fields do not make inactive delivery or registry modes look required.
 - Hardened auth preference/session paths by checking database write and lookup errors instead of silently ignoring them.
 - Fixed cron schedule previews so valid schedules with timezone labels no longer display “Invalid cron expression” because of date formatting.
-- Switched the dev branch patch version markers, Docker image defaults, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, lockfile root version, and footer display to `1.1.22-dev`.
+- Prepared the public release metadata for `1.2.0`.
 
 ## [1.1.20-dev] - 2026-05-24
 
