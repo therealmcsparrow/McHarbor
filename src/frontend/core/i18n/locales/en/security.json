@@ -44,7 +44,13 @@
     "noStacksMatch": "No stacks match the current filter.",
     "roleAlreadyAssignedGlobal": "This role is already assigned globally.",
     "roleAlreadyAssignedEnvironment": "This role is already assigned to the whole environment.",
-    "global": "Global"
+    "global": "Global",
+    "createUser": "Create User",
+    "createUserDescription": "Create a local username and password account.",
+    "password": "Password",
+    "passwordHint": "Use at least 8 characters.",
+    "defaultRole": "Default Role",
+    "activeDescription": "Allow this user to sign in immediately."
   },
   "groups": {
     "title": "Groups",
@@ -301,6 +307,7 @@
     "providerDeleted": "Identity provider deleted",
     "testSuccess": "Connection successful",
     "testFailed": "Connection test failed",
-    "scannerSettingsSaved": "Scanner settings saved"
+    "scannerSettingsSaved": "Scanner settings saved",
+    "userCreated": "User created"
   }
 }

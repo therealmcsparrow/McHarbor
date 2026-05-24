@@ -44,7 +44,13 @@
     "noStacksMatch": "Keine Stacks passen zum aktuellen Filter.",
     "roleAlreadyAssignedGlobal": "Diese Rolle ist bereits global zugewiesen.",
     "roleAlreadyAssignedEnvironment": "Diese Rolle ist bereits der gesamten Umgebung zugewiesen.",
-    "global": "Global"
+    "global": "Global",
+    "createUser": "Benutzer erstellen",
+    "createUserDescription": "Erstellen Sie ein lokales Konto mit Benutzername und Passwort.",
+    "password": "Passwort",
+    "passwordHint": "Verwenden Sie mindestens 8 Zeichen.",
+    "defaultRole": "Standardrolle",
+    "activeDescription": "Diesen Benutzer sofort anmelden lassen."
   },
   "groups": {
     "title": "Gruppen",
@@ -301,6 +307,7 @@
     "providerDeleted": "Identitätsanbieter gelöscht",
     "testSuccess": "Verbindung erfolgreich",
     "testFailed": "Verbindungstest fehlgeschlagen",
-    "scannerSettingsSaved": "Scanner-Einstellungen gespeichert"
+    "scannerSettingsSaved": "Scanner-Einstellungen gespeichert",
+    "userCreated": "Benutzer erstellt"
   }
 }

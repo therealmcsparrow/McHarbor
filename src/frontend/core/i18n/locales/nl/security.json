@@ -44,7 +44,13 @@
     "noStacksMatch": "Geen stacks komen overeen met het huidige filter.",
     "roleAlreadyAssignedGlobal": "Deze rol is al globaal toegewezen.",
     "roleAlreadyAssignedEnvironment": "Deze rol is al aan de hele omgeving toegewezen.",
-    "global": "Globaal"
+    "global": "Globaal",
+    "createUser": "Gebruiker aanmaken",
+    "createUserDescription": "Maak een lokaal account met gebruikersnaam en wachtwoord aan.",
+    "password": "Wachtwoord",
+    "passwordHint": "Gebruik minimaal 8 tekens.",
+    "defaultRole": "Standaardrol",
+    "activeDescription": "Laat deze gebruiker direct aanmelden."
   },
   "groups": {
     "title": "Groepen",
@@ -301,6 +307,7 @@
     "providerDeleted": "Identiteitsprovider verwijderd",
     "testSuccess": "Verbinding geslaagd",
     "testFailed": "Verbindingstest mislukt",
-    "scannerSettingsSaved": "Scannerinstellingen opgeslagen"
+    "scannerSettingsSaved": "Scannerinstellingen opgeslagen",
+    "userCreated": "Gebruiker aangemaakt"
   }
 }

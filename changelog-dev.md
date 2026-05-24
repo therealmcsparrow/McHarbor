@@ -2,6 +2,18 @@
 
 Development-only changes for McHarbor are documented in this file.
 
+## [1.1.19-dev] - 2026-05-24
+
+### Added
+
+- Added a protected local user creation endpoint with password validation, duplicate username handling, default role assignment, RBAC cache invalidation, and audit logging.
+- Added a security Users tab create dialog for username/password accounts, including display name, email, default role, and active-state controls.
+- Added localized create-user labels and success toast copy for every supported interface language.
+
+### Changed
+
+- Switched the dev branch patch version markers, Docker image defaults, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, lockfile root version, and footer display to `1.1.19-dev`.
+
 ## [1.1.18-dev] - 2026-05-24
 
 ### Added

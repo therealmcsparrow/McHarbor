@@ -44,7 +44,13 @@
     "noStacksMatch": "没有堆栈与当前过滤器匹配。",
     "roleAlreadyAssignedGlobal": "该角色已在全球范围内分配。",
     "roleAlreadyAssignedEnvironment": "该角色已分配给整个环境。",
-    "global": "全球的"
+    "global": "全球的",
+    "createUser": "????",
+    "createUserDescription": "?????????????",
+    "password": "??",
+    "passwordHint": "???? 8 ????",
+    "defaultRole": "????",
+    "activeDescription": "??????????"
   },
   "groups": {
     "title": "团体",
@@ -301,6 +307,7 @@
     "providerDeleted": "身份提供商已删除",
     "testSuccess": "连接成功",
     "testFailed": "连接测试失败",
-    "scannerSettingsSaved": "已保存扫描仪设置"
+    "scannerSettingsSaved": "已保存扫描仪设置",
+    "userCreated": "?????"
   }
 }

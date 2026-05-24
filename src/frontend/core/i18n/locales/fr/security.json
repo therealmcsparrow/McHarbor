@@ -44,7 +44,13 @@
     "noStacksMatch": "Aucune pile ne correspond au filtre actuel.",
     "roleAlreadyAssignedGlobal": "Ce rôle est déjà attribué globalement.",
     "roleAlreadyAssignedEnvironment": "Ce rôle est déjà attribué à l'ensemble de l'environnement.",
-    "global": "Mondial"
+    "global": "Mondial",
+    "createUser": "Cr?er un utilisateur",
+    "createUserDescription": "Cr?ez un compte local avec nom d?utilisateur et mot de passe.",
+    "password": "Mot de passe",
+    "passwordHint": "Utilisez au moins 8 caract?res.",
+    "defaultRole": "R?le par d?faut",
+    "activeDescription": "Autoriser cet utilisateur ? se connecter imm?diatement."
   },
   "groups": {
     "title": "Groupes",
@@ -301,6 +307,7 @@
     "providerDeleted": "Fournisseur d'identité supprimé",
     "testSuccess": "Connexion réussie",
     "testFailed": "Le test de connexion a échoué",
-    "scannerSettingsSaved": "Paramètres du scanner enregistrés"
+    "scannerSettingsSaved": "Paramètres du scanner enregistrés",
+    "userCreated": "Utilisateur cr??"
   }
 }

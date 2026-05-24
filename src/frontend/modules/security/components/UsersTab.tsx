@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconTrash } from '@tabler/icons-react';
+import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
@@ -17,6 +17,7 @@ import {
 import { useGroups, useAddGroupMember, useRemoveGroupMember } from '../hooks/useGroups';
 import { GroupAssignmentDialog } from './GroupAssignmentDialog';
 import { RoleAssignmentDialog } from './RoleAssignmentDialog';
+import { CreateUserDialog } from './CreateUserDialog';
 import { formatGroupedRoleScope, groupRoleAssignments } from './role-assignment-utils';
 import { useRoles } from '../hooks/useRoles';
 import { timeAgo } from '@resources/utils/format';
@@ -24,8 +25,10 @@ import type { UserItem } from '../hooks/useUsers';
 
 export function UsersTab() {
   const { t } = useTranslation('security');
+  const { t: tc } = useTranslation('common');
   const { data: users, isLoading } = useUsers();
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -38,6 +41,14 @@ export function UsersTab() {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">{t('users.description')}</p>
+          <Button variant="outline" size="sm" onClick={() => setCreateOpen(true)}>
+            <IconPlus className="mr-1 size-3.5" />
+            {tc('actions.create')}
+          </Button>
+        </div>
+
         <div className="rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
@@ -83,6 +94,8 @@ export function UsersTab() {
           </div>
         )}
       </div>
+
+      <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

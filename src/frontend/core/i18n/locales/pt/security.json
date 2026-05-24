@@ -44,7 +44,13 @@
     "noStacksMatch": "Nenhuma pilha corresponde ao filtro atual.",
     "roleAlreadyAssignedGlobal": "Esta função já está atribuída globalmente.",
     "roleAlreadyAssignedEnvironment": "Essa função já está atribuída a todo o ambiente.",
-    "global": "Global"
+    "global": "Global",
+    "createUser": "Criar usu?rio",
+    "createUserDescription": "Crie uma conta local com nome de usu?rio e senha.",
+    "password": "Senha",
+    "passwordHint": "Use pelo menos 8 caracteres.",
+    "defaultRole": "Fun??o padr?o",
+    "activeDescription": "Permitir que este usu?rio entre imediatamente."
   },
   "groups": {
     "title": "Grupos",
@@ -301,6 +307,7 @@
     "providerDeleted": "Provedor de identidade excluído",
     "testSuccess": "Conexão bem-sucedida",
     "testFailed": "Falha no teste de conexão",
-    "scannerSettingsSaved": "Configurações do scanner salvas"
+    "scannerSettingsSaved": "Configurações do scanner salvas",
+    "userCreated": "Usu?rio criado"
   }
 }

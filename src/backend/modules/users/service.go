@@ -20,6 +20,12 @@ var (
 	// ErrUserNotFound is returned when a user does not exist.
 	ErrUserNotFound = errors.New("user not found")
 
+	// ErrUserExists is returned when a username is already in use.
+	ErrUserExists = errors.New("user already exists")
+
+	// ErrRoleNotFound is returned when a requested default role does not exist.
+	ErrRoleNotFound = errors.New("role not found")
+
 	// ErrRoleAssignmentNotFound is returned when a role assignment does not exist.
 	ErrRoleAssignmentNotFound = errors.New("role assignment not found")
 )
@@ -100,6 +106,72 @@ func (s *Service) Exists(id string) (bool, error) {
 	return true, nil
 }
 
+// Create creates a local username/password user and assigns the requested RBAC role.
+func (s *Service) Create(input CreateUserInput) (*User, error) {
+	var count int
+	if err := s.db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", input.Username).Scan(&count); err != nil {
+		return nil, fmt.Errorf("checking username %s: %w", input.Username, err)
+	}
+	if count > 0 {
+		return nil, ErrUserExists
+	}
+
+	roleID := "role_viewer"
+	if input.RoleID != nil {
+		roleID = *input.RoleID
+	}
+
+	roleName, err := s.roleName(roleID)
+	if err != nil {
+		return nil, err
+	}
+
+	hash, err := auth.HashPassword(input.Password)
+	if err != nil {
+		return nil, fmt.Errorf("hashing password: %w", err)
+	}
+
+	isActive := true
+	if input.IsActive != nil {
+		isActive = *input.IsActive
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("starting user create transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	id := xid.New().String()
+	now := time.Now().UTC().Format(time.RFC3339)
+	if _, err := tx.Exec(
+		`INSERT INTO users (id, username, password_hash, email, display_name, role, auth_provider, is_active, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, 'local', ?, ?, ?)`,
+		id, input.Username, hash, input.Email, input.DisplayName, roleName, isActive, now, now,
+	); err != nil {
+		return nil, fmt.Errorf("inserting user %s: %w", input.Username, err)
+	}
+
+	assignmentID := xid.New().String()
+	if _, err := tx.Exec(
+		`INSERT INTO user_roles (id, user_id, role_id, environment_id, stack_name, created_at, updated_at)
+		 VALUES (?, ?, ?, NULL, NULL, ?, ?)`,
+		assignmentID, id, roleID, now, now,
+	); err != nil {
+		return nil, fmt.Errorf("assigning default role to user %s: %w", input.Username, err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf("committing user create transaction: %w", err)
+	}
+
+	if s.rbac != nil {
+		s.rbac.InvalidateCache(id)
+	}
+
+	return s.ByID(id)
+}
+
 // Update applies partial updates to a user record.
 func (s *Service) Update(id string, input UpdateUserInput) (*User, error) {
 	exists, err := s.Exists(id)
@@ -134,6 +206,21 @@ func (s *Service) Update(id string, input UpdateUserInput) (*User, error) {
 	}
 
 	return s.ByID(id)
+}
+
+func (s *Service) roleName(id string) (string, error) {
+	var name string
+	err := s.db.QueryRow("SELECT name FROM roles WHERE id = ?", id).Scan(&name)
+	if err == sql.ErrNoRows {
+		return "", ErrRoleNotFound
+	}
+	if err != nil {
+		return "", fmt.Errorf("querying role %s: %w", id, err)
+	}
+	if name == "" {
+		return "viewer", nil
+	}
+	return name, nil
 }
 
 // Delete removes a user and their sessions. Returns ErrUserNotFound if the user does not exist.

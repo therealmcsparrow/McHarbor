@@ -17,13 +17,14 @@ func Mount(app *router.AppDeps) {
 	app.RegisterProtectedRoutes(func(r chi.Router) {
 		r.Route("/users", func(r chi.Router) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersView)).Get("/", h.HandleList)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersManage)).Post("/", h.HandleCreate)
 			r.Route("/{id}", func(r chi.Router) {
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersView)).Get("/", h.HandleGet)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersManage)).Put("/", h.HandleUpdate)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersManage)).Delete("/", h.HandleDelete)
 				r.Put("/password", h.HandleChangePassword)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersView)).Get("/groups", h.HandleListGroups)
-			r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersView)).Get("/roles", h.HandleListRoles)
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersView)).Get("/roles", h.HandleListRoles)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersManage)).Post("/roles", h.HandleAssignRole)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermUsersManage)).Delete("/roles/{assignmentId}", h.HandleUnassignRole)
 			})

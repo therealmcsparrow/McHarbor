@@ -44,7 +44,13 @@
     "noStacksMatch": "Ninguna pila coincide con el filtro actual.",
     "roleAlreadyAssignedGlobal": "Este rol ya está asignado globalmente.",
     "roleAlreadyAssignedEnvironment": "Este papel ya está asignado a todo el entorno.",
-    "global": "Global"
+    "global": "Global",
+    "createUser": "Crear usuario",
+    "createUserDescription": "Crea una cuenta local con nombre de usuario y contrase?a.",
+    "password": "Contrase?a",
+    "passwordHint": "Usa al menos 8 caracteres.",
+    "defaultRole": "Rol predeterminado",
+    "activeDescription": "Permitir que este usuario inicie sesi?n de inmediato."
   },
   "groups": {
     "title": "Grupos",
@@ -301,6 +307,7 @@
     "providerDeleted": "Proveedor de identidad eliminado",
     "testSuccess": "Conexión exitosa",
     "testFailed": "La prueba de conexión falló",
-    "scannerSettingsSaved": "Configuración del escáner guardada"
+    "scannerSettingsSaved": "Configuración del escáner guardada",
+    "userCreated": "Usuario creado"
   }
 }

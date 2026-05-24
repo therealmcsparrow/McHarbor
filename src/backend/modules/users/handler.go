@@ -38,6 +38,16 @@ type UpdateUserInput struct {
 	IsActive    *bool   `json:"isActive"`
 }
 
+// CreateUserInput is the request body for creating a local user.
+type CreateUserInput struct {
+	Username    string  `json:"username"`
+	Password    string  `json:"password"`
+	DisplayName *string `json:"displayName"`
+	Email       *string `json:"email"`
+	RoleID      *string `json:"roleId"`
+	IsActive    *bool   `json:"isActive"`
+}
+
 // ChangePasswordInput is the request body for changing a user's password.
 type ChangePasswordInput struct {
 	CurrentPassword string `json:"currentPassword"`
@@ -96,6 +106,59 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Paginated(w, items, total, page, perPage)
+}
+
+// HandleCreate creates a local user.
+func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
+	currentUser := auth.RequireAuth(r)
+	if currentUser == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	var input CreateUserInput
+	if err := response.DecodeBody(r, &input); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	input.Username = strings.TrimSpace(input.Username)
+	input.DisplayName = normalizeOptionalString(input.DisplayName)
+	input.Email = normalizeOptionalString(input.Email)
+	input.RoleID = normalizeOptionalString(input.RoleID)
+
+	if input.Username == "" || input.Password == "" {
+		response.BadRequestCode(w, r, i18n.ErrAuthUsernameRequired)
+		return
+	}
+	if len(input.Password) < 8 {
+		response.BadRequestCode(w, r, i18n.ErrAuthPasswordShort)
+		return
+	}
+
+	u, err := h.service.Create(input)
+	if errors.Is(err, ErrUserExists) {
+		response.ConflictCode(w, r, i18n.ErrAuthUsernameTaken)
+		return
+	}
+	if errors.Is(err, ErrRoleNotFound) {
+		response.BadRequestCode(w, r, i18n.ErrRoleNotFound)
+		return
+	}
+	if err != nil {
+		h.app.Logger.Error("users: create error", "error", err, "username", input.Username)
+		response.InternalErrorCode(w, r, i18n.ErrUserCreateFailed)
+		return
+	}
+
+	h.app.AuditLog.LogWithUser(r, currentUser.ID, currentUser.Username, audit.Entry{
+		Action:     "create",
+		EntityType: "user",
+		EntityID:   u.ID,
+		EntityName: u.Username,
+	})
+
+	response.Created(w, u)
 }
 
 // HandleGet returns a single user.
