@@ -18,6 +18,7 @@
     "audit": "审计",
     "settings": "设置",
     "notifications": "通知",
+    "system": "系统",
     "pods": "Pods",
     "deployments": "部署",
     "services": "服务",

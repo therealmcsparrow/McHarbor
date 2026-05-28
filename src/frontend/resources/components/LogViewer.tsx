@@ -31,7 +31,7 @@ export function LogViewer({
         className="h-full overflow-auto p-4 font-mono text-xs leading-5 text-zinc-300"
       >
         {lines.map((line, i) => (
-          <div key={`log-line-${i + 1}-${line}`} className="hover:bg-white/5">
+          <div key={`log-line-${i + 1}-${line}`} className="hover:bg-muted/30">
             {line}
           </div>
         ))}

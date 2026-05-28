@@ -37,7 +37,10 @@ export function PermissionPicker({ allPermissions, selected, onChange, readOnly 
         const labelKey = RESOURCE_LABELS[resource] ?? resource;
         map.set(resource, { resource, labelKey, permissions: [] });
       }
-      map.get(resource)!.permissions.push({ perm, action });
+      const group = map.get(resource);
+      if (group) {
+        group.permissions.push({ perm, action });
+      }
     }
 
     // Sort permissions within each group by ACTION_ORDER

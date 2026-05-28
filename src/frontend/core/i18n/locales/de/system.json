@@ -1,0 +1,154 @@
+{
+  "title": "System",
+  "description": "McHarbor-Anwendungs-, Runtime- und Dependency-Informationen anzeigen.",
+  "unavailable": "Systeminformationen sind derzeit nicht verfuegbar.",
+  "tabs": {
+    "overview": "Uebersicht",
+    "runtime": "Runtime",
+    "services": "Services",
+    "processes": "Prozesse",
+    "terminal": "Terminal",
+    "logs": "Logs",
+    "updates": "Updates",
+    "dependencies": "Dependencies"
+  },
+  "metrics": {
+    "cpuCores": "CPU-Kerne",
+    "memory": "Speicher",
+    "dockerDisk": "Docker-Speicher",
+    "containerLoad": "Container-CPU",
+    "hostPending": "Warten auf Host-Metriken",
+    "totalHostMemory": "Gesamter Host-Speicher",
+    "imagesContainersVolumes": "Images, Container, Volumes und Build-Cache",
+    "containerMemory": "{{value}} {{unit}} Container-Speicher"
+  },
+  "overview": {
+    "application": "Anwendung",
+    "applicationDescription": "Installierte McHarbor-Anwendungsversionen.",
+    "runtime": "Runtime",
+    "runtimeDescription": "Backend-Plattform und API-Status.",
+    "dependencies": "Dependencies",
+    "dependenciesDescription": "Dependency-Anzahlen fuer Backend und Frontend."
+  },
+  "runtime": {
+    "backend": "Backend-Runtime",
+    "backendDescription": "Serverseitige Runtime, gemeldet von der McHarbor API.",
+    "client": "Client-Runtime",
+    "clientDescription": "Browserseitige Runtime fuer die aktuelle Sitzung."
+  },
+  "dependencies": {
+    "backend": "Backend dependencies",
+    "backendDescription": "Go-Module, die im Backend-Build enthalten sind.",
+    "frontend": "Frontend dependencies",
+    "frontendDescription": "Runtime dependencies, die in der Web-UI enthalten sind."
+  },
+  "fields": {
+    "name": "Name",
+    "backendVersion": "Backend-Version",
+    "frontendVersion": "Frontend-Version",
+    "platform": "Plattform",
+    "goVersion": "Go-Version",
+    "status": "Status",
+    "backendDependencies": "Backend dependencies",
+    "frontendDependencies": "Frontend dependencies",
+    "uptime": "Uptime",
+    "runningProcesses": "Laufende Prozesse",
+    "language": "Sprache",
+    "clientPlatform": "Client-Plattform",
+    "userAgent": "User agent"
+  },
+  "services": {
+    "api": "Backend-API",
+    "webUi": "Web-UI",
+    "dockerHost": "Docker-Host",
+    "metrics": "Metrics collector",
+    "database": "Datenbank",
+    "noData": "Keine Daten",
+    "containerSamples": "{{count}} laufende Container-Samples",
+    "searchPlaceholder": "Services suchen...",
+    "empty": "Keine Services verfuegbar.",
+    "columns": {
+      "name": "Name",
+      "status": "Status",
+      "detail": "Detail",
+      "source": "Quelle"
+    },
+    "status": {
+      "available": "Verfuegbar",
+      "degraded": "Eingeschraenkt",
+      "unavailable": "Nicht verfuegbar"
+    },
+    "sources": {
+      "backend": "Backend",
+      "frontend": "Frontend",
+      "environment": "Umgebung",
+      "metrics": "Metrics"
+    }
+  },
+  "processes": {
+    "searchPlaceholder": "Prozesse suchen...",
+    "empty": "Keine laufenden Prozessmetriken verfuegbar.",
+    "columns": {
+      "name": "Name",
+      "cpu": "CPU",
+      "memory": "Speicher",
+      "pids": "PIDs",
+      "network": "RX / TX",
+      "block": "Lesen / Schreiben"
+    }
+  },
+  "terminal": {
+    "title": "OS-Terminal",
+    "description": "Eine interaktive Shell auf dem Betriebssystem des Docker-Hosts oeffnen.",
+    "warning": "Diese Sitzung hat Host-Zugriff. Fuehre Befehle nur aus, wenn du die Auswirkungen verstehst.",
+    "connect": "Verbinden",
+    "disconnect": "Trennen",
+    "connected": "Verbunden",
+    "disconnected": "Getrennt"
+  },
+  "logs": {
+    "title": "OS-Logs",
+    "description": "Begrenzte Log-Snapshots des Host-Betriebssystems anzeigen.",
+    "sourceLabel": "Log-Quelle",
+    "tailLabel": "Zeilenanzahl",
+    "refresh": "Aktualisieren",
+    "empty": "Keine Logzeilen zurueckgegeben.",
+    "unavailable": "OS-Logs sind nicht verfuegbar.",
+    "notices": {
+      "generic": "Die Log-Quelle hat einen nicht blockierenden Hinweis zurueckgegeben.",
+      "permission_denied": "Eine Host-Logdatei existiert, aber McHarbor hat keine Leserechte dafuer. Eine Fallback-Quelle wurde versucht.",
+      "journalctl_failed": "journalctl konnte diese Quelle nicht lesen. Dateibasierte Logs wurden zuerst versucht.",
+      "no_supported_log_source": "Fuer diesen Host wurde keine lesbare Logdatei oder unterstuetzte Journal-Quelle gefunden."
+    },
+    "sources": {
+      "system": "System",
+      "kernel": "Kernel",
+      "auth": "Authentifizierung",
+      "docker": "Docker"
+    }
+  },
+  "updates": {
+    "title": "OS-Updates",
+    "description": "Paketupdates fuer das Betriebssystem des Docker-Hosts pruefen und anwenden.",
+    "check": "Pruefen",
+    "apply": "Updates anwenden",
+    "available": "Updates verfuegbar",
+    "current": "Aktuell",
+    "manager": "Manager",
+    "lastChecked": "Zuletzt geprueft",
+    "exitCode": "Exit-Code",
+    "unknown": "Unbekannt",
+    "notChecked": "Nicht geprueft",
+    "notRun": "Nicht ausgefuehrt",
+    "empty": "Noch keine Update-Ausgabe.",
+    "checkFailed": "OS-Update-Pruefung fehlgeschlagen.",
+    "applyStarted": "OS-Update-Befehl gestartet.",
+    "applySucceeded": "Update erfolgreich",
+    "applyFailed": "Update fehlgeschlagen",
+    "confirmTitle": "OS-Updates anwenden?",
+    "confirmDescription": "Dies fuehrt den Paketmanager des Hosts aus und kann installierte Betriebssystempakete aendern."
+  },
+  "status": {
+    "available": "Verfuegbar"
+  }
+}

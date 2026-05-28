@@ -37,6 +37,7 @@ type SelectProps = VariantProps<typeof selectTriggerVariants> & {
   disabled?: boolean;
   className?: string;
   searchable?: boolean;
+  ariaLabel?: string;
 };
 
 function Select({
@@ -48,6 +49,7 @@ function Select({
   className,
   variant,
   searchable = true,
+  ariaLabel,
 }: SelectProps) {
   const { t } = useTranslation('common');
   const [open, setOpen] = useState(false);
@@ -84,6 +86,7 @@ function Select({
       <Popover.Trigger asChild disabled={disabled}>
         <button
           type="button"
+          aria-label={ariaLabel}
           className={cn(selectTriggerVariants({ variant }), className)}
         >
           <span className={cn('truncate', !selectedLabel && 'text-muted-foreground')}>

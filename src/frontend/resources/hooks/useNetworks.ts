@@ -78,7 +78,12 @@ export function useNetworkInspect(id: string) {
     queryFn: () =>
       api
         .get<NetworkInfo>(`/networks/${id}`, envId ? { env: envId } : {})
-        .then((r) => r.data!),
+        .then((r) => {
+          if (!r.data) {
+            throw new Error('network response missing data');
+          }
+          return r.data;
+        }),
     enabled: !!id,
     refetchInterval: 15_000,
   });

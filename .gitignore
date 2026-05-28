@@ -33,6 +33,7 @@ src/backend/vendor/
 # Testing
 coverage/
 test-results/
+tests/
 
 # Logs
 *.log

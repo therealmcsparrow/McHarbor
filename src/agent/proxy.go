@@ -321,9 +321,18 @@ func (p *Proxy) ResizeExec(execID string, cols, rows uint) {
 	url := fmt.Sprintf("http://docker/exec/%s/resize?h=%d&w=%d", execID, rows, cols)
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
+		p.logger.Warn("exec resize request failed", "execID", execID, "error", err)
 		return
 	}
-	p.httpClient.Do(req)
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		p.logger.Warn("exec resize failed", "execID", execID, "error", err)
+		return
+	}
+	defer resp.Body.Close()
+	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+		p.logger.Warn("exec resize response read failed", "execID", execID, "error", err)
+	}
 }
 
 // CloseExec closes an active exec session.

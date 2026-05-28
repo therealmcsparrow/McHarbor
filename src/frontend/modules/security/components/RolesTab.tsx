@@ -73,7 +73,7 @@ export function RolesTab() {
                   <Button variant="ghost" size="sm" onClick={() => setEditRole(role)} aria-label={t('roles.editRole')}>
                     <IconEdit className="size-3.5" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setDeleteId(role.id)} aria-label={t('roles.deleteRole')}>
+                  <Button variant="destructive" size="sm" onClick={() => setDeleteId(role.id)} aria-label={t('roles.deleteRole')}>
                     <IconTrash className="size-3.5" />
                   </Button>
                 </>

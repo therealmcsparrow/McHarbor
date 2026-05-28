@@ -43,6 +43,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/metrics"
 	"github.com/therealmcsparrow/mcharbor/modules/networks"
 	"github.com/therealmcsparrow/mcharbor/modules/stacks"
+	"github.com/therealmcsparrow/mcharbor/modules/system"
 	"github.com/therealmcsparrow/mcharbor/modules/terminal"
 	"github.com/therealmcsparrow/mcharbor/modules/volumes"
 
@@ -125,7 +126,7 @@ func main() {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	logger.Info("starting McHarbor", "version", "1.2.0", "port", cfg.Port)
+	logger.Info("starting McHarbor", "version", "1.2.1", "port", cfg.Port)
 
 	// Open database
 	database, err := db.Open(cfg.DatabasePath)
@@ -213,6 +214,7 @@ func main() {
 	networks.Mount(app)
 	environments.Mount(app)
 	stacks.Mount(app)
+	system.Mount(app)
 	terminal.Mount(app)
 	logs.Mount(app)
 	events.Mount(app)
@@ -345,8 +347,8 @@ func main() {
 		}
 	}()
 
-	<-done
-	logger.Info("shutting down...")
+	sig := <-done
+	logger.Info("shutting down...", "signal", sig.String())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

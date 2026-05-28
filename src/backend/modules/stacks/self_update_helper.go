@@ -5,6 +5,7 @@ package stacks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -105,7 +106,7 @@ func RunSelfUpdateHelper(ctx context.Context) error {
 		logger.Printf("target recreate failed: %v", err)
 		cfg.Image = originalImage
 		if rollbackErr := createAndStartSelfContainer(opCtx, cli, logger, containerName, cfg, hostCfg, netCfg); rollbackErr != nil {
-			return fmt.Errorf("recreating target container: %w; rollback failed: %v", err, rollbackErr)
+			return fmt.Errorf("recreating target container: %w", errors.Join(err, fmt.Errorf("rollback failed: %w", rollbackErr)))
 		}
 		return fmt.Errorf("recreating target container: %w; rolled back to %s", err, originalImage)
 	}

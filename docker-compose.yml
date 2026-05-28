@@ -6,8 +6,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    image: ${MCHARBOR_IMAGE:-ghcr.io/therealmcsparrow/mcharbor}:${MCHARBOR_TAG:-1.2.0}
-    container_name: mcharbor
+    image: ${MCHARBOR_IMAGE:-ghcr.io/therealmcsparrow/mcharbor}:${MCHARBOR_TAG:-1.2.1}
     restart: unless-stopped
     ports:
       - "8705:5474"
@@ -19,8 +18,7 @@ services:
 
   agent:
     profiles: ["agent"]
-    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-1.2.0}
-    container_name: mcharbor-agent
+    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-1.2.1}
     restart: unless-stopped
     environment:
       - MCHARBOR_URL=${MCHARBOR_URL:-}

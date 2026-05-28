@@ -54,6 +54,7 @@ const StorePage = lazy(() => import('@modules/appstore/pages/StorePage'));
 const SecurityPage = lazy(() => import('@modules/security/pages/SecurityPage'));
 const SettingsPage = lazy(() => import('@modules/settings/pages/SettingsPage'));
 const NotificationsPage = lazy(() => import('@modules/notifications/pages/NotificationsPage'));
+const SystemPage = lazy(() => import('@modules/system/pages/SystemPage'));
 const ProfilePage = lazy(() => import('@modules/profile/pages/ProfilePage'));
 const WorkflowsPage = lazy(() => import('@modules/workflows/pages/WorkflowsPage'));
 const WorkflowEditorPage = lazy(() => import('@modules/workflows/pages/WorkflowEditorPage'));
@@ -136,6 +137,7 @@ const routes: RouteObject[] = [
       { path: 'security', element: <SuspenseWrapper><SecurityPage /></SuspenseWrapper> },
       { path: 'settings', element: <SuspenseWrapper><SettingsPage /></SuspenseWrapper> },
       { path: 'notifications', element: <SuspenseWrapper><NotificationsPage /></SuspenseWrapper> },
+      { path: 'system', element: <SuspenseWrapper><SystemPage /></SuspenseWrapper> },
       { path: 'profile', element: <SuspenseWrapper><ProfilePage /></SuspenseWrapper> },
     ],
   },

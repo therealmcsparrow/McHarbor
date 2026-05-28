@@ -1,0 +1,154 @@
+{
+  "title": "Sistema",
+  "description": "Inspecione informacoes da aplicacao, runtime e dependencias do McHarbor.",
+  "unavailable": "As informacoes do sistema nao estao disponiveis agora.",
+  "tabs": {
+    "overview": "Visao geral",
+    "runtime": "Runtime",
+    "services": "Servicos",
+    "processes": "Processos",
+    "terminal": "Terminal",
+    "logs": "Logs",
+    "updates": "Atualizacoes",
+    "dependencies": "Dependencias"
+  },
+  "metrics": {
+    "cpuCores": "Nucleos de CPU",
+    "memory": "Memoria",
+    "dockerDisk": "Disco Docker",
+    "containerLoad": "CPU dos containers",
+    "hostPending": "Aguardando metricas do host",
+    "totalHostMemory": "Memoria total do host",
+    "imagesContainersVolumes": "Imagens, containers, volumes e cache de build",
+    "containerMemory": "{{value}} {{unit}} de memoria dos containers"
+  },
+  "overview": {
+    "application": "Aplicacao",
+    "applicationDescription": "Versoes instaladas da aplicacao McHarbor.",
+    "runtime": "Runtime",
+    "runtimeDescription": "Plataforma backend e status da API.",
+    "dependencies": "Dependencias",
+    "dependenciesDescription": "Contagens de dependencias para backend e frontend."
+  },
+  "runtime": {
+    "backend": "Runtime backend",
+    "backendDescription": "Runtime do servidor informado pela API do McHarbor.",
+    "client": "Runtime cliente",
+    "clientDescription": "Runtime do navegador para a sessao atual."
+  },
+  "dependencies": {
+    "backend": "Dependencias backend",
+    "backendDescription": "Modulos Go incluidos no build do backend.",
+    "frontend": "Dependencias frontend",
+    "frontendDescription": "Dependencias runtime incluidas na interface web."
+  },
+  "fields": {
+    "name": "Nome",
+    "backendVersion": "Versao backend",
+    "frontendVersion": "Versao frontend",
+    "platform": "Plataforma",
+    "goVersion": "Versao do Go",
+    "status": "Status",
+    "backendDependencies": "Dependencias backend",
+    "frontendDependencies": "Dependencias frontend",
+    "uptime": "Tempo ativo",
+    "runningProcesses": "Processos em execucao",
+    "language": "Idioma",
+    "clientPlatform": "Plataforma cliente",
+    "userAgent": "User agent"
+  },
+  "services": {
+    "api": "API backend",
+    "webUi": "Interface web",
+    "dockerHost": "Host Docker",
+    "metrics": "Coletor de metricas",
+    "database": "Banco de dados",
+    "noData": "Sem dados",
+    "containerSamples": "{{count}} amostras de containers em execucao",
+    "searchPlaceholder": "Buscar servicos...",
+    "empty": "Nenhum servico disponivel.",
+    "columns": {
+      "name": "Nome",
+      "status": "Status",
+      "detail": "Detalhe",
+      "source": "Origem"
+    },
+    "status": {
+      "available": "Disponivel",
+      "degraded": "Degradado",
+      "unavailable": "Indisponivel"
+    },
+    "sources": {
+      "backend": "Backend",
+      "frontend": "Frontend",
+      "environment": "Ambiente",
+      "metrics": "Metricas"
+    }
+  },
+  "processes": {
+    "searchPlaceholder": "Buscar processos...",
+    "empty": "Nenhuma metrica de processo em execucao disponivel.",
+    "columns": {
+      "name": "Nome",
+      "cpu": "CPU",
+      "memory": "Memoria",
+      "pids": "PIDs",
+      "network": "RX / TX",
+      "block": "Leitura / escrita"
+    }
+  },
+  "terminal": {
+    "title": "Terminal do SO",
+    "description": "Abra um shell interativo no sistema operacional do host Docker.",
+    "warning": "Esta sessao tem acesso de host. Execute comandos somente se entender o impacto.",
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "connected": "Conectado",
+    "disconnected": "Desconectado"
+  },
+  "logs": {
+    "title": "Logs do SO",
+    "description": "Revise snapshots limitados dos logs do sistema operacional do host.",
+    "sourceLabel": "Origem do log",
+    "tailLabel": "Numero de linhas",
+    "refresh": "Atualizar",
+    "empty": "Nenhuma linha de log retornada.",
+    "unavailable": "Logs do SO estao indisponiveis.",
+    "notices": {
+      "generic": "A origem do log retornou um aviso nao fatal.",
+      "permission_denied": "Um arquivo de log do host existe, mas o McHarbor nao tem permissao para le-lo. Uma origem alternativa foi tentada.",
+      "journalctl_failed": "journalctl nao conseguiu ler esta origem. Logs baseados em arquivo foram tentados primeiro.",
+      "no_supported_log_source": "Nenhum arquivo de log legivel ou origem journal compativel foi encontrado para este host."
+    },
+    "sources": {
+      "system": "Sistema",
+      "kernel": "Kernel",
+      "auth": "Autenticacao",
+      "docker": "Docker"
+    }
+  },
+  "updates": {
+    "title": "Atualizacoes do SO",
+    "description": "Verifique e aplique atualizacoes de pacotes para o sistema operacional do host Docker.",
+    "check": "Verificar",
+    "apply": "Aplicar atualizacoes",
+    "available": "Atualizacoes disponiveis",
+    "current": "Atualizado",
+    "manager": "Gerenciador",
+    "lastChecked": "Ultima verificacao",
+    "exitCode": "Codigo de saida",
+    "unknown": "Desconhecido",
+    "notChecked": "Nao verificado",
+    "notRun": "Nao executado",
+    "empty": "Ainda nao ha saida de atualizacao.",
+    "checkFailed": "Falha na verificacao de atualizacoes do SO.",
+    "applyStarted": "Comando de atualizacao do SO iniciado.",
+    "applySucceeded": "Atualizacao concluida",
+    "applyFailed": "Falha na atualizacao",
+    "confirmTitle": "Aplicar atualizacoes do SO?",
+    "confirmDescription": "Isto executa o gerenciador de pacotes do host e pode alterar pacotes instalados do sistema operacional."
+  },
+  "status": {
+    "available": "Disponivel"
+  }
+}

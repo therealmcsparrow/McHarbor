@@ -1,0 +1,154 @@
+{
+  "title": "Systeme",
+  "description": "Inspecter les informations d'application, de runtime et de dependances de McHarbor.",
+  "unavailable": "Les informations systeme ne sont pas disponibles pour le moment.",
+  "tabs": {
+    "overview": "Vue d'ensemble",
+    "runtime": "Runtime",
+    "services": "Services",
+    "processes": "Processus",
+    "terminal": "Terminal",
+    "logs": "Journaux",
+    "updates": "Mises a jour",
+    "dependencies": "Dependances"
+  },
+  "metrics": {
+    "cpuCores": "Coeurs CPU",
+    "memory": "Memoire",
+    "dockerDisk": "Disque Docker",
+    "containerLoad": "CPU des conteneurs",
+    "hostPending": "En attente des metriques de l'hote",
+    "totalHostMemory": "Memoire totale de l'hote",
+    "imagesContainersVolumes": "Images, conteneurs, volumes et cache de build",
+    "containerMemory": "{{value}} {{unit}} de memoire conteneur"
+  },
+  "overview": {
+    "application": "Application",
+    "applicationDescription": "Versions installees de l'application McHarbor.",
+    "runtime": "Runtime",
+    "runtimeDescription": "Plateforme backend et etat de l'API.",
+    "dependencies": "Dependances",
+    "dependenciesDescription": "Nombre de dependances pour le backend et le frontend."
+  },
+  "runtime": {
+    "backend": "Runtime backend",
+    "backendDescription": "Runtime cote serveur signale par l'API McHarbor.",
+    "client": "Runtime client",
+    "clientDescription": "Runtime cote navigateur pour la session actuelle."
+  },
+  "dependencies": {
+    "backend": "Dependances backend",
+    "backendDescription": "Modules Go integres au build backend.",
+    "frontend": "Dependances frontend",
+    "frontendDescription": "Dependances runtime integrees a l'interface web."
+  },
+  "fields": {
+    "name": "Nom",
+    "backendVersion": "Version backend",
+    "frontendVersion": "Version frontend",
+    "platform": "Plateforme",
+    "goVersion": "Version Go",
+    "status": "Etat",
+    "backendDependencies": "Dependances backend",
+    "frontendDependencies": "Dependances frontend",
+    "uptime": "Temps de fonctionnement",
+    "runningProcesses": "Processus en cours",
+    "language": "Langue",
+    "clientPlatform": "Plateforme client",
+    "userAgent": "User agent"
+  },
+  "services": {
+    "api": "API backend",
+    "webUi": "Interface web",
+    "dockerHost": "Hote Docker",
+    "metrics": "Collecteur de metriques",
+    "database": "Base de donnees",
+    "noData": "Aucune donnee",
+    "containerSamples": "{{count}} echantillons de conteneurs actifs",
+    "searchPlaceholder": "Rechercher des services...",
+    "empty": "Aucun service disponible.",
+    "columns": {
+      "name": "Nom",
+      "status": "Etat",
+      "detail": "Detail",
+      "source": "Source"
+    },
+    "status": {
+      "available": "Disponible",
+      "degraded": "Degrade",
+      "unavailable": "Indisponible"
+    },
+    "sources": {
+      "backend": "Backend",
+      "frontend": "Frontend",
+      "environment": "Environnement",
+      "metrics": "Metriques"
+    }
+  },
+  "processes": {
+    "searchPlaceholder": "Rechercher des processus...",
+    "empty": "Aucune metrique de processus actif disponible.",
+    "columns": {
+      "name": "Nom",
+      "cpu": "CPU",
+      "memory": "Memoire",
+      "pids": "PIDs",
+      "network": "RX / TX",
+      "block": "Lecture / ecriture"
+    }
+  },
+  "terminal": {
+    "title": "Terminal OS",
+    "description": "Ouvrir un shell interactif sur le systeme d'exploitation de l'hote Docker.",
+    "warning": "Cette session dispose d'un acces au niveau hote. Executez des commandes uniquement si vous comprenez leur impact.",
+    "connect": "Connecter",
+    "disconnect": "Deconnecter",
+    "connected": "Connecte",
+    "disconnected": "Deconnecte"
+  },
+  "logs": {
+    "title": "Journaux OS",
+    "description": "Consulter des instantanes limites des journaux du systeme d'exploitation hote.",
+    "sourceLabel": "Source du journal",
+    "tailLabel": "Nombre de lignes",
+    "refresh": "Actualiser",
+    "empty": "Aucune ligne de journal retournee.",
+    "unavailable": "Les journaux OS ne sont pas disponibles.",
+    "notices": {
+      "generic": "La source du journal a renvoye un avis non bloquant.",
+      "permission_denied": "Un fichier journal hote existe, mais McHarbor n'a pas l'autorisation de le lire. Une source de secours a ete essayee.",
+      "journalctl_failed": "journalctl n'a pas pu lire cette source. Les journaux bases sur des fichiers ont ete essayes en premier.",
+      "no_supported_log_source": "Aucun fichier journal lisible ni source journal compatible n'a ete trouve pour cet hote."
+    },
+    "sources": {
+      "system": "Systeme",
+      "kernel": "Kernel",
+      "auth": "Authentification",
+      "docker": "Docker"
+    }
+  },
+  "updates": {
+    "title": "Mises a jour OS",
+    "description": "Verifier et appliquer les mises a jour de paquets pour le systeme d'exploitation de l'hote Docker.",
+    "check": "Verifier",
+    "apply": "Appliquer les mises a jour",
+    "available": "Mises a jour disponibles",
+    "current": "A jour",
+    "manager": "Gestionnaire",
+    "lastChecked": "Derniere verification",
+    "exitCode": "Code de sortie",
+    "unknown": "Inconnu",
+    "notChecked": "Non verifie",
+    "notRun": "Non execute",
+    "empty": "Aucune sortie de mise a jour pour l'instant.",
+    "checkFailed": "La verification des mises a jour OS a echoue.",
+    "applyStarted": "Commande de mise a jour OS demarree.",
+    "applySucceeded": "Mise a jour reussie",
+    "applyFailed": "Echec de la mise a jour",
+    "confirmTitle": "Appliquer les mises a jour OS ?",
+    "confirmDescription": "Cela execute le gestionnaire de paquets de l'hote et peut modifier les paquets installes du systeme d'exploitation."
+  },
+  "status": {
+    "available": "Disponible"
+  }
+}

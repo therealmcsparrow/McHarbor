@@ -58,7 +58,9 @@ func TestExecuteHTTPRequestHitsServer(t *testing.T) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		_, _ = w.Write([]byte(`{"received":` + string(body) + `}`))
+		if _, err := w.Write([]byte(`{"received":` + string(body) + `}`)); err != nil {
+			t.Errorf("write response: %v", err)
+		}
 	}))
 	defer server.Close()
 

@@ -145,7 +145,12 @@ export function useStack(name: string) {
     queryFn: () =>
       api
         .get<StackDetail>(`/stacks/${name}`, envId ? { env: envId } : {})
-        .then((r) => r.data!),
+        .then((r) => {
+          if (!r.data) {
+            throw new Error('stack response missing data');
+          }
+          return r.data;
+        }),
     refetchInterval: 10_000,
     enabled: !!name,
   });
@@ -198,7 +203,12 @@ export function usePruneStack() {
     mutationFn: (name: string) =>
       api
         .post<PruneResult>(`/stacks/${name}/prune${envId ? `?env=${envId}` : ''}`)
-        .then((r) => r.data!),
+        .then((r) => {
+          if (!r.data) {
+            throw new Error('stack prune response missing data');
+          }
+          return r.data;
+        }),
     meta: { success: (data: PruneResult) => t('toast.pruned', { count: data.count }) },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['stacks'] });
@@ -272,7 +282,12 @@ export function useTestStackWebhook() {
         .post<{ success: boolean; statusCode?: number; error?: string }>(
           `/stacks/${stackName}/webhooks/${webhookId}/test`,
         )
-        .then((r) => r.data!),
+        .then((r) => {
+          if (!r.data) {
+            throw new Error('stack webhook test response missing data');
+          }
+          return r.data;
+        }),
     meta: {
       success: t('webhooks.testSuccess'),
       error: t('webhooks.testFailed'),

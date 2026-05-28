@@ -27,7 +27,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	sdkclient "github.com/docker/docker/client"
@@ -45,6 +44,8 @@ var (
 	ErrStackAlreadyManaged = fmt.Errorf("stack already managed")
 	ErrWebhookNotFound     = fmt.Errorf("webhook not found")
 )
+
+const composeCommandTimeout = 2 * time.Minute
 
 // Service handles Compose stack operations.
 type Service struct {
@@ -274,7 +275,7 @@ func (s *Service) List(ctx context.Context, envID string) ([]Stack, error) {
 			m.Status = d.Status
 		} else {
 			// Not found in Docker — try local docker compose ps fallback
-			svcs, svcErr := s.getStackServices(m.Name, m.ProjectPath)
+			svcs, svcErr := s.getStackServices(ctx, m.Name, m.ProjectPath)
 			if svcErr != nil {
 				slog.Debug("stacks: failed to get stack services via compose ps", "error", svcErr, "stack", m.Name)
 			}
@@ -416,6 +417,10 @@ func (s *Service) listFromDB(envID string) ([]Stack, error) {
 
 // ByName returns a single stack by name.
 func (s *Service) ByName(name string) (*Stack, error) {
+	return s.byName(context.TODO(), name)
+}
+
+func (s *Service) byName(ctx context.Context, name string) (*Stack, error) {
 	row := s.db.QueryRow(`
 		SELECT id, name, environment_id, project_path, compose_file, status,
 		       description, created_at, updated_at
@@ -430,7 +435,7 @@ func (s *Service) ByName(name string) (*Stack, error) {
 		return nil, fmt.Errorf("querying stack %s: %w", name, err)
 	}
 
-	svcs, svcErr := s.getStackServices(st.Name, st.ProjectPath)
+	svcs, svcErr := s.getStackServices(ctx, st.Name, st.ProjectPath)
 	if svcErr != nil {
 		slog.Debug("stacks: failed to get stack services via compose ps", "error", svcErr, "stack", st.Name)
 	}
@@ -441,7 +446,7 @@ func (s *Service) ByName(name string) (*Stack, error) {
 }
 
 // Create deploys a new Compose stack.
-func (s *Service) Create(req CreateRequest) (*Stack, error) {
+func (s *Service) Create(ctx context.Context, req CreateRequest) (*Stack, error) {
 	if req.Name == "" {
 		return nil, fmt.Errorf("name is required")
 	}
@@ -502,15 +507,15 @@ func (s *Service) Create(req CreateRequest) (*Stack, error) {
 		if req.EnvironmentID != nil {
 			envID = *req.EnvironmentID
 		}
-		s.runDockerCompose([]string{"up", "-d"}, projectPath, req.EnvVars, envID)
+		s.runDockerCompose(ctx, []string{"up", "-d"}, projectPath, req.EnvVars, envID)
 	}
 
-	return s.ByName(safeName)
+	return s.byName(ctx, safeName)
 }
 
 // Update modifies the compose content and/or description of a stack.
-func (s *Service) Update(name string, req UpdateRequest) (*Stack, error) {
-	st, err := s.ByName(name)
+func (s *Service) Update(ctx context.Context, name string, req UpdateRequest) (*Stack, error) {
+	st, err := s.byName(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -554,12 +559,13 @@ func (s *Service) Update(name string, req UpdateRequest) (*Stack, error) {
 		}
 	}
 
-	return s.ByName(finalName)
+	return s.byName(ctx, finalName)
 }
 
 // Delete removes a stack from the DB and optionally runs docker compose down.
 func (s *Service) Delete(name string, down bool) error {
-	st, err := s.ByName(name)
+	ctx := context.TODO()
+	st, err := s.byName(ctx, name)
 	if err != nil {
 		return err
 	}
@@ -572,7 +578,7 @@ func (s *Service) Delete(name string, down bool) error {
 		if st.EnvironmentID != nil {
 			envID = *st.EnvironmentID
 		}
-		s.runDockerCompose([]string{"down", "--remove-orphans"}, st.ProjectPath, nil, envID)
+		s.runDockerCompose(ctx, []string{"down", "--remove-orphans"}, st.ProjectPath, nil, envID)
 	}
 
 	// Delete env vars
@@ -593,8 +599,8 @@ func (s *Service) Delete(name string, down bool) error {
 }
 
 // Up starts the stack with docker compose up -d.
-func (s *Service) Up(name string) *ComposeResult {
-	st, err := s.ByName(name)
+func (s *Service) Up(ctx context.Context, name string) *ComposeResult {
+	st, err := s.byName(ctx, name)
 	if err != nil || st == nil {
 		return &ComposeResult{Success: false, Error: "Stack not found"}
 	}
@@ -605,12 +611,13 @@ func (s *Service) Up(name string) *ComposeResult {
 	}
 
 	envVars := s.loadEnvVars(st.ID)
-	return s.runDockerCompose([]string{"up", "-d"}, st.ProjectPath, envVars, envID)
+	return s.runDockerCompose(ctx, []string{"up", "-d"}, st.ProjectPath, envVars, envID)
 }
 
 // Down stops the stack with docker compose down.
 func (s *Service) Down(name string, removeVolumes bool) *ComposeResult {
-	st, err := s.ByName(name)
+	ctx := context.TODO()
+	st, err := s.byName(ctx, name)
 	if err != nil || st == nil {
 		return &ComposeResult{Success: false, Error: "Stack not found"}
 	}
@@ -625,12 +632,13 @@ func (s *Service) Down(name string, removeVolumes bool) *ComposeResult {
 		args = append(args, "-v")
 	}
 
-	return s.runDockerCompose(args, st.ProjectPath, nil, envID)
+	return s.runDockerCompose(ctx, args, st.ProjectPath, nil, envID)
 }
 
 // Restart restarts the stack (down + up).
 func (s *Service) Restart(name string) *ComposeResult {
-	st, err := s.ByName(name)
+	ctx := context.TODO()
+	st, err := s.byName(ctx, name)
 	if err != nil || st == nil {
 		return &ComposeResult{Success: false, Error: "Stack not found"}
 	}
@@ -642,17 +650,17 @@ func (s *Service) Restart(name string) *ComposeResult {
 
 	envVars := s.loadEnvVars(st.ID)
 
-	res := s.runDockerCompose([]string{"down", "--remove-orphans"}, st.ProjectPath, envVars, envID)
+	res := s.runDockerCompose(ctx, []string{"down", "--remove-orphans"}, st.ProjectPath, envVars, envID)
 	if !res.Success {
 		return res
 	}
 
-	return s.runDockerCompose([]string{"up", "-d"}, st.ProjectPath, envVars, envID)
+	return s.runDockerCompose(ctx, []string{"up", "-d"}, st.ProjectPath, envVars, envID)
 }
 
 // UpdateManagedStack pulls latest images and redeploys a managed stack.
-func (s *Service) UpdateManagedStack(name string) (*ComposeResult, error) {
-	st, envID, envVars, err := s.managedComposeContext(name)
+func (s *Service) UpdateManagedStack(ctx context.Context, name string) (*ComposeResult, error) {
+	st, envID, envVars, err := s.managedComposeContext(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -660,26 +668,26 @@ func (s *Service) UpdateManagedStack(name string) (*ComposeResult, error) {
 		return nil, nil
 	}
 
-	selfTarget, err := s.stackTargetsSelf(context.Background(), envID, st)
+	selfTarget, err := s.stackTargetsSelf(ctx, envID, st)
 	if err != nil {
 		return nil, err
 	}
 	if selfTarget {
-		return s.runDetachedSelfUpdateHelper(envID, "update"), nil
+		return s.runDetachedSelfUpdateHelper(ctx, envID, "update"), nil
 	}
 
-	pullResult := s.runDockerCompose([]string{"pull"}, st.ProjectPath, envVars, envID)
+	pullResult := s.runDockerCompose(ctx, []string{"pull"}, st.ProjectPath, envVars, envID)
 	if !pullResult.Success {
 		return pullResult, nil
 	}
 
-	upResult := s.runDockerCompose([]string{"up", "-d"}, st.ProjectPath, envVars, envID)
+	upResult := s.runDockerCompose(ctx, []string{"up", "-d"}, st.ProjectPath, envVars, envID)
 	return mergeComposeResults(pullResult, upResult), nil
 }
 
 // ReinstallManagedStack force recreates a managed stack without pulling new images.
-func (s *Service) ReinstallManagedStack(name string) (*ComposeResult, error) {
-	st, envID, envVars, err := s.managedComposeContext(name)
+func (s *Service) ReinstallManagedStack(ctx context.Context, name string) (*ComposeResult, error) {
+	st, envID, envVars, err := s.managedComposeContext(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -687,20 +695,20 @@ func (s *Service) ReinstallManagedStack(name string) (*ComposeResult, error) {
 		return nil, nil
 	}
 
-	selfTarget, err := s.stackTargetsSelf(context.Background(), envID, st)
+	selfTarget, err := s.stackTargetsSelf(ctx, envID, st)
 	if err != nil {
 		return nil, err
 	}
 	if selfTarget {
-		return s.runDetachedSelfUpdateHelper(envID, "reinstall"), nil
+		return s.runDetachedSelfUpdateHelper(ctx, envID, "reinstall"), nil
 	}
 
-	return s.runDockerCompose([]string{"up", "-d", "--force-recreate"}, st.ProjectPath, envVars, envID), nil
+	return s.runDockerCompose(ctx, []string{"up", "-d", "--force-recreate"}, st.ProjectPath, envVars, envID), nil
 }
 
 // ComposeContent reads and returns the compose file content.
-func (s *Service) ComposeContent(name string) (string, error) {
-	st, err := s.ByName(name)
+func (s *Service) ComposeContent(ctx context.Context, name string) (string, error) {
+	st, err := s.byName(ctx, name)
 	if err != nil {
 		return "", err
 	}
@@ -983,8 +991,8 @@ func (s *Service) StackLogs(ctx context.Context, envID, name string, tail int) (
 	return logMap, nil
 }
 
-func (s *Service) managedComposeContext(name string) (*Stack, string, map[string]string, error) {
-	st, err := s.ByName(name)
+func (s *Service) managedComposeContext(ctx context.Context, name string) (*Stack, string, map[string]string, error) {
+	st, err := s.byName(ctx, name)
 	if err != nil {
 		return nil, "", nil, err
 	}
@@ -1147,13 +1155,13 @@ func normalizeStackPath(value string) string {
 	return strings.ToLower(strings.TrimRight(value, "/"))
 }
 
-func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeResult {
+func (s *Service) runDetachedSelfUpdateHelper(ctx context.Context, envID, operation string) *ComposeResult {
 	cli, err := s.dockerPool.Get(envID)
 	if err != nil {
 		return &ComposeResult{Success: false, Error: "docker connection failed"}
 	}
 
-	inspectCtx, inspectCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	inspectCtx, inspectCancel := context.WithTimeout(ctx, 30*time.Second)
 	defer inspectCancel()
 
 	current, err := s.inspectCurrentContainer(inspectCtx, cli)
@@ -1169,101 +1177,14 @@ func (s *Service) runDetachedSelfUpdateHelper(envID, operation string) *ComposeR
 		}
 	}
 
-	return ScheduleDetachedSelfUpdateHelper(cli, current, s.dataDir, dockerHost, operation)
-}
-
-// ScheduleDetachedSelfUpdateHelper starts short-lived helper containers that can
-// recreate McHarbor after the API process stops. The caller must pass the
-// inspected currently running McHarbor container, not an arbitrary container.
-func ScheduleDetachedSelfUpdateHelper(cli *sdkclient.Client, current types.ContainerJSON, dataDir, dockerHost, operation string) *ComposeResult {
-	helperMounts, err := selfUpdateHelperMounts(current, dataDir)
+	output, err := docker.ScheduleDetachedSelfUpdateHelper(ctx, cli, current, s.dataDir, dockerHost, operation)
 	if err != nil {
-		slog.Error("stacks: resolve helper mounts failed", "error", err, "container", current.ID)
-		return &ComposeResult{Success: false, Error: "failed to prepare self-update helper container"}
+		slog.Error("stacks: schedule self-update helper failed", "error", err)
+		return &ComposeResult{Success: false, Error: "failed to schedule self-update helper container"}
 	}
-
-	helperName := "mcharbor-compose-helper-" + xid.New().String()
-	watchdogName := helperName + "-watchdog"
-	envOverrides := map[string]string{
-		"MCHARBOR_SELF_UPDATE_CONTAINER_ID": current.ID,
-		"MCHARBOR_SELF_UPDATE_CONTAINER":    strings.TrimPrefix(current.Name, "/"),
-		"MCHARBOR_SELF_UPDATE_IMAGE":        current.Config.Image,
-		"MCHARBOR_SELF_UPDATE_LOG":          "/app/data/self-update/" + helperName + ".log",
-		"MCHARBOR_SELF_UPDATE_OPERATION":    operation,
-	}
-	if dockerHost != "" {
-		envOverrides["DOCKER_HOST"] = dockerHost
-	}
-	env := mergeEnvVars(os.Environ(), envOverrides)
-	watchdogEnvOverrides := make(map[string]string, len(envOverrides))
-	for key, value := range envOverrides {
-		watchdogEnvOverrides[key] = value
-	}
-	watchdogEnvOverrides["MCHARBOR_SELF_UPDATE_LOG"] = "/app/data/self-update/" + watchdogName + ".log"
-	watchdogEnv := mergeEnvVars(os.Environ(), watchdogEnvOverrides)
-
-	createCtx, createCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer createCancel()
-
-	watchdogResp, err := cli.ContainerCreate(createCtx, &container.Config{
-		Image:      current.Config.Image,
-		Entrypoint: []string{"./mcharbor"},
-		Cmd:        []string{"self-start-watchdog"},
-		WorkingDir: "/app",
-		Env:        watchdogEnv,
-		Labels: map[string]string{
-			"com.mcharbor.helper": "self-start-watchdog",
-		},
-	}, &container.HostConfig{
-		AutoRemove: true,
-		Mounts:     helperMounts,
-	}, nil, nil, watchdogName)
-	if err != nil {
-		slog.Error("stacks: create self-start watchdog container failed", "error", err, "helper", watchdogName)
-		return &ComposeResult{Success: false, Error: "failed to create self-start watchdog container"}
-	}
-	if err := cli.ContainerStart(createCtx, watchdogResp.ID, container.StartOptions{}); err != nil {
-		slog.Error("stacks: start self-start watchdog container failed", "error", err, "helper", watchdogName, "container", watchdogResp.ID)
-		if rmErr := cli.ContainerRemove(createCtx, watchdogResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
-			slog.Error("stacks: cleanup self-start watchdog container failed", "error", rmErr, "helper", watchdogName, "container", watchdogResp.ID)
-		}
-		return &ComposeResult{Success: false, Error: "failed to start self-start watchdog container"}
-	}
-
-	resp, err := cli.ContainerCreate(createCtx, &container.Config{
-		Image:      current.Config.Image,
-		Entrypoint: []string{"./mcharbor"},
-		Cmd:        []string{"self-update-helper"},
-		WorkingDir: "/app",
-		Env:        env,
-		Labels: map[string]string{
-			"com.mcharbor.helper": "self-update",
-		},
-	}, &container.HostConfig{
-		AutoRemove: true,
-		Mounts:     helperMounts,
-	}, nil, nil, helperName)
-	if err != nil {
-		slog.Error("stacks: create helper container failed", "error", err, "helper", helperName)
-		return &ComposeResult{Success: false, Error: "failed to create self-update helper container"}
-	}
-
-	startCtx, startCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer startCancel()
-
-	if err := cli.ContainerStart(startCtx, resp.ID, container.StartOptions{}); err != nil {
-		slog.Error("stacks: start helper container failed", "error", err, "helper", helperName, "container", resp.ID)
-		removeCtx, removeCancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer removeCancel()
-		if rmErr := cli.ContainerRemove(removeCtx, resp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
-			slog.Error("stacks: cleanup helper container failed", "error", rmErr, "helper", helperName, "container", resp.ID)
-		}
-		return &ComposeResult{Success: false, Error: "failed to start self-update helper container"}
-	}
-
 	return &ComposeResult{
 		Success: true,
-		Output:  "scheduled detached self-update helper; waiting for McHarbor to restart",
+		Output:  output,
 	}
 }
 
@@ -1362,79 +1283,6 @@ func containerIDMatches(containerID, candidate string) bool {
 	return strings.HasPrefix(containerID, candidate) || strings.HasPrefix(candidate, containerID)
 }
 
-func selfUpdateHelperMounts(current types.ContainerJSON, dataDir string) ([]mount.Mount, error) {
-	var dataMount mount.Mount
-	var ok bool
-	for _, destination := range dataDirMountDestinations(dataDir) {
-		dataMount, ok = helperMountForDestination(current.Mounts, destination)
-		if ok {
-			break
-		}
-	}
-	if !ok {
-		return nil, fmt.Errorf("data directory mount %s not found", dataDir)
-	}
-
-	socketMount, ok := helperMountForDestination(current.Mounts, "/var/run/docker.sock")
-	if !ok {
-		return nil, fmt.Errorf("docker socket mount not found")
-	}
-
-	return []mount.Mount{socketMount, dataMount}, nil
-}
-
-func dataDirMountDestinations(dataDir string) []string {
-	seen := map[string]struct{}{}
-	var destinations []string
-	add := func(value string) {
-		value = strings.TrimSpace(value)
-		if value == "" {
-			return
-		}
-		value = filepath.Clean(value)
-		if _, exists := seen[value]; exists {
-			return
-		}
-		seen[value] = struct{}{}
-		destinations = append(destinations, value)
-	}
-
-	add(dataDir)
-	if !filepath.IsAbs(dataDir) {
-		if cwd, err := os.Getwd(); err == nil {
-			add(filepath.Join(cwd, dataDir))
-		}
-	}
-	add("/app/data")
-
-	return destinations
-}
-
-func helperMountForDestination(mounts []types.MountPoint, destination string) (mount.Mount, bool) {
-	for _, mp := range mounts {
-		if filepath.Clean(mp.Destination) != destination {
-			continue
-		}
-
-		source := mp.Source
-		if mp.Type == mount.TypeVolume {
-			source = mp.Name
-		}
-		if source == "" {
-			return mount.Mount{}, false
-		}
-
-		return mount.Mount{
-			Type:     mount.Type(mp.Type),
-			Source:   source,
-			Target:   mp.Destination,
-			ReadOnly: !mp.RW,
-		}, true
-	}
-
-	return mount.Mount{}, false
-}
-
 func mergeEnvVars(base []string, overrides map[string]string) []string {
 	if len(overrides) == 0 {
 		return append([]string{}, base...)
@@ -1465,7 +1313,7 @@ func mergeEnvVars(base []string, overrides map[string]string) []string {
 
 // runDockerCompose executes a docker compose command in the project directory.
 // It resolves DOCKER_HOST for the given environment so the command targets the correct daemon.
-func (s *Service) runDockerCompose(args []string, projectPath string, envVars map[string]string, envID string) *ComposeResult {
+func (s *Service) runDockerCompose(ctx context.Context, args []string, projectPath string, envVars map[string]string, envID string) *ComposeResult {
 	// Agent environments can't use docker compose CLI — there's no reachable daemon.
 	if envID != "" && s.dockerPool.IsAgentEnv(envID) {
 		return &ComposeResult{
@@ -1475,7 +1323,10 @@ func (s *Service) runDockerCompose(args []string, projectPath string, envVars ma
 	}
 
 	cmdArgs := append([]string{"compose", "-f", "docker-compose.yml"}, args...)
-	cmd := exec.Command("docker", cmdArgs...)
+	cmdCtx, cancel := context.WithTimeout(ctx, composeCommandTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(cmdCtx, "docker", cmdArgs...)
 	cmd.Dir = projectPath
 
 	// Set environment variables
@@ -1502,6 +1353,13 @@ func (s *Service) runDockerCompose(args []string, projectPath string, envVars ma
 
 	err := cmd.Run()
 	if err != nil {
+		if cmdCtx.Err() != nil {
+			return &ComposeResult{
+				Success: false,
+				Output:  stdout.String(),
+				Error:   "stack operation timed out",
+			}
+		}
 		errMsg := stderr.String()
 		if errMsg == "" {
 			errMsg = "stack operation failed"
@@ -1520,12 +1378,18 @@ func (s *Service) runDockerCompose(args []string, projectPath string, envVars ma
 }
 
 // getStackServices uses docker compose ps to get running services.
-func (s *Service) getStackServices(name, projectPath string) ([]StackSvc, error) {
-	cmd := exec.Command("docker", "compose", "-f", "docker-compose.yml", "ps", "--format", "json")
+func (s *Service) getStackServices(ctx context.Context, name, projectPath string) ([]StackSvc, error) {
+	cmdCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(cmdCtx, "docker", "compose", "-f", "docker-compose.yml", "ps", "--format", "json")
 	cmd.Dir = projectPath
 
 	output, err := cmd.Output()
 	if err != nil {
+		if cmdCtx.Err() != nil {
+			return nil, fmt.Errorf("docker compose ps timed out for stack %s: %w", name, cmdCtx.Err())
+		}
 		return nil, err
 	}
 
@@ -2018,7 +1882,7 @@ func (s *Service) FireWebhooks(stackID, event string) {
 		}
 		// Fire-and-forget delivery with a detached context and bounded timeout.
 		go func(u, sec string) {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 			defer cancel()
 			if _, err := s.deliverWebhook(ctx, u, sec, payload); err != nil {
 				slog.Warn("stacks: webhook delivery failed", "url", u, "event", event, "error", err)

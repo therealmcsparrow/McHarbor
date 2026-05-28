@@ -59,18 +59,17 @@ export function InstallProgress({ progress, logs, onClose }: InstallProgressProp
 
         {/* Progress bar */}
         <div className="flex-1">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                progress?.status === 'error'
-                  ? 'bg-destructive'
-                  : progress?.status === 'done'
-                    ? 'bg-green-500'
-                    : 'bg-primary'
-              }`}
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
+          <progress
+            className={`h-2 w-full overflow-hidden rounded-full bg-muted [&::-moz-progress-bar]:rounded-full [&::-webkit-progress-bar]:rounded-full [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:rounded-full ${
+              progress?.status === 'error'
+                ? '[&::-moz-progress-bar]:bg-destructive [&::-webkit-progress-value]:bg-destructive'
+                : progress?.status === 'done'
+                  ? '[&::-moz-progress-bar]:bg-green-500 [&::-webkit-progress-value]:bg-green-500'
+                  : '[&::-moz-progress-bar]:bg-primary [&::-webkit-progress-value]:bg-primary'
+            }`}
+            value={progressPercent}
+            max={100}
+          />
         </div>
 
         <span className="shrink-0 text-xs tabular-nums text-muted-foreground">

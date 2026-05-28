@@ -1,0 +1,154 @@
+{
+  "title": "Systeem",
+  "description": "Bekijk McHarbor applicatie-, runtime- en dependency-informatie.",
+  "unavailable": "Systeeminformatie is nu niet beschikbaar.",
+  "tabs": {
+    "overview": "Overzicht",
+    "runtime": "Runtime",
+    "services": "Services",
+    "processes": "Processen",
+    "terminal": "Terminal",
+    "logs": "Logs",
+    "updates": "Updates",
+    "dependencies": "Dependencies"
+  },
+  "metrics": {
+    "cpuCores": "CPU-cores",
+    "memory": "Geheugen",
+    "dockerDisk": "Docker-schijf",
+    "containerLoad": "Container-CPU",
+    "hostPending": "Wachten op hostmetrics",
+    "totalHostMemory": "Totaal hostgeheugen",
+    "imagesContainersVolumes": "Images, containers, volumes en buildcache",
+    "containerMemory": "{{value}} {{unit}} containergeheugen"
+  },
+  "overview": {
+    "application": "Applicatie",
+    "applicationDescription": "Geinstalleerde McHarbor applicatieversies.",
+    "runtime": "Runtime",
+    "runtimeDescription": "Backendplatform en API-status.",
+    "dependencies": "Dependencies",
+    "dependenciesDescription": "Dependency-aantallen voor backend en frontend."
+  },
+  "runtime": {
+    "backend": "Backend runtime",
+    "backendDescription": "Server-side runtime zoals gemeld door de McHarbor API.",
+    "client": "Client runtime",
+    "clientDescription": "Browser-side runtime voor de huidige sessie."
+  },
+  "dependencies": {
+    "backend": "Backend dependencies",
+    "backendDescription": "Go-modules die in de backend-build zitten.",
+    "frontend": "Frontend dependencies",
+    "frontendDescription": "Runtime dependencies die in de web-UI zitten."
+  },
+  "fields": {
+    "name": "Naam",
+    "backendVersion": "Backendversie",
+    "frontendVersion": "Frontendversie",
+    "platform": "Platform",
+    "goVersion": "Go-versie",
+    "status": "Status",
+    "backendDependencies": "Backend dependencies",
+    "frontendDependencies": "Frontend dependencies",
+    "uptime": "Uptime",
+    "runningProcesses": "Actieve processen",
+    "language": "Taal",
+    "clientPlatform": "Clientplatform",
+    "userAgent": "User agent"
+  },
+  "services": {
+    "api": "Backend-API",
+    "webUi": "Web-UI",
+    "dockerHost": "Docker-host",
+    "metrics": "Metrics collector",
+    "database": "Database",
+    "noData": "Geen data",
+    "containerSamples": "{{count}} actieve container-samples",
+    "searchPlaceholder": "Services zoeken...",
+    "empty": "Geen services beschikbaar.",
+    "columns": {
+      "name": "Naam",
+      "status": "Status",
+      "detail": "Detail",
+      "source": "Bron"
+    },
+    "status": {
+      "available": "Beschikbaar",
+      "degraded": "Beperkt",
+      "unavailable": "Niet beschikbaar"
+    },
+    "sources": {
+      "backend": "Backend",
+      "frontend": "Frontend",
+      "environment": "Omgeving",
+      "metrics": "Metrics"
+    }
+  },
+  "processes": {
+    "searchPlaceholder": "Processen zoeken...",
+    "empty": "Geen actieve procesmetrics beschikbaar.",
+    "columns": {
+      "name": "Naam",
+      "cpu": "CPU",
+      "memory": "Geheugen",
+      "pids": "PIDs",
+      "network": "RX / TX",
+      "block": "Lezen / Schrijven"
+    }
+  },
+  "terminal": {
+    "title": "OS-terminal",
+    "description": "Open een interactieve shell op het besturingssysteem van de Docker-host.",
+    "warning": "Deze sessie heeft host-toegang. Voer alleen commando's uit als je de impact begrijpt.",
+    "connect": "Verbinden",
+    "disconnect": "Verbreken",
+    "connected": "Verbonden",
+    "disconnected": "Niet verbonden"
+  },
+  "logs": {
+    "title": "OS-logs",
+    "description": "Bekijk begrensde logsnapshots van het hostbesturingssysteem.",
+    "sourceLabel": "Logbron",
+    "tailLabel": "Aantal regels",
+    "refresh": "Verversen",
+    "empty": "Geen logregels teruggegeven.",
+    "unavailable": "OS-logs zijn niet beschikbaar.",
+    "notices": {
+      "generic": "De logbron gaf een niet-blokkerende melding terug.",
+      "permission_denied": "Er bestaat een hostlogbestand, maar McHarbor heeft geen rechten om het te lezen. Er is een fallbackbron geprobeerd.",
+      "journalctl_failed": "journalctl kon deze bron niet lezen. Bestandlogs zijn eerst geprobeerd.",
+      "no_supported_log_source": "Er is geen leesbaar bestandlog of ondersteunde journalbron gevonden voor deze host."
+    },
+    "sources": {
+      "system": "Systeem",
+      "kernel": "Kernel",
+      "auth": "Authenticatie",
+      "docker": "Docker"
+    }
+  },
+  "updates": {
+    "title": "OS-updates",
+    "description": "Controleer en pas pakketupdates toe voor het besturingssysteem van de Docker-host.",
+    "check": "Controleren",
+    "apply": "Updates toepassen",
+    "available": "Updates beschikbaar",
+    "current": "Up-to-date",
+    "manager": "Manager",
+    "lastChecked": "Laatst gecontroleerd",
+    "exitCode": "Exitcode",
+    "unknown": "Onbekend",
+    "notChecked": "Niet gecontroleerd",
+    "notRun": "Niet uitgevoerd",
+    "empty": "Nog geen update-output.",
+    "checkFailed": "OS-updatecontrole mislukt.",
+    "applyStarted": "OS-updatecommando gestart.",
+    "applySucceeded": "Update geslaagd",
+    "applyFailed": "Update mislukt",
+    "confirmTitle": "OS-updates toepassen?",
+    "confirmDescription": "Dit voert de pakketmanager van de host uit en kan geinstalleerde OS-pakketten wijzigen."
+  },
+  "status": {
+    "available": "Beschikbaar"
+  }
+}

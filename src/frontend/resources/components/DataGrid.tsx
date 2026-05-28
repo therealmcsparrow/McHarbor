@@ -22,21 +22,22 @@ import { Button } from '@resources/components/ui/Button';
 import { Checkbox } from '@resources/components/ui/Checkbox';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const safeGlobalFilter: FilterFn<any> = (row, _columnId, filterValue) => {
-  const search = String(filterValue).toLowerCase();
-  if (!search) return true;
+function createSafeGlobalFilter<T>(): FilterFn<T> {
+  return (row, _columnId, filterValue) => {
+    const search = String(filterValue).toLowerCase();
+    if (!search) return true;
 
-  const values = row.getAllCells().map((cell) => {
-    const val = cell.getValue();
-    if (val == null) return '';
-    if (Array.isArray(val)) return val.join(' ');
-    if (typeof val === 'object') return JSON.stringify(val);
-    return String(val);
-  });
+    const values = row.getAllCells().map((cell) => {
+      const val = cell.getValue();
+      if (val == null) return '';
+      if (Array.isArray(val)) return val.join(' ');
+      if (typeof val === 'object') return JSON.stringify(val);
+      return String(val);
+    });
 
-  return values.some((v) => v.toLowerCase().includes(search));
-};
+    return values.some((v) => v.toLowerCase().includes(search));
+  };
+}
 
 export type BatchAction = {
   label: string;
@@ -126,7 +127,7 @@ export function DataGrid<T>({
     state: { sorting, globalFilter, ...(selectable ? { rowSelection } : {}) },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: safeGlobalFilter,
+    globalFilterFn: createSafeGlobalFilter<T>(),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),

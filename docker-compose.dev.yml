@@ -4,7 +4,6 @@
 services:
   backend:
     image: golang:1.23-alpine
-    container_name: mcharbor-backend-dev
     working_dir: /app
     ports:
       - "5474:5474"
@@ -21,7 +20,6 @@ services:
 
   frontend:
     image: node:22-alpine
-    container_name: mcharbor-frontend-dev
     working_dir: /app
     ports:
       - "8173:8173"
@@ -32,8 +30,7 @@ services:
 
   agent:
     profiles: ["agent"]
-    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-1.2.0}
-    container_name: mcharbor-agent-dev
+    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-1.2.1}
     restart: unless-stopped
     environment:
       - MCHARBOR_URL=${MCHARBOR_URL:-ws://host.docker.internal:5474}

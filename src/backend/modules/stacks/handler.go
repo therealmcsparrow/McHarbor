@@ -94,7 +94,7 @@ func (h *Handler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	st, err := h.service.Create(req)
+	st, err := h.service.Create(r.Context(), req)
 	if err != nil {
 		h.app.Logger.Error("failed to create stack", "name", req.Name, "error", err)
 		response.BadRequestCode(w, r, i18n.ErrStackCreateFailed)
@@ -127,7 +127,7 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	st, err := h.service.Update(name, req)
+	st, err := h.service.Update(r.Context(), name, req)
 	if err != nil {
 		h.app.Logger.Error("failed to update stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
@@ -188,7 +188,7 @@ func (h *Handler) HandleUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := chi.URLParam(r, "name")
-	result := h.service.Up(name)
+	result := h.service.Up(r.Context(), name)
 
 	h.app.Logger.Info("stack up", "name", name, "success", result.Success, "user", user.Username)
 	if !result.Success {
@@ -316,7 +316,7 @@ func (h *Handler) HandleManagedUpdate(w http.ResponseWriter, r *http.Request) {
 
 	name := chi.URLParam(r, "name")
 
-	result, err := h.service.UpdateManagedStack(name)
+	result, err := h.service.UpdateManagedStack(r.Context(), name)
 	if err != nil {
 		h.app.Logger.Error("failed to update managed stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackUpdateFailed)
@@ -357,7 +357,7 @@ func (h *Handler) HandleReinstall(w http.ResponseWriter, r *http.Request) {
 
 	name := chi.URLParam(r, "name")
 
-	result, err := h.service.ReinstallManagedStack(name)
+	result, err := h.service.ReinstallManagedStack(r.Context(), name)
 	if err != nil {
 		h.app.Logger.Error("failed to reinstall managed stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackDeployFailed)
@@ -471,7 +471,7 @@ func (h *Handler) HandleGetCompose(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := chi.URLParam(r, "name")
-	content, err := h.service.ComposeContent(name)
+	content, err := h.service.ComposeContent(r.Context(), name)
 	if err != nil {
 		h.app.Logger.Error("failed to get compose content", "name", name, "error", err)
 		response.NotFoundCode(w, r, i18n.ErrStackComposeFailed)

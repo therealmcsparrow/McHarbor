@@ -24,9 +24,7 @@ type appStoreStackInstaller struct {
 }
 
 func (a appStoreStackInstaller) CreateInstalledStack(ctx context.Context, input appstore.StackInstallInput) (*appstore.StackInstallOutput, error) {
-	_ = ctx
-
-	stack, err := a.svc.Create(stacks.CreateRequest{
+	stack, err := a.svc.Create(ctx, stacks.CreateRequest{
 		Name:          input.Name,
 		Compose:       input.Compose,
 		EnvVars:       input.EnvVars,

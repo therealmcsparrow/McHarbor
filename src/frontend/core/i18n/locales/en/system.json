@@ -1,0 +1,154 @@
+{
+  "title": "System",
+  "description": "Inspect McHarbor application, runtime, and dependency information.",
+  "unavailable": "System information is unavailable right now.",
+  "tabs": {
+    "overview": "Overview",
+    "runtime": "Runtime",
+    "services": "Services",
+    "processes": "Processes",
+    "terminal": "Terminal",
+    "logs": "Logs",
+    "updates": "Updates",
+    "dependencies": "Dependencies"
+  },
+  "metrics": {
+    "cpuCores": "CPU cores",
+    "memory": "Memory",
+    "dockerDisk": "Docker disk",
+    "containerLoad": "Container CPU",
+    "hostPending": "Waiting for host metrics",
+    "totalHostMemory": "Total host memory",
+    "imagesContainersVolumes": "Images, containers, volumes, and build cache",
+    "containerMemory": "{{value}} {{unit}} container memory"
+  },
+  "overview": {
+    "application": "Application",
+    "applicationDescription": "Installed McHarbor application versions.",
+    "runtime": "Runtime",
+    "runtimeDescription": "Backend platform and API status.",
+    "dependencies": "Dependencies",
+    "dependenciesDescription": "Dependency counts for backend and frontend."
+  },
+  "runtime": {
+    "backend": "Backend runtime",
+    "backendDescription": "Server-side runtime reported by the McHarbor API.",
+    "client": "Client runtime",
+    "clientDescription": "Browser-side runtime for the current session."
+  },
+  "dependencies": {
+    "backend": "Backend dependencies",
+    "backendDescription": "Go modules bundled into the backend build.",
+    "frontend": "Frontend dependencies",
+    "frontendDescription": "Runtime dependencies bundled into the web UI."
+  },
+  "fields": {
+    "name": "Name",
+    "backendVersion": "Backend version",
+    "frontendVersion": "Frontend version",
+    "platform": "Platform",
+    "goVersion": "Go version",
+    "status": "Status",
+    "backendDependencies": "Backend dependencies",
+    "frontendDependencies": "Frontend dependencies",
+    "uptime": "Uptime",
+    "runningProcesses": "Running processes",
+    "language": "Language",
+    "clientPlatform": "Client platform",
+    "userAgent": "User agent"
+  },
+  "services": {
+    "api": "Backend API",
+    "webUi": "Web UI",
+    "dockerHost": "Docker host",
+    "metrics": "Metrics collector",
+    "database": "Database",
+    "noData": "No data",
+    "containerSamples": "{{count}} running container samples",
+    "searchPlaceholder": "Search services...",
+    "empty": "No services available.",
+    "columns": {
+      "name": "Name",
+      "status": "Status",
+      "detail": "Detail",
+      "source": "Source"
+    },
+    "status": {
+      "available": "Available",
+      "degraded": "Degraded",
+      "unavailable": "Unavailable"
+    },
+    "sources": {
+      "backend": "Backend",
+      "frontend": "Frontend",
+      "environment": "Environment",
+      "metrics": "Metrics"
+    }
+  },
+  "processes": {
+    "searchPlaceholder": "Search processes...",
+    "empty": "No running process metrics available.",
+    "columns": {
+      "name": "Name",
+      "cpu": "CPU",
+      "memory": "Memory",
+      "pids": "PIDs",
+      "network": "RX / TX",
+      "block": "Read / Write"
+    }
+  },
+  "terminal": {
+    "title": "OS terminal",
+    "description": "Open an interactive shell on the Docker host operating system.",
+    "warning": "This session has host-level access. Run commands only when you understand the impact.",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "disconnected": "Disconnected"
+  },
+  "logs": {
+    "title": "OS logs",
+    "description": "Review bounded host operating system log snapshots.",
+    "sourceLabel": "Log source",
+    "tailLabel": "Line count",
+    "refresh": "Refresh",
+    "empty": "No log lines returned.",
+    "unavailable": "OS logs are unavailable.",
+    "notices": {
+      "generic": "The log source returned a non-fatal notice.",
+      "permission_denied": "A host log file exists but McHarbor does not have permission to read it. A fallback source was tried.",
+      "journalctl_failed": "journalctl could not read this source. File-based logs were tried first.",
+      "no_supported_log_source": "No readable file log or supported journal source was found for this host."
+    },
+    "sources": {
+      "system": "System",
+      "kernel": "Kernel",
+      "auth": "Authentication",
+      "docker": "Docker"
+    }
+  },
+  "updates": {
+    "title": "OS updates",
+    "description": "Check and apply package updates for the Docker host operating system.",
+    "check": "Check",
+    "apply": "Apply updates",
+    "available": "Updates available",
+    "current": "Up to date",
+    "manager": "Manager",
+    "lastChecked": "Last checked",
+    "exitCode": "Exit code",
+    "unknown": "Unknown",
+    "notChecked": "Not checked",
+    "notRun": "Not run",
+    "empty": "No update output yet.",
+    "checkFailed": "OS update check failed.",
+    "applyStarted": "OS update command started.",
+    "applySucceeded": "Update succeeded",
+    "applyFailed": "Update failed",
+    "confirmTitle": "Apply OS updates?",
+    "confirmDescription": "This runs the host package manager and can change installed operating system packages."
+  },
+  "status": {
+    "available": "Available"
+  }
+}

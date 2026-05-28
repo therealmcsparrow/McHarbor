@@ -6,7 +6,9 @@ package workflows
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"strings"
@@ -143,17 +145,37 @@ func (ts *TriggerService) listen(ctx context.Context, envID string) {
 		select {
 		case <-ctx.Done():
 			return
-		case err := <-errCh:
+		case err, ok := <-errCh:
+			if !ok {
+				return
+			}
 			if err != nil && ctx.Err() == nil {
+				if dockerEventStreamClosed(ctx, err) {
+					ts.logger.Debug("workflow trigger: event stream closed", "error", err, "env", envID)
+					return
+				}
 				ts.logger.Warn("workflow trigger: event stream error", "error", err, "env", envID)
 			}
 			return
-		case evt := <-eventsCh:
+		case evt, ok := <-eventsCh:
+			if !ok {
+				return
+			}
 			if string(evt.Type) == "container" {
 				ts.handleContainerEvent(ctx, cli, evt, envID)
 			}
 		}
 	}
+}
+
+func dockerEventStreamClosed(ctx context.Context, err error) bool {
+	if err == nil || ctx.Err() != nil {
+		return true
+	}
+	return errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) ||
+		errors.Is(err, io.EOF) ||
+		errors.Is(err, io.ErrUnexpectedEOF)
 }
 
 func (ts *TriggerService) handleContainerEvent(ctx context.Context, cli *dockerclient.Client, evt events.Message, envID string) {

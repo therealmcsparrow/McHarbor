@@ -30,7 +30,6 @@ import (
 	"github.com/docker/go-connections/nat"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
-	stacksmodule "github.com/therealmcsparrow/mcharbor/modules/stacks"
 )
 
 // Service wraps Docker SDK container operations.
@@ -456,9 +455,8 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 			}
 		}
 
-		result := stacksmodule.ScheduleDetachedSelfUpdateHelper(cli, info, os.Getenv("DATA_DIR"), dockerHost, operation)
-		if !result.Success {
-			return container.CreateResponse{}, fmt.Errorf("scheduling self recreate helper: %s", result.Error)
+		if _, err := docker.ScheduleDetachedSelfUpdateHelper(ctx, cli, info, os.Getenv("DATA_DIR"), dockerHost, operation); err != nil {
+			return container.CreateResponse{}, fmt.Errorf("scheduling self recreate helper: %w", err)
 		}
 
 		return container.CreateResponse{ID: info.ID}, nil

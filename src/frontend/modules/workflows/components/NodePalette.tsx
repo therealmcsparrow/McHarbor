@@ -60,12 +60,15 @@ export function NodePalette() {
 
     const map: Record<string, NodeDefinition[]> = {};
     for (const def of filtered) {
-      if (!map[def.category]) map[def.category] = [];
-      map[def.category]!.push(def);
+      const categoryNodes = map[def.category] ?? [];
+      categoryNodes.push(def);
+      map[def.category] = categoryNodes;
     }
     // Sort nodes ascending by translated label within each category
     for (const cat of Object.keys(map)) {
-      map[cat]!.sort((a, b) => {
+      const categoryNodes = map[cat];
+      if (!categoryNodes) continue;
+      categoryNodes.sort((a, b) => {
         const la = tn(`${a.key}.label`, { defaultValue: a.label });
         const lb = tn(`${b.key}.label`, { defaultValue: b.label });
         return la.localeCompare(lb);

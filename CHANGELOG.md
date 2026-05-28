@@ -2,6 +2,36 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.2.1] - 2026-05-28
+
+### Added
+
+- Added the System menu with overview metrics, services, processes, dependencies, OS terminal, OS logs, and OS update tabs.
+- Added protected host OS system endpoints for terminal sessions, bounded log snapshots, and package update check/apply actions.
+- Added System page, OS update flow, and OS log notice translations for every supported UI language.
+
+### Fixed
+
+- Fixed deprecated Compose naming risk by removing fixed `container_name` entries from production and development Compose files so project-scoped container names can be generated safely.
+- Fixed stack Docker Compose subprocess handling by adding bounded contexts and switching calls to context-aware command execution.
+- Fixed McHarbor self-update scheduling module boundaries by moving detached helper scheduling into the shared Docker core package and removing the containers module dependency on the stacks module.
+- Fixed agent terminal resize requests so HTTP responses are closed and drained instead of being ignored.
+- Fixed Docker event stream EOF handling so expected disconnects are treated as reconnectable stream closes instead of noisy backend errors.
+- Fixed OS log collection on hosts where `journalctl` is unavailable or not readable by preferring direct host log files first, falling back only when needed, and surfacing non-fatal permission/source notices in the UI.
+- Fixed missing System navigation and namespace translations for Spanish, French, Portuguese, and Chinese.
+- Fixed several sanity-check warnings around ignored Go test write errors, frontend non-null assertions, unsafe DataGrid filter typing, theme-token hover styling, and destructive role-delete styling.
+
+### Changed
+
+- Added a deprecated-usage sanity check that reports deprecated APIs, packages, Docker/Compose syntax, and migration suggestions.
+- Kept OS log collection read-only and unprivileged while guarding host terminal and update actions behind dedicated permissions.
+- Logged the received shutdown signal during graceful backend shutdown for easier production diagnosis.
+- Bumped the McHarbor Docker image, agent image references, runtime metadata, OpenAPI metadata, README release reference, frontend package metadata, and lockfile root version to `1.2.1`.
+
+### Tests
+
+- Added regression coverage for the shared self-update scheduler mount fallback.
+
 ## [1.2.0] - 2026-05-24
 
 ### Added

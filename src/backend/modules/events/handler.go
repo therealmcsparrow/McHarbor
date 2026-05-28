@@ -4,8 +4,11 @@
 package events
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -30,11 +33,11 @@ func NewHandler(app *router.AppDeps) *Handler {
 
 // eventData is the JSON shape sent to clients via SSE.
 type eventData struct {
-	Type   string            `json:"type"`
-	Action string            `json:"action"`
-	Actor  eventActor        `json:"actor"`
-	Time   int64             `json:"time"`
-	Status string            `json:"status,omitempty"`
+	Type   string     `json:"type"`
+	Action string     `json:"action"`
+	Actor  eventActor `json:"actor"`
+	Time   int64      `json:"time"`
+	Status string     `json:"status,omitempty"`
 }
 
 type eventActor struct {
@@ -83,21 +86,35 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	// Send initial connection event
-	fmt.Fprintf(w, "event: connected\ndata: {\"status\":\"connected\"}\n\n")
+	if _, writeErr := fmt.Fprintf(w, "event: connected\ndata: {\"status\":\"connected\"}\n\n"); writeErr != nil {
+		return
+	}
 	flusher.Flush()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case err := <-errCh:
+		case err, ok := <-errCh:
+			if !ok {
+				return
+			}
 			if err != nil {
-				slog.Error("events: docker events stream error", "error", err)
-				fmt.Fprintf(w, "event: error\ndata: {\"error\":\"event stream error\"}\n\n")
-				flusher.Flush()
+				if expectedDockerEventStreamClose(ctx, err) {
+					h.app.Logger.Debug("events: docker events stream closed", "error", err, "env", envID)
+				} else {
+					slog.Error("events: docker events stream error", "error", err, "env", envID)
+					if _, writeErr := fmt.Fprintf(w, "event: error\ndata: {\"error\":\"event stream error\"}\n\n"); writeErr != nil {
+						return
+					}
+					flusher.Flush()
+				}
 			}
 			return
-		case event := <-eventsCh:
+		case event, ok := <-eventsCh:
+			if !ok {
+				return
+			}
 			data := eventData{
 				Type:   string(event.Type),
 				Action: string(event.Action),
@@ -114,8 +131,20 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			fmt.Fprintf(w, "event: %s\ndata: %s\n\n", data.Type, string(payload))
+			if _, writeErr := fmt.Fprintf(w, "event: %s\ndata: %s\n\n", data.Type, string(payload)); writeErr != nil {
+				return
+			}
 			flusher.Flush()
 		}
 	}
+}
+
+func expectedDockerEventStreamClose(ctx context.Context, err error) bool {
+	if err == nil || ctx.Err() != nil {
+		return true
+	}
+	return errors.Is(err, context.Canceled) ||
+		errors.Is(err, context.DeadlineExceeded) ||
+		errors.Is(err, io.EOF) ||
+		errors.Is(err, io.ErrUnexpectedEOF)
 }

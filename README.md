@@ -79,7 +79,7 @@ docker compose up -d
 
 The app is served on port `8705` by default, mapped to backend port `5474` inside the container.
 
-The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.2.0`. To run the optional remote agent from Compose, set `MCHARBOR_URL` and `MCHARBOR_AGENT_TOKEN` and start the `agent` profile:
+The default production compose file pulls `ghcr.io/therealmcsparrow/mcharbor:1.2.1`. To run the optional remote agent from Compose, set `MCHARBOR_URL` and `MCHARBOR_AGENT_TOKEN` and start the `agent` profile:
 
 ```bash
 docker compose --profile agent up -d
@@ -154,4 +154,3 @@ We currently use AI assistance for:
 - **Code review and sanity checks**: AI helps inspect changes for obvious bugs, missing edge cases, inconsistent naming, or risky patterns. Implementation remain in the hands of the maintainer.
 - **Documentation**: AI helps draft or improve README content, API documentation, setup notes, changelogs, release notes, and user-facing explanations.
 - **Developer workflow support**: AI helps summarize changes, generate test ideas, and keep repetitive project maintenance work consistent.
-s

@@ -158,6 +158,7 @@ export function Sidebar() {
     { to: '/security', labelKey: 'nav.security', icon: IconShieldLock },
     { to: '/settings', labelKey: 'nav.settings', icon: IconSettings },
     { to: '/notifications', labelKey: 'nav.notifications', icon: IconBell },
+    { to: '/system', labelKey: 'nav.system', icon: IconServer },
   ];
 
   return (
