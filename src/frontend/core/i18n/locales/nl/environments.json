@@ -185,6 +185,8 @@
     "runAsBinary": "Uitvoeren als binary",
     "installScript": "Eenregelig installatiescript (uitvoeren op externe host)",
     "copyScript": "Installatieopdracht kopiëren",
+    "copyDockerCommand": "Docker-opdracht kopiëren",
+    "copyBinaryCommand": "Binary-opdracht kopiëren",
     "scriptExpiry": "Deze URL verloopt na 24 uur en kan slechts één keer worden gebruikt.",
     "done": "Gereed"
   },
@@ -195,7 +197,9 @@
     "connectionSuccessful": "Verbinding geslaagd",
     "tokenRegenerated": "Token opnieuw gegenereerd — kopieer het nu",
     "agentDeployed": "Agent-implementatie gestart",
-    "agentDeployFailed": "Agent-implementatie mislukt"
+    "agentDeployFailed": "Agent-implementatie mislukt",
+    "copiedToClipboard": "Gekopieerd naar klembord",
+    "copyFailed": "Kon niet naar klembord kopieren"
   },
   "confirm": {
     "removeTitle": "Omgeving verwijderen",

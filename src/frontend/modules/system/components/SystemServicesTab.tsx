@@ -8,7 +8,6 @@ import { Badge } from '@resources/components/ui/Badge';
 import { DataGrid } from '@resources/components/DataGrid';
 import type { BulkContainerMetric } from '@resources/hooks/useContainersBulkStats';
 import type { HostMetrics } from '@core/types/docker';
-import packageJson from '../../../package.json';
 import type { SystemInfo } from '../types';
 
 type ServiceRow = {
@@ -45,7 +44,7 @@ export function SystemServicesTab({
       {
         name: t('services.webUi'),
         status: 'available',
-        detail: `v${packageJson.version}`,
+        detail: `v${info.version}`,
         source: t('services.sources.frontend'),
       },
       {

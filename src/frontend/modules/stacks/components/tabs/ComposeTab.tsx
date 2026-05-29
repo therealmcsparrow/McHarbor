@@ -14,9 +14,10 @@ type ComposeTabProps = {
   stackName: string;
   isManaged: boolean;
   editing?: boolean;
+  readOnly?: boolean;
 };
 
-export function ComposeTab({ stackName, isManaged, editing: globalEditing }: ComposeTabProps) {
+export function ComposeTab({ stackName, isManaged, editing: globalEditing, readOnly = false }: ComposeTabProps) {
   const { t } = useTranslation('stacks');
   const { t: tc } = useTranslation('common');
   const { data: content, isLoading } = useStackCompose(stackName);
@@ -24,7 +25,7 @@ export function ComposeTab({ stackName, isManaged, editing: globalEditing }: Com
   const [localEditing, setLocalEditing] = useState(false);
   const [editContent, setEditContent] = useState('');
 
-  const isEditing = globalEditing || localEditing;
+  const isEditing = !readOnly && (globalEditing || localEditing);
 
   useEffect(() => {
     if (content !== undefined) setEditContent(content);
@@ -59,18 +60,18 @@ export function ComposeTab({ stackName, isManaged, editing: globalEditing }: Com
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium">{t('detail.composeFile')}</h3>
         <div className="flex items-center gap-2">
-          {!isManaged && (
+          {(!isManaged || readOnly) && (
             <Badge variant="secondary" className="text-[10px]">
               {t('detail.readOnly')}
             </Badge>
           )}
-          {isManaged && !isEditing && (
+          {isManaged && !readOnly && !isEditing && (
             <Button variant="outline" size="sm" onClick={() => setLocalEditing(true)}>
               <IconPencil className="h-3.5 w-3.5" />
               {t('detail.editCompose')}
             </Button>
           )}
-          {isManaged && isEditing && (
+          {isManaged && !readOnly && isEditing && (
             <>
               {!globalEditing && (
                 <Button variant="outline" size="sm" onClick={() => setLocalEditing(false)}>

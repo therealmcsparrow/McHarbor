@@ -8,9 +8,10 @@ type ActionButtonProps = {
   label: string;
   onClick: () => void;
   icon: React.ReactNode;
+  disabled?: boolean;
 };
 
-export function ActionButton({ label, onClick, icon }: ActionButtonProps) {
+export function ActionButton({ label, onClick, icon, disabled = false }: ActionButtonProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -18,8 +19,10 @@ export function ActionButton({ label, onClick, icon }: ActionButtonProps) {
           variant="ghost"
           size="icon-sm"
           aria-label={label}
+          disabled={disabled}
           onClick={(event) => {
             event.stopPropagation();
+            if (disabled) return;
             onClick();
           }}
         >

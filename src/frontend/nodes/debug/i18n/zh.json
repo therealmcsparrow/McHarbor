@@ -1,8 +1,0 @@
-{
-  "label": "调试",
-  "description": "将当前消息发送到调试流",
-  "config": {
-    "property": "财产",
-    "full_message": "显示完整消息"
-  }
-}

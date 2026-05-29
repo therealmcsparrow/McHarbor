@@ -24,7 +24,7 @@ jobs:
         id: versions
         shell: bash
         run: |
-          app_version="$(sed -n 's/.*"version": "\(.*\)".*/\1/p' src/frontend/package.json | head -n1)"
+          app_version="$(tr -d '[:space:]' < VERSION)"
           agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
           echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
           echo "agent_version=$agent_version" >> "$GITHUB_OUTPUT"

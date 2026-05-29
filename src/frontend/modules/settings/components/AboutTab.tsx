@@ -3,7 +3,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { IconRefresh, IconArrowUp, IconCheck } from '@tabler/icons-react';
+import { IconRefresh, IconArrowUp, IconBrandGithub, IconCheck } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
@@ -17,6 +17,8 @@ type AboutData = {
   platform: string;
   dependencies: { name: string; version: string }[];
 };
+
+const repositoryUrl = 'https://github.com/therealmcsparrow/mcharbor';
 
 const frontendDeps: { name: string; label: string }[] = [
   { name: 'react', label: 'React' },
@@ -79,36 +81,52 @@ export function AboutTab() {
     staleTime: 60_000,
   });
 
-  const { data: versionCheck, refetch: checkUpdate, isFetching: isChecking } = useCheckUpdate();
+  const {
+    data: versionCheck,
+    refetch: checkUpdate,
+    isError: checkFailed,
+    isFetching: isChecking,
+  } = useCheckUpdate();
   const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies } as Record<string, string>;
 
   return (
     <div className="space-y-8">
       {/* Branding header */}
-      <div className="flex items-center gap-4">
-        <img src="/logo_McHarbor.svg" alt="McHarbor" className="h-14" />
-        <div>
-          <h2 className="text-xl font-bold text-foreground">McHarbor</h2>
-          <p className="text-sm text-muted-foreground">
-            {t('about.tagline')}
-          </p>
-        </div>
-        {data && (
-          <div className="ml-auto flex items-center gap-3">
-            <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
-              <p className="text-[10px] font-medium uppercase text-muted-foreground">{t('about.version')}</p>
-              <p className="text-sm font-semibold text-foreground">v{data.version}</p>
-            </div>
-            <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
-              <p className="text-[10px] font-medium uppercase text-muted-foreground">Go</p>
-              <p className="text-sm font-semibold text-foreground">{data.goVersion.replace('go', '')}</p>
-            </div>
-            <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
-              <p className="text-[10px] font-medium uppercase text-muted-foreground">{t('about.platform')}</p>
-              <p className="text-sm font-semibold text-foreground">{data.platform}</p>
-            </div>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-4">
+          <img src="/logo_McHarbor.svg" alt="McHarbor" className="h-14" />
+          <div>
+            <h2 className="text-xl font-bold text-foreground">McHarbor</h2>
+            <p className="text-sm text-muted-foreground">
+              {t('about.tagline')}
+            </p>
           </div>
-        )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button variant="outline" asChild>
+            <a href={repositoryUrl} target="_blank" rel="noreferrer">
+              <IconBrandGithub className="size-4" />
+              {t('about.repository')}
+            </a>
+          </Button>
+          {data && (
+            <>
+              <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
+                <p className="text-[10px] font-medium uppercase text-muted-foreground">{t('about.version')}</p>
+                <p className="text-sm font-semibold text-foreground">v{data.version}</p>
+              </div>
+              <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
+                <p className="text-[10px] font-medium uppercase text-muted-foreground">Go</p>
+                <p className="text-sm font-semibold text-foreground">{data.goVersion.replace('go', '')}</p>
+              </div>
+              <div className="rounded-lg bg-muted px-3 py-1.5 text-center">
+                <p className="text-[10px] font-medium uppercase text-muted-foreground">{t('about.platform')}</p>
+                <p className="text-sm font-semibold text-foreground">{data.platform}</p>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Check for Updates */}
@@ -128,7 +146,13 @@ export function AboutTab() {
           </Button>
         </div>
 
-        {versionCheck && (
+        {checkFailed && (
+          <div className="mt-4 rounded-lg bg-destructive/10 p-4 text-sm text-destructive">
+            {t('about.checkFailed')}
+          </div>
+        )}
+
+        {!checkFailed && versionCheck && (
           <div className="mt-4 rounded-lg bg-muted p-4">
             {versionCheck.updateAvailable ? (
               <div className="space-y-3">

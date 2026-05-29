@@ -15,6 +15,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
+	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/response"
@@ -31,6 +32,14 @@ type Handler struct {
 func NewHandler(app *router.AppDeps) *Handler {
 	svc := NewService(app.DB, app.DockerPool, app.Config.DataDir)
 	return &Handler{app: app, service: svc}
+}
+
+func writeProtectedError(w http.ResponseWriter, r *http.Request, err error) bool {
+	if !errors.Is(err, coredocker.ErrProtectedResource) {
+		return false
+	}
+	response.ForbiddenCode(w, r, i18n.ErrProtectedTarget)
+	return true
 }
 
 // HandleList returns all stacks with live status.
@@ -129,6 +138,9 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	st, err := h.service.Update(r.Context(), name, req)
 	if err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to update stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
 		return
@@ -164,6 +176,9 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	envID := response.ParseEnvID(r)
 
 	if err := h.service.RemoveStack(r.Context(), envID, name); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to remove stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackRemoveFailed)
 		return
@@ -192,6 +207,10 @@ func (h *Handler) HandleUp(w http.ResponseWriter, r *http.Request) {
 
 	h.app.Logger.Info("stack up", "name", name, "success", result.Success, "user", user.Username)
 	if !result.Success {
+		if result.Error == coredocker.ErrProtectedResource.Error() {
+			response.ForbiddenCode(w, r, i18n.ErrProtectedTarget)
+			return
+		}
 		response.InternalErrorCode(w, r, i18n.ErrStackDeployFailed)
 		return
 	}
@@ -222,6 +241,9 @@ func (h *Handler) HandleStop(w http.ResponseWriter, r *http.Request) {
 	envID := response.ParseEnvID(r)
 
 	if err := h.service.StopStack(r.Context(), envID, name); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to stop stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackStopFailed)
 		return
@@ -254,6 +276,9 @@ func (h *Handler) HandleDown(w http.ResponseWriter, r *http.Request) {
 	envID := response.ParseEnvID(r)
 
 	if err := h.service.DownStack(r.Context(), envID, name); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to down stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackDownFailed)
 		return
@@ -286,6 +311,9 @@ func (h *Handler) HandleRestart(w http.ResponseWriter, r *http.Request) {
 	envID := response.ParseEnvID(r)
 
 	if err := h.service.RestartStack(r.Context(), envID, name); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to restart stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackRestartFailed)
 		return
@@ -318,6 +346,9 @@ func (h *Handler) HandleManagedUpdate(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.service.UpdateManagedStack(r.Context(), name)
 	if err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to update managed stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackUpdateFailed)
 		return
@@ -359,6 +390,9 @@ func (h *Handler) HandleReinstall(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.service.ReinstallManagedStack(r.Context(), name)
 	if err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to reinstall managed stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackDeployFailed)
 		return
@@ -830,6 +864,9 @@ func (h *Handler) HandlePrune(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.service.PruneOrphans(r.Context(), envID, name)
 	if err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to prune stack", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackPruneFailed)
 		return
@@ -863,6 +900,9 @@ func (h *Handler) HandleUpdateEnvVars(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.UpdateEnvVars(name, envVars); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("failed to update env vars", "name", name, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrStackEnvVarsFailed)
 		return

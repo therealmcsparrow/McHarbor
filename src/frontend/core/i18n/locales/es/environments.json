@@ -185,6 +185,8 @@
     "runAsBinary": "Ejecutar como binario",
     "installScript": "Instalación de una línea (ejecutar en host remoto)",
     "copyScript": "Copiar comando de instalación",
+    "copyDockerCommand": "Copiar comando Docker",
+    "copyBinaryCommand": "Copiar comando binario",
     "scriptExpiry": "Esta URL caduca después de 24 horas y solo se puede utilizar una vez.",
     "done": "Hecho"
   },
@@ -195,7 +197,9 @@
     "connectionSuccessful": "Conexión exitosa",
     "tokenRegenerated": "Token regenerado: cópielo ahora",
     "agentDeployed": "Implementación del agente iniciada",
-    "agentDeployFailed": "Error en la implementación del agente"
+    "agentDeployFailed": "Error en la implementación del agente",
+    "copiedToClipboard": "Copiado al portapapeles",
+    "copyFailed": "No se pudo copiar al portapapeles"
   },
   "confirm": {
     "removeTitle": "Eliminar entorno",

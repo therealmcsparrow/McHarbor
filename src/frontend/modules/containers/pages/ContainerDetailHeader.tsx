@@ -17,12 +17,14 @@ import {
   IconPencil,
   IconCheck,
   IconX,
+  IconLock,
 } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { truncateId } from '@resources/utils/format';
 import type { ContainerInspect } from '@core/types/docker';
+import { isProtectedContainer } from '@core/utils/protection';
 
 const STATE_VARIANTS: Record<string, 'success' | 'destructive' | 'warning' | 'secondary'> = {
   running: 'success',
@@ -68,6 +70,7 @@ type HeaderActionButtonProps = {
   icon: React.ReactNode;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   className?: string;
+  disabled?: boolean;
 };
 
 function HeaderActionButton({
@@ -76,6 +79,7 @@ function HeaderActionButton({
   icon,
   variant = 'outline',
   className = '',
+  disabled = false,
 }: HeaderActionButtonProps) {
   return (
     <Tooltip>
@@ -86,6 +90,7 @@ function HeaderActionButton({
           size="icon-sm"
           aria-label={tooltip}
           className={className}
+          disabled={disabled}
         >
           {icon}
         </Button>
@@ -132,8 +137,10 @@ export function ContainerDetailHeader({
 }: ContainerDetailHeaderProps) {
   const navigate = useNavigate();
   const { t } = useTranslation('containers');
+  const { t: tc } = useTranslation('common');
   const state = container.State?.Status ?? 'unknown';
   const resolvedStackName = stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
+  const locked = isProtectedContainer(container);
 
   return (
     <div className="flex flex-1 items-center justify-between">
@@ -158,6 +165,12 @@ export function ContainerDetailHeader({
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-semibold text-foreground">{name}</h1>
             <Badge variant={STATE_VARIANTS[state] ?? 'secondary'} className="text-[10px] px-1.5 py-0">{state}</Badge>
+            {locked && (
+              <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0">
+                <IconLock className="size-3" />
+                {tc('actions.locked')}
+              </Badge>
+            )}
             {resolvedStackName ? (
               <Badge
                 variant="default"
@@ -204,12 +217,14 @@ export function ContainerDetailHeader({
             <HeaderActionButton
               tooltip={t('actions.edit')}
               onClick={onEdit}
+              disabled={locked}
               icon={<IconPencil className="size-3.5" />}
             />
             {isRunning ? (
               <HeaderActionButton
                 tooltip={t('actions.stop')}
                 onClick={() => onAction('stop')}
+                disabled={locked}
                 icon={<IconPlayerStop className="size-3.5" />}
               />
             ) : (
@@ -217,17 +232,20 @@ export function ContainerDetailHeader({
                 tooltip={t('actions.start')}
                 onClick={() => onAction('start')}
                 variant="default"
+                disabled={locked}
                 icon={<IconPlayerPlay className="size-3.5" />}
               />
             )}
             <HeaderActionButton
               tooltip={t('actions.restart')}
               onClick={() => onAction('restart')}
+              disabled={locked}
               icon={<IconRotate className="size-3.5" />}
             />
             <HeaderActionButton
               tooltip={t('actions.pause')}
               onClick={() => onAction('pause')}
+              disabled={locked}
               icon={<IconPlayerPause className="size-3.5" />}
             />
             {webUrl && (
@@ -242,6 +260,7 @@ export function ContainerDetailHeader({
               tooltip={t('actions.relinkStack')}
               onClick={onRelink}
               variant="secondary"
+              disabled={locked}
               icon={<IconLink className="size-3.5" />}
             />
             {!container.Config?.Labels?.['com.docker.compose.project'] && (
@@ -249,6 +268,7 @@ export function ContainerDetailHeader({
                 tooltip={t('actions.takeOver')}
                 onClick={onTakeOver}
                 variant="secondary"
+                disabled={locked}
                 icon={<IconArrowsTransferUp className="size-3.5" />}
               />
             )}
@@ -257,12 +277,14 @@ export function ContainerDetailHeader({
               tooltip={t('actions.kill')}
               onClick={onKill}
               variant="destructive"
+              disabled={locked}
               icon={<IconSkull className="size-3.5" />}
             />
             <HeaderActionButton
               tooltip={t('actions.remove')}
               onClick={onRemove}
               variant="destructive"
+              disabled={locked}
               icon={<IconTrash className="size-3.5" />}
             />
           </>

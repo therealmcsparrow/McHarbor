@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconPlayerPlay, IconPlayerStop, IconRotate, IconArrowUp, IconTrash } from '@tabler/icons-react';
 import type { ContainerInfo } from '@core/types/docker';
+import { isProtectedContainer } from '@core/utils/protection';
 import type { BatchAction } from '@resources/components/DataGrid';
 
 type UseContainerBatchActionsProps = {
@@ -28,6 +29,7 @@ export function useContainerBatchActions({
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
+            if (isProtectedContainer(row)) continue;
             action.mutate({ id: row.Id, action: 'start' });
           }
         },
@@ -38,6 +40,7 @@ export function useContainerBatchActions({
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
+            if (isProtectedContainer(row)) continue;
             action.mutate({ id: row.Id, action: 'stop' });
           }
         },
@@ -48,6 +51,7 @@ export function useContainerBatchActions({
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
+            if (isProtectedContainer(row)) continue;
             action.mutate({ id: row.Id, action: 'restart' });
           }
         },
@@ -56,13 +60,13 @@ export function useContainerBatchActions({
         label: tc('batch.updateSelected'),
         icon: IconArrowUp,
         variant: 'default',
-        onClick: (rows) => onUpdateSelected?.(rows as ContainerInfo[]),
+        onClick: (rows) => onUpdateSelected?.((rows as ContainerInfo[]).filter((row) => !isProtectedContainer(row))),
       },
       {
         label: tc('batch.reinstallSelected'),
         icon: IconRotate,
         variant: 'default',
-        onClick: (rows) => onReinstallSelected?.(rows as ContainerInfo[]),
+        onClick: (rows) => onReinstallSelected?.((rows as ContainerInfo[]).filter((row) => !isProtectedContainer(row))),
       },
       {
         label: tc('batch.remove'),
@@ -71,6 +75,7 @@ export function useContainerBatchActions({
         confirm: true,
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
+            if (isProtectedContainer(row)) continue;
             action.mutate({ id: row.Id, action: 'remove' });
           }
         },

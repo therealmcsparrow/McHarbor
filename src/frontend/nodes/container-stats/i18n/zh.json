@@ -1,8 +1,0 @@
-{
-  "label": "容器统计",
-  "description": "读取容器的一次性运行时指标",
-  "config": {
-    "environment": "环境",
-    "container": "容器"
-  }
-}

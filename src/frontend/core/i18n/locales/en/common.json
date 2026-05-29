@@ -52,7 +52,8 @@
     "processing": "Processing...",
     "saving": "Saving...",
     "deleting": "Deleting...",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "locked": "Locked"
   },
   "status": {
     "running": "Running",
@@ -601,7 +602,13 @@
     "useDefaultRegistry": "Use default registry",
     "noRegistriesFound": "No registries found",
     "fieldTypeWebhookSelect": "Selects an active configured outbound webhook.",
-    "fieldTypeRegistrySelect": "Uses a configured registry. Leave it empty to fall back to the default registry."
+    "fieldTypeRegistrySelect": "Uses a configured registry. Leave it empty to fall back to the default registry.",
+    "importWorkflow": "Import Workflow",
+    "mutationExported": "Workflow exported",
+    "mutationExportFailed": "Workflow export failed",
+    "mutationImported": "Workflow imported",
+    "mutationImportFailed": "Workflow import failed",
+    "export": "Export"
   },
   "store": {
     "title": "Store",

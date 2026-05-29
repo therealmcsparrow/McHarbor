@@ -1,8 +1,0 @@
-{
-  "label": "忽略",
-  "description": "从对象中删除选定的字段",
-  "config": {
-    "property": "财产",
-    "fields": "领域"
-  }
-}

@@ -24,6 +24,7 @@ type VolumeSummary struct {
 	Options    map[string]string `json:"Options,omitempty"`
 	UsageData  *UsageData        `json:"UsageData,omitempty"`
 	RefCount   int               `json:"RefCount"`
+	Protected  bool              `json:"Protected"`
 }
 
 // UsageData represents volume usage statistics.

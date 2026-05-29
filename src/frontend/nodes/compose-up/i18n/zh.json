@@ -1,8 +1,0 @@
-{
-  "label": "Compose 向上",
-  "description": "启动属于 compose 堆栈的容器",
-  "config": {
-    "environment": "环境",
-    "stack_name": "堆栈名称"
-  }
-}

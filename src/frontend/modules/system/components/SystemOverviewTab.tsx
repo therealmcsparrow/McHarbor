@@ -29,7 +29,6 @@ export function SystemOverviewTab({
   containerMetrics: BulkContainerMetric[];
 }) {
   const { t } = useTranslation('system');
-  const frontendVersion = packageJson.version;
   const memory = splitBytes(hostMetrics?.host.memTotal ?? 0);
   const disk = splitBytes(hostMetrics?.disk.total ?? 0);
   const containerMemory = splitBytes(
@@ -80,7 +79,7 @@ export function SystemOverviewTab({
         >
           <SystemInfoRow label={t('fields.name')} value="McHarbor" />
           <SystemInfoRow label={t('fields.backendVersion')} value={`v${info.version}`} />
-          <SystemInfoRow label={t('fields.frontendVersion')} value={`v${frontendVersion}`} />
+          <SystemInfoRow label={t('fields.frontendVersion')} value={`v${info.version}`} />
         </SystemInfoBlock>
 
         <SystemInfoBlock

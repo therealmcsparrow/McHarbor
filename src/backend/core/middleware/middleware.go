@@ -18,18 +18,20 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 )
 
+var timeNow = time.Now
+
 // Logger logs HTTP requests with structured logging.
 func Logger(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			start := time.Now()
+			start := timeNow()
 			sw := &statusWriter{ResponseWriter: w, status: 200}
 			next.ServeHTTP(sw, r)
 			logger.Info("http request",
 				"method", r.Method,
 				"path", r.URL.Path,
 				"status", sw.status,
-				"duration_ms", time.Since(start).Milliseconds(),
+				"duration_ms", timeNow().Sub(start).Milliseconds(),
 				"ip", clientIP(r),
 			)
 		})
@@ -49,11 +51,11 @@ func Recovery(logger *slog.Logger) func(http.Handler) http.Handler {
 						"path", r.URL.Path,
 					)
 					lang := i18n.FromContext(r.Context())
-				msg := i18n.T(lang, i18n.ErrPanicRecovery)
-				body, _ := json.Marshal(map[string]any{"success": false, "error": msg, "code": string(i18n.ErrPanicRecovery)}) // safe: simple map literal
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write(body)
+					msg := i18n.T(lang, i18n.ErrPanicRecovery)
+					body, _ := json.Marshal(map[string]any{"success": false, "error": msg, "code": string(i18n.ErrPanicRecovery)}) // safe: simple map literal
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write(body)
 				}
 			}()
 			next.ServeHTTP(sw(w), r)
@@ -75,7 +77,7 @@ func RateLimit(requestsPerMinute int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ip := remoteIP(r)
-			now := time.Now()
+			now := timeNow()
 
 			mu.Lock()
 			b, ok := buckets[ip]

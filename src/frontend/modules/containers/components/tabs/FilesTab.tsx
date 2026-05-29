@@ -24,9 +24,10 @@ type FilesTabProps = {
   containerId: string;
   isRunning: boolean;
   mounts: ContainerMount[];
+  readOnly?: boolean;
 };
 
-export function FilesTab({ containerId, isRunning, mounts }: FilesTabProps) {
+export function FilesTab({ containerId, isRunning, mounts, readOnly = false }: FilesTabProps) {
   const { t } = useTranslation('containers');
   const envId = useEnvironmentStore((s) => s.currentId);
   const [currentPath, setCurrentPath] = useState('/');
@@ -56,6 +57,7 @@ export function FilesTab({ containerId, isRunning, mounts }: FilesTabProps) {
         setDialog({ type: 'view', entry });
         break;
       case 'edit':
+        if (readOnly) break;
         setDialog({ type: 'edit', entry });
         break;
       case 'download': {
@@ -65,12 +67,15 @@ export function FilesTab({ containerId, isRunning, mounts }: FilesTabProps) {
         break;
       }
       case 'rename':
+        if (readOnly) break;
         setDialog({ type: 'rename', entry });
         break;
       case 'chmod':
+        if (readOnly) break;
         setDialog({ type: 'chmod', entry });
         break;
       case 'delete':
+        if (readOnly) break;
         setDialog({ type: 'delete', entry });
         break;
     }
@@ -116,6 +121,7 @@ export function FilesTab({ containerId, isRunning, mounts }: FilesTabProps) {
             variant="outline"
             size="sm"
             onClick={() => setDialog({ type: 'upload' })}
+            disabled={readOnly}
           >
             <IconUpload className="mr-1.5 h-4 w-4" />
             {t('files.upload')}
@@ -124,6 +130,7 @@ export function FilesTab({ containerId, isRunning, mounts }: FilesTabProps) {
             variant="outline"
             size="sm"
             onClick={() => setDialog({ type: 'create', mode: 'file' })}
+            disabled={readOnly}
           >
             <IconFilePlus className="mr-1.5 h-4 w-4" />
             {t('files.newFile')}
@@ -132,6 +139,7 @@ export function FilesTab({ containerId, isRunning, mounts }: FilesTabProps) {
             variant="outline"
             size="sm"
             onClick={() => setDialog({ type: 'create', mode: 'folder' })}
+            disabled={readOnly}
           >
             <IconFolderPlus className="mr-1.5 h-4 w-4" />
             {t('files.newFolder')}
@@ -163,6 +171,7 @@ export function FilesTab({ containerId, isRunning, mounts }: FilesTabProps) {
                   mountLabel={t('files.mount')}
                   onAction={handleAction}
                   onNavigate={navigateTo}
+                  readOnly={readOnly}
                 />
               ))
             ) : (
@@ -181,7 +190,7 @@ export function FilesTab({ containerId, isRunning, mounts }: FilesTabProps) {
         dialog={dialog}
         onClose={closeDialog}
         onConfirmDelete={handleDelete}
-        onEditFromViewer={(entry) => setDialog({ type: 'edit', entry })}
+        onEditFromViewer={(entry) => !readOnly && setDialog({ type: 'edit', entry })}
       />
     </div>
   );

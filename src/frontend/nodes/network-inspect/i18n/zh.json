@@ -1,8 +1,0 @@
-{
-  "label": "网络检查",
-  "description": "检查 Docker 网络",
-  "config": {
-    "environment": "环境",
-    "name": "姓名"
-  }
-}

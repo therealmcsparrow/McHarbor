@@ -24,6 +24,15 @@ const (
 	prefix    = "enc:v1:"
 )
 
+var (
+	randRead     = rand.Read
+	readFile     = os.ReadFile
+	mkdirAll     = os.MkdirAll
+	writeFile    = os.WriteFile
+	newAESCipher = aes.NewCipher
+	newGCM       = cipher.NewGCM
+)
+
 // Service handles AES-256-GCM encryption compatible with the TS version.
 type Service struct {
 	mu      sync.Mutex
@@ -56,12 +65,12 @@ func New(dataDir, envKey string) (*Service, error) {
 	}
 	s.hashKey = append([]byte(nil), keyBytes...)
 
-	block, err := aes.NewCipher(keyBytes)
+	block, err := newAESCipher(keyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("creating AES cipher: %w", err)
 	}
 
-	s.gcm, err = cipher.NewGCM(block)
+	s.gcm, err = newGCM(block)
 	if err != nil {
 		return nil, fmt.Errorf("creating GCM: %w", err)
 	}
@@ -75,7 +84,7 @@ func (s *Service) Encrypt(plaintext string) (string, error) {
 	defer s.mu.Unlock()
 
 	nonce := make([]byte, ivLength)
-	if _, err := rand.Read(nonce); err != nil {
+	if _, err := randRead(nonce); err != nil {
 		return "", fmt.Errorf("generating nonce: %w", err)
 	}
 
@@ -125,22 +134,22 @@ func IsEncrypted(value string) bool {
 }
 
 func loadOrGenerateKey(keyPath string) ([]byte, error) {
-	if data, err := os.ReadFile(keyPath); err == nil {
+	if data, err := readFile(keyPath); err == nil {
 		return data, nil
 	}
 
 	// Generate new key
 	key := make([]byte, keyLength)
-	if _, err := rand.Read(key); err != nil {
+	if _, err := randRead(key); err != nil {
 		return nil, fmt.Errorf("generating encryption key: %w", err)
 	}
 
 	dir := filepath.Dir(keyPath)
-	if err := os.MkdirAll(dir, 0o700); err != nil {
+	if err := mkdirAll(dir, 0o700); err != nil {
 		return nil, fmt.Errorf("creating key directory: %w", err)
 	}
 
-	if err := os.WriteFile(keyPath, key, 0o600); err != nil {
+	if err := writeFile(keyPath, key, 0o600); err != nil {
 		return nil, fmt.Errorf("writing encryption key: %w", err)
 	}
 

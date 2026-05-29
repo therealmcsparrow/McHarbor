@@ -1,8 +1,0 @@
-{
-  "label": "模板",
-  "description": "使用工作流消息中的值呈现文本模板",
-  "config": {
-    "template": "模板",
-    "output_property": "输出属性"
-  }
-}

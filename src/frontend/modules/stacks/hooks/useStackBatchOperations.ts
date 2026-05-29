@@ -4,6 +4,7 @@
 import { toast } from "sonner";
 import type { TFunction } from "i18next";
 import { useBatchProgressOperation } from "@resources/hooks/useBatchProgressOperation";
+import { isProtectedStack } from "@core/utils/protection";
 import type { StackInfo } from "./useStacks";
 import {
   useStackOperationActions,
@@ -31,14 +32,14 @@ export function useStackBatchOperations(
   const batchProgress = useBatchProgressOperation();
   const updateResults = useStackUpdateResults();
 
-  const managedStacks = stacks.filter((stack) => stack.type === "managed");
+  const managedStacks = stacks.filter((stack) => stack.type === "managed" && !isProtectedStack(stack));
   const updateAvailableTargets = managedStacks
     .filter((stack) => updateResults?.get(stack.name)?.updateAvailable)
     .map(toStackTarget);
   const reinstallTargets = managedStacks.map(toStackTarget);
 
   function getManagedTargets(rows: StackInfo[]) {
-    const managedRows = rows.filter((row) => row.type === "managed");
+    const managedRows = rows.filter((row) => row.type === "managed" && !isProtectedStack(row));
     if (managedRows.length !== rows.length) {
       toast.warning(t("updates.managedOnly"));
     }

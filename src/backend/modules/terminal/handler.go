@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -21,6 +22,7 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/therealmcsparrow/mcharbor/core/agent"
+	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/httpx"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
@@ -72,6 +74,15 @@ func (h *Handler) HandleWS(w http.ResponseWriter, r *http.Request) {
 	cli, err := h.app.DockerPool.Get(envID)
 	if err != nil {
 		h.app.Logger.Error("terminal: docker client error", "error", err, "env", envID)
+		response.InternalErrorCode(w, r, i18n.ErrTerminalFailed)
+		return
+	}
+	if err := coredocker.EnsureContainerMutable(r.Context(), cli, containerID); err != nil {
+		if errors.Is(err, coredocker.ErrProtectedResource) {
+			response.ForbiddenCode(w, r, i18n.ErrProtectedTarget)
+			return
+		}
+		h.app.Logger.Error("terminal: protected container check failed", "error", err, "container", containerID, "env", envID)
 		response.InternalErrorCode(w, r, i18n.ErrTerminalFailed)
 		return
 	}

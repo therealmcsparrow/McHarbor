@@ -4,12 +4,14 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { IconArrowLeft, IconFileExport, IconTrash } from '@tabler/icons-react';
+import { IconArrowLeft, IconFileExport, IconLock, IconTrash } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@resources/components/ui/Tooltip';
 import { useHeaderSlot } from '@resources/stores/headerSlot';
 import { truncateId } from '@resources/utils/format';
 import type { ImageInspect } from '@core/types/docker';
+import { isProtectedImage } from '@core/utils/protection';
+import { Badge } from '@resources/components/ui/Badge';
 
 type ImageDetailHeaderProps = {
   image: ImageInspect;
@@ -24,6 +26,7 @@ export function ImageDetailHeader({ image, onBack, onExport, onRemove }: ImageDe
   const setHeaderActive = useHeaderSlot((state) => state.setActive);
   const headerSlot = document.getElementById('header-slot');
   const name = image.RepoTags?.[0] ?? truncateId(image.Id.replace('sha256:', ''));
+  const locked = isProtectedImage(image);
 
   useEffect(() => {
     setHeaderActive(true);
@@ -52,7 +55,15 @@ export function ImageDetailHeader({ image, onBack, onExport, onRemove }: ImageDe
         </Tooltip>
         <div className="h-5 w-px bg-border" />
         <div>
-          <h1 className="text-sm font-semibold text-foreground">{name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-sm font-semibold text-foreground">{name}</h1>
+            {locked && (
+              <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0">
+                <IconLock className="size-3" />
+                {tc('actions.locked')}
+              </Badge>
+            )}
+          </div>
           <p className="font-mono text-xs text-muted-foreground">
             {truncateId(image.Id.replace('sha256:', ''))}
           </p>
@@ -79,6 +90,7 @@ export function ImageDetailHeader({ image, onBack, onExport, onRemove }: ImageDe
               size="icon-sm"
               aria-label={tc('actions.remove')}
               onClick={onRemove}
+              disabled={locked}
               className="text-red-500 hover:border-red-500/30 hover:bg-red-500/10"
             >
               <IconTrash className="size-3.5" />

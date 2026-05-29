@@ -52,7 +52,13 @@ export type UpdatePolicyInput = {
 export function useCheckUpdate() {
   return useQuery({
     queryKey: ['updates', 'check'],
-    queryFn: () => api.get<VersionCheck>('/updates/check').then((r) => r.data),
+    queryFn: async () => {
+      const res = await api.get<VersionCheck>('/updates/check');
+      if (!res.success || !res.data) {
+        throw new Error(res.error ?? 'Update check failed');
+      }
+      return res.data;
+    },
     staleTime: 5 * 60_000,
     enabled: false,
   });

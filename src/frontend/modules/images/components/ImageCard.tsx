@@ -2,8 +2,9 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { IconTrash } from '@tabler/icons-react';
+import { IconLock, IconTrash } from '@tabler/icons-react';
 import type { ImageInfo } from '@core/types/docker';
+import { isProtectedImage } from '@core/utils/protection';
 import { Card, CardContent, CardFooter } from '@resources/components/ui/Card';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
@@ -21,6 +22,7 @@ export function ImageCard({ image, onClick, onRemove }: ImageCardProps) {
   const { t: tc } = useTranslation('common');
   const tag = image.RepoTags?.[0] ?? '<none>';
   const shortId = truncateId((image.Id ?? '').replace('sha256:', ''));
+  const locked = isProtectedImage(image);
 
   return (
     <Card
@@ -29,7 +31,15 @@ export function ImageCard({ image, onClick, onRemove }: ImageCardProps) {
     >
       <CardContent className="flex-1 space-y-3 p-4">
         <div className="flex items-start justify-between gap-2">
-          <span className="min-w-0 truncate font-medium text-sm">{tag}</span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="min-w-0 truncate font-medium text-sm">{tag}</span>
+            {locked && (
+              <Badge variant="secondary" className="shrink-0 gap-1 text-[9px] px-1.5 py-0">
+                <IconLock className="size-3" />
+                {tc('actions.locked')}
+              </Badge>
+            )}
+          </div>
           {image.Containers > 0 ? (
             <Badge variant="success" className="shrink-0 text-[10px] px-2 py-0.5">
               {t('badges.inUse')}
@@ -80,6 +90,7 @@ export function ImageCard({ image, onClick, onRemove }: ImageCardProps) {
               variant="ghost"
               size="icon-sm"
               aria-label={tc('actions.remove')}
+              disabled={locked}
               onClick={() => onRemove(image.Id)}
             >
               <IconTrash className="h-3.5 w-3.5 text-destructive" />

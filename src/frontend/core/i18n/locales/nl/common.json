@@ -52,7 +52,8 @@
     "processing": "Bezig...",
     "saving": "Opslaan...",
     "deleting": "Verwijderen...",
-    "signOut": "Uitloggen"
+    "signOut": "Uitloggen",
+    "locked": "Vergrendeld"
   },
   "status": {
     "running": "Actief",
@@ -601,7 +602,13 @@
     "useDefaultRegistry": "Standaardregistry gebruiken",
     "noRegistriesFound": "Geen registries gevonden",
     "fieldTypeWebhookSelect": "Selecteert een actieve geconfigureerde outbound webhook.",
-    "fieldTypeRegistrySelect": "Gebruikt een geconfigureerde registry. Laat leeg om terug te vallen op de standaardregistry."
+    "fieldTypeRegistrySelect": "Gebruikt een geconfigureerde registry. Laat leeg om terug te vallen op de standaardregistry.",
+    "importWorkflow": "Workflow importeren",
+    "mutationExported": "Workflow geexporteerd",
+    "mutationExportFailed": "Workflow exporteren mislukt",
+    "mutationImported": "Workflow geimporteerd",
+    "mutationImportFailed": "Workflow importeren mislukt",
+    "export": "Exporteren"
   },
   "store": {
     "title": "Store",

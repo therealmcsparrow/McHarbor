@@ -1,7 +1,0 @@
-{
-  "label": "尝试捕捉",
-  "description": "保护下游执行并将失败路由到 catch 分支",
-  "config": {
-    "error_property": "错误属性"
-  }
-}

@@ -52,7 +52,8 @@
     "processing": "Procesando...",
     "saving": "Guardando...",
     "deleting": "Eliminando...",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "locked": "Bloqueado"
   },
   "status": {
     "running": "En ejecución",
@@ -601,7 +602,13 @@
     "useDefaultRegistry": "Usar registry predeterminada",
     "noRegistriesFound": "No se encontraron registries",
     "fieldTypeWebhookSelect": "Selecciona un webhook saliente configurado activo.",
-    "fieldTypeRegistrySelect": "Usa una registry configurada. Dejalo vacio para usar la registry predeterminada."
+    "fieldTypeRegistrySelect": "Usa una registry configurada. Dejalo vacio para usar la registry predeterminada.",
+    "importWorkflow": "Importar flujo",
+    "mutationExported": "Flujo de trabajo exportado",
+    "mutationExportFailed": "Error al exportar el flujo de trabajo",
+    "mutationImported": "Flujo de trabajo importado",
+    "mutationImportFailed": "Error al importar el flujo de trabajo",
+    "export": "Exportar"
   },
   "store": {
     "title": "Almacenar",

@@ -1,8 +1,0 @@
-{
-  "label": "设置变量",
-  "description": "在流上下文中存储一个值",
-  "config": {
-    "name": "变量名",
-    "value": "价值"
-  }
-}

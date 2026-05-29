@@ -5,6 +5,7 @@ package workflows
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -135,6 +136,53 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	response.NoContent(w)
 }
 
+// HandleExport downloads a single workflow as a portable JSON file.
+func (h *Handler) HandleExport(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	exportData, err := h.service.Export(id)
+	if err != nil {
+		h.app.Logger.Error("workflows: export error", "error", err, "id", id)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+	if exportData == nil {
+		response.NotFoundCode(w, r, i18n.ErrWorkflowNotFound)
+		return
+	}
+
+	filename := safeWorkflowExportFilename(exportData.Workflow.Name)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	if err := json.NewEncoder(w).Encode(exportData); err != nil {
+		h.app.Logger.Error("workflows: export encode error", "error", err, "id", id)
+	}
+}
+
+// HandleImport creates a draft workflow from a portable workflow export file.
+func (h *Handler) HandleImport(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 5<<20)
+
+	var input WorkflowExport
+	if err := response.DecodeBody(r, &input); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	wf, err := h.service.Import(input)
+	if err != nil {
+		if errors.Is(err, ErrInvalidWorkflowExport) {
+			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+			return
+		}
+		h.app.Logger.Error("workflows: import error", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+
+	response.Created(w, wf)
+}
+
 // HandleExecute runs a workflow and streams execution events via SSE.
 func (h *Handler) HandleExecute(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
@@ -258,6 +306,30 @@ func (h *Handler) HandleListLinkOutputs(w http.ResponseWriter, r *http.Request) 
 	}
 
 	response.OK(w, outputs)
+}
+
+func safeWorkflowExportFilename(name string) string {
+	name = strings.TrimSpace(strings.ToLower(name))
+	if name == "" {
+		name = "workflow"
+	}
+	var b strings.Builder
+	lastDash := false
+	for _, r := range name {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
+			b.WriteRune(r)
+			lastDash = false
+		case !lastDash:
+			b.WriteRune('-')
+			lastDash = true
+		}
+	}
+	slug := strings.Trim(b.String(), "-")
+	if slug == "" {
+		slug = "workflow"
+	}
+	return slug + ".mcharbor-workflow.json"
 }
 
 // firstOutputPort returns the first (primary) output port name for a given node action.

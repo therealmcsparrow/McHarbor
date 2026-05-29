@@ -371,7 +371,7 @@ func (s *Service) UpdateProfile(userID string, displayName string, email string)
 
 func normalizePreferredLanguage(value string) string {
 	switch value {
-	case "nl", "de", "es", "fr", "pt", "zh":
+	case "nl", "de", "es", "fr", "pt":
 		return value
 	default:
 		return "en"

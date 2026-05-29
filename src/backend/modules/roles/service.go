@@ -79,12 +79,9 @@ func (s *Service) Create(input *CreateRoleInput) (*Role, error) {
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
 
-	permsJSON, err := json.Marshal(input.Permissions)
-	if err != nil {
-		return nil, fmt.Errorf("marshaling permissions: %w", err)
-	}
+	permsJSON, _ := json.Marshal(input.Permissions)
 
-	_, err = s.db.Exec(
+	_, err := s.db.Exec(
 		`INSERT INTO roles (id, name, description, permissions, is_system, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, 0, ?, ?)`,
 		id, input.Name, input.Description, string(permsJSON), now, now,
@@ -111,10 +108,7 @@ func (s *Service) Update(id string, input *UpdateRoleInput) (*Role, error) {
 		}
 	}
 	if input.Permissions != nil {
-		permsJSON, err := json.Marshal(input.Permissions)
-		if err != nil {
-			return nil, fmt.Errorf("marshaling permissions: %w", err)
-		}
+		permsJSON, _ := json.Marshal(input.Permissions)
 		if _, err := s.db.Exec("UPDATE roles SET permissions = ?, updated_at = ? WHERE id = ?", string(permsJSON), now, id); err != nil {
 			return nil, fmt.Errorf("updating role permissions: %w", err)
 		}

@@ -1,7 +1,0 @@
-{
-  "label": "环形",
-  "description": "从当前消息迭代数组",
-  "config": {
-    "items_field": "项目字段"
-  }
-}

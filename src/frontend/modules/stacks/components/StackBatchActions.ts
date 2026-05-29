@@ -9,6 +9,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react';
 import type { BatchAction } from '@resources/components/DataGrid';
+import { isProtectedStack } from '@core/utils/protection';
 import type { StackInfo } from '../hooks/useStacks';
 
 type StackBatchActionsParams = {
@@ -45,6 +46,7 @@ export function getStackBatchActions({
       variant: 'default',
       onClick: (rows) => {
         for (const row of rows as StackInfo[]) {
+          if (isProtectedStack(row)) continue;
           onAction(row.name, 'stop');
         }
       },
@@ -55,6 +57,7 @@ export function getStackBatchActions({
       variant: 'default',
       onClick: (rows) => {
         for (const row of rows as StackInfo[]) {
+          if (isProtectedStack(row)) continue;
           onAction(row.name, 'restart');
         }
       },
@@ -66,6 +69,7 @@ export function getStackBatchActions({
       confirm: true,
       onClick: (rows) => {
         for (const row of rows as StackInfo[]) {
+          if (isProtectedStack(row)) continue;
           onAction(row.name, 'down');
         }
       },
@@ -77,6 +81,7 @@ export function getStackBatchActions({
       confirm: true,
       onClick: (rows) => {
         for (const row of rows as StackInfo[]) {
+          if (isProtectedStack(row)) continue;
           onDelete(row.name);
         }
       },

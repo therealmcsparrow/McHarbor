@@ -1,7 +1,0 @@
-{
-  "label": "范围",
-  "description": "读取数组属性并附加范围元数据",
-  "config": {
-    "property": "财产"
-  }
-}

@@ -17,6 +17,7 @@ import { Select } from '@resources/components/ui/Select';
 import { Label } from '@resources/components/ui/Label';
 import { useCreateEnvironment, useDeployAgent, useCreateInstallToken } from '../hooks/useEnvironmentActions';
 import type { CreateEnvironmentData, InstallTokenResponse } from '../hooks/useEnvironmentActions';
+import { AgentDockerImage } from '../constants';
 import { DockerConnectionFields } from './DockerConnectionFields';
 import { KubernetesConnectionFields } from './KubernetesConnectionFields';
 
@@ -139,6 +140,7 @@ export function CreateEnvironmentDialog({ open, onOpenChange, onAgentToken, onIn
                   sshKey: sshAuthType === 'key' ? sshKey : undefined,
                   sshPassword: sshAuthType === 'password' ? sshPassword : undefined,
                   method: sshDeployAs,
+                  agentImage: sshDeployAs === 'docker' ? AgentDockerImage : undefined,
                 },
               });
               // Still show the token dialog as backup

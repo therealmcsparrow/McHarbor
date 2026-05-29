@@ -1,7 +1,0 @@
-{
-  "label": "Docker信息",
-  "description": "从环境加载 Docker 守护进程信息",
-  "config": {
-    "environment": "环境"
-  }
-}

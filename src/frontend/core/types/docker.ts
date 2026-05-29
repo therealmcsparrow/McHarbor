@@ -23,6 +23,7 @@ export type ContainerInfo = {
   StackService?: string;
   State: ContainerState;
   Status: string;
+  Protected?: boolean;
   NetworkSettings: {
     Networks: Record<string, ContainerNetwork>;
   };
@@ -162,6 +163,7 @@ export type ContainerInspect = {
     }> | null;
     Ulimits: Array<{ Name: string; Soft: number; Hard: number }> | null;
   };
+  Protected?: boolean;
 };
 
 export type ImageInfo = {
@@ -175,6 +177,7 @@ export type ImageInfo = {
   VirtualSize: number;
   Labels: Record<string, string> | null;
   Containers: number;
+  Protected?: boolean;
 };
 
 export type ImageInspect = {
@@ -212,6 +215,7 @@ export type ImageInspect = {
   Metadata: {
     LastTagTime: string;
   };
+  Protected?: boolean;
 };
 
 export type ImageHistoryItem = {
@@ -236,6 +240,7 @@ export type VolumeInfo = {
     RefCount: number;
   };
   RefCount: number;
+  Protected?: boolean;
 };
 
 export type NetworkInfo = {

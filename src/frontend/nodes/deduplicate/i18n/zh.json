@@ -1,8 +1,0 @@
-{
-  "label": "重复数据删除",
-  "description": "从数组中删除重复项",
-  "config": {
-    "property": "财产",
-    "unique_by": "独特者"
-  }
-}

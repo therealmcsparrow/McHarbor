@@ -350,6 +350,102 @@ func TestExecuteSQLQueryCapsResultRows(t *testing.T) {
 	}
 }
 
+func TestHandleExportWorkflowReturnsPortableFile(t *testing.T) {
+	db := openWorkflowTestDB(t)
+	insertWorkflow(t, db, "wf-export", `{"nodes":[],"edges":[],"groups":[]}`)
+	h := newWorkflowTestHandler(t, db)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/workflows/wf-export/export", nil)
+	req = withWorkflowID(req, "wf-export")
+	w := httptest.NewRecorder()
+
+	h.HandleExport(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+	if got := w.Header().Get("Content-Type"); got != "application/json" {
+		t.Fatalf("expected content type application/json, got %q", got)
+	}
+	if got := w.Header().Get("Content-Disposition"); !strings.Contains(got, `filename="wf-export.mcharbor-workflow.json"`) {
+		t.Fatalf("expected export filename header, got %q", got)
+	}
+
+	var payload WorkflowExport
+	if err := json.NewDecoder(w.Body).Decode(&payload); err != nil {
+		t.Fatalf("decode export payload: %v", err)
+	}
+	if payload.Kind != "mcharbor.workflow" {
+		t.Fatalf("expected export kind mcharbor.workflow, got %q", payload.Kind)
+	}
+	if payload.Version != 1 {
+		t.Fatalf("expected export version 1, got %d", payload.Version)
+	}
+	if payload.Workflow.OriginalID != "wf-export" {
+		t.Fatalf("expected original id wf-export, got %q", payload.Workflow.OriginalID)
+	}
+	if payload.Workflow.Name != "wf-export" {
+		t.Fatalf("expected workflow name wf-export, got %q", payload.Workflow.Name)
+	}
+}
+
+func TestHandleImportWorkflowCreatesDraftCopy(t *testing.T) {
+	db := openWorkflowTestDB(t)
+	h := newWorkflowTestHandler(t, db)
+
+	body := `{
+		"kind": "mcharbor.workflow",
+		"version": 1,
+		"workflow": {
+			"originalId": "source-workflow",
+			"name": "Imported Workflow",
+			"description": "Copied from an export file",
+			"status": "active",
+			"canvasData": "{\"nodes\":[],\"edges\":[],\"groups\":[]}",
+			"variables": "{\"threshold\":5}"
+		}
+	}`
+	req := httptest.NewRequest(http.MethodPost, "/api/workflows/import", strings.NewReader(body))
+	w := httptest.NewRecorder()
+
+	h.HandleImport(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected status 201, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var envelope struct {
+		Success bool     `json:"success"`
+		Data    Workflow `json:"data"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&envelope); err != nil {
+		t.Fatalf("decode import response: %v", err)
+	}
+	if !envelope.Success {
+		t.Fatalf("expected successful import response")
+	}
+	if envelope.Data.ID == "" || envelope.Data.ID == "source-workflow" {
+		t.Fatalf("expected a new workflow id, got %q", envelope.Data.ID)
+	}
+	if envelope.Data.Name != "Imported Workflow" {
+		t.Fatalf("expected imported name, got %q", envelope.Data.Name)
+	}
+	if envelope.Data.Description != "Copied from an export file" {
+		t.Fatalf("expected imported description, got %q", envelope.Data.Description)
+	}
+	if envelope.Data.Status != "draft" {
+		t.Fatalf("expected imported workflow to be draft, got %q", envelope.Data.Status)
+	}
+
+	var status string
+	if err := db.QueryRow(`SELECT status FROM workflows WHERE id = ?`, envelope.Data.ID).Scan(&status); err != nil {
+		t.Fatalf("select imported workflow: %v", err)
+	}
+	if status != "draft" {
+		t.Fatalf("expected stored status draft, got %q", status)
+	}
+}
+
 func newWorkflowTestHandler(t *testing.T, db *sql.DB) *Handler {
 	t.Helper()
 

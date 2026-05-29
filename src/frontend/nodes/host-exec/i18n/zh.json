@@ -1,9 +1,0 @@
-{
-  "label": "主机执行官",
-  "description": "通过临时容器运行主机命令",
-  "config": {
-    "environment": "环境",
-    "command": "命令",
-    "timeout": "超时（秒）"
-  }
-}

@@ -10,6 +10,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./src/backend:/app
+      - ./VERSION:/app/VERSION:ro
       - go-cache:/root/go
       - mcharbor-data:/app/data
     environment:
@@ -30,7 +31,7 @@ services:
 
   agent:
     profiles: ["agent"]
-    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-1.2.1}
+    image: ${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent}:${MCHARBOR_AGENT_TAG:-latest}
     restart: unless-stopped
     environment:
       - MCHARBOR_URL=${MCHARBOR_URL:-ws://host.docker.internal:5474}

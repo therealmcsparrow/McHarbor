@@ -7,6 +7,7 @@ import { OperationProgressDialog } from "@resources/components/OperationProgress
 import { DataGrid } from "@resources/components/DataGrid";
 import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
 import { PageHeader } from "@resources/layout/PageHeader";
+import { isProtectedStack } from "@core/utils/protection";
 import { useContainersBulkStats } from "@resources/hooks/useContainersBulkStats";
 import {
   useStacks,
@@ -63,11 +64,18 @@ export default function StacksPage() {
   const [reinstallAllConfirmOpen, setReinstallAllConfirmOpen] = useState(false);
   const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
 
-  const handleAction = (name: string, act: string) =>
+  const handleAction = (name: string, act: string) => {
+    const stack = stacks.find((item) => item.name === name);
+    if (stack && isProtectedStack(stack)) return;
     action.mutate({ name, action: act });
-  const handleDelete = (name: string) => deleteStack.mutate(name);
+  };
+  const handleDelete = (name: string) => {
+    const stack = stacks.find((item) => item.name === name);
+    if (stack && isProtectedStack(stack)) return;
+    deleteStack.mutate(name);
+  };
   const updatesAvailable = updateAvailableTargets.length;
-  const pruneTargets = stacks.filter((stack) => stack.type === "managed");
+  const pruneTargets = stacks.filter((stack) => stack.type === "managed" && !isProtectedStack(stack));
 
   async function pruneUnusedServices() {
     await Promise.allSettled(pruneTargets.map((stack) => pruneStack.mutateAsync(stack.name)));

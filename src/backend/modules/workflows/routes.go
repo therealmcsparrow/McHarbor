@@ -45,12 +45,14 @@ func MountWithTriggerService(app *router.AppDeps, ts *TriggerService) {
 		r.Route("/workflows", func(r chi.Router) {
 			r.Get("/", h.HandleList)
 			r.Post("/", h.HandleCreate)
+			r.Post("/import", h.HandleImport)
 			r.Get("/runs", h.HandleListRuns)
 			r.Get("/link-outputs", h.HandleListLinkOutputs)
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/", h.HandleGet)
 				r.Put("/", h.HandleUpdate)
 				r.Delete("/", h.HandleDelete)
+				r.Get("/export", h.HandleExport)
 				r.Post("/execute", h.HandleExecute)
 				r.Get("/live", h.HandleLiveEvents)
 			})

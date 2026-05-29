@@ -29,6 +29,7 @@ export type StackInfo = {
   services: StackSvc[];
   description?: string;
   type: 'managed' | 'discovered';
+  protected?: boolean;
 };
 
 export function useStacks() {

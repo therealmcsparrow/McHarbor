@@ -185,6 +185,8 @@
     "runAsBinary": "Als Binary ausführen",
     "installScript": "Einzeiler-Installationsskript (auf entferntem Host ausführen)",
     "copyScript": "Installationsbefehl kopieren",
+    "copyDockerCommand": "Docker-Befehl kopieren",
+    "copyBinaryCommand": "Binary-Befehl kopieren",
     "scriptExpiry": "Diese URL läuft nach 24 Stunden ab und kann nur einmal verwendet werden.",
     "done": "Fertig"
   },
@@ -195,7 +197,9 @@
     "connectionSuccessful": "Verbindung erfolgreich",
     "tokenRegenerated": "Token neu generiert — jetzt kopieren",
     "agentDeployed": "Agent-Bereitstellung gestartet",
-    "agentDeployFailed": "Agent-Bereitstellung fehlgeschlagen"
+    "agentDeployFailed": "Agent-Bereitstellung fehlgeschlagen",
+    "copiedToClipboard": "In die Zwischenablage kopiert",
+    "copyFailed": "Konnte nicht in die Zwischenablage kopieren"
   },
   "confirm": {
     "removeTitle": "Umgebung entfernen",

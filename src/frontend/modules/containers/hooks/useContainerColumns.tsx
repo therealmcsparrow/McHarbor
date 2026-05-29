@@ -10,8 +10,10 @@ import {
   IconCircleArrowUp,
   IconCircleCheck,
   IconAlertCircle,
+  IconLock,
 } from '@tabler/icons-react';
 import type { ContainerInfo } from '@core/types/docker';
+import { isProtectedContainer } from '@core/utils/protection';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
@@ -46,6 +48,7 @@ export function useContainerColumns({
   updateResults,
 }: UseContainerColumnsProps) {
   const { t } = useTranslation('containers');
+  const { t: tc } = useTranslation('common');
 
   return useMemo<ColumnDef<ContainerInfo, unknown>[]>(
     () => [
@@ -59,6 +62,14 @@ export function useContainerColumns({
             <span className="truncate font-medium">
               {row.original.Names?.[0]?.replace(/^\//, '') ?? '-'}
             </span>
+            {isProtectedContainer(row.original) && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconLock className="size-3.5 shrink-0 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>{tc('actions.locked')}</TooltipContent>
+              </Tooltip>
+            )}
           </div>
         ),
       },
@@ -232,6 +243,6 @@ export function useContainerColumns({
         ),
       },
     ],
-    [action, t, onTerminal, onLogs, onRemove, onTakeOver, updateResults]
+    [action, t, tc, onTerminal, onLogs, onRemove, onTakeOver, updateResults]
   );
 }

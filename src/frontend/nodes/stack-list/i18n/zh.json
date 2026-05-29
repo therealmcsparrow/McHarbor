@@ -1,7 +1,0 @@
-{
-  "label": "堆栈列表",
-  "description": "按项目标签列出撰写堆栈",
-  "config": {
-    "environment": "环境"
-  }
-}

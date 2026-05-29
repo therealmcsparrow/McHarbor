@@ -3,6 +3,8 @@
 
 package openapi
 
+import appversion "github.com/therealmcsparrow/mcharbor/core/version"
+
 type operationSpec struct {
 	Method      string
 	Summary     string
@@ -21,7 +23,7 @@ func buildSpec() map[string]any {
 		"openapi": "3.1.0",
 		"info": map[string]any{
 			"title":   "McHarbor API",
-			"version": "1.2.1",
+			"version": appversion.Current(),
 			"summary": "REST, SSE, and WebSocket surface for McHarbor",
 			"description": "McHarbor exposes a self-hosted control plane API for Docker, Kubernetes, remote agents, workflows, notifications, store content, and operational telemetry. " +
 				"Most routes return the shared { success, data?, error?, message?, code? } envelope and require either the session cookie or a Bearer API key. " +

@@ -195,11 +195,25 @@ func (s *Service) Prune(ctx context.Context, envID string) (image.PruneReport, e
 	ctx, cancel := context.WithTimeout(ctx, 120*time.Second)
 	defer cancel()
 
-	report, err := cli.ImagesPrune(ctx, unusedImagePruneFilters())
+	images, err := cli.ImageList(ctx, image.ListOptions{All: true})
 	if err != nil {
-		return image.PruneReport{}, fmt.Errorf("pruning images: %w", err)
+		return image.PruneReport{}, fmt.Errorf("listing images for prune: %w", err)
 	}
 
+	report := image.PruneReport{}
+	for _, img := range images {
+		if img.Containers != 0 {
+			continue
+		}
+		responses, err := cli.ImageRemove(ctx, img.ID, image.RemoveOptions{PruneChildren: true})
+		if err != nil {
+			return image.PruneReport{}, fmt.Errorf("pruning image %s: %w", img.ID, err)
+		}
+		report.ImagesDeleted = append(report.ImagesDeleted, responses...)
+		if img.Size > 0 {
+			report.SpaceReclaimed += uint64(img.Size)
+		}
+	}
 	return report, nil
 }
 

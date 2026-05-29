@@ -1,7 +1,0 @@
-{
-  "label": "延迟",
-  "description": "暂停工作流程执行几秒钟",
-  "config": {
-    "seconds": "秒数"
-  }
-}

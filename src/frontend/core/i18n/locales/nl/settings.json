@@ -538,6 +538,7 @@
     "platform": "Platform",
     "backendDeps": "Backend-afhankelijkheden",
     "frontendDeps": "Frontend-afhankelijkheden",
+    "repository": "GitHub-repo",
     "allRightsReserved": "Alle rechten voorbehouden.",
     "checkForUpdates": "Controleren op updates",
     "checkForUpdatesDescription": "Controleer of er een nieuwere versie van McHarbor beschikbaar is.",
@@ -546,7 +547,8 @@
     "newVersion": "Nieuw",
     "currentVersionLabel": "Huidig",
     "upToDate": "U draait de nieuwste versie.",
-    "viewRelease": "Release bekijken"
+    "viewRelease": "Release bekijken",
+    "checkFailed": "Kan niet controleren op updates. Probeer het later opnieuw."
   },
   "toast": {
     "updated": "Instellingen bijgewerkt",

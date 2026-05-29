@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconCopy, IconCheck } from '@tabler/icons-react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,39 @@ import {
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
 import type { InstallTokenResponse } from '../hooks/useEnvironmentActions';
+import { AgentDockerImage } from '../constants';
+
+export { AgentDockerImage } from '../constants';
+
+export async function copyAgentText(text: string): Promise<boolean> {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall back to a temporary textarea below.
+    }
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  textarea.style.top = '0';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(0, text.length);
+
+  try {
+    return document.execCommand('copy');
+  } catch {
+    return false;
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
 
 type AgentTokenDialogProps = {
   open: boolean;
@@ -27,9 +61,15 @@ export function AgentTokenDialog({ open, onOpenChange, token, serverUrl, install
   const { t } = useTranslation('environments');
   const [copied, setCopied] = useState<string | null>(null);
 
-  const copyToClipboard = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = async (text: string, key: string) => {
+    const copied = await copyAgentText(text);
+    if (!copied) {
+      toast.error(t('toast.copyFailed'));
+      return;
+    }
+
     setCopied(key);
+    toast.success(t('toast.copiedToClipboard'));
     setTimeout(() => setCopied(null), 2000);
   };
 
@@ -39,7 +79,7 @@ export function AgentTokenDialog({ open, onOpenChange, token, serverUrl, install
   -v /var/run/docker.sock:/var/run/docker.sock \\
   -e MCHARBOR_URL=${serverUrl} \\
   -e MCHARBOR_AGENT_TOKEN=${token} \\
-  mcharbor-agent`;
+  ${AgentDockerImage}`;
 
   const binaryCmd = `MCHARBOR_URL=${serverUrl} \\
 MCHARBOR_AGENT_TOKEN=${token} \\
@@ -119,7 +159,7 @@ mcharbor-agent`;
                 size="icon"
                 className="absolute right-1 top-1"
                 onClick={() => copyToClipboard(dockerCmd, 'docker')}
-                aria-label={t('agentToken.copyToken')}
+                aria-label={t('agentToken.copyDockerCommand')}
               >
                 {copied === 'docker' ? (
                   <IconCheck className="h-3.5 w-3.5 text-green-500" />
@@ -143,7 +183,7 @@ mcharbor-agent`;
                 size="icon"
                 className="absolute right-1 top-1"
                 onClick={() => copyToClipboard(binaryCmd, 'binary')}
-                aria-label={t('agentToken.copyToken')}
+                aria-label={t('agentToken.copyBinaryCommand')}
               >
                 {copied === 'binary' ? (
                   <IconCheck className="h-3.5 w-3.5 text-green-500" />

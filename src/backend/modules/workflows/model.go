@@ -3,6 +3,10 @@
 
 package workflows
 
+import "errors"
+
+var ErrInvalidWorkflowExport = errors.New("invalid workflow export")
+
 // Workflow represents a workflow with its canvas data.
 type Workflow struct {
 	ID          string `json:"id"`
@@ -16,6 +20,26 @@ type Workflow struct {
 	LastRunAt   string `json:"lastRunAt,omitempty"`
 	CreatedAt   string `json:"createdAt"`
 	UpdatedAt   string `json:"updatedAt"`
+}
+
+// WorkflowExport is the portable per-workflow export file format.
+type WorkflowExport struct {
+	Kind       string               `json:"kind"`
+	Version    int                  `json:"version"`
+	ExportedAt string               `json:"exportedAt"`
+	Workflow   WorkflowExportRecord `json:"workflow"`
+}
+
+// WorkflowExportRecord is the workflow payload included in an export file.
+type WorkflowExportRecord struct {
+	OriginalID        string `json:"originalId,omitempty"`
+	Name              string `json:"name"`
+	Description       string `json:"description"`
+	Status            string `json:"status,omitempty"`
+	CanvasData        string `json:"canvasData"`
+	Variables         string `json:"variables"`
+	OriginalCreatedAt string `json:"originalCreatedAt,omitempty"`
+	OriginalUpdatedAt string `json:"originalUpdatedAt,omitempty"`
 }
 
 // CreateInput is the request body for creating a workflow.

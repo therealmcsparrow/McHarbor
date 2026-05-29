@@ -17,11 +17,13 @@ import {
   IconCircleArrowUp,
   IconCircleCheck,
   IconAlertCircle,
+  IconLock,
 } from '@tabler/icons-react';
 import { StatusBadge, STACK_STATUS } from '@resources/components/ui/StatusBadge';
 import { Badge } from '@resources/components/ui/Badge';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { ContainerIcon } from '@resources/components/ContainerIcon';
+import { isProtectedStack } from '@core/utils/protection';
 import type { StackInfo } from '../hooks/useStacks';
 import type { StackUpdateResult } from '../hooks/useStackUpdates';
 import { ActionButton } from './ActionButton';
@@ -44,6 +46,7 @@ export function useStackTableColumns({
   updateResults,
 }: UseStackTableColumnsParams): ColumnDef<StackInfo, unknown>[] {
   const { t } = useTranslation('stacks');
+  const { t: tc } = useTranslation('common');
   const navigate = useNavigate();
 
   return [
@@ -56,6 +59,14 @@ export function useStackTableColumns({
             <ContainerIcon image={row.original.services[0].image} />
           )}
           <span className="font-medium">{row.original.name}</span>
+          {isProtectedStack(row.original) && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <IconLock className="size-3.5 shrink-0 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>{tc('actions.locked')}</TooltipContent>
+            </Tooltip>
+          )}
           <Badge
             variant={row.original.type === 'managed' ? 'default' : 'outline'}
             className="text-[9px] px-1.5 py-0"
@@ -165,6 +176,7 @@ export function useStackTableColumns({
       cell: ({ row }) => {
         const s = row.original;
         const isRunning = s.status === 'running' || s.status === 'partial';
+        const locked = isProtectedStack(s);
         return (
           <div className="flex items-center justify-end">
             <ActionButton
@@ -176,6 +188,7 @@ export function useStackTableColumns({
               <ActionButton
                 label={t('actions.edit')}
                 onClick={() => onEdit(s)}
+                disabled={locked}
                 icon={<IconPencil className="h-3.5 w-3.5 text-primary" />}
               />
             )}
@@ -183,6 +196,7 @@ export function useStackTableColumns({
               <ActionButton
                 label={t('takeOver.adopt')}
                 onClick={() => onTakeOver(s)}
+                disabled={locked}
                 icon={<IconArrowsTransferUp className="h-3.5 w-3.5 text-violet-400" />}
               />
             )}
@@ -196,11 +210,13 @@ export function useStackTableColumns({
                 <ActionButton
                   label={t('actions.restart')}
                   onClick={() => onAction(s.name, 'restart')}
+                  disabled={locked}
                   icon={<IconRotate className="h-3.5 w-3.5 text-blue-400" />}
                 />
                 <ActionButton
                   label={t('actions.stop')}
                   onClick={() => onAction(s.name, 'stop')}
+                  disabled={locked}
                   icon={<IconPlayerStop className="h-3.5 w-3.5 text-amber-500" />}
                 />
               </>
@@ -209,6 +225,7 @@ export function useStackTableColumns({
                 <ActionButton
                   label={t('actions.up')}
                   onClick={() => onAction(s.name, 'up')}
+                  disabled={locked}
                   icon={<IconPlayerPlay className="h-3.5 w-3.5 text-emerald-500" />}
                 />
               )
@@ -216,11 +233,13 @@ export function useStackTableColumns({
             <ActionButton
               label={t('actions.down')}
               onClick={() => onAction(s.name, 'down')}
+              disabled={locked}
               icon={<IconArrowDown className="h-3.5 w-3.5 text-orange-400" />}
             />
             <ActionButton
               label={t('actions.remove')}
               onClick={() => onRemove(s)}
+              disabled={locked}
               icon={<IconTrash className="h-3.5 w-3.5 text-destructive" />}
             />
           </div>

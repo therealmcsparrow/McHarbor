@@ -1,8 +1,0 @@
-{
-  "label": "堆栈状态",
-  "description": "检查撰写堆栈的状态",
-  "config": {
-    "environment": "环境",
-    "stack_name": "堆栈名称"
-  }
-}

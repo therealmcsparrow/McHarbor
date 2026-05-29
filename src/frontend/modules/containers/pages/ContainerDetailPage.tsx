@@ -25,6 +25,7 @@ import { SecurityTab } from '../components/tabs/SecurityTab';
 import { TerminalTab } from '../components/tabs/TerminalTab';
 import { SaveBar } from '../components/SaveBar';
 import { ContainerDetailHeader, getInspectWebUrl } from './ContainerDetailHeader';
+import { isProtectedContainer } from '@core/utils/protection';
 
 export default function ContainerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -68,6 +69,7 @@ export default function ContainerDetailPage() {
   const webURL = isRunning ? getInspectWebUrl(container.NetworkSettings?.Ports) : null;
   const linkedStackName = stackLink?.stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
   const isComposeManaged = !!container.Config?.Labels?.['com.docker.compose.project'];
+  const locked = isProtectedContainer(container);
 
   return (
     <div className="flex h-full flex-col gap-0">
@@ -110,7 +112,7 @@ export default function ContainerDetailPage() {
           <div className={activeTab !== 'logs' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}><LogsTab containerId={container.Id} isRunning={isRunning} /></div>
           <div className={activeTab !== 'terminal' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}><TerminalTab containerId={container.Id} isRunning={isRunning} active={activeTab === 'terminal'} /></div>
           {activeTab === 'processes' && <ProcessesTab containerId={container.Id} isRunning={isRunning} />}
-          {activeTab === 'files' && <FilesTab containerId={container.Id} isRunning={isRunning} mounts={container.Mounts ?? []} />}
+          {activeTab === 'files' && <FilesTab containerId={container.Id} isRunning={isRunning} mounts={container.Mounts ?? []} readOnly={locked} />}
         </div>
 
         {edit.editing && (

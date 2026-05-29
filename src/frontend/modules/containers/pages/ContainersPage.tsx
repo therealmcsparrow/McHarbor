@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { useBatchProgressOperation } from '@resources/hooks/useBatchProgressOperation';
 import { useCurrentEnvironmentActivitySettings } from '@resources/hooks/useCurrentEnvironmentActivitySettings';
+import { isProtectedContainer } from '@core/utils/protection';
 import { ContainerCardGrid } from '../components/ContainerCardGrid';
 import { ContainerUtilityDialogs } from '../components/ContainerUtilityDialogs';
 import { ContainersPageActions } from '../components/ContainersPageActions';
@@ -96,8 +97,9 @@ export default function ContainersPage() {
     });
   }
 
-  const allTargets = containers.map(toTarget);
-  const updateTargets = containers.filter((container) => updateAvailableIDs.has(container.Id)).map(toTarget);
+  const mutableContainers = containers.filter((container) => !isProtectedContainer(container));
+  const allTargets = mutableContainers.map(toTarget);
+  const updateTargets = mutableContainers.filter((container) => updateAvailableIDs.has(container.Id)).map(toTarget);
   const columns = useContainerColumns({ action, onTerminal: setTerminalTarget, onLogs: setLogsTarget, onRemove: setRemoveTarget, onTakeOver: setTakeOverTarget, updateResults });
   const batchActions = useContainerBatchActions({
     action,
@@ -153,7 +155,11 @@ export default function ContainersPage() {
           statsMap={statsMap}
           highlightedIds={highlightedIDs}
           isLoading={isLoading}
-          onAction={(id, nextAction) => action.mutate({ id, action: nextAction })}
+          onAction={(id, nextAction) => {
+            const target = containers.find((container) => container.Id === id);
+            if (target && isProtectedContainer(target)) return;
+            action.mutate({ id, action: nextAction });
+          }}
           onTerminal={setTerminalTarget}
           onLogs={setLogsTarget}
           onRemove={setRemoveTarget}

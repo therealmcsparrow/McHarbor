@@ -16,6 +16,7 @@ type Stack struct {
 	CreatedAt     string     `json:"createdAt"`
 	UpdatedAt     string     `json:"updatedAt"`
 	Type          string     `json:"type"` // "managed" (DB) or "discovered" (Docker labels)
+	Protected     bool       `json:"protected"`
 }
 
 // StackSvc represents a running service within a Compose stack.

@@ -1,7 +1,0 @@
-{
-  "label": "网络列表",
-  "description": "列出 Docker 网络",
-  "config": {
-    "environment": "环境"
-  }
-}

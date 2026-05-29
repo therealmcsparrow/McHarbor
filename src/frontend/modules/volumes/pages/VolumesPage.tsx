@@ -10,8 +10,10 @@ import {
   IconLayoutGrid,
   IconLayoutList,
   IconFilterOff,
+  IconLock,
 } from '@tabler/icons-react';
 import type { VolumeInfo } from '@core/types/docker';
+import { isProtectedVolume } from '@core/utils/protection';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { DataGrid, type BatchAction } from '@resources/components/DataGrid';
 import { Badge } from '@resources/components/ui/Badge';
@@ -41,7 +43,19 @@ export default function VolumesPage() {
       {
         accessorKey: 'Name',
         header: t('columns.name'),
-        cell: ({ row }) => <span className="font-medium">{row.original.Name}</span>,
+        cell: ({ row }) => (
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-medium">{row.original.Name}</span>
+            {isProtectedVolume(row.original) && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <IconLock className="size-3.5 shrink-0 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>{tc('actions.locked')}</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        ),
       },
       { accessorKey: 'Driver', header: t('columns.driver') },
       {
@@ -87,8 +101,10 @@ export default function VolumesPage() {
               size="icon"
               title={tc('actions.remove')}
               aria-label={tc('actions.remove')}
+              disabled={isProtectedVolume(row.original)}
               onClick={(event) => {
                 event.stopPropagation();
+                if (isProtectedVolume(row.original)) return;
                 setConfirmTarget(row.original.Name);
               }}
             >
@@ -110,6 +126,7 @@ export default function VolumesPage() {
         confirm: true,
         onClick: (rows) => {
           for (const row of rows as VolumeInfo[]) {
+            if (isProtectedVolume(row)) continue;
             removeVolume.mutate(row.Name);
           }
         },
@@ -186,7 +203,10 @@ export default function VolumesPage() {
         title={t('confirm.removeTitle')}
         description={t('confirm.removeDescription')}
         onConfirm={() => {
-          if (confirmTarget) removeVolume.mutate(confirmTarget);
+          if (confirmTarget) {
+            const volume = volumes.find((item) => item.Name === confirmTarget);
+            if (!volume || !isProtectedVolume(volume)) removeVolume.mutate(confirmTarget);
+          }
           setConfirmTarget(null);
         }}
         loading={removeVolume.isPending}

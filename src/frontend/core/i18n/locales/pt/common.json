@@ -52,7 +52,8 @@
     "processing": "Processamento...",
     "saving": "Salvando...",
     "deleting": "Excluindo...",
-    "signOut": "Sair"
+    "signOut": "Sair",
+    "locked": "Bloqueado"
   },
   "status": {
     "running": "Em execução",
@@ -601,7 +602,13 @@
     "useDefaultRegistry": "Usar registry padrao",
     "noRegistriesFound": "Nenhum registry encontrado",
     "fieldTypeWebhookSelect": "Seleciona um webhook de saida configurado ativo.",
-    "fieldTypeRegistrySelect": "Usa um registry configurado. Deixe em branco para usar o registry padrao."
+    "fieldTypeRegistrySelect": "Usa um registry configurado. Deixe em branco para usar o registry padrao.",
+    "importWorkflow": "Importar fluxo",
+    "mutationExported": "Fluxo de trabalho exportado",
+    "mutationExportFailed": "Falha ao exportar fluxo de trabalho",
+    "mutationImported": "Fluxo de trabalho importado",
+    "mutationImportFailed": "Falha ao importar fluxo de trabalho",
+    "export": "Exportar"
   },
   "store": {
     "title": "Loja",

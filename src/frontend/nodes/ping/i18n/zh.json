@@ -1,8 +1,0 @@
-{
-  "label": "平",
-  "description": "检查主机是否可以通过 TCP 访问",
-  "config": {
-    "host": "主持人",
-    "timeout": "超时（秒）"
-  }
-}

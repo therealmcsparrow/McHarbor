@@ -10,6 +10,7 @@ import { DataGrid } from '@resources/components/DataGrid';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { PageHeader } from '@resources/layout/PageHeader';
 import type { ImageInfo } from '@core/types/docker';
+import { isProtectedImage } from '@core/utils/protection';
 import {
   useExportImage,
   useImages,
@@ -47,6 +48,7 @@ export default function ImagesPage() {
     onRemove: setConfirmTarget,
     onBatchRemove: (rows) => {
       for (const row of rows) {
+        if (isProtectedImage(row)) continue;
         removeImage.mutate(row.Id);
       }
     },
@@ -134,7 +136,10 @@ export default function ImagesPage() {
         description={t('confirm.removeDescription')}
         onConfirm={() => {
           if (confirmTarget) {
-            removeImage.mutate(confirmTarget);
+            const image = images.find((item) => item.Id === confirmTarget);
+            if (!image || !isProtectedImage(image)) {
+              removeImage.mutate(confirmTarget);
+            }
           }
           setConfirmTarget(null);
         }}

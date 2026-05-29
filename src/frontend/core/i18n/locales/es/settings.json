@@ -538,6 +538,7 @@
     "platform": "Plataforma",
     "backendDeps": "Dependencias de backend",
     "frontendDeps": "Dependencias frontales",
+    "repository": "Repositorio GitHub",
     "allRightsReserved": "Reservados todos los derechos.",
     "checkForUpdates": "Buscar actualizaciones",
     "checkForUpdatesDescription": "Compruebe si hay disponible una versión más reciente de McHarbor.",
@@ -546,7 +547,8 @@
     "newVersion": "Nuevo",
     "currentVersionLabel": "Actual",
     "upToDate": "Estás ejecutando la última versión.",
-    "viewRelease": "Ver lanzamiento"
+    "viewRelease": "Ver lanzamiento",
+    "checkFailed": "No se pudo comprobar si hay actualizaciones. Intentalo de nuevo mas tarde."
   },
   "toast": {
     "updated": "Configuraciones actualizadas",

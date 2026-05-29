@@ -19,6 +19,8 @@ import (
 
 const keyPrefix = "mch_"
 
+var randRead = rand.Read
+
 // Service handles API key operations.
 type Service struct {
 	db *sql.DB
@@ -96,7 +98,7 @@ func (s *Service) Get(id string) (*APIKey, error) {
 func (s *Service) Create(userID string, input *CreateAPIKeyInput) (*CreateAPIKeyResult, error) {
 	// Generate random key: mch_ + 48 hex chars (24 bytes)
 	keyBytes := make([]byte, 24)
-	if _, err := rand.Read(keyBytes); err != nil {
+	if _, err := randRead(keyBytes); err != nil {
 		return nil, fmt.Errorf("generating key bytes: %w", err)
 	}
 	plainKey := keyPrefix + hex.EncodeToString(keyBytes)
@@ -111,12 +113,9 @@ func (s *Service) Create(userID string, input *CreateAPIKeyInput) (*CreateAPIKey
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
 
-	scopesJSON, err := json.Marshal(input.Scopes)
-	if err != nil {
-		return nil, fmt.Errorf("marshaling scopes: %w", err)
-	}
+	scopesJSON, _ := json.Marshal(input.Scopes)
 
-	_, err = s.db.Exec(
+	_, err := s.db.Exec(
 		`INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, scopes, expires_at, is_active, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`,
 		id, userID, input.Name, keyHash, displayPrefix, string(scopesJSON), input.ExpiresAt, now, now,
@@ -128,6 +127,9 @@ func (s *Service) Create(userID string, input *CreateAPIKeyInput) (*CreateAPIKey
 	key, err := s.Get(id)
 	if err != nil {
 		return nil, err
+	}
+	if key == nil {
+		return nil, fmt.Errorf("created api key not found")
 	}
 
 	return &CreateAPIKeyResult{

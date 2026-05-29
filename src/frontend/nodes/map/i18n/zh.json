@@ -1,8 +1,0 @@
-{
-  "label": "地图",
-  "description": "将数组对象键映射到新形状",
-  "config": {
-    "property": "财产",
-    "mapping": "测绘"
-  }
-}

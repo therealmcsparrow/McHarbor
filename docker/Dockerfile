@@ -33,6 +33,7 @@ WORKDIR /app
 
 COPY --from=backend /mcharbor ./mcharbor
 COPY --from=frontend /app/dist ./static
+COPY VERSION ./VERSION
 COPY blueprints/ ./blueprints/
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 

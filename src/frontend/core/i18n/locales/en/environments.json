@@ -185,6 +185,8 @@
     "runAsBinary": "Run as binary",
     "installScript": "One-line install (run on remote host)",
     "copyScript": "Copy install command",
+    "copyDockerCommand": "Copy Docker command",
+    "copyBinaryCommand": "Copy binary command",
     "scriptExpiry": "This URL expires after 24 hours and can only be used once.",
     "done": "Done"
   },
@@ -195,7 +197,9 @@
     "connectionSuccessful": "Connection successful",
     "tokenRegenerated": "Token regenerated — copy it now",
     "agentDeployed": "Agent deployment initiated",
-    "agentDeployFailed": "Agent deployment failed"
+    "agentDeployFailed": "Agent deployment failed",
+    "copiedToClipboard": "Copied to clipboard",
+    "copyFailed": "Could not copy to clipboard"
   },
   "confirm": {
     "removeTitle": "Remove Environment",

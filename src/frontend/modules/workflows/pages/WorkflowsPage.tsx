@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import {
@@ -11,6 +11,8 @@ import {
   IconGitMerge,
   IconPower,
   IconHistory,
+  IconDownload,
+  IconUpload,
 } from '@tabler/icons-react';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { Button } from '@resources/components/ui/Button';
@@ -18,7 +20,7 @@ import { Badge } from '@resources/components/ui/Badge';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { timeAgo } from '@resources/utils/format';
-import { useWorkflows, useUpdateWorkflow, useCreateWorkflow, useDeleteWorkflow } from '../hooks/useWorkflows';
+import { useWorkflows, useUpdateWorkflow, useCreateWorkflow, useDeleteWorkflow, useExportWorkflow, useImportWorkflow } from '../hooks/useWorkflows';
 import { CreateWorkflowDialog } from '../components/CreateWorkflowDialog';
 import { ct } from '../canvas-theme';
 
@@ -35,9 +37,12 @@ export default function WorkflowsPage() {
   const createWorkflow = useCreateWorkflow();
   const updateWorkflow = useUpdateWorkflow();
   const deleteWorkflow = useDeleteWorkflow();
+  const exportWorkflow = useExportWorkflow();
+  const importWorkflow = useImportWorkflow();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   if (isLoading) {
     return (
@@ -54,9 +59,25 @@ export default function WorkflowsPage() {
         title={t('workflows.title')}
         description={t('workflows.description')}
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
-            <IconPlus className="size-4" /> {t('workflows.newWorkflow')}
-          </Button>
+          <>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept="application/json,.json,.mcharbor-workflow.json"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) importWorkflow.mutate(file);
+                event.target.value = '';
+              }}
+            />
+            <Button variant="outline" onClick={() => importInputRef.current?.click()} disabled={importWorkflow.isPending}>
+              <IconUpload className="size-4" /> {t('workflows.importWorkflow')}
+            </Button>
+            <Button onClick={() => setCreateOpen(true)}>
+              <IconPlus className="size-4" /> {t('workflows.newWorkflow')}
+            </Button>
+          </>
         }
       />
 
@@ -82,7 +103,20 @@ export default function WorkflowsPage() {
                     <p className="mt-1 truncate text-sm text-muted-foreground">{wf.description}</p>
                   )}
                 </div>
-                <Badge variant={STATUS_VARIANTS[wf.status] ?? 'secondary'}>{wf.status}</Badge>
+                <div className="ml-3 flex shrink-0 items-center gap-1.5">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      exportWorkflow.mutate({ id: wf.id, name: wf.name });
+                    }}
+                    disabled={exportWorkflow.isPending}
+                  >
+                    <IconDownload className="size-3.5" /> {t('workflows.export')}
+                  </Button>
+                  <Badge variant={STATUS_VARIANTS[wf.status] ?? 'secondary'}>{wf.status}</Badge>
+                </div>
               </div>
 
               <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
@@ -92,7 +126,7 @@ export default function WorkflowsPage() {
                 <span>{t('workflows.updated', { time: timeAgo(wf.updatedAt) })}</span>
               </div>
 
-              <div className="mt-3 flex items-center gap-1.5">
+              <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 <Button size="sm" onClick={() => navigate(`/workflows/${wf.id}`)}>
                   <IconEdit className="size-3.5" /> {t('actions.edit')}
                 </Button>

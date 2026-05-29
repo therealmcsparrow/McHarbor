@@ -16,6 +16,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
+	appversion "github.com/therealmcsparrow/mcharbor/core/version"
 )
 
 // Policy represents an auto-update policy.
@@ -176,9 +177,6 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	response.NoContent(w)
 }
 
-// currentVersion is the running McHarbor version — keep in sync with health module.
-const currentVersion = "1.2.1"
-
 // githubRelease is a subset of the GitHub release API response.
 type githubRelease struct {
 	TagName     string `json:"tag_name"`
@@ -199,6 +197,7 @@ type VersionCheck struct {
 
 // HandleCheckUpdate checks GitHub for a newer McHarbor release.
 func (h *Handler) HandleCheckUpdate(w http.ResponseWriter, r *http.Request) {
+	currentVersion := appversion.Current()
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
@@ -214,24 +213,15 @@ func (h *Handler) HandleCheckUpdate(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		// Network error — return current version with no update info.
 		h.app.Logger.Warn("updates: github unreachable", "error", err)
-		response.OK(w, VersionCheck{
-			CurrentVersion:  currentVersion,
-			LatestVersion:   currentVersion,
-			UpdateAvailable: false,
-		})
+		response.ErrCode(w, r, http.StatusBadGateway, i18n.ErrUpdateCheckFailed)
 		return
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		h.app.Logger.Warn("updates: github returned non-200", "status", resp.StatusCode)
-		response.OK(w, VersionCheck{
-			CurrentVersion:  currentVersion,
-			LatestVersion:   currentVersion,
-			UpdateAvailable: false,
-		})
+		response.ErrCode(w, r, http.StatusBadGateway, i18n.ErrUpdateCheckFailed)
 		return
 	}
 

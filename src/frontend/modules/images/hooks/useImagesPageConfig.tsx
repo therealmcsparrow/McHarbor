@@ -4,11 +4,13 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ColumnDef } from '@tanstack/react-table';
-import { IconFileExport, IconTrash } from '@tabler/icons-react';
+import { IconFileExport, IconLock, IconTrash } from '@tabler/icons-react';
 import type { ImageInfo } from '@core/types/docker';
+import { isProtectedImage } from '@core/utils/protection';
 import type { BatchAction } from '@resources/components/DataGrid';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@resources/components/ui/Tooltip';
 import { formatBytes, timeAgo, truncateId } from '@resources/utils/format';
 
 type UseImagesPageConfigOptions = {
@@ -32,7 +34,19 @@ export function useImagesPageConfig({
         header: t('columns.repoTag'),
         cell: ({ row }) => {
           const tags = row.original.RepoTags;
-          return <span className="font-medium">{tags && tags.length > 0 ? tags[0] : '<none>'}</span>;
+          return (
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate font-medium">{tags && tags.length > 0 ? tags[0] : '<none>'}</span>
+              {isProtectedImage(row.original) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <IconLock className="size-3.5 shrink-0 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>{tc('actions.locked')}</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          );
         },
       },
       {
@@ -84,8 +98,10 @@ export function useImagesPageConfig({
               variant="ghost"
               size="icon"
               aria-label={tc('actions.remove')}
+              disabled={isProtectedImage(row.original)}
               onClick={(event) => {
                 event.stopPropagation();
+                if (isProtectedImage(row.original)) return;
                 onRemove(row.original.Id);
               }}
             >
@@ -106,7 +122,7 @@ export function useImagesPageConfig({
         variant: 'destructive',
         confirm: true,
         onClick: (rows) => {
-          onBatchRemove(rows as ImageInfo[]);
+          onBatchRemove((rows as ImageInfo[]).filter((row) => !isProtectedImage(row)));
         },
       },
     ],

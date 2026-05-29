@@ -33,6 +33,9 @@ src/backend/vendor/
 # Testing
 coverage/
 test-results/
+.results/
+*_test.go
+*.test.ts*
 tests/
 
 # Logs

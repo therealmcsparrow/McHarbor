@@ -13,9 +13,10 @@ import { useStackEnvVars, useUpdateStackEnvVars } from '../../hooks/useStacks';
 type EnvironmentTabProps = {
   stackName: string;
   editing?: boolean;
+  readOnly?: boolean;
 };
 
-export function EnvironmentTab({ stackName, editing }: EnvironmentTabProps) {
+export function EnvironmentTab({ stackName, editing, readOnly = false }: EnvironmentTabProps) {
   const { t } = useTranslation('stacks');
   const { data: envVars, isLoading } = useStackEnvVars(stackName);
   const updateEnvVars = useUpdateStackEnvVars();
@@ -61,7 +62,7 @@ export function EnvironmentTab({ stackName, editing }: EnvironmentTabProps) {
     );
   }
 
-  if (editing) {
+  if (editing && !readOnly) {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">

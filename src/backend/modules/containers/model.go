@@ -143,6 +143,7 @@ type ContainerSummary struct {
 	StackService    string                    `json:"StackService,omitempty"`
 	NetworkSettings *ContainerNetworkSettings `json:"NetworkSettings,omitempty"`
 	Mounts          []ContainerMountSummary   `json:"Mounts"`
+	Protected       bool                      `json:"Protected"`
 }
 
 // ContainerNetworkSettings holds network info for the list response.

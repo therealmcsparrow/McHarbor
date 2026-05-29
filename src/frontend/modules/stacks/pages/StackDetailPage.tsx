@@ -20,6 +20,7 @@ import { Button } from "@resources/components/ui/Button";
 import { Spinner } from "@resources/components/ui/Spinner";
 import { useHeaderSlot } from "@resources/stores/headerSlot";
 import { cn } from "@resources/utils/cn";
+import { isProtectedStack } from "@core/utils/protection";
 import {
   useStack,
   useStackAction,
@@ -131,6 +132,7 @@ export default function StackDetailPage() {
 
   const isRunning = stack.status === "running" || stack.status === "partial";
   const isManaged = stack.type === "managed";
+  const locked = isProtectedStack(stack);
   const headerSlot = document.getElementById("header-slot");
 
   const visibleTabs = isManaged
@@ -146,12 +148,13 @@ export default function StackDetailPage() {
             status={stack.status}
             isManaged={isManaged}
             isRunning={isRunning}
+            locked={locked}
             editing={editing}
-            onAction={(a) => action.mutate({ name: stack.name, action: a })}
-            onRemove={() => setRemoveOpen(true)}
-            onTakeOver={() => setTakeOverOpen(true)}
-            onLinkContainer={() => setLinkOpen(true)}
-            onEdit={handleStartEdit}
+            onAction={(a) => !locked && action.mutate({ name: stack.name, action: a })}
+            onRemove={() => !locked && setRemoveOpen(true)}
+            onTakeOver={() => !locked && setTakeOverOpen(true)}
+            onLinkContainer={() => !locked && setLinkOpen(true)}
+            onEdit={() => !locked && handleStartEdit()}
             onSave={handleSave}
             onCancelEdit={handleCancelEdit}
             saving={updateStack.isPending}
@@ -215,11 +218,12 @@ export default function StackDetailPage() {
             <ComposeTab
               stackName={stack.name}
               isManaged={isManaged}
-              editing={editing}
+              editing={editing && !locked}
+              readOnly={locked}
             />
           </div>
           {activeTab === "environment" && isManaged && (
-            <EnvironmentTab stackName={stack.name} editing={editing} />
+            <EnvironmentTab stackName={stack.name} editing={editing && !locked} readOnly={locked} />
           )}
           {activeTab === "webhooks" && isManaged && (
             <WebhooksTab stackName={stack.name} />
@@ -247,6 +251,10 @@ export default function StackDetailPage() {
         description={t("confirm.removeDescription", { name: stack.name })}
         confirmLabel={t("confirm.removeLabel")}
         onConfirm={() => {
+          if (locked) {
+            setRemoveOpen(false);
+            return;
+          }
           deleteStack.mutate(stack.name, {
             onSuccess: () => navigate("/stacks"),
           });

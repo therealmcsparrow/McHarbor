@@ -199,9 +199,6 @@ func humanizeNotificationToken(value string) string {
 
 	parts := strings.Fields(strings.NewReplacer(".", " ", "_", " ", "-", " ").Replace(value))
 	for i, part := range parts {
-		if part == "" {
-			continue
-		}
 		parts[i] = strings.ToUpper(part[:1]) + part[1:]
 	}
 

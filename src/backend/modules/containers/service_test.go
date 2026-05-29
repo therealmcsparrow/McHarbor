@@ -6,28 +6,17 @@ package containers
 import (
 	"testing"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
+	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 )
 
 func TestIsSelfMcHarborContainerByName(t *testing.T) {
-	info := types.ContainerJSON{
-		ContainerJSONBase: &container.ContainerJSONBase{Name: "/mcharbor"},
-		Config:            &container.Config{Image: "ghcr.io/therealmcsparrow/mcharbor:latest"},
-	}
-
-	if !isSelfMcHarborContainer(info) {
+	if !coredocker.IsProtectedContainer([]string{"/mcharbor"}, "ghcr.io/therealmcsparrow/mcharbor:latest", nil) {
 		t.Fatal("expected mcharbor container name to be detected")
 	}
 }
 
 func TestIsSelfMcHarborContainerDoesNotMatchAgent(t *testing.T) {
-	info := types.ContainerJSON{
-		ContainerJSONBase: &container.ContainerJSONBase{Name: "/mcharbor-agent"},
-		Config:            &container.Config{Image: "ghcr.io/therealmcsparrow/mcharbor-agent:latest"},
-	}
-
-	if isSelfMcHarborContainer(info) {
+	if coredocker.IsProtectedContainer([]string{"/mcharbor-agent"}, "ghcr.io/therealmcsparrow/mcharbor-agent:latest", nil) {
 		t.Fatal("expected mcharbor-agent not to be detected as the app container")
 	}
 }

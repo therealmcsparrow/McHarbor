@@ -13,9 +13,10 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
+	appversion "github.com/therealmcsparrow/mcharbor/core/version"
 )
 
-const version = "1.2.1"
+var readBuildInfo = debug.ReadBuildInfo
 
 // directDeps maps Go module paths to their display names for /about.
 var directDeps = map[string]string{
@@ -67,7 +68,7 @@ func handleAbout(w http.ResponseWriter, r *http.Request) {
 	platform := runtime.GOOS + "/" + runtime.GOARCH
 
 	var deps []dependencyInfo
-	if info, ok := debug.ReadBuildInfo(); ok {
+	if info, ok := readBuildInfo(); ok {
 		for _, dep := range info.Deps {
 			if label, ok := directDeps[dep.Path]; ok {
 				ver := dep.Version
@@ -82,7 +83,7 @@ func handleAbout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, aboutResponse{
-		Version:      version,
+		Version:      appversion.Current(),
 		GoVersion:    goVer,
 		Platform:     platform,
 		Dependencies: deps,

@@ -16,6 +16,7 @@ const (
 	ErrRateLimitExceed MsgCode = "err.rate_limit_exceeded"
 	ErrPanicRecovery   MsgCode = "err.panic_recovery"
 	ErrSelfTarget      MsgCode = "err.self_target"
+	ErrProtectedTarget MsgCode = "err.protected_target"
 	ErrInvalidPath     MsgCode = "err.invalid_path"
 	ErrPathTraversal   MsgCode = "err.path_traversal"
 	ErrAbsolutePathReq MsgCode = "err.absolute_path_required"

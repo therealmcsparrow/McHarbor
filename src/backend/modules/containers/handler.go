@@ -6,6 +6,7 @@ package containers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"mime"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
+	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
@@ -48,6 +50,14 @@ func isSelfTarget(id string) bool {
 		return false
 	}
 	return strings.HasPrefix(hostname, id) || strings.HasPrefix(id, hostname)
+}
+
+func writeProtectedError(w http.ResponseWriter, r *http.Request, err error) bool {
+	if !errors.Is(err, coredocker.ErrProtectedResource) {
+		return false
+	}
+	response.ForbiddenCode(w, r, i18n.ErrProtectedTarget)
+	return true
 }
 
 func shortContainerID(id string) string {
@@ -239,6 +249,9 @@ func (h *Handler) HandleRemove(w http.ResponseWriter, r *http.Request) {
 	auditName := h.containerAuditName(r.Context(), envID, id)
 
 	if err := h.svc.Remove(r.Context(), envID, id, force, removeVolumes); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		if client.IsErrNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
@@ -295,6 +308,9 @@ func (h *Handler) HandleRemoveExtended(w http.ResponseWriter, r *http.Request) {
 
 	// Remove the container
 	if err := h.svc.Remove(r.Context(), envID, id, req.Force, req.RemoveVolumes); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		if client.IsErrNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
@@ -341,6 +357,9 @@ func (h *Handler) HandleStart(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if err := h.svc.Start(r.Context(), envID, id); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		if client.IsErrNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
@@ -376,6 +395,9 @@ func (h *Handler) HandleStop(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.Stop(r.Context(), envID, id, timeout); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		if client.IsErrNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
@@ -406,6 +428,9 @@ func (h *Handler) HandleRestart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.Restart(r.Context(), envID, id); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		if client.IsErrNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
@@ -436,6 +461,9 @@ func (h *Handler) HandlePause(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.Pause(r.Context(), envID, id); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		if client.IsErrNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
@@ -461,6 +489,9 @@ func (h *Handler) HandleUnpause(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if err := h.svc.Unpause(r.Context(), envID, id); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		if client.IsErrNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
@@ -492,6 +523,9 @@ func (h *Handler) HandleKill(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.Kill(r.Context(), envID, id, signal); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		if client.IsErrNotFound(err) {
 			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
 			return
@@ -524,6 +558,9 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.svc.Update(r.Context(), envID, id, req)
 	if err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("update container failed", "env", envID, "id", id, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerUpdateFailed)
 		return
@@ -552,6 +589,9 @@ func (h *Handler) HandleRecreate(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.svc.Recreate(r.Context(), envID, id, req)
 	if err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("recreate container failed", "env", envID, "id", id, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerRecreateFailed)
 		return
@@ -583,6 +623,9 @@ func (h *Handler) HandleNetworkConnect(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.NetworkConnect(r.Context(), envID, id, req.Network); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("network connect failed", "env", envID, "id", id, "network", req.Network, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
 		return
@@ -614,6 +657,9 @@ func (h *Handler) HandleNetworkDisconnect(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := h.svc.NetworkDisconnect(r.Context(), envID, id, req.Network, req.Force); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("network disconnect failed", "env", envID, "id", id, "network", req.Network, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
 		return
@@ -925,6 +971,9 @@ func (h *Handler) HandleSaveFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.SaveFileContent(r.Context(), envID, id, filePath, content); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("save file failed", "env", envID, "id", id, "path", filePath, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerFileWriteFailed)
 		return
@@ -965,6 +1014,9 @@ func (h *Handler) HandleUploadFile(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	if err := h.svc.UploadFile(r.Context(), envID, id, destDir, header.Filename, file, header.Size); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("upload file failed", "env", envID, "id", id, "dest", destDir, "file", header.Filename, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerFileUploadFailed)
 		return
@@ -991,6 +1043,9 @@ func (h *Handler) HandleCreateDir(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.CreateDirectory(r.Context(), envID, id, dirPath); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("create directory failed", "env", envID, "id", id, "path", dirPath, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerFileMkdirFailed)
 		return
@@ -1032,6 +1087,9 @@ func (h *Handler) HandleRenameFile(w http.ResponseWriter, r *http.Request) {
 	newPath := dir + "/" + req.NewName
 
 	if err := h.svc.RenameFile(r.Context(), envID, id, req.Path, newPath); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("rename file failed", "env", envID, "id", id, "old", req.Path, "new", newPath, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerFileRenameFailed)
 		return
@@ -1070,6 +1128,9 @@ func (h *Handler) HandleChmod(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.ChangePermissions(r.Context(), envID, id, req.Path, req.Mode); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("chmod failed", "env", envID, "id", id, "path", req.Path, "mode", req.Mode, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerFileChmodFailed)
 		return
@@ -1097,6 +1158,9 @@ func (h *Handler) HandleDeleteFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.DeleteFile(r.Context(), envID, id, filePath, recursive); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("delete file failed", "env", envID, "id", id, "path", filePath, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerFileDeleteFailed)
 		return

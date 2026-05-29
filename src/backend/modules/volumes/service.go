@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 
@@ -156,10 +155,36 @@ func (s *Service) Prune(ctx context.Context, envID string) (volume.PruneReport, 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	report, err := cli.VolumesPrune(ctx, filters.Args{})
+	resp, err := cli.VolumeList(ctx, volume.ListOptions{})
 	if err != nil {
-		return volume.PruneReport{}, fmt.Errorf("pruning volumes: %w", err)
+		return volume.PruneReport{}, fmt.Errorf("listing volumes for prune: %w", err)
 	}
 
+	refCounts := make(map[string]int)
+	containers, cerr := cli.ContainerList(ctx, container.ListOptions{All: true})
+	if cerr != nil {
+		return volume.PruneReport{}, fmt.Errorf("listing containers for volume prune: %w", cerr)
+	}
+	for _, c := range containers {
+		for _, m := range c.Mounts {
+			if m.Type == "volume" {
+				refCounts[m.Name]++
+			}
+		}
+	}
+
+	report := volume.PruneReport{}
+	for _, v := range resp.Volumes {
+		if refCounts[v.Name] > 0 {
+			continue
+		}
+		if err := cli.VolumeRemove(ctx, v.Name, false); err != nil {
+			return volume.PruneReport{}, fmt.Errorf("pruning volume %s: %w", v.Name, err)
+		}
+		report.VolumesDeleted = append(report.VolumesDeleted, v.Name)
+		if v.UsageData != nil && v.UsageData.Size > 0 {
+			report.SpaceReclaimed += uint64(v.UsageData.Size)
+		}
+	}
 	return report, nil
 }

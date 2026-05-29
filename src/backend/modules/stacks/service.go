@@ -522,7 +522,6 @@ func (s *Service) Update(ctx context.Context, name string, req UpdateRequest) (*
 	if st == nil {
 		return nil, nil
 	}
-
 	now := time.Now().UTC().Format(time.RFC3339)
 
 	if req.Compose != nil {
@@ -572,7 +571,6 @@ func (s *Service) Delete(name string, down bool) error {
 	if st == nil {
 		return fmt.Errorf("stack not found")
 	}
-
 	if down {
 		envID := ""
 		if st.EnvironmentID != nil {
@@ -604,7 +602,6 @@ func (s *Service) Up(ctx context.Context, name string) *ComposeResult {
 	if err != nil || st == nil {
 		return &ComposeResult{Success: false, Error: "Stack not found"}
 	}
-
 	envID := ""
 	if st.EnvironmentID != nil {
 		envID = *st.EnvironmentID
@@ -621,7 +618,6 @@ func (s *Service) Down(name string, removeVolumes bool) *ComposeResult {
 	if err != nil || st == nil {
 		return &ComposeResult{Success: false, Error: "Stack not found"}
 	}
-
 	envID := ""
 	if st.EnvironmentID != nil {
 		envID = *st.EnvironmentID
@@ -642,7 +638,6 @@ func (s *Service) Restart(name string) *ComposeResult {
 	if err != nil || st == nil {
 		return &ComposeResult{Success: false, Error: "Stack not found"}
 	}
-
 	envID := ""
 	if st.EnvironmentID != nil {
 		envID = *st.EnvironmentID
@@ -667,7 +662,6 @@ func (s *Service) UpdateManagedStack(ctx context.Context, name string) (*Compose
 	if st == nil {
 		return nil, nil
 	}
-
 	selfTarget, err := s.stackTargetsSelf(ctx, envID, st)
 	if err != nil {
 		return nil, err
@@ -694,7 +688,6 @@ func (s *Service) ReinstallManagedStack(ctx context.Context, name string) (*Comp
 	if st == nil {
 		return nil, nil
 	}
-
 	selfTarget, err := s.stackTargetsSelf(ctx, envID, st)
 	if err != nil {
 		return nil, err
@@ -2134,7 +2127,6 @@ func scanStackRow(row *sql.Row) (*Stack, error) {
 	if description.Valid {
 		st.Description = &description.String
 	}
-
 	return &st, nil
 }
 

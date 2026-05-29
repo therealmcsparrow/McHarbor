@@ -185,6 +185,8 @@
     "runAsBinary": "Exécuter en binaire",
     "installScript": "Installation en une seule ligne (exécutée sur un hôte distant)",
     "copyScript": "Copier la commande d'installation",
+    "copyDockerCommand": "Copier la commande Docker",
+    "copyBinaryCommand": "Copier la commande binaire",
     "scriptExpiry": "Cette URL expire après 24 heures et ne peut être utilisée qu'une seule fois.",
     "done": "Fait"
   },
@@ -195,7 +197,9 @@
     "connectionSuccessful": "Connexion réussie",
     "tokenRegenerated": "Jeton régénéré — copiez-le maintenant",
     "agentDeployed": "Déploiement de l'agent lancé",
-    "agentDeployFailed": "Échec du déploiement de l'agent"
+    "agentDeployFailed": "Échec du déploiement de l'agent",
+    "copiedToClipboard": "Copie dans le presse-papiers",
+    "copyFailed": "Impossible de copier dans le presse-papiers"
   },
   "confirm": {
     "removeTitle": "Supprimer l'environnement",

@@ -2,8 +2,9 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { IconTrash } from '@tabler/icons-react';
+import { IconLock, IconTrash } from '@tabler/icons-react';
 import type { VolumeInfo } from '@core/types/docker';
+import { isProtectedVolume } from '@core/utils/protection';
 import { Card, CardContent, CardFooter } from '@resources/components/ui/Card';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
@@ -18,12 +19,21 @@ type VolumeCardProps = {
 export function VolumeCard({ volume, onRemove }: VolumeCardProps) {
   const { t } = useTranslation('volumes');
   const { t: tc } = useTranslation('common');
+  const locked = isProtectedVolume(volume);
 
   return (
     <Card className="transition-colors hover:border-primary/40">
       <CardContent className="flex-1 space-y-3 p-4">
         <div className="flex items-start justify-between gap-2">
-          <span className="min-w-0 truncate font-medium text-sm">{volume.Name}</span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="min-w-0 truncate font-medium text-sm">{volume.Name}</span>
+            {locked && (
+              <Badge variant="secondary" className="shrink-0 gap-1 text-[9px] px-1.5 py-0">
+                <IconLock className="size-3" />
+                {tc('actions.locked')}
+              </Badge>
+            )}
+          </div>
           {volume.RefCount > 0 ? (
             <Badge variant="success" className="shrink-0 text-[10px] px-2 py-0.5">
               {t('badges.inUse')}
@@ -57,6 +67,7 @@ export function VolumeCard({ volume, onRemove }: VolumeCardProps) {
               variant="ghost"
               size="icon-sm"
               aria-label={tc('actions.remove')}
+              disabled={locked}
               onClick={() => onRemove(volume.Name)}
             >
               <IconTrash className="h-3.5 w-3.5 text-destructive" />

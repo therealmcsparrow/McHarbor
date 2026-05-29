@@ -1,7 +1,0 @@
-{
-  "label": "KV删除",
-  "description": "从工作流键值存储中删除值",
-  "config": {
-    "key": "钥匙"
-  }
-}

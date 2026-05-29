@@ -1,9 +1,0 @@
-{
-  "label": "音量删除",
-  "description": "删除 Docker 卷",
-  "config": {
-    "environment": "环境",
-    "name": "姓名",
-    "force": "力量"
-  }
-}

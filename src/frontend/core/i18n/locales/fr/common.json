@@ -52,7 +52,8 @@
     "processing": "Traitement...",
     "saving": "Enregistrement...",
     "deleting": "Suppression...",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "locked": "Verrouille"
   },
   "status": {
     "running": "En cours d'exécution",
@@ -601,7 +602,13 @@
     "useDefaultRegistry": "Utiliser le registry par defaut",
     "noRegistriesFound": "Aucun registry trouve",
     "fieldTypeWebhookSelect": "Selectionne un webhook sortant configure actif.",
-    "fieldTypeRegistrySelect": "Utilise un registry configure. Laissez vide pour utiliser le registry par defaut."
+    "fieldTypeRegistrySelect": "Utilise un registry configure. Laissez vide pour utiliser le registry par defaut.",
+    "importWorkflow": "Importer un flux",
+    "mutationExported": "Flux de travail exporte",
+    "mutationExportFailed": "Echec de l'export du flux de travail",
+    "mutationImported": "Flux de travail importe",
+    "mutationImportFailed": "Echec de l'import du flux de travail",
+    "export": "Exporter"
   },
   "store": {
     "title": "Magasin",

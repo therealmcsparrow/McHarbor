@@ -26,6 +26,7 @@ type FilesTabRowProps = {
   mountLabel: string;
   onAction: (action: string, entry: FileEntry) => void;
   onNavigate: (path: string) => void;
+  readOnly?: boolean;
 };
 
 export function FilesTabRow({
@@ -34,6 +35,7 @@ export function FilesTabRow({
   mountLabel,
   onAction,
   onNavigate,
+  readOnly = false,
 }: FilesTabRowProps) {
   const { t } = useTranslation('containers');
   const maxSize = 1024 * 1024 * 100;
@@ -87,17 +89,18 @@ export function FilesTabRow({
         {!entry.isDir && (
           <>
             <ActionButton icon={IconEye} label={t('files.view')} onClick={() => onAction('view', entry)} />
-            <ActionButton icon={IconEdit} label={t('files.edit')} onClick={() => onAction('edit', entry)} />
+            <ActionButton icon={IconEdit} label={t('files.edit')} onClick={() => onAction('edit', entry)} disabled={readOnly} />
             <ActionButton icon={IconDownload} label={t('files.download')} onClick={() => onAction('download', entry)} />
           </>
         )}
-        <ActionButton icon={IconPencil} label={t('files.rename')} onClick={() => onAction('rename', entry)} />
-        <ActionButton icon={IconLock} label={t('files.changePermissions')} onClick={() => onAction('chmod', entry)} />
+        <ActionButton icon={IconPencil} label={t('files.rename')} onClick={() => onAction('rename', entry)} disabled={readOnly} />
+        <ActionButton icon={IconLock} label={t('files.changePermissions')} onClick={() => onAction('chmod', entry)} disabled={readOnly} />
         <ActionButton
           className="text-destructive"
           icon={IconTrash}
           label={t('files.delete')}
           onClick={() => onAction('delete', entry)}
+          disabled={readOnly}
         />
       </div>
       {entry.isDir && <IconChevronRight className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />}
@@ -110,11 +113,13 @@ function ActionButton({
   icon: Icon,
   label,
   onClick,
+  disabled = false,
 }: {
   className?: string;
   icon: typeof IconEye;
   label: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
     <Tooltip>
@@ -124,8 +129,10 @@ function ActionButton({
           size="icon"
           className={`h-6 w-6 ${className ?? ''}`.trim()}
           aria-label={label}
+          disabled={disabled}
           onClick={(event) => {
             event.stopPropagation();
+            if (disabled) return;
             onClick();
           }}
         >

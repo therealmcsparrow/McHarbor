@@ -190,6 +190,98 @@ func (s *Service) Create(input CreateInput) (*Workflow, error) {
 	return &wf, nil
 }
 
+// Export returns a portable workflow export payload.
+func (s *Service) Export(id string) (*WorkflowExport, error) {
+	wf, err := s.Get(id)
+	if err != nil {
+		return nil, err
+	}
+	if wf == nil {
+		return nil, nil
+	}
+
+	return &WorkflowExport{
+		Kind:       "mcharbor.workflow",
+		Version:    1,
+		ExportedAt: time.Now().UTC().Format(time.RFC3339),
+		Workflow: WorkflowExportRecord{
+			OriginalID:        wf.ID,
+			Name:              wf.Name,
+			Description:       wf.Description,
+			Status:            wf.Status,
+			CanvasData:        wf.CanvasData,
+			Variables:         wf.Variables,
+			OriginalCreatedAt: wf.CreatedAt,
+			OriginalUpdatedAt: wf.UpdatedAt,
+		},
+	}, nil
+}
+
+// Import creates a draft workflow from an exported workflow payload.
+func (s *Service) Import(input WorkflowExport) (*Workflow, error) {
+	if input.Kind != "mcharbor.workflow" || input.Version < 1 {
+		return nil, fmt.Errorf("%w: unsupported format", ErrInvalidWorkflowExport)
+	}
+
+	record := input.Workflow
+	name := strings.TrimSpace(record.Name)
+	if name == "" {
+		return nil, fmt.Errorf("%w: workflow name is required", ErrInvalidWorkflowExport)
+	}
+	canvasData := strings.TrimSpace(record.CanvasData)
+	if canvasData == "" {
+		canvasData = `{"nodes":[],"edges":[],"groups":[],"viewport":{"x":0,"y":0,"zoom":1}}`
+	}
+	if err := validateJSONObject(canvasData); err != nil {
+		return nil, fmt.Errorf("%w: validating workflow canvas data", ErrInvalidWorkflowExport)
+	}
+	variables := strings.TrimSpace(record.Variables)
+	if variables == "" {
+		variables = "{}"
+	}
+	if err := validateJSONObject(variables); err != nil {
+		return nil, fmt.Errorf("%w: validating workflow variables", ErrInvalidWorkflowExport)
+	}
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	wf := Workflow{
+		ID:          xid.New().String(),
+		Name:        name,
+		Description: record.Description,
+		Status:      "draft",
+		CanvasData:  canvasData,
+		Variables:   variables,
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+
+	_, err := s.db.Exec(
+		"INSERT INTO workflows (id, name, description, status, canvas_data, variables, created_by, updated_by, last_run_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		wf.ID, wf.Name, wf.Description, wf.Status, wf.CanvasData, wf.Variables, wf.CreatedBy, wf.UpdatedBy, wf.LastRunAt, wf.CreatedAt, wf.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("importing workflow: %w", err)
+	}
+
+	return &wf, nil
+}
+
+func validateJSONObject(raw string) error {
+	var value map[string]interface{}
+	decoder := json.NewDecoder(strings.NewReader(raw))
+	decoder.UseNumber()
+	if err := decoder.Decode(&value); err != nil {
+		return err
+	}
+	if value == nil {
+		return fmt.Errorf("json object is required")
+	}
+	if decoder.Decode(&value) != io.EOF {
+		return fmt.Errorf("multiple JSON documents")
+	}
+	return nil
+}
+
 // Update applies partial updates to an existing workflow and returns the updated record.
 func (s *Service) Update(id string, input UpdateInput) (*Workflow, error) {
 	var exists int

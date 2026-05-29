@@ -13,8 +13,10 @@ import {
   IconArrowDown,
   IconEye,
   IconArrowsTransferUp,
+  IconLock,
 } from '@tabler/icons-react';
 import type { StackInfo } from '../hooks/useStacks';
+import { isProtectedStack } from '@core/utils/protection';
 import type { BulkContainerMetric } from '@resources/hooks/useContainersBulkStats';
 import { ContainerIcon } from '@resources/components/ContainerIcon';
 import { Card, CardContent, CardFooter } from '@resources/components/ui/Card';
@@ -49,8 +51,10 @@ export function StackCard({
   onTakeOver,
 }: StackCardProps) {
   const { t } = useTranslation('stacks');
+  const { t: tc } = useTranslation('common');
   const navigate = useNavigate();
   const isRunning = s.status === 'running' || s.status === 'partial';
+  const locked = isProtectedStack(s);
   const running = s.services.filter((svc) => svc.status === 'running').length;
   const aggregated = aggregateStats(s.services, statsMap);
   const history = useStatsHistory(aggregated);
@@ -65,6 +69,12 @@ export function StackCard({
               <ContainerIcon image={s.services[0].image} className="size-5" />
             )}
             <span className="truncate font-medium text-sm">{s.name}</span>
+            {locked && (
+              <Badge variant="secondary" className="shrink-0 gap-1 text-[9px] px-1.5 py-0">
+                <IconLock className="size-3" />
+                {tc('actions.locked')}
+              </Badge>
+            )}
             <Badge
               variant={s.type === 'managed' ? 'default' : 'outline'}
               className="shrink-0 text-[9px] px-1.5 py-0"
@@ -148,6 +158,7 @@ export function StackCard({
           <ActionButton
             label={t('actions.edit')}
             onClick={() => onEdit(s)}
+            disabled={locked}
             icon={<IconPencil className="h-3.5 w-3.5 text-primary" />}
           />
         )}
@@ -155,6 +166,7 @@ export function StackCard({
           <ActionButton
             label={t('takeOver.adopt')}
             onClick={() => onTakeOver(s)}
+            disabled={locked}
             icon={<IconArrowsTransferUp className="h-3.5 w-3.5 text-violet-400" />}
           />
         )}
@@ -168,11 +180,13 @@ export function StackCard({
             <ActionButton
               label={t('actions.restart')}
               onClick={() => onAction(s.name, 'restart')}
+              disabled={locked}
               icon={<IconRotate className="h-3.5 w-3.5 text-blue-400" />}
             />
             <ActionButton
               label={t('actions.stop')}
               onClick={() => onAction(s.name, 'stop')}
+              disabled={locked}
               icon={<IconPlayerStop className="h-3.5 w-3.5 text-amber-500" />}
             />
           </>
@@ -181,6 +195,7 @@ export function StackCard({
             <ActionButton
               label={t('actions.up')}
               onClick={() => onAction(s.name, 'up')}
+              disabled={locked}
               icon={<IconPlayerPlay className="h-3.5 w-3.5 text-emerald-500" />}
             />
           )
@@ -188,12 +203,14 @@ export function StackCard({
         <ActionButton
           label={t('actions.down')}
           onClick={() => onAction(s.name, 'down')}
+          disabled={locked}
           icon={<IconArrowDown className="h-3.5 w-3.5 text-orange-400" />}
         />
         <div className="flex-1" />
         <ActionButton
           label={t('actions.remove')}
           onClick={() => onRemove(s)}
+          disabled={locked}
           icon={<IconTrash className="h-3.5 w-3.5 text-destructive" />}
         />
       </CardFooter>

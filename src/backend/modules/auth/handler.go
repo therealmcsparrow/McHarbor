@@ -225,7 +225,7 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 func isSupportedPreferredLanguage(value string) bool {
 	switch value {
-	case "en", "nl", "de", "es", "fr", "pt", "zh":
+	case "en", "nl", "de", "es", "fr", "pt":
 		return true
 	default:
 		return false

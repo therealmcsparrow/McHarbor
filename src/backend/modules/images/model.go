@@ -27,4 +27,5 @@ type ImageSummary struct {
 	SharedSize  int64             `json:"SharedSize"`
 	Containers  int64             `json:"Containers"`
 	Labels      map[string]string `json:"Labels"`
+	Protected   bool              `json:"Protected"`
 }

@@ -4,6 +4,7 @@
 package images
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
+	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
@@ -29,6 +31,14 @@ func NewHandler(app *router.AppDeps) *Handler {
 		svc: NewService(app.DockerPool),
 		app: app,
 	}
+}
+
+func writeProtectedError(w http.ResponseWriter, r *http.Request, err error) bool {
+	if !errors.Is(err, coredocker.ErrProtectedResource) {
+		return false
+	}
+	response.ForbiddenCode(w, r, i18n.ErrProtectedTarget)
+	return true
 }
 
 // HandleList returns all images.
@@ -126,6 +136,9 @@ func (h *Handler) HandleRemove(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := h.svc.Remove(r.Context(), envID, id, force, noPrune)
 	if err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("remove image failed", "env", envID, "id", id, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrImageRemoveFailed)
 		return
@@ -164,6 +177,9 @@ func (h *Handler) HandleTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.svc.Tag(r.Context(), envID, id, req); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
 		h.app.Logger.Error("tag image failed", "env", envID, "id", id, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrImageTagFailed)
 		return

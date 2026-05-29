@@ -2,7 +2,38 @@
 
 All notable changes to McHarbor are documented in this file.
 
-## [1.2.1] - 2026-05-28
+## [1.2.2] - 2026-05-29
+
+### Added
+
+- Added protected-resource detection for the running McHarbor container, including support for the `com.mcharbor.protected` label.
+- Added protected state to Docker container API responses so the UI can lock unsafe self-management actions against the running McHarbor container.
+- Added UI lock handling that prevents container bulk actions, remove actions, update/reinstall actions, and file edits from targeting the running McHarbor container.
+- Added a GitHub repository shortcut to the About page and copy controls for both Docker and binary remote-agent install commands.
+- Added per-workflow export and import for portable workflow JSON files.
+
+### Fixed
+
+- Fixed destructive container operations so McHarbor no longer permits deleting, pruning, stopping, restarting, pausing, killing, updating, recreating, mutating files in, or disconnecting the running McHarbor container.
+- Fixed container prune behavior to enumerate candidates explicitly and skip the protected McHarbor container instead of relying on broad Docker prune calls.
+- Fixed update-check failures so unreachable GitHub responses return a translated error state instead of falsely reporting the current install as up to date.
+- Fixed remote-agent SSH deployment requests so Docker-based installs pass the intended agent image through the deployment payload.
+- Fixed backend hardening gaps around generated credentials, role updates, encryption setup, and middleware timing/error paths.
+
+### Changed
+
+- Replaced special-case self-recreate handling with shared protected-resource guards for container action paths while keeping images, stacks, and volumes mutable.
+- Removed Chinese from the supported interface languages and locale bundles.
+- Consolidated application version metadata around the root `VERSION` file so runtime version displays, update checks, OpenAPI metadata, and image publishing use one source.
+- Bumped the canonical application version in `VERSION` to `1.2.2`.
+
+### Tests
+
+- Added regression coverage for protected McHarbor container detection.
+- Added workflow import and export handler coverage.
+- Expanded i18n and health/about test seams to cover the updated update-check and about metadata paths.
+
+## [1.2.1] - 2026-05-27
 
 ### Added
 

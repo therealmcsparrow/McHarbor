@@ -17,6 +17,7 @@ import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useHostMetrics } from '@modules/dashboard/hooks/useHostMetrics';
+import { useSystemInfo } from '@modules/system/hooks/useSystemInfo';
 
 const ARCH_LABELS: Record<string, string> = {
   x86_64: 'x64',
@@ -61,6 +62,7 @@ export function Footer() {
   const { t, i18n } = useTranslation('common');
   const now = useClock();
   const { data: metrics } = useHostMetrics();
+  const { data: info } = useSystemInfo();
   const environments = useEnvironmentStore((s) => s.environments);
   const currentId = useEnvironmentStore((s) => s.currentId);
   const env = environments.find((e) => e.id === currentId);
@@ -151,7 +153,9 @@ export function Footer() {
         )}
 
         {/* Right: version */}
-        <span className="shrink-0 text-muted-foreground/60">McHarbor v1.2.1</span>
+        <span className="shrink-0 text-muted-foreground/60">
+          {info?.version ? `McHarbor v${info.version}` : 'McHarbor'}
+        </span>
       </div>
     </footer>
   );

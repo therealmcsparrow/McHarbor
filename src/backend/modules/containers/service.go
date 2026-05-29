@@ -22,7 +22,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
 	networkTypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -152,6 +151,7 @@ func (s *Service) List(ctx context.Context, envID string, all bool) ([]Container
 			Labels:          c.Labels,
 			NetworkSettings: netSettings,
 			Mounts:          mounts,
+			Protected:       docker.IsProtectedContainer(c.Names, c.Image, c.Labels),
 		}
 		if link, ok := links[c.ID]; ok {
 			summary.StackName = link.StackName
@@ -233,6 +233,17 @@ func (s *Service) Remove(ctx context.Context, envID, id string, force, removeVol
 	// Inspect first to collect bind mount paths before the container is gone.
 	var bindMounts []string
 	info, inspErr := cli.ContainerInspect(ctx, id)
+	if inspErr == nil {
+		imageName := ""
+		labels := map[string]string{}
+		if info.Config != nil {
+			imageName = info.Config.Image
+			labels = info.Config.Labels
+		}
+		if docker.IsProtectedContainer([]string{info.Name}, imageName, labels) {
+			return docker.ErrProtectedResource
+		}
+	}
 	if inspErr == nil && info.Mounts != nil {
 		for _, m := range info.Mounts {
 			if m.Type == "bind" {
@@ -285,6 +296,10 @@ func (s *Service) Start(ctx context.Context, envID, id string) error {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
+
 	if err := cli.ContainerStart(ctx, id, container.StartOptions{}); err != nil {
 		return fmt.Errorf("starting container %s: %w", id, err)
 	}
@@ -301,6 +316,10 @@ func (s *Service) Stop(ctx context.Context, envID, id string, timeout int) error
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
 
 	stopOpts := container.StopOptions{}
 	if timeout > 0 {
@@ -324,6 +343,10 @@ func (s *Service) Restart(ctx context.Context, envID, id string) error {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
+
 	if err := cli.ContainerRestart(ctx, id, container.StopOptions{}); err != nil {
 		return fmt.Errorf("restarting container %s: %w", id, err)
 	}
@@ -340,6 +363,10 @@ func (s *Service) Pause(ctx context.Context, envID, id string) error {
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
 
 	if err := cli.ContainerPause(ctx, id); err != nil {
 		return fmt.Errorf("pausing container %s: %w", id, err)
@@ -358,6 +385,10 @@ func (s *Service) Unpause(ctx context.Context, envID, id string) error {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
+
 	if err := cli.ContainerUnpause(ctx, id); err != nil {
 		return fmt.Errorf("unpausing container %s: %w", id, err)
 	}
@@ -374,6 +405,10 @@ func (s *Service) Kill(ctx context.Context, envID, id, signal string) error {
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
 
 	if signal == "" {
 		signal = "SIGKILL"
@@ -395,6 +430,10 @@ func (s *Service) Update(ctx context.Context, envID, id string, req UpdateReques
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return container.ContainerUpdateOKBody{}, err
+	}
 
 	updateConfig := container.UpdateConfig{
 		Resources: container.Resources{
@@ -438,29 +477,17 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	if err != nil {
 		return container.CreateResponse{}, fmt.Errorf("inspecting container for recreate: %w", err)
 	}
+	imageName := ""
+	labels := map[string]string{}
+	if info.Config != nil {
+		imageName = info.Config.Image
+		labels = info.Config.Labels
+	}
+	if docker.IsProtectedContainer([]string{info.Name}, imageName, labels) {
+		return container.CreateResponse{}, docker.ErrProtectedResource
+	}
 
 	originalName := strings.TrimPrefix(info.Name, "/")
-	if isSelfMcHarborContainer(info) {
-		operation := "reinstall"
-		if req.PullImage {
-			operation = "update"
-		}
-
-		dockerHost := ""
-		if envID != "" {
-			if host, hostErr := s.pool.DockerHost(envID); hostErr == nil {
-				dockerHost = host
-			} else {
-				slog.Warn("containers: failed to resolve docker host for self recreate helper", "error", hostErr, "env", envID)
-			}
-		}
-
-		if _, err := docker.ScheduleDetachedSelfUpdateHelper(ctx, cli, info, os.Getenv("DATA_DIR"), dockerHost, operation); err != nil {
-			return container.CreateResponse{}, fmt.Errorf("scheduling self recreate helper: %w", err)
-		}
-
-		return container.CreateResponse{ID: info.ID}, nil
-	}
 
 	// Stop the container if running
 	if info.State.Running {
@@ -685,28 +712,6 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	return newResp, nil
 }
 
-func isSelfMcHarborContainer(info types.ContainerJSON) bool {
-	name := strings.ToLower(strings.TrimPrefix(info.Name, "/"))
-	imageName := ""
-	labels := map[string]string{}
-	if info.Config != nil {
-		imageName = strings.ToLower(strings.TrimSpace(info.Config.Image))
-		labels = info.Config.Labels
-	}
-
-	if name == "mcharbor" {
-		return true
-	}
-	if strings.Contains(imageName, "therealmcsparrow/mcharbor") && !strings.Contains(imageName, "mcharbor-agent") {
-		return true
-	}
-	if strings.EqualFold(labels["org.opencontainers.image.title"], "McHarbor") {
-		return true
-	}
-
-	return false
-}
-
 // NetworkConnect connects a container to a Docker network.
 func (s *Service) NetworkConnect(ctx context.Context, envID, id, network string) error {
 	cli, err := s.getClient(envID)
@@ -715,6 +720,9 @@ func (s *Service) NetworkConnect(ctx context.Context, envID, id, network string)
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
 	return cli.NetworkConnect(ctx, network, id, nil)
 }
 
@@ -726,6 +734,9 @@ func (s *Service) NetworkDisconnect(ctx context.Context, envID, id, network stri
 	}
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
 	return cli.NetworkDisconnect(ctx, network, id, force)
 }
 
@@ -1669,11 +1680,24 @@ func (s *Service) Prune(ctx context.Context, envID string) (container.PruneRepor
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	report, err := cli.ContainersPrune(ctx, filters.Args{})
+	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true, Size: true})
 	if err != nil {
-		return container.PruneReport{}, fmt.Errorf("pruning containers: %w", err)
+		return container.PruneReport{}, fmt.Errorf("listing containers for prune: %w", err)
 	}
 
+	report := container.PruneReport{}
+	for _, c := range containers {
+		if c.State == "running" || docker.IsProtectedContainer(c.Names, c.Image, c.Labels) {
+			continue
+		}
+		if err := cli.ContainerRemove(ctx, c.ID, container.RemoveOptions{}); err != nil {
+			return container.PruneReport{}, fmt.Errorf("pruning container %s: %w", c.ID, err)
+		}
+		report.ContainersDeleted = append(report.ContainersDeleted, c.ID)
+		if c.SizeRw > 0 {
+			report.SpaceReclaimed += uint64(c.SizeRw)
+		}
+	}
 	return report, nil
 }
 
@@ -1758,6 +1782,10 @@ func (s *Service) SaveFileContent(ctx context.Context, envID, id, filePath strin
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
+
 	dir := path.Dir(filePath)
 	fileName := path.Base(filePath)
 
@@ -1773,6 +1801,10 @@ func (s *Service) UploadFile(ctx context.Context, envID, id, destDir, fileName s
 
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
+
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
 
 	var buf bytes.Buffer
 	tw := tar.NewWriter(&buf)
@@ -1797,29 +1829,57 @@ func (s *Service) UploadFile(ctx context.Context, envID, id, destDir, fileName s
 
 // CreateDirectory creates a directory (including parents) inside a container.
 func (s *Service) CreateDirectory(ctx context.Context, envID, id, dirPath string) error {
-	_, err := s.execCommand(ctx, envID, id, []string{"mkdir", "-p", shellQuote(dirPath)})
+	cli, err := s.getClient(envID)
+	if err != nil {
+		return err
+	}
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
+	_, err = s.execCommand(ctx, envID, id, []string{"mkdir", "-p", shellQuote(dirPath)})
 	return err
 }
 
 // RenameFile renames or moves a file/directory inside a container.
 func (s *Service) RenameFile(ctx context.Context, envID, id, oldPath, newPath string) error {
-	_, err := s.execCommand(ctx, envID, id, []string{"mv", shellQuote(oldPath), shellQuote(newPath)})
+	cli, err := s.getClient(envID)
+	if err != nil {
+		return err
+	}
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
+	_, err = s.execCommand(ctx, envID, id, []string{"mv", shellQuote(oldPath), shellQuote(newPath)})
 	return err
 }
 
 // ChangePermissions changes the file mode of a path inside a container.
 func (s *Service) ChangePermissions(ctx context.Context, envID, id, filePath, mode string) error {
-	_, err := s.execCommand(ctx, envID, id, []string{"chmod", mode, shellQuote(filePath)})
+	cli, err := s.getClient(envID)
+	if err != nil {
+		return err
+	}
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
+	_, err = s.execCommand(ctx, envID, id, []string{"chmod", mode, shellQuote(filePath)})
 	return err
 }
 
 // DeleteFile removes a file or directory inside a container.
 func (s *Service) DeleteFile(ctx context.Context, envID, id, filePath string, recursive bool) error {
+	cli, err := s.getClient(envID)
+	if err != nil {
+		return err
+	}
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
 	cmd := []string{"rm", "-f", shellQuote(filePath)}
 	if recursive {
 		cmd = []string{"rm", "-rf", shellQuote(filePath)}
 	}
-	_, err := s.execCommand(ctx, envID, id, cmd)
+	_, err = s.execCommand(ctx, envID, id, cmd)
 	return err
 }
 

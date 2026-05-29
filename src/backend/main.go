@@ -28,6 +28,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
+	appversion "github.com/therealmcsparrow/mcharbor/core/version"
 	"github.com/therealmcsparrow/mcharbor/internal/bootstrap"
 
 	// Module imports
@@ -126,7 +127,7 @@ func main() {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	logger.Info("starting McHarbor", "version", "1.2.1", "port", cfg.Port)
+	logger.Info("starting McHarbor", "version", appversion.Current(), "port", cfg.Port)
 
 	// Open database
 	database, err := db.Open(cfg.DatabasePath)

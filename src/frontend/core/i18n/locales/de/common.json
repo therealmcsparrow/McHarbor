@@ -52,7 +52,8 @@
     "processing": "Wird verarbeitet...",
     "saving": "Speichern...",
     "deleting": "Löschen...",
-    "signOut": "Abmelden"
+    "signOut": "Abmelden",
+    "locked": "Gesperrt"
   },
   "status": {
     "running": "Läuft",
@@ -601,7 +602,13 @@
     "useDefaultRegistry": "Standard-Registry verwenden",
     "noRegistriesFound": "Keine Registries gefunden",
     "fieldTypeWebhookSelect": "Waehlt einen aktiven konfigurierten Outbound-Webhook aus.",
-    "fieldTypeRegistrySelect": "Verwendet eine konfigurierte Registry. Leer lassen, um auf die Standard-Registry zurueckzufallen."
+    "fieldTypeRegistrySelect": "Verwendet eine konfigurierte Registry. Leer lassen, um auf die Standard-Registry zurueckzufallen.",
+    "importWorkflow": "Workflow importieren",
+    "mutationExported": "Workflow exportiert",
+    "mutationExportFailed": "Workflow-Export fehlgeschlagen",
+    "mutationImported": "Workflow importiert",
+    "mutationImportFailed": "Workflow-Import fehlgeschlagen",
+    "export": "Exportieren"
   },
   "store": {
     "title": "Store",

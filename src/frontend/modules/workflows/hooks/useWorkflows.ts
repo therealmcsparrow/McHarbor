@@ -86,3 +86,72 @@ export function useDeleteWorkflow() {
   });
 }
 
+function currentLanguage() {
+  const stored = localStorage.getItem('mcharbor-language');
+  if (!stored) return 'en';
+  try {
+    return JSON.parse(stored)?.state?.language || 'en';
+  } catch {
+    return stored;
+  }
+}
+
+function filenameFromDisposition(disposition: string | null, fallback: string) {
+  const match = disposition?.match(/filename="([^"]+)"/);
+  return match?.[1] || fallback;
+}
+
+function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+export function useExportWorkflow() {
+  const { t } = useTranslation('common');
+  const envId = useEnvironmentStore((s) => s.currentId);
+
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const params = envId ? `?${new URLSearchParams({ env: envId }).toString()}` : '';
+      const response = await fetch(`/api/workflows/${id}/export${params}`, {
+        credentials: 'include',
+        headers: { 'Accept-Language': currentLanguage() },
+      });
+      if (!response.ok) {
+        throw new Error(`export failed with status ${response.status}`);
+      }
+      const blob = await response.blob();
+      const fallback = `${name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'workflow'}.mcharbor-workflow.json`;
+      saveBlob(blob, filenameFromDisposition(response.headers.get('content-disposition'), fallback));
+    },
+    meta: {
+      success: t('workflows.mutationExported'),
+      error: t('workflows.mutationExportFailed'),
+    },
+  });
+}
+
+export function useImportWorkflow() {
+  const { t } = useTranslation('common');
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const text = await file.text();
+      const data = JSON.parse(text) as unknown;
+      return api.post<Workflow>('/workflows/import', data).then(assertSuccess);
+    },
+    meta: {
+      success: t('workflows.mutationImported'),
+      error: t('workflows.mutationImportFailed'),
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['workflows'] }),
+  });
+}
+

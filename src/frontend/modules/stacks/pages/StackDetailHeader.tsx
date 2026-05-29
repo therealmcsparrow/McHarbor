@@ -15,6 +15,7 @@ import {
   IconPencil,
   IconCheck,
   IconX,
+  IconLock,
 } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
@@ -32,6 +33,7 @@ type HeaderActionButtonProps = {
   icon: React.ReactNode;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   className?: string;
+  disabled?: boolean;
 };
 
 function HeaderActionButton({
@@ -40,6 +42,7 @@ function HeaderActionButton({
   icon,
   variant = 'outline',
   className = '',
+  disabled = false,
 }: HeaderActionButtonProps) {
   return (
     <Tooltip>
@@ -50,6 +53,7 @@ function HeaderActionButton({
           size="icon-sm"
           aria-label={tooltip}
           className={className}
+          disabled={disabled}
         >
           {icon}
         </Button>
@@ -73,6 +77,7 @@ type StackDetailHeaderProps = {
   onSave?: () => void;
   onCancelEdit?: () => void;
   saving?: boolean;
+  locked?: boolean;
 };
 
 export function StackDetailHeader({
@@ -89,9 +94,11 @@ export function StackDetailHeader({
   onSave,
   onCancelEdit,
   saving,
+  locked = false,
 }: StackDetailHeaderProps) {
   const navigate = useNavigate();
   const { t } = useTranslation('stacks');
+  const { t: tc } = useTranslation('common');
 
   return (
     <div className="flex flex-1 items-center justify-between">
@@ -114,6 +121,12 @@ export function StackDetailHeader({
         <div className="h-5 w-px bg-border" />
         <div className="flex items-center gap-2">
           <h1 className="text-sm font-semibold text-foreground">{stackName}</h1>
+          {locked && (
+            <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0">
+              <IconLock className="size-3" />
+              {tc('actions.locked')}
+            </Badge>
+          )}
           <Badge
             variant={isManaged ? 'default' : 'outline'}
             className="text-[9px] px-1.5 py-0"
@@ -158,6 +171,7 @@ export function StackDetailHeader({
               <HeaderActionButton
                 tooltip={t('editStack.editStack')}
                 onClick={() => onEdit?.()}
+                disabled={locked}
                 icon={<IconPencil className="size-3.5" />}
               />
             )}
@@ -166,11 +180,13 @@ export function StackDetailHeader({
                 <HeaderActionButton
                   tooltip={t('actions.stop')}
                   onClick={() => onAction('stop')}
+                  disabled={locked}
                   icon={<IconPlayerStop className="size-3.5" />}
                 />
                 <HeaderActionButton
                   tooltip={t('actions.restart')}
                   onClick={() => onAction('restart')}
+                  disabled={locked}
                   icon={<IconRotate className="size-3.5" />}
                 />
               </>
@@ -180,6 +196,7 @@ export function StackDetailHeader({
                   tooltip={t('actions.up')}
                   onClick={() => onAction('up')}
                   variant="default"
+                  disabled={locked}
                   icon={<IconPlayerPlay className="size-3.5" />}
                 />
               )
@@ -187,6 +204,7 @@ export function StackDetailHeader({
             <HeaderActionButton
               tooltip={t('actions.down')}
               onClick={() => onAction('down')}
+              disabled={locked}
               icon={<IconArrowDown className="size-3.5" />}
             />
             {!isManaged && (
@@ -194,6 +212,7 @@ export function StackDetailHeader({
                 tooltip={t('takeOver.adopt')}
                 onClick={onTakeOver}
                 variant="secondary"
+                disabled={locked}
                 icon={<IconArrowsTransferUp className="size-3.5" />}
               />
             )}
@@ -201,6 +220,7 @@ export function StackDetailHeader({
               tooltip={t('link.linkContainer')}
               onClick={onLinkContainer}
               variant="secondary"
+              disabled={locked}
               icon={<IconLink className="size-3.5" />}
             />
             <div className="h-5 w-px bg-border mx-0.5" />
@@ -208,6 +228,7 @@ export function StackDetailHeader({
               tooltip={t('actions.remove')}
               onClick={onRemove}
               variant="destructive"
+              disabled={locked}
               icon={<IconTrash className="size-3.5" />}
             />
           </>

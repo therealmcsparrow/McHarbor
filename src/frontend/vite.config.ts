@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
@@ -67,6 +67,28 @@ export default defineConfig({
           return undefined;
         },
       },
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./test/setup.ts'],
+    include: ['**/*.{test,spec}.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['core/**/*.{ts,tsx}', 'resources/**/*.{ts,tsx}', 'modules/**/*.{ts,tsx}', 'widgets/**/*.{ts,tsx}', 'nodes/**/*.{ts,tsx}'],
+      exclude: [
+        '**/*.d.ts',
+        '**/*.test.{ts,tsx}',
+        '**/*.spec.{ts,tsx}',
+        '**/i18n/**',
+        '**/locales/**',
+        'dist/**',
+        'coverage/**',
+        'vite.config.ts',
+      ],
     },
   },
 });

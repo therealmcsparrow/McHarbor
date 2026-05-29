@@ -1,9 +1,0 @@
-{
-  "label": "日期格式",
-  "description": "解析并重新格式化日期或时间戳",
-  "config": {
-    "property": "财产",
-    "output_format": "输出格式",
-    "timezone": "时区"
-  }
-}

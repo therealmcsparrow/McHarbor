@@ -1,9 +1,0 @@
-{
-  "label": "堆栈移除",
-  "description": "删除属于 compose 堆栈的容器",
-  "config": {
-    "environment": "环境",
-    "stack_name": "堆栈名称",
-    "remove_volumes": "删除卷"
-  }
-}
