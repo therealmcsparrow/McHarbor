@@ -16,6 +16,7 @@ import {
 import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
 import { Spinner } from "@resources/components/ui/Spinner";
 import { LogViewer } from "@resources/components/LogViewer";
+import { formatDate } from "@resources/utils/format";
 import { useApplyOSUpdates, useOSUpdateCheck } from "../hooks/useSystemOS";
 import type { OSUpdateApplyResult } from "../types";
 
@@ -97,7 +98,7 @@ export function SystemOSUpdatesTab() {
             label={t("updates.lastChecked")}
             value={
               check.data?.checkedAt
-                ? new Date(check.data.checkedAt).toLocaleString()
+                ? formatDate(check.data.checkedAt)
                 : t("updates.notChecked")
             }
           />

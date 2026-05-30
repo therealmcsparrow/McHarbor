@@ -1,0 +1,60 @@
+{
+  "slug": "evcc",
+  "name": "EVCC",
+  "description": "Solar-aware EV charging controller for wallboxes, photovoltaic systems, batteries, and smart meters.",
+  "category": "Home Automation",
+  "image": "evcc/evcc:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/evcc.png",
+  "website": "https://evcc.io",
+  "docsUrl": "https://docs.evcc.io/en/installation/docker",
+  "ports": [
+    {
+      "host": 7070,
+      "container": 7070,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8887,
+      "container": 8887,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9522,
+      "container": 9522,
+      "protocol": "udp"
+    },
+    {
+      "host": 4712,
+      "container": 4712,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/evcc/evcc.yaml",
+      "container": "/etc/evcc.yaml"
+    },
+    {
+      "host": "/opt/appdata/evcc/data",
+      "container": "/root/.evcc"
+    },
+    {
+      "host": "/etc/machine-id",
+      "container": "/etc/machine-id",
+      "readOnly": true
+    },
+    {
+      "host": "/var/lib/dbus/machine-id",
+      "container": "/var/lib/dbus/machine-id",
+      "readOnly": true
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

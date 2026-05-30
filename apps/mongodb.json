@@ -1,0 +1,37 @@
+{
+  "slug": "mongodb",
+  "name": "MongoDB",
+  "description": "Document-oriented NoSQL database for modern applications.",
+  "category": "Databases",
+  "image": "mongo:7",
+  "logo": "https://www.mongodb.com/assets/images/global/favicon.ico",
+  "website": "https://www.mongodb.com",
+  "docsUrl": "https://www.mongodb.com/docs/",
+  "ports": [
+    {
+      "host": 27017,
+      "container": 27017,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mongodb/data",
+      "container": "/data/db"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MONGO_INITDB_ROOT_USERNAME",
+      "default": "admin",
+      "description": "Root username"
+    },
+    {
+      "key": "MONGO_INITDB_ROOT_PASSWORD",
+      "default": "",
+      "description": "Root password",
+      "secret": true
+    }
+  ],
+  "version": "7"
+}

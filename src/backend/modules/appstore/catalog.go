@@ -4,23 +4,85 @@
 package appstore
 
 import (
-	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 )
 
-//go:embed data/catalog.json
-var catalogJSON []byte
-
-// loadBundledCatalog parses the embedded catalog JSON.
+// loadBundledCatalog parses the root apps catalog directory.
 func loadBundledCatalog() (*CatalogFile, error) {
-	var catalog CatalogFile
-	if err := json.Unmarshal(catalogJSON, &catalog); err != nil {
-		return nil, fmt.Errorf("parsing bundled catalog: %w", err)
+	appsDir, err := findBundledAppsDir()
+	if err != nil {
+		return nil, err
 	}
-	return &catalog, nil
+
+	entries, err := os.ReadDir(appsDir)
+	if err != nil {
+		return nil, fmt.Errorf("reading bundled apps directory: %w", err)
+	}
+
+	files := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
+			continue
+		}
+		files = append(files, filepath.Join(appsDir, entry.Name()))
+	}
+	sort.Strings(files)
+
+	catalog := &CatalogFile{Version: "1.0.0", Apps: make([]AppTemplate, 0, len(files))}
+	for _, file := range files {
+		app, err := loadAppTemplateFile(file)
+		if err != nil {
+			return nil, err
+		}
+		catalog.Apps = append(catalog.Apps, app)
+	}
+
+	return catalog, nil
+}
+
+func findBundledAppsDir() (string, error) {
+	candidates := []string{
+		"apps",
+		"../../apps",
+		"../../../apps",
+		"../../../../apps",
+	}
+
+	if exe, err := os.Executable(); err == nil {
+		candidates = append([]string{filepath.Join(filepath.Dir(exe), "apps")}, candidates...)
+	}
+
+	for _, candidate := range candidates {
+		info, err := os.Stat(candidate)
+		if err == nil && info.IsDir() {
+			return candidate, nil
+		}
+	}
+
+	return "", fmt.Errorf("bundled apps directory not found")
+}
+
+func loadAppTemplateFile(path string) (AppTemplate, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return AppTemplate{}, fmt.Errorf("reading bundled app %s: %w", filepath.Base(path), err)
+	}
+
+	var app AppTemplate
+	if err := json.Unmarshal(data, &app); err != nil {
+		return AppTemplate{}, fmt.Errorf("parsing bundled app %s: %w", filepath.Base(path), err)
+	}
+	if app.Slug == "" {
+		return AppTemplate{}, fmt.Errorf("bundled app %s has empty slug", filepath.Base(path))
+	}
+
+	return app, nil
 }
 
 // generateCompose builds a docker-compose.yml string from an AppTemplate

@@ -1,0 +1,46 @@
+{
+  "slug": "go2rtc",
+  "name": "go2rtc",
+  "description": "Low-latency camera stream relay for RTSP, WebRTC, HomeKit, FFmpeg, and many camera protocols.",
+  "category": "Home Automation",
+  "image": "alexxit/go2rtc:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/go2rtc.png",
+  "website": "https://go2rtc.org",
+  "docsUrl": "https://github.com/AlexxIT/go2rtc#readme",
+  "ports": [
+    {
+      "host": 1984,
+      "container": 1984,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8554,
+      "container": 8554,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8555,
+      "container": 8555,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8555,
+      "container": 8555,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/go2rtc",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

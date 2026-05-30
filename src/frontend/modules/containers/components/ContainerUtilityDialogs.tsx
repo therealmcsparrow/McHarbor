@@ -16,16 +16,19 @@ import type { ContainerInfo } from '@core/types/docker';
 import type { BatchProgressDialogState } from '@resources/hooks/useBatchProgressOperation';
 import { LogsModal } from './LogsModal';
 import { RemoveContainerDialog } from './RemoveContainerDialog';
+import { RenameContainerDialog } from './RenameContainerDialog';
 import { TerminalModal } from './TerminalModal';
 
 type ContainerUtilityDialogsProps = {
   removeTarget: ContainerInfo | null;
+  renameTarget: ContainerInfo | null;
   terminalTarget: ContainerInfo | null;
   logsTarget: ContainerInfo | null;
   takeOverTarget: ContainerInfo | null;
   progressState: BatchProgressDialogState;
   closeProgress: () => void;
   setRemoveTarget: (container: ContainerInfo | null) => void;
+  setRenameTarget: (container: ContainerInfo | null) => void;
   setTerminalTarget: (container: ContainerInfo | null) => void;
   setLogsTarget: (container: ContainerInfo | null) => void;
   setTakeOverTarget: (container: ContainerInfo | null) => void;
@@ -34,12 +37,14 @@ type ContainerUtilityDialogsProps = {
 
 export function ContainerUtilityDialogs({
   removeTarget,
+  renameTarget,
   terminalTarget,
   logsTarget,
   takeOverTarget,
   progressState,
   closeProgress,
   setRemoveTarget,
+  setRenameTarget,
   setTerminalTarget,
   setLogsTarget,
   setTakeOverTarget,
@@ -47,6 +52,19 @@ export function ContainerUtilityDialogs({
 }: ContainerUtilityDialogsProps) {
   return (
     <>
+      <RenameContainerDialog
+        container={
+          renameTarget
+            ? {
+                id: renameTarget.Id,
+                name: renameTarget.Names?.[0]?.replace(/^\//, '') ?? renameTarget.Id,
+              }
+            : null
+        }
+        open={renameTarget !== null}
+        onOpenChange={(open) => !open && setRenameTarget(null)}
+      />
+
       <RemoveContainerDialog
         container={
           removeTarget

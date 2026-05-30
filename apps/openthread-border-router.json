@@ -1,0 +1,41 @@
+{
+  "slug": "openthread-border-router",
+  "name": "OpenThread Border Router",
+  "description": "Thread border router enabling Thread mesh networking for Matter and IoT devices.",
+  "category": "Home Automation",
+  "image": "openthread/otbr:latest",
+  "logo": "https://openthread.io/images/ot-contrib-google.png",
+  "website": "https://openthread.io",
+  "docsUrl": "https://openthread.io/guides/border-router",
+  "ports": [
+    {
+      "host": 8086,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8081,
+      "container": 8081,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/otbr/data",
+      "container": "/var/lib/thread"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "INFRA_IF_NAME",
+      "default": "eth0",
+      "description": "Infrastructure network interface"
+    },
+    {
+      "key": "BACKBONE_IF_NAME",
+      "default": "eth0",
+      "description": "Backbone network interface"
+    }
+  ],
+  "version": "latest"
+}

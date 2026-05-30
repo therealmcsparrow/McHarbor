@@ -1,0 +1,40 @@
+{
+  "slug": "traefik",
+  "name": "Traefik",
+  "description": "Modern reverse proxy and load balancer with automatic HTTPS.",
+  "category": "Networking",
+  "image": "traefik:v3.0",
+  "logo": "https://doc.traefik.io/traefik/assets/img/traefik.logo.png",
+  "website": "https://traefik.io",
+  "docsUrl": "https://doc.traefik.io/traefik/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8880,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock",
+      "readOnly": true
+    },
+    {
+      "host": "/opt/appdata/traefik/config",
+      "container": "/etc/traefik"
+    }
+  ],
+  "envVars": [],
+  "version": "v3.0"
+}

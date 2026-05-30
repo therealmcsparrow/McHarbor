@@ -1,0 +1,17 @@
+{
+  "label": "Registry Tag Trigger",
+  "description": "Start een workflow wanneer de digest van een bewaakte image-tag wijzigt",
+  "config": {
+    "environment": "Omgeving",
+    "image": "Image-tag",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "interval": "Interval (seconden)"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Geconfigureerde registry",
+      "custom": "Overig"
+    }
+  }
+}

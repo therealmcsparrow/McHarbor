@@ -1,0 +1,17 @@
+{
+  "label": "Gatilho de tag de registry",
+  "description": "Inicia um workflow quando o digest de uma tag de image monitorada muda",
+  "config": {
+    "environment": "Ambiente",
+    "image": "Tag de image",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "interval": "Intervalo (segundos)"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Registry configurado",
+      "custom": "Outro"
+    }
+  }
+}

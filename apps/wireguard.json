@@ -1,0 +1,51 @@
+{
+  "slug": "wireguard",
+  "name": "WireGuard",
+  "description": "Fast, modern VPN tunnel. Simple and secure point-to-point connections.",
+  "category": "Networking",
+  "image": "lscr.io/linuxserver/wireguard:latest",
+  "logo": "https://www.wireguard.com/img/wireguard.svg",
+  "website": "https://www.wireguard.com",
+  "docsUrl": "https://www.wireguard.com/quickstart/",
+  "ports": [
+    {
+      "host": 51820,
+      "container": 51820,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/wireguard/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "SERVERURL",
+      "default": "auto",
+      "description": "Server URL or auto-detect"
+    },
+    {
+      "key": "PEERS",
+      "default": "1",
+      "description": "Number of VPN peers to generate configs for"
+    }
+  ],
+  "version": "latest"
+}

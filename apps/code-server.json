@@ -1,0 +1,47 @@
+{
+  "slug": "code-server",
+  "name": "code-server",
+  "description": "VS Code in the browser. Access your development environment from anywhere.",
+  "category": "Development",
+  "image": "lscr.io/linuxserver/code-server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/code-server.png",
+  "website": "https://coder.com",
+  "docsUrl": "https://coder.com/docs/code-server",
+  "ports": [
+    {
+      "host": 8443,
+      "container": 8443,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/code-server/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "PASSWORD",
+      "default": "",
+      "description": "Web UI password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

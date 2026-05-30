@@ -1,0 +1,32 @@
+{
+  "slug": "faster-whisper",
+  "name": "Faster Whisper",
+  "description": "High-performance speech-to-text server using CTranslate2 and Whisper models.",
+  "category": "AI & Voice",
+  "image": "linto-ai/whisper-timestamped:latest",
+  "logo": "https://github.githubassets.com/favicons/favicon.svg",
+  "website": "https://github.com/SYSTRAN/faster-whisper",
+  "docsUrl": "https://github.com/SYSTRAN/faster-whisper#usage",
+  "ports": [
+    {
+      "host": 8787,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/faster-whisper/models",
+      "container": "/root/.cache/huggingface"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "WHISPER_MODEL",
+      "default": "base",
+      "description": "Model size (tiny, base, small, medium, large-v3)"
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

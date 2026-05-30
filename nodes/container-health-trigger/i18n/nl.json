@@ -1,0 +1,18 @@
+{
+  "label": "Container Health Trigger",
+  "description": "Start een workflow wanneer de health-status van een container wijzigt",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container",
+    "health": "Health-status"
+  },
+  "options": {
+    "health": {
+      "any": "Elke",
+      "healthy": "Gezond",
+      "unhealthy": "Ongezond",
+      "starting": "Startend",
+      "none": "Geen healthcheck"
+    }
+  }
+}

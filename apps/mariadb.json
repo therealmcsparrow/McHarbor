@@ -1,0 +1,48 @@
+{
+  "slug": "mariadb",
+  "name": "MariaDB",
+  "description": "Community-developed fork of MySQL. Fast, scalable, and robust.",
+  "category": "Databases",
+  "image": "mariadb:11",
+  "logo": "https://mariadb.com/wp-content/uploads/2019/11/mariadb-logo-vert_blue-transparent.png",
+  "website": "https://mariadb.org",
+  "docsUrl": "https://mariadb.com/kb/en/documentation/",
+  "ports": [
+    {
+      "host": 3306,
+      "container": 3306,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mariadb/data",
+      "container": "/var/lib/mysql"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MYSQL_ROOT_PASSWORD",
+      "default": "",
+      "description": "Root password",
+      "secret": true
+    },
+    {
+      "key": "MYSQL_DATABASE",
+      "default": "mydb",
+      "description": "Default database name"
+    },
+    {
+      "key": "MYSQL_USER",
+      "default": "user",
+      "description": "Database user"
+    },
+    {
+      "key": "MYSQL_PASSWORD",
+      "default": "",
+      "description": "Database user password",
+      "secret": true
+    }
+  ],
+  "version": "11"
+}

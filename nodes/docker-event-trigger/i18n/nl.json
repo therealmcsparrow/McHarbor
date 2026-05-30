@@ -1,0 +1,20 @@
+{
+  "label": "Docker Event Trigger",
+  "description": "Start een workflow vanuit Docker-events gefilterd op type, actie, naam of label",
+  "config": {
+    "environment": "Omgeving",
+    "type": "Eventtype",
+    "action": "Actie",
+    "name": "Naam of ID",
+    "label": "Labelfilter"
+  },
+  "options": {
+    "type": {
+      "any": "Elk",
+      "container": "Container",
+      "image": "Image",
+      "volume": "Volume",
+      "network": "Netwerk"
+    }
+  }
+}

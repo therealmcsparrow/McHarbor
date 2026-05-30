@@ -247,6 +247,7 @@ func main() {
 	customnodes.MountWithExecutor(app, customNodeService, customNodeExecutor)
 	workflowTrigger := workflows.NewTriggerService(app, nil)
 	workflows.MountWithTriggerService(app, workflowTrigger)
+	workflowTrigger.SetImageScanner(bootstrap.NewWorkflowScanner(database, logger))
 
 	// Wire custom node executor into the workflow engine
 	workflowTrigger.SetCustomExecutor(customnodes.NewBridge(customNodeExecutor))

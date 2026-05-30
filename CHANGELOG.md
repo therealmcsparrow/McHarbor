@@ -2,6 +2,35 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.2.3] - 2026-05-30
+
+### Added
+
+- Added container renaming across the backend API and containers UI, including validation, translated feedback, audit logging, and protected-container safeguards.
+- Added workflow nodes for Docker event triggers, container health triggers, registry tag triggers, environment status checks, approval gates, image vulnerability scans, stack backups, and Docker volume backup/restore operations.
+- Added automatic workflow trigger handling for Docker events, container health changes, and watched registry tag digest changes.
+- Added localized workflow node metadata for English, Dutch, German, Spanish, French, and Portuguese.
+- Added a file-based bundled app catalog under `apps/`, with expanded templates for popular web apps and WhatsApp gateway deployments.
+
+### Changed
+
+- Moved bundled workflow node definitions and dashboard widgets to root-level `nodes/` and `widgets/` catalogs, with Vite/TypeScript aliases resolving them from the frontend build.
+- Changed the app store catalog loader to read individual bundled app JSON files from the runtime `apps/` directory instead of one embedded catalog file.
+- Improved container recreate behavior by omitting runtime-only network endpoint fields, preserving create-time endpoint options, and handling connected agent containers without tearing down the active agent connection too early.
+- Bumped the canonical application version in `VERSION`, agent metadata, frontend package metadata, and lockfile root version to `1.2.3`.
+
+### Fixed
+
+- Fixed agent reconnect cleanup so an older WebSocket disconnect does not remove a newer active agent connection.
+- Fixed workflow node palette visibility so unavailable nodes stay hidden by default.
+- Fixed app store Compose generation coverage for database-backed templates and quoted bind mount rendering.
+
+### Tests
+
+- Added app store catalog coverage for bundled web apps, WhatsApp gateway templates, duplicate slugs, and generated Compose output.
+- Added container rename validation and recreate networking regression coverage.
+- Added workflow node regression coverage for Docker event matching, container health parsing, approval routing, and backup path validation.
+
 ## [1.2.2] - 2026-05-29
 
 ### Added

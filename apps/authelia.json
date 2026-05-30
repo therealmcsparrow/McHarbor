@@ -1,0 +1,31 @@
+{
+  "slug": "authelia",
+  "name": "Authelia",
+  "description": "Authentication and authorization server providing 2FA and SSO.",
+  "category": "Security",
+  "image": "authelia/authelia:latest",
+  "logo": "https://www.authelia.com/images/branding/logo-cropped.png",
+  "website": "https://www.authelia.com",
+  "docsUrl": "https://www.authelia.com/configuration/prologue/introduction/",
+  "ports": [
+    {
+      "host": 9091,
+      "container": 9091,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/authelia/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

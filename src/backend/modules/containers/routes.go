@@ -34,6 +34,7 @@ func Mount(app *router.AppDeps) {
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/unpause", h.HandleUnpause)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/kill", h.HandleKill)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/update", h.HandleUpdate)
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/rename", h.HandleRename)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/recreate", h.HandleRecreate)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/network/connect", h.HandleNetworkConnect)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/network/disconnect", h.HandleNetworkDisconnect)

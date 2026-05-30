@@ -17,6 +17,8 @@ WORKDIR /app
 COPY src/frontend/package.json src/frontend/package-lock.json* ./
 RUN npm install
 COPY src/frontend/ .
+COPY nodes/ /nodes/
+COPY widgets/ /widgets/
 RUN npm run build
 
 # Stage 3: Production
@@ -35,6 +37,7 @@ COPY --from=backend /mcharbor ./mcharbor
 COPY --from=frontend /app/dist ./static
 COPY VERSION ./VERSION
 COPY blueprints/ ./blueprints/
+COPY apps/ ./apps/
 COPY docker/docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN chmod +x /docker-entrypoint.sh && mkdir -p /app/data

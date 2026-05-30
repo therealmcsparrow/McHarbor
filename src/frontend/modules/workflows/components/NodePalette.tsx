@@ -5,7 +5,6 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconSearch } from '@tabler/icons-react';
 import { Input } from '@resources/components/ui/Input';
-import { Switch } from '@resources/components/ui/Switch';
 import { getAllNodeDefinitions, isNodeDefinitionAvailable } from '../nodes';
 import { useCustomNodeSync } from '../hooks/useCustomNodeSync';
 import { useNodeCatalogAvailability } from '../hooks/useNodeCatalog';
@@ -20,7 +19,6 @@ export function NodePalette() {
   const { t } = useTranslation('common');
   const { t: tn } = useTranslation('nodes');
   const [search, setSearch] = useState('');
-  const [showUnavailable, setShowUnavailable] = useState(false);
 
   // Fetch and sync custom nodes from the API
   useCustomNodeSync();
@@ -33,10 +31,8 @@ export function NodePalette() {
   );
   const visibleNodes = useMemo(
     () =>
-      showUnavailable
-        ? allNodes
-        : allNodes.filter((definition) => isNodeDefinitionAvailable(definition, capabilities)),
-    [allNodes, capabilities, showUnavailable],
+      allNodes.filter((definition) => isNodeDefinitionAvailable(definition, capabilities)),
+    [allNodes, capabilities],
   );
 
   const CATEGORY_LABELS: Record<string, string> = {
@@ -101,16 +97,6 @@ export function NodePalette() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-8 pl-8 text-xs"
-          />
-        </div>
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <span className="text-[10px] text-muted-foreground">
-            {t('workflows.showUnavailableNodes', { defaultValue: 'Show unavailable nodes' })}
-          </span>
-          <Switch
-            checked={showUnavailable}
-            onCheckedChange={setShowUnavailable}
-            aria-label={t('workflows.showUnavailableNodes', { defaultValue: 'Show unavailable nodes' })}
           />
         </div>
       </div>

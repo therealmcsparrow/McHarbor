@@ -570,6 +570,50 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, resp)
 }
 
+// HandleRename changes the Docker container name.
+// POST /containers/{id}/rename
+func (h *Handler) HandleRename(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+	id := chi.URLParam(r, "id")
+
+	var req RenameRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	name := normalizeContainerRenameName(req.Name)
+	if name == "" {
+		response.BadRequestCode(w, r, i18n.ErrContainerNameRequired)
+		return
+	}
+	if !isValidContainerRenameName(name) {
+		response.BadRequestCode(w, r, i18n.ErrContainerNameInvalid)
+		return
+	}
+
+	if err := h.svc.Rename(r.Context(), envID, id, name); err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
+		if client.IsErrNotFound(err) {
+			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
+			return
+		}
+		h.app.Logger.Error("rename container failed", "env", envID, "id", id, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrContainerRenameFailed)
+		return
+	}
+
+	h.logContainerAudit(r, envID, "rename", id, "name="+name)
+	response.OKMsg(w, r, i18n.MsgContainerRenamed)
+}
+
 // HandleRecreate stops, renames, recreates, starts, and removes the old container.
 // POST /containers/{id}/recreate
 func (h *Handler) HandleRecreate(w http.ResponseWriter, r *http.Request) {

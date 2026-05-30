@@ -18,6 +18,7 @@ const (
 	composeServiceLabel = "com.docker.compose.service"
 	mcHarborProject     = "mcharbor"
 	mcHarborService     = "mcharbor"
+	mcHarborAgent       = "mcharbor-agent"
 )
 
 var ErrProtectedResource = errors.New("protected mcharbor resource")
@@ -36,6 +37,26 @@ func IsProtectedContainer(names []string, image string, labels map[string]string
 	for _, name := range names {
 		normalized := strings.ToLower(strings.Trim(strings.TrimSpace(name), "/"))
 		if normalized == mcHarborService || strings.HasPrefix(normalized, "mcharbor-mcharbor-") {
+			return true
+		}
+	}
+	return false
+}
+
+// IsAgentContainer returns true for the McHarbor remote agent container.
+func IsAgentContainer(names []string, image string, labels map[string]string) bool {
+	if labels != nil {
+		value := strings.ToLower(strings.TrimSpace(labels["com.mcharbor.agent"]))
+		if value == "true" || value == "1" || value == "yes" {
+			return true
+		}
+	}
+	if imageRefIsMcHarborAgent(image) {
+		return true
+	}
+	for _, name := range names {
+		normalized := strings.ToLower(strings.Trim(strings.TrimSpace(name), "/"))
+		if normalized == mcHarborAgent || strings.HasPrefix(normalized, mcHarborAgent+"-") {
 			return true
 		}
 	}
@@ -77,6 +98,13 @@ func imageRefIsMcHarbor(ref string) bool {
 	return repo == "ghcr.io/therealmcsparrow/mcharbor" ||
 		repo == "therealmcsparrow/mcharbor" ||
 		repo == "mcharbor"
+}
+
+func imageRefIsMcHarborAgent(ref string) bool {
+	repo := imageRepository(ref)
+	return repo == "ghcr.io/therealmcsparrow/mcharbor-agent" ||
+		repo == "therealmcsparrow/mcharbor-agent" ||
+		repo == "mcharbor-agent"
 }
 
 func imageRepository(ref string) string {

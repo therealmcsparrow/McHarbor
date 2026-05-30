@@ -6,6 +6,9 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
+const repoRoot = path.resolve(__dirname, '../..');
+const frontendNodeModules = path.resolve(__dirname, 'node_modules');
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -14,11 +17,25 @@ export default defineConfig({
       '@core': path.resolve(__dirname, './core'),
       '@resources': path.resolve(__dirname, './resources'),
       '@modules': path.resolve(__dirname, './modules'),
-      '@widgets': path.resolve(__dirname, './widgets'),
-      '@nodes': path.resolve(__dirname, './nodes'),
+      '@widgets': path.resolve(repoRoot, 'widgets'),
+      '@nodes': path.resolve(repoRoot, 'nodes'),
+      '@tabler/icons-react': path.resolve(frontendNodeModules, '@tabler/icons-react'),
+      '@tanstack/react-query': path.resolve(frontendNodeModules, '@tanstack/react-query'),
+      'react': path.resolve(frontendNodeModules, 'react'),
+      'react/jsx-runtime': path.resolve(frontendNodeModules, 'react/jsx-runtime.js'),
+      'react-dom': path.resolve(frontendNodeModules, 'react-dom'),
+      'react-i18next': path.resolve(frontendNodeModules, 'react-i18next'),
+      'react-router': path.resolve(frontendNodeModules, 'react-router'),
+      'recharts': path.resolve(frontendNodeModules, 'recharts'),
+      'sonner': path.resolve(frontendNodeModules, 'sonner'),
+      'zod': path.resolve(frontendNodeModules, 'zod'),
     },
+    dedupe: ['react', 'react-dom', 'react-i18next'],
   },
   server: {
+    fs: {
+      allow: [repoRoot],
+    },
     port: 8173,
     proxy: {
       '/api': {

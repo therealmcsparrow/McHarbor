@@ -1,0 +1,31 @@
+{
+  "slug": "nodered",
+  "name": "Node-RED",
+  "description": "Flow-based programming tool for wiring together hardware, APIs, and services.",
+  "category": "Home Automation",
+  "image": "nodered/node-red:latest",
+  "logo": "https://nodered.org/about/resources/media/node-red-icon-2.svg",
+  "website": "https://nodered.org",
+  "docsUrl": "https://nodered.org/docs/",
+  "ports": [
+    {
+      "host": 1880,
+      "container": 1880,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/nodered/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

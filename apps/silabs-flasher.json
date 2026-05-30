@@ -1,0 +1,31 @@
+{
+  "slug": "silabs-flasher",
+  "name": "Silicon Labs Flasher",
+  "description": "Web-based firmware flasher for Silicon Labs EFR32 based Zigbee and Thread radios. Flash firmware to sticks like Sonoff, SMLIGHT, and TubesZB.",
+  "category": "Home Automation",
+  "image": "ghcr.io/darkxst/silabs-firmware-flasher:latest",
+  "logo": "https://www.silabs.com/etc.clientlibs/siliconlabs/clientlibs/clientlib-global/resources/images/apple-touch-icon-precomposed.png",
+  "website": "https://github.com/darkxst/silabs-firmware-flasher",
+  "docsUrl": "https://github.com/darkxst/silabs-firmware-flasher#readme",
+  "ports": [
+    {
+      "host": 8502,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "DEVICE",
+      "default": "/dev/ttyUSB0",
+      "description": "Serial device path for the Silicon Labs radio"
+    },
+    {
+      "key": "AUTOFLASH_FIRMWARE",
+      "default": "",
+      "description": "Firmware URL to auto-flash on startup"
+    }
+  ],
+  "version": "latest"
+}

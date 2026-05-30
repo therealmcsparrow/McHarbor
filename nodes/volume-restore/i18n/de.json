@@ -1,0 +1,11 @@
+{
+  "label": "Volume-Wiederherstellung",
+  "description": "Stellt ein Docker-Volume aus einem Tar-Archiv mit einem Helper-Container wieder her",
+  "config": {
+    "environment": "Umgebung",
+    "volume": "Volume",
+    "backup_path": "Backup-Dateipfad",
+    "overwrite": "Vorhandene Dateien ueberschreiben",
+    "helper_image": "Helper-Image"
+  }
+}

@@ -26,4 +26,5 @@ data
 website
 *.md
 !README.md
+!nodes/**/*.md
 images

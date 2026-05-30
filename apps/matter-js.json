@@ -1,0 +1,41 @@
+{
+  "slug": "matter-js",
+  "name": "Matter.js",
+  "description": "JavaScript implementation of the Matter smart home protocol. Create and control Matter-compatible devices and bridges.",
+  "category": "Home Automation",
+  "image": "ghcr.io/project-chip/matter.js:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/matter.png",
+  "website": "https://github.com/project-chip/matter.js",
+  "docsUrl": "https://project-chip.github.io/matter.js/",
+  "ports": [
+    {
+      "host": 5540,
+      "container": 5540,
+      "protocol": "udp"
+    },
+    {
+      "host": 5580,
+      "container": 5580,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/matter-js/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "NODE_ENV",
+      "default": "production",
+      "description": "Node.js environment"
+    },
+    {
+      "key": "LOG_LEVEL",
+      "default": "info",
+      "description": "Logging level (info, debug, warn, error)"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,18 @@
+{
+  "label": "Gatilho de saude do conteiner",
+  "description": "Inicia um workflow quando o estado de saude de um conteiner muda",
+  "config": {
+    "environment": "Ambiente",
+    "container": "Conteiner",
+    "health": "Estado de saude"
+  },
+  "options": {
+    "health": {
+      "any": "Qualquer",
+      "healthy": "Saudavel",
+      "unhealthy": "Nao saudavel",
+      "starting": "Iniciando",
+      "none": "Sem healthcheck"
+    }
+  }
+}

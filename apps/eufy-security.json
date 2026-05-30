@@ -1,0 +1,42 @@
+{
+  "slug": "eufy-security",
+  "name": "Eufy Security",
+  "description": "Access Eufy Security cameras and devices locally via RTSP streams and MQTT.",
+  "category": "Home Automation",
+  "image": "bropat/eufy-security-ws:latest",
+  "logo": "https://github.githubassets.com/favicons/favicon.svg",
+  "website": "https://github.com/bropat/eufy-security-ws",
+  "docsUrl": "https://github.com/bropat/eufy-security-ws#readme",
+  "ports": [
+    {
+      "host": 3010,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/eufy-security/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "USERNAME",
+      "default": "",
+      "description": "Eufy account email"
+    },
+    {
+      "key": "PASSWORD",
+      "default": "",
+      "description": "Eufy account password",
+      "secret": true
+    },
+    {
+      "key": "COUNTRY",
+      "default": "US",
+      "description": "Country code"
+    }
+  ],
+  "version": "latest"
+}

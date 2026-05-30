@@ -1,0 +1,15 @@
+{
+  "label": "Goedkeuringspoort",
+  "description": "Leid een workflow via een expliciete goedkeuring of afwijzing",
+  "config": {
+    "decision": "Beslissing",
+    "reason": "Reden"
+  },
+  "options": {
+    "decision": {
+      "approved": "Goedgekeurd",
+      "rejected": "Afgewezen",
+      "pending": "In behandeling"
+    }
+  }
+}

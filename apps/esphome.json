@@ -1,0 +1,31 @@
+{
+  "slug": "esphome",
+  "name": "ESPHome",
+  "description": "System to control ESP8266/ESP32 microcontrollers with simple YAML configuration.",
+  "category": "Home Automation",
+  "image": "ghcr.io/esphome/esphome:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/esphome.png",
+  "website": "https://esphome.io",
+  "docsUrl": "https://esphome.io/guides/getting_started_command_line.html",
+  "ports": [
+    {
+      "host": 6052,
+      "container": 6052,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/esphome/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,25 @@
+{
+  "slug": "openwakeword",
+  "name": "openWakeWord",
+  "description": "Open-source wake word detection for voice assistants using on-device processing.",
+  "category": "AI & Voice",
+  "image": "rhasspy/wyoming-openwakeword:latest",
+  "logo": "https://github.githubassets.com/favicons/favicon.svg",
+  "website": "https://github.com/dscripka/openWakeWord",
+  "docsUrl": "https://github.com/rhasspy/wyoming-openwakeword#readme",
+  "ports": [
+    {
+      "host": 10400,
+      "container": 10400,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/openwakeword/custom",
+      "container": "/custom"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

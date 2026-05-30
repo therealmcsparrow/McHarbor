@@ -1,0 +1,34 @@
+{
+  "slug": "letsencrypt-companion",
+  "name": "Let's Encrypt Companion",
+  "description": "Automated SSL certificate creation and renewal for Nginx reverse proxy containers.",
+  "category": "Networking",
+  "image": "nginxproxy/acme-companion:latest",
+  "logo": "https://letsencrypt.org/images/letsencrypt-logo-horizontal.svg",
+  "website": "https://letsencrypt.org",
+  "docsUrl": "https://github.com/nginx-proxy/acme-companion#readme",
+  "ports": [],
+  "volumes": [
+    {
+      "host": "/opt/appdata/letsencrypt/certs",
+      "container": "/etc/nginx/certs"
+    },
+    {
+      "host": "/opt/appdata/letsencrypt/acme",
+      "container": "/etc/acme.sh"
+    },
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock",
+      "readOnly": true
+    }
+  ],
+  "envVars": [
+    {
+      "key": "DEFAULT_EMAIL",
+      "default": "",
+      "description": "Default email for certificate registration"
+    }
+  ],
+  "version": "latest"
+}

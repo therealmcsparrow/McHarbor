@@ -1,0 +1,36 @@
+{
+  "slug": "mealie",
+  "name": "Mealie",
+  "description": "Self-hosted recipe manager and meal planner with a clean UI.",
+  "category": "Productivity",
+  "image": "ghcr.io/mealie-recipes/mealie:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mealie.png",
+  "website": "https://mealie.io",
+  "docsUrl": "https://docs.mealie.io",
+  "ports": [
+    {
+      "host": 9925,
+      "container": 9000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mealie/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "BASE_URL",
+      "default": "http://localhost:9925",
+      "description": "Base URL"
+    }
+  ],
+  "version": "latest"
+}

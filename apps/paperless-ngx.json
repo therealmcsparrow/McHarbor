@@ -1,0 +1,51 @@
+{
+  "slug": "paperless-ngx",
+  "name": "Paperless-ngx",
+  "description": "Document management system that transforms physical documents into a searchable archive.",
+  "category": "Productivity",
+  "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",
+  "logo": "https://docs.paperless-ngx.com/assets/favicon.png",
+  "website": "https://docs.paperless-ngx.com",
+  "docsUrl": "https://docs.paperless-ngx.com",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/paperless/data",
+      "container": "/usr/src/paperless/data"
+    },
+    {
+      "host": "/opt/appdata/paperless/media",
+      "container": "/usr/src/paperless/media"
+    },
+    {
+      "host": "/opt/appdata/paperless/consume",
+      "container": "/usr/src/paperless/consume"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PAPERLESS_SECRET_KEY",
+      "default": "",
+      "description": "Secret key for sessions",
+      "secret": true
+    },
+    {
+      "key": "PAPERLESS_ADMIN_USER",
+      "default": "admin",
+      "description": "Admin username"
+    },
+    {
+      "key": "PAPERLESS_ADMIN_PASSWORD",
+      "default": "",
+      "description": "Admin password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

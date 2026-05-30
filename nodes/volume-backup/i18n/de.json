@@ -1,0 +1,10 @@
+{
+  "label": "Volume-Backup",
+  "description": "Archiviert ein Docker-Volume mit einem Helper-Container in einen Host-Pfad",
+  "config": {
+    "environment": "Umgebung",
+    "volume": "Volume",
+    "backup_path": "Backup-Dateipfad",
+    "helper_image": "Helper-Image"
+  }
+}

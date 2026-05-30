@@ -1,0 +1,10 @@
+{
+  "label": "Volume Backup",
+  "description": "Archive a Docker volume to a host path using a helper container",
+  "config": {
+    "environment": "Environment",
+    "volume": "Volume",
+    "backup_path": "Backup File Path",
+    "helper_image": "Helper Image"
+  }
+}

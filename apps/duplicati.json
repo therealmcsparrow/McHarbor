@@ -1,0 +1,49 @@
+{
+  "slug": "duplicati",
+  "name": "Duplicati",
+  "description": "Free backup solution with encryption and cloud storage support.",
+  "category": "Utilities",
+  "image": "lscr.io/linuxserver/duplicati:latest",
+  "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/duplicati-icon.png",
+  "website": "https://www.duplicati.com",
+  "docsUrl": "https://duplicati.readthedocs.io",
+  "ports": [
+    {
+      "host": 8200,
+      "container": 8200,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/duplicati/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/duplicati/backups",
+      "container": "/backups"
+    },
+    {
+      "host": "/opt/appdata/duplicati/source",
+      "container": "/source"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

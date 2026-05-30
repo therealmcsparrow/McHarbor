@@ -1,0 +1,25 @@
+{
+  "slug": "uptime-kuma",
+  "name": "Uptime Kuma",
+  "description": "Self-hosted monitoring tool with a fancy UI. Monitor HTTP, TCP, DNS, and more.",
+  "category": "Monitoring",
+  "image": "louislam/uptime-kuma:latest",
+  "logo": "https://uptime.kuma.pet/img/icon.svg",
+  "website": "https://uptime.kuma.pet",
+  "docsUrl": "https://github.com/louislam/uptime-kuma/wiki",
+  "ports": [
+    {
+      "host": 3001,
+      "container": 3001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/uptime-kuma/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

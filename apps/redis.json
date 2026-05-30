@@ -1,0 +1,25 @@
+{
+  "slug": "redis",
+  "name": "Redis",
+  "description": "In-memory data store used as database, cache, and message broker.",
+  "category": "Databases",
+  "image": "redis:7-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/redis.png",
+  "website": "https://redis.io",
+  "docsUrl": "https://redis.io/docs/",
+  "ports": [
+    {
+      "host": 6379,
+      "container": 6379,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/redis/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [],
+  "version": "7-alpine"
+}

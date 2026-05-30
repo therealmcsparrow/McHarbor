@@ -50,6 +50,7 @@
     "actionCompleted": "Action terminée",
     "takeOver": "Reprendre",
     "relinkStack": "Relier la pile",
+    "rename": "Renommer",
     "edit": "Modifier"
   },
   "detail": {
@@ -88,9 +89,18 @@
     "created": "Conteneur créé",
     "recreated": "Conteneur recréé",
     "updated": "Conteneur mis à jour",
+    "renamed": "Conteneur renommé",
     "reinstalled": "Conteneur réinstallé",
     "resumed": "Conteneur repris",
     "pruned": "Conteneurs inutilisés élagués"
+  },
+  "rename": {
+    "title": "Renommer le conteneur",
+    "description": "Changez le nom affiche de {{name}}.",
+    "nameLabel": "Nom du conteneur",
+    "namePlaceholder": "mon-conteneur",
+    "submit": "Renommer",
+    "saving": "Renommage..."
   },
   "confirm": {
     "stopTitle": "Arrêter le conteneur",

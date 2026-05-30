@@ -1,0 +1,62 @@
+{
+  "slug": "influxdb",
+  "name": "InfluxDB",
+  "description": "Time-series database for Home Assistant history, sensor metrics, energy data, and Grafana dashboards.",
+  "category": "Databases",
+  "image": "influxdb:2",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/influxdb.png",
+  "website": "https://www.influxdata.com",
+  "docsUrl": "https://docs.influxdata.com/influxdb/v2/install/use-docker-compose/",
+  "ports": [
+    {
+      "host": 8086,
+      "container": 8086,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/influxdb/data",
+      "container": "/var/lib/influxdb2"
+    },
+    {
+      "host": "/opt/appdata/influxdb/config",
+      "container": "/etc/influxdb2"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "DOCKER_INFLUXDB_INIT_MODE",
+      "default": "setup",
+      "description": "Initial setup mode"
+    },
+    {
+      "key": "DOCKER_INFLUXDB_INIT_USERNAME",
+      "default": "admin",
+      "description": "Initial admin username"
+    },
+    {
+      "key": "DOCKER_INFLUXDB_INIT_PASSWORD",
+      "default": "",
+      "description": "Initial admin password",
+      "secret": true
+    },
+    {
+      "key": "DOCKER_INFLUXDB_INIT_ORG",
+      "default": "home",
+      "description": "Initial organization name"
+    },
+    {
+      "key": "DOCKER_INFLUXDB_INIT_BUCKET",
+      "default": "homeassistant",
+      "description": "Initial bucket name"
+    },
+    {
+      "key": "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN",
+      "default": "",
+      "description": "Initial admin API token",
+      "secret": true
+    }
+  ],
+  "version": "2"
+}

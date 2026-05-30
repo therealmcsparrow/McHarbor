@@ -1,0 +1,43 @@
+{
+  "slug": "open-webui",
+  "name": "Open WebUI",
+  "description": "Feature-rich self-hosted web interface for LLMs. Supports Ollama and OpenAI-compatible APIs with chat, RAG, model management, and more.",
+  "category": "AI & Voice",
+  "image": "ghcr.io/open-webui/open-webui:main",
+  "logo": "https://raw.githubusercontent.com/open-webui/open-webui/main/static/favicon.png",
+  "website": "https://openwebui.com",
+  "docsUrl": "https://docs.openwebui.com",
+  "ports": [
+    {
+      "host": 3000,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/open-webui/data",
+      "container": "/app/backend/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "OLLAMA_BASE_URL",
+      "default": "http://ollama:11434",
+      "description": "Ollama API base URL"
+    },
+    {
+      "key": "WEBUI_SECRET_KEY",
+      "default": "",
+      "description": "Secret key for session encryption",
+      "secret": true
+    },
+    {
+      "key": "WEBUI_AUTH",
+      "default": "true",
+      "description": "Enable authentication (true/false)"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "main"
+}

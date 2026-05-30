@@ -1,0 +1,29 @@
+{
+  "slug": "music-assistant",
+  "name": "Music Assistant",
+  "description": "Manage and stream your music collection to various players from a single interface.",
+  "category": "Media",
+  "image": "ghcr.io/music-assistant/server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/music-assistant.png",
+  "website": "https://music-assistant.io",
+  "docsUrl": "https://music-assistant.io/docs/",
+  "ports": [
+    {
+      "host": 8095,
+      "container": 8095,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/music-assistant/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/music-assistant/media",
+      "container": "/media"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

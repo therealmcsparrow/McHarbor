@@ -1,0 +1,20 @@
+{
+  "label": "Declencheur d'evenement Docker",
+  "description": "Demarre un workflow depuis des evenements Docker filtres par type, action, nom ou label",
+  "config": {
+    "environment": "Environnement",
+    "type": "Type d'evenement",
+    "action": "Action",
+    "name": "Nom ou ID",
+    "label": "Filtre de label"
+  },
+  "options": {
+    "type": {
+      "any": "Tous",
+      "container": "Conteneur",
+      "image": "Image",
+      "volume": "Volume",
+      "network": "Reseau"
+    }
+  }
+}

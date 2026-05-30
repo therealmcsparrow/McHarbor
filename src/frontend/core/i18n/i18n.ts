@@ -4,7 +4,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import { buildNodeTranslations } from '../../nodes/i18n-loader';
+import { buildNodeTranslations } from '@nodes/i18n-loader';
 import { buildWidgetTranslations } from '../../modules/dashboard/widgets/i18n-loader';
 
 const localeModules = import.meta.glob<Record<string, unknown>>('./locales/*/*.json', { import: 'default' });

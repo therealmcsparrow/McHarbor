@@ -1,0 +1,38 @@
+{
+  "slug": "mosquitto",
+  "name": "Mosquitto",
+  "description": "Lightweight MQTT message broker for IoT and home automation.",
+  "category": "Home Automation",
+  "image": "eclipse-mosquitto:latest",
+  "logo": "https://mosquitto.org/images/mosquitto-text-side-28.png",
+  "website": "https://mosquitto.org",
+  "docsUrl": "https://mosquitto.org/documentation/",
+  "ports": [
+    {
+      "host": 1883,
+      "container": 1883,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9001,
+      "container": 9001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mosquitto/config",
+      "container": "/mosquitto/config"
+    },
+    {
+      "host": "/opt/appdata/mosquitto/data",
+      "container": "/mosquitto/data"
+    },
+    {
+      "host": "/opt/appdata/mosquitto/log",
+      "container": "/mosquitto/log"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

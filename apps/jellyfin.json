@@ -1,0 +1,40 @@
+{
+  "slug": "jellyfin",
+  "name": "Jellyfin",
+  "description": "Free and open-source media server. Stream movies, TV, music, and more.",
+  "category": "Media",
+  "image": "jellyfin/jellyfin:latest",
+  "logo": "https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/icon-transparent.svg",
+  "website": "https://jellyfin.org",
+  "docsUrl": "https://jellyfin.org/docs/",
+  "ports": [
+    {
+      "host": 8096,
+      "container": 8096,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/jellyfin/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/jellyfin/cache",
+      "container": "/cache"
+    },
+    {
+      "host": "/opt/appdata/jellyfin/media",
+      "container": "/media"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "JELLYFIN_PublishedServerUrl",
+      "default": "http://localhost:8096",
+      "description": "Public URL for the server"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

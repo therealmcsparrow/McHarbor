@@ -1,0 +1,20 @@
+{
+  "label": "Disparador de evento Docker",
+  "description": "Inicia un workflow desde eventos Docker filtrados por tipo, accion, nombre o etiqueta",
+  "config": {
+    "environment": "Entorno",
+    "type": "Tipo de evento",
+    "action": "Accion",
+    "name": "Nombre o ID",
+    "label": "Filtro de etiqueta"
+  },
+  "options": {
+    "type": {
+      "any": "Cualquiera",
+      "container": "Contenedor",
+      "image": "Image",
+      "volume": "Volume",
+      "network": "Red"
+    }
+  }
+}

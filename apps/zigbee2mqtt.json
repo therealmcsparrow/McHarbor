@@ -1,0 +1,36 @@
+{
+  "slug": "zigbee2mqtt",
+  "name": "Zigbee2MQTT",
+  "description": "Bridge Zigbee devices to MQTT without a vendor bridge or gateway.",
+  "category": "Home Automation",
+  "image": "koenkk/zigbee2mqtt:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/zigbee2mqtt.png",
+  "website": "https://www.zigbee2mqtt.io",
+  "docsUrl": "https://www.zigbee2mqtt.io/guide/getting-started/",
+  "ports": [
+    {
+      "host": 8485,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/zigbee2mqtt/data",
+      "container": "/app/data"
+    },
+    {
+      "host": "/run/udev",
+      "container": "/run/udev",
+      "readOnly": true
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

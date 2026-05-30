@@ -1,0 +1,56 @@
+{
+  "slug": "emqx",
+  "name": "EMQX",
+  "description": "Scalable MQTT broker for larger IoT, Home Assistant, and automation deployments.",
+  "category": "Networking",
+  "image": "emqx/emqx:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/emqx.png",
+  "website": "https://www.emqx.com",
+  "docsUrl": "https://hub.docker.com/r/emqx/emqx/",
+  "ports": [
+    {
+      "host": 1883,
+      "container": 1883,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8083,
+      "container": 8083,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8084,
+      "container": 8084,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8883,
+      "container": 8883,
+      "protocol": "tcp"
+    },
+    {
+      "host": 18083,
+      "container": 18083,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/emqx/data",
+      "container": "/opt/emqx/data"
+    },
+    {
+      "host": "/opt/appdata/emqx/log",
+      "container": "/opt/emqx/log"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "EMQX_DASHBOARD__DEFAULT_PASSWORD",
+      "default": "",
+      "description": "Dashboard admin password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

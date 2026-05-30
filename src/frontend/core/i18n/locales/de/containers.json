@@ -50,6 +50,7 @@
     "actionCompleted": "Aktion abgeschlossen",
     "takeOver": "Übernehmen",
     "relinkStack": "Stack neu verknüpfen",
+    "rename": "Umbenennen",
     "edit": "Bearbeiten"
   },
   "detail": {
@@ -88,9 +89,18 @@
     "created": "Container erstellt",
     "recreated": "Container neu erstellt",
     "updated": "Container aktualisiert",
+    "renamed": "Container umbenannt",
     "reinstalled": "Container neu installiert",
     "resumed": "Container fortgesetzt",
     "pruned": "Ungenutzte Container bereinigt"
+  },
+  "rename": {
+    "title": "Container umbenennen",
+    "description": "Andert den Anzeigenamen fur {{name}}.",
+    "nameLabel": "Containername",
+    "namePlaceholder": "mein-container",
+    "submit": "Umbenennen",
+    "saving": "Umbenennen..."
   },
   "confirm": {
     "stopTitle": "Container stoppen",

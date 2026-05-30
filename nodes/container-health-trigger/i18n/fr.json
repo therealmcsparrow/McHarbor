@@ -1,0 +1,18 @@
+{
+  "label": "Declencheur de sante de conteneur",
+  "description": "Demarre un workflow quand l'etat de sante d'un conteneur change",
+  "config": {
+    "environment": "Environnement",
+    "container": "Conteneur",
+    "health": "Etat de sante"
+  },
+  "options": {
+    "health": {
+      "any": "Tous",
+      "healthy": "Sain",
+      "unhealthy": "Non sain",
+      "starting": "Demarrage",
+      "none": "Aucun healthcheck"
+    }
+  }
+}

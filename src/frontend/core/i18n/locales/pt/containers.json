@@ -50,6 +50,7 @@
     "actionCompleted": "Ação concluída",
     "takeOver": "Assumir",
     "relinkStack": "Revincular pilha",
+    "rename": "Renomear",
     "edit": "Editar"
   },
   "detail": {
@@ -88,9 +89,18 @@
     "created": "Contêiner criado",
     "recreated": "Contêiner recriado",
     "updated": "Contêiner atualizado",
+    "renamed": "Contêiner renomeado",
     "reinstalled": "Contêiner reinstalado",
     "resumed": "Contêiner retomado",
     "pruned": "Recipientes não utilizados podados"
+  },
+  "rename": {
+    "title": "Renomear contêiner",
+    "description": "Altere o nome exibido de {{name}}.",
+    "nameLabel": "Nome do contêiner",
+    "namePlaceholder": "meu-conteiner",
+    "submit": "Renomear",
+    "saving": "Renomeando..."
   },
   "confirm": {
     "stopTitle": "Parar contêiner",

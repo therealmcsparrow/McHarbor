@@ -1,0 +1,46 @@
+{
+  "slug": "duckdns",
+  "name": "DuckDNS",
+  "description": "Free dynamic DNS service client that keeps your domain pointing to your IP.",
+  "category": "Networking",
+  "image": "lscr.io/linuxserver/duckdns:latest",
+  "logo": "https://www.duckdns.org/img/ducky_icon.png",
+  "website": "https://www.duckdns.org",
+  "docsUrl": "https://www.duckdns.org/install.jsp",
+  "ports": [],
+  "volumes": [
+    {
+      "host": "/opt/appdata/duckdns/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "SUBDOMAINS",
+      "default": "",
+      "description": "DuckDNS subdomain(s), comma-separated"
+    },
+    {
+      "key": "TOKEN",
+      "default": "",
+      "description": "DuckDNS token",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

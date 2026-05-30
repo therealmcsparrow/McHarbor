@@ -1,0 +1,49 @@
+{
+  "slug": "radarr",
+  "name": "Radarr",
+  "description": "Automatic movie downloading and management for Usenet and BitTorrent.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/radarr:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/radarr.png",
+  "website": "https://radarr.video",
+  "docsUrl": "https://wiki.servarr.com/radarr",
+  "ports": [
+    {
+      "host": 7878,
+      "container": 7878,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/radarr/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/radarr/downloads",
+      "container": "/downloads"
+    },
+    {
+      "host": "/opt/appdata/radarr/movies",
+      "container": "/movies"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

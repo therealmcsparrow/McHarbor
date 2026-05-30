@@ -34,6 +34,7 @@ type TriggerService struct {
 	cooldown   sync.Map // key: "workflowID:nodeID" -> value: time.Time (last trigger time)
 	cronFired  sync.Map // key: "workflowID:nodeID" -> value: time bucket string
 	fileStates sync.Map // key: "workflowID:nodeID:path" -> value: fileWatchState
+	tagStates  sync.Map // key: "workflowID:nodeID:image" -> value: registry digest
 }
 
 type fileWatchState struct {
@@ -53,6 +54,14 @@ func (ts *TriggerService) SetCustomExecutor(executor interface {
 	}
 }
 
+// SetImageScanner propagates the image scanner runtime adapter to workflow services.
+func (ts *TriggerService) SetImageScanner(scanner ImageScanner) {
+	ts.service.SetImageScanner(scanner)
+	if ts.handler != nil {
+		ts.handler.service.SetImageScanner(scanner)
+	}
+}
+
 // NewTriggerService creates a new background trigger service.
 func NewTriggerService(app *router.AppDeps, hub *Hub) *TriggerService {
 	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption))
@@ -68,11 +77,12 @@ func NewTriggerService(app *router.AppDeps, hub *Hub) *TriggerService {
 func (ts *TriggerService) Start() {
 	ctx, cancel := context.WithCancel(context.Background())
 	ts.cancel = cancel
-	ts.wg.Add(4)
+	ts.wg.Add(5)
 	go ts.run(ctx)
 	go ts.runMetricWatcher(ctx)
 	go ts.runTimeWatcher(ctx)
 	go ts.runFileWatcher(ctx)
+	go ts.runRegistryTagWatcher(ctx)
 	ts.logger.Info("workflow trigger service started")
 }
 
@@ -161,8 +171,10 @@ func (ts *TriggerService) listen(ctx context.Context, envID string) {
 			if !ok {
 				return
 			}
+			ts.handleDockerEvent(ctx, evt, envID)
 			if string(evt.Type) == "container" {
 				ts.handleContainerEvent(ctx, cli, evt, envID)
+				ts.handleContainerHealthEvent(ctx, evt, envID)
 			}
 		}
 	}
@@ -176,6 +188,98 @@ func dockerEventStreamClosed(ctx context.Context, err error) bool {
 		errors.Is(err, context.DeadlineExceeded) ||
 		errors.Is(err, io.EOF) ||
 		errors.Is(err, io.ErrUnexpectedEOF)
+}
+
+func (ts *TriggerService) handleDockerEvent(ctx context.Context, evt events.Message, envID string) {
+	activeWorkflows, err := ts.service.ListActiveWorkflows(ctx)
+	if err != nil {
+		ts.logger.Error("docker event trigger: query error", "error", err)
+		return
+	}
+
+	for _, aw := range activeWorkflows {
+		var canvas CanvasData
+		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
+			continue
+		}
+
+		blockedNodeIDs := blockedNodeMap(canvas)
+		for _, node := range canvas.Nodes {
+			if node.Action != "docker-event-trigger" || node.Disabled || blockedNodeIDs[node.ID] {
+				continue
+			}
+			if !matchesDockerEventNode(&node, evt) {
+				continue
+			}
+			go ts.executeWorkflowWithOutput(ctx, aw.ID, node.ID, envID, dockerEventMsg(evt, true))
+		}
+	}
+}
+
+func (ts *TriggerService) handleContainerHealthEvent(ctx context.Context, evt events.Message, envID string) {
+	health := containerHealthFromEvent(evt)
+	if health == "" {
+		return
+	}
+
+	activeWorkflows, err := ts.service.ListActiveWorkflows(ctx)
+	if err != nil {
+		ts.logger.Error("container health trigger: query error", "error", err)
+		return
+	}
+
+	containerName := evt.Actor.Attributes["name"]
+	containerID := evt.Actor.ID
+	for _, aw := range activeWorkflows {
+		var canvas CanvasData
+		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
+			continue
+		}
+
+		blockedNodeIDs := blockedNodeMap(canvas)
+		for _, node := range canvas.Nodes {
+			if node.Action != "container-health-trigger" || node.Disabled || blockedNodeIDs[node.ID] {
+				continue
+			}
+			cfgContainer, _ := node.Config["container"].(string)
+			if cfgContainer != "" && cfgContainer != containerName && cfgContainer != containerID {
+				continue
+			}
+			cfgHealth, _ := node.Config["health"].(string)
+			if cfgHealth == "" {
+				cfgHealth = "any"
+			}
+			if cfgHealth != "any" && cfgHealth != health {
+				continue
+			}
+
+			triggerMsg := NewMsg(map[string]interface{}{
+				"trigger":         "container-health",
+				"container":       containerName,
+				"containerId":     containerID,
+				"health":          health,
+				"event":           string(evt.Action),
+				"eventTime":       evt.Time,
+				"eventAttributes": evt.Actor.Attributes,
+				"autoTriggered":   true,
+			})
+			triggerMsg["topic"] = "container-health"
+			go ts.executeWorkflowWithOutput(ctx, aw.ID, node.ID, envID, triggerMsg)
+		}
+	}
+}
+
+func blockedNodeMap(canvas CanvasData) map[string]bool {
+	blockedNodeIDs := make(map[string]bool)
+	for _, g := range canvas.Groups {
+		if !g.Blocked {
+			continue
+		}
+		for _, nid := range g.NodeIDs {
+			blockedNodeIDs[nid] = true
+		}
+	}
+	return blockedNodeIDs
 }
 
 func (ts *TriggerService) handleContainerEvent(ctx context.Context, cli *dockerclient.Client, evt events.Message, envID string) {
@@ -837,4 +941,80 @@ func matchesFileWatchEvent(raw interface{}, eventType string) bool {
 		}
 	}
 	return false
+}
+
+func (ts *TriggerService) runRegistryTagWatcher(ctx context.Context) {
+	defer ts.wg.Done()
+
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			ts.checkRegistryTagTriggers(ctx)
+		}
+	}
+}
+
+func (ts *TriggerService) checkRegistryTagTriggers(ctx context.Context) {
+	activeWorkflows, err := ts.service.ListActiveWorkflows(ctx)
+	if err != nil {
+		ts.logger.Error("registry tag watcher: query error", "error", err)
+		return
+	}
+
+	now := time.Now()
+	for _, aw := range activeWorkflows {
+		var canvas CanvasData
+		if err := json.Unmarshal([]byte(aw.CanvasData), &canvas); err != nil {
+			continue
+		}
+
+		blockedNodeIDs := blockedNodeMap(canvas)
+		for _, node := range canvas.Nodes {
+			if node.Action != "registry-tag-trigger" || node.Disabled || blockedNodeIDs[node.ID] {
+				continue
+			}
+
+			imageRef, _ := node.Config["image"].(string)
+			if strings.TrimSpace(imageRef) == "" {
+				continue
+			}
+			interval := configFloat(node.Config, "interval", 300)
+			if interval < 60 {
+				interval = 60
+			}
+			stateKey := aw.ID + ":" + node.ID + ":" + imageRef
+			lastCheckKey := stateKey + ":checked"
+			if lastRaw, ok := ts.tagStates.Load(lastCheckKey); ok {
+				if now.Sub(lastRaw.(time.Time)).Seconds() < interval {
+					continue
+				}
+			}
+			ts.tagStates.Store(lastCheckKey, now)
+
+			envID, _ := node.Config["environment"].(string)
+			digest, payload, err := ts.service.inspectRegistryTagDigest(ctx, &node, envID)
+			if err != nil {
+				ts.logger.Warn("registry tag watcher: inspect failed", "error", err, "image", imageRef)
+				continue
+			}
+			previousRaw, loaded := ts.tagStates.Load(stateKey)
+			ts.tagStates.Store(stateKey, digest)
+			if !loaded || previousRaw.(string) == digest {
+				continue
+			}
+
+			payload["previousDigest"] = previousRaw.(string)
+			payload["digest"] = digest
+			payload["changed"] = true
+			payload["autoTriggered"] = true
+			triggerMsg := NewMsg(payload)
+			triggerMsg["topic"] = "registry-tag"
+			go ts.executeWorkflowWithOutput(ctx, aw.ID, node.ID, envID, triggerMsg)
+		}
+	}
 }

@@ -1,0 +1,42 @@
+{
+  "slug": "postgresql",
+  "name": "PostgreSQL",
+  "description": "Powerful open-source relational database system.",
+  "category": "Databases",
+  "image": "postgres:16-alpine",
+  "logo": "https://www.postgresql.org/media/img/about/press/elephant.png",
+  "website": "https://www.postgresql.org",
+  "docsUrl": "https://www.postgresql.org/docs/",
+  "ports": [
+    {
+      "host": 5432,
+      "container": 5432,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/postgres/data",
+      "container": "/var/lib/postgresql/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "POSTGRES_USER",
+      "default": "postgres",
+      "description": "Database superuser name"
+    },
+    {
+      "key": "POSTGRES_PASSWORD",
+      "default": "",
+      "description": "Database superuser password",
+      "secret": true
+    },
+    {
+      "key": "POSTGRES_DB",
+      "default": "postgres",
+      "description": "Default database name"
+    }
+  ],
+  "version": "16-alpine"
+}

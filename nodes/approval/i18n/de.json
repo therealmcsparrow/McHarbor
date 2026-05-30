@@ -1,0 +1,15 @@
+{
+  "label": "Freigabe-Gate",
+  "description": "Leitet einen Workflow anhand einer Freigabe oder Ablehnung weiter",
+  "config": {
+    "decision": "Entscheidung",
+    "reason": "Grund"
+  },
+  "options": {
+    "decision": {
+      "approved": "Freigegeben",
+      "rejected": "Abgelehnt",
+      "pending": "Ausstehend"
+    }
+  }
+}

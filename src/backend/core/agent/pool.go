@@ -78,6 +78,20 @@ func (p *AgentPool) Remove(envID string) {
 	p.logger.Info("agent removed", "env", envID)
 }
 
+// RemoveIfCurrent removes an agent connection only if it still matches the
+// connection currently registered for the environment.
+func (p *AgentPool) RemoveIfCurrent(envID string, conn *AgentConnection) bool {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if current, ok := p.conns[envID]; ok && current == conn {
+		delete(p.conns, envID)
+		p.logger.Info("agent removed", "env", envID)
+		return true
+	}
+	p.logger.Debug("agent remove skipped; newer connection is registered", "env", envID)
+	return false
+}
+
 // Get returns an agent connection for the given environment ID.
 func (p *AgentPool) Get(envID string) (*AgentConnection, bool) {
 	p.mu.RLock()

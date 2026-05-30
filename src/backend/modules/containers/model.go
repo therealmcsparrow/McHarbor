@@ -44,6 +44,11 @@ type UpdateRequest struct {
 	RestartPolicy     *container.RestartPolicy `json:"restartPolicy,omitempty"`
 }
 
+// RenameRequest is the JSON body for POST /containers/{id}/rename.
+type RenameRequest struct {
+	Name string `json:"name"`
+}
+
 // PortBindingSpec describes a host binding for a container port.
 type PortBindingSpec struct {
 	HostIP   string `json:"HostIp"`

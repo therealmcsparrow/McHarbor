@@ -49,6 +49,7 @@
     "deploy": "Bereitstellen",
     "update": "Aktualisieren",
     "refresh": "Aktualisieren",
+    "review": "Pruefen",
     "processing": "Wird verarbeitet...",
     "saving": "Speichern...",
     "deleting": "Löschen...",

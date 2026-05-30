@@ -1,0 +1,8 @@
+{
+  "label": "Stack-Backup",
+  "description": "Exportiert Stack-Container-Metadaten vor riskanten Aktionen",
+  "config": {
+    "environment": "Umgebung",
+    "stack_name": "Stack-Name"
+  }
+}

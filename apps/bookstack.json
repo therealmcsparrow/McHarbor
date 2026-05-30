@@ -1,0 +1,62 @@
+{
+  "slug": "bookstack",
+  "name": "BookStack",
+  "description": "Simple and free wiki platform for organising and storing information.",
+  "category": "Productivity",
+  "image": "lscr.io/linuxserver/bookstack:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/bookstack.png",
+  "website": "https://www.bookstackapp.com",
+  "docsUrl": "https://www.bookstackapp.com/docs/",
+  "ports": [
+    {
+      "host": 6875,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/bookstack/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "APP_URL",
+      "default": "http://localhost:6875",
+      "description": "Application URL"
+    },
+    {
+      "key": "DB_HOST",
+      "default": "bookstack-db",
+      "description": "Database host"
+    },
+    {
+      "key": "DB_DATABASE",
+      "default": "bookstackapp",
+      "description": "Database name"
+    },
+    {
+      "key": "DB_USERNAME",
+      "default": "bookstack",
+      "description": "Database user"
+    },
+    {
+      "key": "DB_PASSWORD",
+      "default": "",
+      "description": "Database password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

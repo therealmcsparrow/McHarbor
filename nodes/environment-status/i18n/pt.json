@@ -1,0 +1,7 @@
+{
+  "label": "Estado do ambiente",
+  "description": "Verifica a disponibilidade do ambiente Docker e metadados do daemon",
+  "config": {
+    "environment": "Ambiente"
+  }
+}

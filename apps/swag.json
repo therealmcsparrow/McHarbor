@@ -1,0 +1,66 @@
+{
+  "slug": "swag",
+  "name": "SWAG",
+  "description": "Secure Web Application Gateway with Nginx, Certbot, and fail2ban built in.",
+  "category": "Networking",
+  "image": "lscr.io/linuxserver/swag:latest",
+  "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/swag.gif",
+  "website": "https://docs.linuxserver.io/images/docker-swag/",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-swag/",
+  "ports": [
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/swag/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "URL",
+      "default": "",
+      "description": "Top-level domain (e.g. example.com)"
+    },
+    {
+      "key": "SUBDOMAINS",
+      "default": "wildcard",
+      "description": "Subdomains (comma-separated or wildcard)"
+    },
+    {
+      "key": "VALIDATION",
+      "default": "http",
+      "description": "Validation method (http, dns, duckdns)"
+    },
+    {
+      "key": "EMAIL",
+      "default": "",
+      "description": "Email for Let's Encrypt notifications"
+    }
+  ],
+  "version": "latest"
+}

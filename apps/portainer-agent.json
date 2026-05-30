@@ -1,0 +1,29 @@
+{
+  "slug": "portainer-agent",
+  "name": "Portainer Agent",
+  "description": "Agent for managing remote Docker environments via Portainer.",
+  "category": "Development",
+  "image": "portainer/agent:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/portainer.png",
+  "website": "https://www.portainer.io",
+  "docsUrl": "https://docs.portainer.io",
+  "ports": [
+    {
+      "host": 9001,
+      "container": 9001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock"
+    },
+    {
+      "host": "/var/lib/docker/volumes",
+      "container": "/var/lib/docker/volumes"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

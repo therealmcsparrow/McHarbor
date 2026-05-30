@@ -1,0 +1,10 @@
+{
+  "label": "Volume-backup",
+  "description": "Archiveer een Docker-volume naar een hostpad met een helper-container",
+  "config": {
+    "environment": "Omgeving",
+    "volume": "Volume",
+    "backup_path": "Back-upbestandspad",
+    "helper_image": "Helper-image"
+  }
+}

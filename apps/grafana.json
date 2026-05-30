@@ -1,0 +1,37 @@
+{
+  "slug": "grafana",
+  "name": "Grafana",
+  "description": "Open-source analytics and monitoring platform with beautiful dashboards.",
+  "category": "Monitoring",
+  "image": "grafana/grafana:latest",
+  "logo": "https://grafana.com/static/img/menu/grafana2.svg",
+  "website": "https://grafana.com",
+  "docsUrl": "https://grafana.com/docs/",
+  "ports": [
+    {
+      "host": 3100,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/grafana/data",
+      "container": "/var/lib/grafana"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "GF_SECURITY_ADMIN_USER",
+      "default": "admin",
+      "description": "Admin username"
+    },
+    {
+      "key": "GF_SECURITY_ADMIN_PASSWORD",
+      "default": "",
+      "description": "Admin password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

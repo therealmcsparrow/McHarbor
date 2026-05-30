@@ -1,0 +1,25 @@
+{
+  "slug": "matter-server",
+  "name": "Matter Server",
+  "description": "Python-based Matter controller server for smart home device interoperability.",
+  "category": "Home Automation",
+  "image": "ghcr.io/home-assistant-libs/python-matter-server:stable",
+  "logo": "https://www.home-assistant.io/images/favicon-192x192-full.png",
+  "website": "https://github.com/home-assistant-libs/python-matter-server",
+  "docsUrl": "https://github.com/home-assistant-libs/python-matter-server#readme",
+  "ports": [
+    {
+      "host": 5580,
+      "container": 5580,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/matter-server/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [],
+  "version": "stable"
+}

@@ -1,0 +1,18 @@
+{
+  "label": "Disparador de salud de contenedor",
+  "description": "Inicia un workflow cuando cambia el estado de salud de un contenedor",
+  "config": {
+    "environment": "Entorno",
+    "container": "Contenedor",
+    "health": "Estado de salud"
+  },
+  "options": {
+    "health": {
+      "any": "Cualquiera",
+      "healthy": "Saludable",
+      "unhealthy": "No saludable",
+      "starting": "Iniciando",
+      "none": "Sin healthcheck"
+    }
+  }
+}

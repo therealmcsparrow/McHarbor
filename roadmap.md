@@ -70,7 +70,7 @@ High-value targets:
 - `src/frontend/modules/workflows/components`
 - `src/frontend/resources/components/DataGrid.tsx`
 - `src/frontend/resources/components/CodeEditor.tsx`
-- `src/frontend/widgets/*` chart-heavy widgets
+- `widgets/*` chart-heavy widgets
 
 Suggested steps:
 1. Split optional workflow subpanels and heavy editors behind route-local suspense boundaries.

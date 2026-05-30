@@ -79,3 +79,101 @@ func TestBundledCatalogComposeOverridesRender(t *testing.T) {
 		}
 	}
 }
+
+func TestBundledCatalogIncludesPopularWebApps(t *testing.T) {
+	catalog, err := loadBundledCatalog()
+	if err != nil {
+		t.Fatalf("loadBundledCatalog returned error: %v", err)
+	}
+
+	required := map[string]string{
+		"wordpress": "WordPress",
+		"drupal":    "Drupal",
+		"joomla":    "Joomla",
+		"ghost":     "Ghost",
+		"matomo":    "Matomo",
+		"mediawiki": "MediaWiki",
+		"moodle":    "Moodle",
+		"odoo":      "Odoo",
+	}
+	seen := make(map[string]AppTemplate, len(catalog.Apps))
+	for _, app := range catalog.Apps {
+		if _, exists := seen[app.Slug]; exists {
+			t.Fatalf("duplicate app store catalog slug %q", app.Slug)
+		}
+		seen[app.Slug] = app
+	}
+
+	for slug, name := range required {
+		app, ok := seen[slug]
+		if !ok {
+			t.Fatalf("expected bundled catalog to include %q", slug)
+		}
+		if app.Name != name {
+			t.Fatalf("expected %q to be named %q, got %q", slug, name, app.Name)
+		}
+		if app.Category != "Web Apps" {
+			t.Fatalf("expected %q to be in Web Apps category, got %q", slug, app.Category)
+		}
+		if app.ComposeOverride == "" {
+			t.Fatalf("expected %q to use a compose override for its database service", slug)
+		}
+	}
+}
+
+func TestBundledCatalogIncludesWhatsAppGatewayApps(t *testing.T) {
+	catalog, err := loadBundledCatalog()
+	if err != nil {
+		t.Fatalf("loadBundledCatalog returned error: %v", err)
+	}
+
+	required := map[string]string{
+		"waha":          "WAHA",
+		"evolution-api": "Evolution API",
+	}
+	seen := make(map[string]AppTemplate, len(catalog.Apps))
+	for _, app := range catalog.Apps {
+		seen[app.Slug] = app
+	}
+
+	for slug, name := range required {
+		app, ok := seen[slug]
+		if !ok {
+			t.Fatalf("expected bundled catalog to include %q", slug)
+		}
+		if app.Name != name {
+			t.Fatalf("expected %q to be named %q, got %q", slug, name, app.Name)
+		}
+		if app.Category != "Communications" {
+			t.Fatalf("expected %q to be in Communications category, got %q", slug, app.Category)
+		}
+		if app.ComposeOverride == "" {
+			t.Fatalf("expected %q to use a compose override", slug)
+		}
+		if len(app.Ports) == 0 {
+			t.Fatalf("expected %q to expose at least one port", slug)
+		}
+
+		envVars := make(map[string]string, len(app.EnvVars))
+		for _, ev := range app.EnvVars {
+			envVars[ev.Key] = ev.Default
+		}
+		compose := generateCompose(app, app.Slug, app.Ports, app.Volumes, envVars)
+		if strings.Contains(compose, `":/`) {
+			t.Fatalf("expected %q compose not to render a split quoted bind mount\ncompose:\n%s", slug, compose)
+		}
+	}
+
+	evolution := seen["evolution-api"]
+	envVars := make(map[string]string, len(evolution.EnvVars))
+	for _, ev := range evolution.EnvVars {
+		envVars[ev.Key] = ev.Default
+	}
+	compose := generateCompose(evolution, evolution.Slug, evolution.Ports, evolution.Volumes, envVars)
+	if !strings.Contains(compose, `DATABASE_CONNECTION_URI: "postgresql://evolution:change-me@evolution-api-postgres:5432/evolution"`) {
+		t.Fatalf("expected Evolution API compose to render a valid database URI\ncompose:\n%s", compose)
+	}
+	if !strings.Contains(compose, `CACHE_REDIS_URI: "redis://evolution-api-redis:6379"`) {
+		t.Fatalf("expected Evolution API compose to render a valid Redis URI\ncompose:\n%s", compose)
+	}
+}

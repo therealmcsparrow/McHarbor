@@ -1,0 +1,71 @@
+{
+  "slug": "piper",
+  "name": "Piper",
+  "description": "Fast local neural text-to-speech engine exposed as a Wyoming protocol server for Home Assistant Assist.",
+  "category": "AI & Voice",
+  "image": "lscr.io/linuxserver/piper:latest",
+  "logo": "https://raw.githubusercontent.com/rhasspy/piper/master/etc/logo.png",
+  "website": "https://github.com/OHF-Voice/piper1-gpl",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-piper/",
+  "ports": [
+    {
+      "host": 10200,
+      "container": 10200,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/piper/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "PIPER_VOICE",
+      "default": "en_US-lessac-medium",
+      "description": "Piper voice model to use"
+    },
+    {
+      "key": "LOCAL_ONLY",
+      "default": "",
+      "description": "Set to true to use only locally provided models"
+    },
+    {
+      "key": "PIPER_LENGTH",
+      "default": "1.0",
+      "description": "Speaking rate; lower values are faster"
+    },
+    {
+      "key": "PIPER_NOISE",
+      "default": "0.667",
+      "description": "Voice variability"
+    },
+    {
+      "key": "PIPER_NOISEW",
+      "default": "0.333",
+      "description": "Speaking cadence variability"
+    },
+    {
+      "key": "PIPER_SPEAKER",
+      "default": "0",
+      "description": "Speaker number for multi-speaker voices"
+    }
+  ],
+  "version": "latest"
+}

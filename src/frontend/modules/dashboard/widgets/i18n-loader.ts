@@ -8,7 +8,7 @@
  *
  * Path pattern: /widgets/<widget-folder>/i18n/<lang>.json
  */
-const widgetI18nModules = import.meta.glob<Record<string, unknown>>('/widgets/*/i18n/*.json', { import: 'default' });
+const widgetI18nModules = import.meta.glob<Record<string, unknown>>('@widgets/*/i18n/*.json', { import: 'default' });
 
 function deepMerge(
   target: Record<string, unknown>,
@@ -33,8 +33,7 @@ export async function buildWidgetTranslations(lang: string): Promise<Record<stri
   const result: Record<string, unknown> = {};
 
   for (const [path, loadTranslations] of Object.entries(widgetI18nModules)) {
-    const parts = path.split('/');
-    const fileLang = parts[4]?.replace('.json', '');
+    const fileLang = path.match(/[\\/]i18n[\\/]([^\\/]+)\.json$/)?.[1];
     if (!fileLang || fileLang !== lang) {
       continue;
     }

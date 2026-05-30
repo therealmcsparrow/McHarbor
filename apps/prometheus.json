@@ -1,0 +1,29 @@
+{
+  "slug": "prometheus",
+  "name": "Prometheus",
+  "description": "Systems monitoring and alerting toolkit with a powerful query language.",
+  "category": "Monitoring",
+  "image": "prom/prometheus:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prometheus.png",
+  "website": "https://prometheus.io",
+  "docsUrl": "https://prometheus.io/docs/",
+  "ports": [
+    {
+      "host": 9090,
+      "container": 9090,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/prometheus/config",
+      "container": "/etc/prometheus"
+    },
+    {
+      "host": "/opt/appdata/prometheus/data",
+      "container": "/prometheus"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

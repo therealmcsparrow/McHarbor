@@ -18,6 +18,7 @@ import {
   IconCheck,
   IconX,
   IconLock,
+  IconTag,
 } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
@@ -107,6 +108,7 @@ type ContainerDetailHeaderProps = {
   webUrl: string | null;
   editing: boolean;
   onEdit: () => void;
+  onRename: () => void;
   onSave: () => void;
   onCancelEdit: () => void;
   saving?: boolean;
@@ -125,6 +127,7 @@ export function ContainerDetailHeader({
   webUrl,
   editing,
   onEdit,
+  onRename,
   onSave,
   onCancelEdit,
   saving,
@@ -219,6 +222,12 @@ export function ContainerDetailHeader({
               onClick={onEdit}
               disabled={locked}
               icon={<IconPencil className="size-3.5" />}
+            />
+            <HeaderActionButton
+              tooltip={t('actions.rename')}
+              onClick={onRename}
+              disabled={locked}
+              icon={<IconTag className="size-3.5" />}
             />
             {isRunning ? (
               <HeaderActionButton

@@ -29,14 +29,14 @@ export const CATEGORY_GLOW_RGB: Record<string, string> = {
 
 const categoryOrder = ['trigger', 'action', 'logic', 'utility', 'integration'];
 
-const nodeModules = import.meta.glob<Record<string, unknown>>('/nodes/*/index.ts', {
+const nodeModules = import.meta.glob<Record<string, unknown>>('@nodes/*/index.ts', {
   eager: true,
 });
-const readmeModules = import.meta.glob<string>('/nodes/*/README.md', {
+const readmeModules = import.meta.glob<string>('@nodes/*/README.md', {
   import: 'default',
   query: '?raw',
 });
-const backendActionModules = import.meta.glob<string>('/nodes/*/backend-action.md', {
+const backendActionModules = import.meta.glob<string>('@nodes/*/backend-action.md', {
   import: 'default',
   query: '?raw',
 });
@@ -116,7 +116,7 @@ function cloneRequirement(requirement: NodeRequirement): NodeRequirement {
 }
 
 function extractNodeKey(path: string): string | null {
-  const match = path.match(/\/nodes\/([^/]+)\//);
+  const match = path.match(/(?:^|[\\/])nodes[\\/]([^\\/]+)[\\/]/);
   return match?.[1] ?? null;
 }
 

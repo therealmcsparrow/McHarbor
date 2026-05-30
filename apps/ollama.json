@@ -1,0 +1,42 @@
+{
+  "slug": "ollama",
+  "name": "Ollama",
+  "description": "Run large language models locally. Supports Llama 3, Mistral, Gemma, Phi, and many more open-source models.",
+  "category": "AI & Voice",
+  "image": "ollama/ollama:latest",
+  "logo": "https://ollama.com/public/ollama.png",
+  "website": "https://ollama.com",
+  "docsUrl": "https://github.com/ollama/ollama/blob/main/docs/README.md",
+  "ports": [
+    {
+      "host": 11434,
+      "container": 11434,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/ollama/models",
+      "container": "/root/.ollama"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "OLLAMA_HOST",
+      "default": "0.0.0.0",
+      "description": "Bind address for the Ollama API"
+    },
+    {
+      "key": "OLLAMA_MODELS",
+      "default": "/root/.ollama",
+      "description": "Path to model storage directory"
+    },
+    {
+      "key": "OLLAMA_NUM_PARALLEL",
+      "default": "1",
+      "description": "Number of parallel model requests"
+    }
+  ],
+  "minMemory": "4GB",
+  "version": "latest"
+}

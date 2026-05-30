@@ -50,6 +50,7 @@
     "actionCompleted": "Actie voltooid",
     "takeOver": "Overnemen",
     "relinkStack": "Stack opnieuw koppelen",
+    "rename": "Hernoemen",
     "edit": "Bewerken"
   },
   "detail": {
@@ -88,9 +89,18 @@
     "created": "Container aangemaakt",
     "recreated": "Container opnieuw aangemaakt",
     "updated": "Container bijgewerkt",
+    "renamed": "Container hernoemd",
     "reinstalled": "Container opnieuw geinstalleerd",
     "resumed": "Container hervat",
     "pruned": "Ongebruikte containers opgeschoond"
+  },
+  "rename": {
+    "title": "Container hernoemen",
+    "description": "Wijzig de weergavenaam voor {{name}}.",
+    "nameLabel": "Containernaam",
+    "namePlaceholder": "mijn-container",
+    "submit": "Hernoemen",
+    "saving": "Hernoemen..."
   },
   "confirm": {
     "stopTitle": "Container stoppen",

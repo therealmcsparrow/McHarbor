@@ -1,0 +1,15 @@
+{
+  "label": "Approval Gate",
+  "description": "Route a workflow through an explicit approved or rejected gate",
+  "config": {
+    "decision": "Decision",
+    "reason": "Reason"
+  },
+  "options": {
+    "decision": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    }
+  }
+}

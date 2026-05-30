@@ -1,0 +1,46 @@
+{
+  "slug": "gitea",
+  "name": "Gitea",
+  "description": "Lightweight self-hosted Git service. Fork of Gogs, painless to set up.",
+  "category": "Development",
+  "image": "gitea/gitea:latest",
+  "logo": "https://about.gitea.com/gitea.png",
+  "website": "https://about.gitea.com",
+  "docsUrl": "https://docs.gitea.com",
+  "ports": [
+    {
+      "host": 3200,
+      "container": 3000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 2222,
+      "container": 22,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/gitea/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "USER_UID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "USER_GID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "GITEA__database__DB_TYPE",
+      "default": "sqlite3",
+      "description": "Database type"
+    }
+  ],
+  "version": "latest"
+}

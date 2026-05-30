@@ -38,6 +38,7 @@ export default function ContainerDetailPage() {
   const [confirmKill, setConfirmKill] = useState(false);
   const [recreateConfirmOpen, setRecreateConfirmOpen] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [takeOverOpen, setTakeOverOpen] = useState(false);
   const [relinkOpen, setRelinkOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DetailTabId>('overview');
@@ -82,6 +83,7 @@ export default function ContainerDetailPage() {
             webUrl={webURL}
             editing={edit.editing}
             onEdit={edit.startEditing}
+            onRename={() => setRenameDialogOpen(true)}
             onSave={handleSave}
             onCancelEdit={edit.cancelEditing}
             saving={edit.isSaving}
@@ -132,6 +134,7 @@ export default function ContainerDetailPage() {
         confirmKill={confirmKill}
         recreateConfirmOpen={recreateConfirmOpen}
         removeDialogOpen={removeDialogOpen}
+        renameDialogOpen={renameDialogOpen}
         takeOverOpen={takeOverOpen}
         relinkOpen={relinkOpen}
         linkedStackName={linkedStackName}
@@ -141,6 +144,7 @@ export default function ContainerDetailPage() {
         onConfirmKillChange={(open) => setConfirmKill(open)}
         onRecreateConfirmChange={setRecreateConfirmOpen}
         onRemoveDialogChange={setRemoveDialogOpen}
+        onRenameDialogChange={setRenameDialogOpen}
         onTakeOverChange={setTakeOverOpen}
         onRelinkChange={setRelinkOpen}
         onKill={() => {

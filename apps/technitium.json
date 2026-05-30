@@ -1,0 +1,47 @@
+{
+  "slug": "technitium",
+  "name": "Technitium DNS Server",
+  "description": "Authoritative and recursive DNS server with DNSSEC, DNS-over-HTTPS, and ad blocking.",
+  "category": "Networking",
+  "image": "technitium/dns-server:latest",
+  "logo": "https://technitium.com/favicon.ico",
+  "website": "https://technitium.com/dns/",
+  "docsUrl": "https://blog.technitium.com/2017/11/running-dns-server-on-ubuntu-linux.html",
+  "ports": [
+    {
+      "host": 5380,
+      "container": 5380,
+      "protocol": "tcp"
+    },
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "tcp"
+    },
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/technitium/config",
+      "container": "/etc/dns/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "DNS_SERVER_DOMAIN",
+      "default": "dns-server",
+      "description": "DNS server domain name"
+    },
+    {
+      "key": "DNS_SERVER_ADMIN_PASSWORD",
+      "default": "",
+      "description": "Admin panel password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

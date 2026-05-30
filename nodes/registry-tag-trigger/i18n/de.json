@@ -1,0 +1,17 @@
+{
+  "label": "Registry Tag Trigger",
+  "description": "Startet einen Workflow, wenn sich der Digest eines ueberwachten Image-Tags aendert",
+  "config": {
+    "environment": "Umgebung",
+    "image": "Image-Tag",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "interval": "Intervall (Sekunden)"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Konfigurierte Registry",
+      "custom": "Andere"
+    }
+  }
+}

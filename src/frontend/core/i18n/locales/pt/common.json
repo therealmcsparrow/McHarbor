@@ -49,6 +49,7 @@
     "deploy": "Implantar",
     "update": "Atualizar",
     "refresh": "Atualizar",
+    "review": "Revisar",
     "processing": "Processamento...",
     "saving": "Salvando...",
     "deleting": "Excluindo...",

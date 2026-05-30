@@ -47,6 +47,24 @@ export function useContainerAction() {
   });
 }
 
+export function useRenameContainer() {
+  const queryClient = useQueryClient();
+  const envId = useEnvironmentStore((s) => s.currentId);
+  const { t } = useTranslation('containers');
+
+  return useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) => {
+      const envQuery = envId ? `?env=${envId}` : '';
+      return api.post(`/containers/${id}/rename${envQuery}`, { name }).then(assertSuccess);
+    },
+    meta: { success: t('toast.renamed') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['containers'] });
+      queryClient.invalidateQueries({ queryKey: ['container'] });
+    },
+  });
+}
+
 type RemoveContainerOptions = {
   id: string;
   force: boolean;

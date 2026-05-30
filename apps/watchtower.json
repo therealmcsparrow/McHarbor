@@ -1,0 +1,35 @@
+{
+  "slug": "watchtower",
+  "name": "Watchtower",
+  "description": "Automatically update running Docker containers with the latest image.",
+  "category": "Utilities",
+  "image": "containrrr/watchtower:latest",
+  "logo": "https://containrrr.dev/watchtower/images/logo-450px.png",
+  "website": "https://containrrr.dev/watchtower/",
+  "docsUrl": "https://containrrr.dev/watchtower/",
+  "ports": [],
+  "volumes": [
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "WATCHTOWER_CLEANUP",
+      "default": "true",
+      "description": "Remove old images after update"
+    },
+    {
+      "key": "WATCHTOWER_POLL_INTERVAL",
+      "default": "86400",
+      "description": "Poll interval in seconds (default 24h)"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

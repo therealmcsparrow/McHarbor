@@ -37,6 +37,8 @@ type Service struct {
 	db   *sql.DB
 }
 
+var containerNamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
+
 // NewService creates a new container service.
 func NewService(pool *docker.ClientPool, db *sql.DB) *Service {
 	return &Service{pool: pool, db: db}
@@ -49,6 +51,14 @@ func (s *Service) getClient(envID string) (*client.Client, error) {
 		return nil, fmt.Errorf("docker connection failed: %w", err)
 	}
 	return c, nil
+}
+
+func normalizeContainerRenameName(name string) string {
+	return strings.TrimPrefix(strings.TrimSpace(name), "/")
+}
+
+func isValidContainerRenameName(name string) bool {
+	return containerNamePattern.MatchString(name)
 }
 
 type containerStackLink struct {
@@ -462,6 +472,27 @@ func (s *Service) Update(ctx context.Context, envID, id string, req UpdateReques
 	return resp, nil
 }
 
+// Rename changes the Docker container name.
+func (s *Service) Rename(ctx context.Context, envID, id, name string) error {
+	cli, err := s.getClient(envID)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+		return err
+	}
+
+	if err := cli.ContainerRename(ctx, id, name); err != nil {
+		return fmt.Errorf("renaming container %s: %w", id, err)
+	}
+
+	return nil
+}
+
 // Recreate stops, renames, creates a new container with the same config, starts it, and removes the old one.
 func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRequest) (container.CreateResponse, error) {
 	cli, err := s.getClient(envID)
@@ -488,6 +519,9 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	}
 
 	originalName := strings.TrimPrefix(info.Name, "/")
+	if s.pool.IsAgentEnv(envID) && docker.IsAgentContainer([]string{info.Name}, imageName, labels) {
+		return s.recreateConnectedAgentContainer(ctx, cli, info, originalName, req)
+	}
 
 	// Stop the container if running
 	if info.State.Running {
@@ -525,8 +559,111 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 		}
 	}
 
-	// Create new container with same config
-	cfg := info.Config
+	cfg, hc, netConfig, err := replacementContainerSpec(info, req, imgName)
+	if err != nil {
+		// Revert: rename old container back
+		cli.ContainerRename(ctx, info.ID, originalName)
+		return container.CreateResponse{}, err
+	}
+
+	newResp, err := cli.ContainerCreate(ctx, cfg, hc, netConfig, nil, originalName)
+	if err != nil {
+		// Revert: rename old container back
+		cli.ContainerRename(ctx, info.ID, originalName)
+		return container.CreateResponse{}, fmt.Errorf("creating replacement container: %w", err)
+	}
+
+	// Start new container
+	if err := cli.ContainerStart(ctx, newResp.ID, container.StartOptions{}); err != nil {
+		// Clean up: remove new container, rename old back (best-effort)
+		if rmErr := cli.ContainerRemove(ctx, newResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
+			slog.Warn("containers: failed to clean up new container after start failure", "error", rmErr, "container", newResp.ID)
+		}
+		if rnErr := cli.ContainerRename(ctx, info.ID, originalName); rnErr != nil {
+			slog.Warn("containers: failed to rename old container back after start failure", "error", rnErr, "container", info.ID)
+		}
+		return container.CreateResponse{}, fmt.Errorf("starting replacement container: %w", err)
+	}
+
+	// Remove old container
+	if err := cli.ContainerRemove(ctx, info.ID, container.RemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
+		slog.Warn("containers: failed to remove old container after recreate", "error", err, "container", info.ID)
+	}
+
+	return newResp, nil
+}
+
+func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *client.Client, info types.ContainerJSON, originalName string, req RecreateRequest) (container.CreateResponse, error) {
+	if info.Config == nil {
+		return container.CreateResponse{}, fmt.Errorf("inspected container has no config")
+	}
+
+	imgName := info.Config.Image
+	if req.Image != "" {
+		imgName = req.Image
+	}
+
+	if req.PullImage {
+		pullResp, pullErr := cli.ImagePull(ctx, imgName, image.PullOptions{})
+		if pullErr != nil {
+			return container.CreateResponse{}, fmt.Errorf("pulling image for agent recreate: %w", pullErr)
+		}
+		if _, copyErr := io.Copy(io.Discard, pullResp); copyErr != nil {
+			slog.Warn("containers: agent image pull stream drain failed during recreate", "error", copyErr, "image", imgName, "container", info.ID)
+		}
+		if closeErr := pullResp.Close(); closeErr != nil {
+			slog.Warn("containers: agent image pull stream close failed during recreate", "error", closeErr, "image", imgName, "container", info.ID)
+		}
+	}
+
+	oldName := originalName + "-old-" + fmt.Sprintf("%d", time.Now().Unix())
+	if err := cli.ContainerRename(ctx, info.ID, oldName); err != nil {
+		return container.CreateResponse{}, fmt.Errorf("renaming running agent container for recreate: %w", err)
+	}
+
+	cfg, hc, netConfig, err := replacementContainerSpec(info, req, imgName)
+	if err != nil {
+		cli.ContainerRename(ctx, info.ID, originalName)
+		return container.CreateResponse{}, err
+	}
+
+	newResp, err := cli.ContainerCreate(ctx, cfg, hc, netConfig, nil, originalName)
+	if err != nil {
+		cli.ContainerRename(ctx, info.ID, originalName)
+		return container.CreateResponse{}, fmt.Errorf("creating replacement agent container: %w", err)
+	}
+
+	if err := cli.ContainerStart(ctx, newResp.ID, container.StartOptions{}); err != nil {
+		if rmErr := cli.ContainerRemove(ctx, newResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
+			slog.Warn("containers: failed to clean up new agent container after start failure", "error", rmErr, "container", newResp.ID)
+		}
+		if rnErr := cli.ContainerRename(ctx, info.ID, originalName); rnErr != nil {
+			slog.Warn("containers: failed to rename old agent container back after start failure", "error", rnErr, "container", info.ID)
+		}
+		return container.CreateResponse{}, fmt.Errorf("starting replacement agent container: %w", err)
+	}
+
+	go retireConnectedAgentContainer(cli, info.ID)
+
+	return newResp, nil
+}
+
+func retireConnectedAgentContainer(cli *client.Client, oldID string) {
+	time.Sleep(500 * time.Millisecond)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := cli.ContainerRemove(ctx, oldID, container.RemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
+		slog.Warn("containers: old agent container retirement did not return cleanly", "error", err, "container", oldID)
+	}
+}
+
+func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, imgName string) (*container.Config, *container.HostConfig, *networkTypes.NetworkingConfig, error) {
+	if info.Config == nil {
+		return nil, nil, nil, fmt.Errorf("inspected container has no config")
+	}
+
+	cfg := *info.Config
 	cfg.Image = imgName
 
 	// Apply Config overrides from request
@@ -579,8 +716,13 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 		}
 	}
 
+	hc := &container.HostConfig{}
+	if info.HostConfig != nil {
+		hostConfig := *info.HostConfig
+		hc = &hostConfig
+	}
+
 	// Apply HostConfig overrides from request
-	hc := info.HostConfig
 	if req.PortBindings != nil {
 		portMap := make(nat.PortMap)
 		for port, bindings := range req.PortBindings {
@@ -659,57 +801,34 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 		hc.RestartPolicy = *req.RestartPolicy
 	}
 
-	// Rebuild networking config from the inspected container
-	var netConfig *networkTypes.NetworkingConfig
-	if info.NetworkSettings != nil && len(info.NetworkSettings.Networks) > 0 {
-		endpointsConfig := make(map[string]*networkTypes.EndpointSettings)
-		for name, ep := range info.NetworkSettings.Networks {
-			endpointsConfig[name] = &networkTypes.EndpointSettings{
-				IPAMConfig:          ep.IPAMConfig,
-				Links:               ep.Links,
-				Aliases:             ep.Aliases,
-				NetworkID:           ep.NetworkID,
-				EndpointID:          ep.EndpointID,
-				Gateway:             ep.Gateway,
-				IPAddress:           ep.IPAddress,
-				IPPrefixLen:         ep.IPPrefixLen,
-				IPv6Gateway:         ep.IPv6Gateway,
-				GlobalIPv6Address:   ep.GlobalIPv6Address,
-				GlobalIPv6PrefixLen: ep.GlobalIPv6PrefixLen,
-				MacAddress:          ep.MacAddress,
-				DriverOpts:          ep.DriverOpts,
-			}
-		}
-		netConfig = &networkTypes.NetworkingConfig{
-			EndpointsConfig: endpointsConfig,
-		}
+	return &cfg, hc, replacementNetworkingConfig(info), nil
+}
+
+func replacementNetworkingConfig(info types.ContainerJSON) *networkTypes.NetworkingConfig {
+	if info.NetworkSettings == nil || len(info.NetworkSettings.Networks) == 0 {
+		return nil
 	}
 
-	newResp, err := cli.ContainerCreate(ctx, cfg, hc, netConfig, nil, originalName)
-	if err != nil {
-		// Revert: rename old container back
-		cli.ContainerRename(ctx, info.ID, originalName)
-		return container.CreateResponse{}, fmt.Errorf("creating replacement container: %w", err)
-	}
-
-	// Start new container
-	if err := cli.ContainerStart(ctx, newResp.ID, container.StartOptions{}); err != nil {
-		// Clean up: remove new container, rename old back (best-effort)
-		if rmErr := cli.ContainerRemove(ctx, newResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
-			slog.Warn("containers: failed to clean up new container after start failure", "error", rmErr, "container", newResp.ID)
+	endpointsConfig := make(map[string]*networkTypes.EndpointSettings)
+	for name, ep := range info.NetworkSettings.Networks {
+		if ep == nil {
+			continue
 		}
-		if rnErr := cli.ContainerRename(ctx, info.ID, originalName); rnErr != nil {
-			slog.Warn("containers: failed to rename old container back after start failure", "error", rnErr, "container", info.ID)
+		endpointsConfig[name] = &networkTypes.EndpointSettings{
+			IPAMConfig: ep.IPAMConfig,
+			Links:      ep.Links,
+			Aliases:    ep.Aliases,
+			MacAddress: ep.MacAddress,
+			DriverOpts: ep.DriverOpts,
+			GwPriority: ep.GwPriority,
 		}
-		return container.CreateResponse{}, fmt.Errorf("starting replacement container: %w", err)
 	}
-
-	// Remove old container
-	if err := cli.ContainerRemove(ctx, info.ID, container.RemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
-		slog.Warn("containers: failed to remove old container after recreate", "error", err, "container", info.ID)
+	if len(endpointsConfig) == 0 {
+		return nil
 	}
-
-	return newResp, nil
+	return &networkTypes.NetworkingConfig{
+		EndpointsConfig: endpointsConfig,
+	}
 }
 
 // NetworkConnect connects a container to a Docker network.

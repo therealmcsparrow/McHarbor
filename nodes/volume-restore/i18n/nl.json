@@ -1,0 +1,11 @@
+{
+  "label": "Volume-herstel",
+  "description": "Herstel een Docker-volume uit een tar-archief met een helper-container",
+  "config": {
+    "environment": "Omgeving",
+    "volume": "Volume",
+    "backup_path": "Back-upbestandspad",
+    "overwrite": "Bestaande bestanden overschrijven",
+    "helper_image": "Helper-image"
+  }
+}

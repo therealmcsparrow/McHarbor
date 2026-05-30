@@ -1,0 +1,37 @@
+{
+  "slug": "vaultwarden",
+  "name": "Vaultwarden",
+  "description": "Lightweight Bitwarden-compatible password manager server.",
+  "category": "Security",
+  "image": "vaultwarden/server:latest",
+  "logo": "https://raw.githubusercontent.com/dani-garcia/vaultwarden/main/resources/vaultwarden-icon.svg",
+  "website": "https://github.com/dani-garcia/vaultwarden",
+  "docsUrl": "https://github.com/dani-garcia/vaultwarden/wiki",
+  "ports": [
+    {
+      "host": 8880,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/vaultwarden/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "ADMIN_TOKEN",
+      "default": "",
+      "description": "Admin panel token",
+      "secret": true
+    },
+    {
+      "key": "SIGNUPS_ALLOWED",
+      "default": "true",
+      "description": "Allow new user signups"
+    }
+  ],
+  "version": "latest"
+}

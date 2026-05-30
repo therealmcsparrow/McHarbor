@@ -1,0 +1,47 @@
+{
+  "slug": "nextcloud",
+  "name": "Nextcloud",
+  "description": "Self-hosted productivity platform with file sync, contacts, calendar, and more.",
+  "category": "Productivity",
+  "image": "nextcloud:latest",
+  "logo": "https://nextcloud.com/c/uploads/2022/11/logo_nextcloud_blue.svg",
+  "website": "https://nextcloud.com",
+  "docsUrl": "https://docs.nextcloud.com",
+  "ports": [
+    {
+      "host": 8880,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/nextcloud/html",
+      "container": "/var/www/html"
+    },
+    {
+      "host": "/opt/appdata/nextcloud/data",
+      "container": "/var/www/html/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "NEXTCLOUD_ADMIN_USER",
+      "default": "admin",
+      "description": "Admin username"
+    },
+    {
+      "key": "NEXTCLOUD_ADMIN_PASSWORD",
+      "default": "",
+      "description": "Admin password",
+      "secret": true
+    },
+    {
+      "key": "NEXTCLOUD_TRUSTED_DOMAINS",
+      "default": "localhost",
+      "description": "Trusted domains"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest"
+}

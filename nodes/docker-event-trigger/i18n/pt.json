@@ -1,0 +1,20 @@
+{
+  "label": "Gatilho de evento Docker",
+  "description": "Inicia um workflow a partir de eventos Docker filtrados por tipo, acao, nome ou rotulo",
+  "config": {
+    "environment": "Ambiente",
+    "type": "Tipo de evento",
+    "action": "Acao",
+    "name": "Nome ou ID",
+    "label": "Filtro de rotulo"
+  },
+  "options": {
+    "type": {
+      "any": "Qualquer",
+      "container": "Conteiner",
+      "image": "Image",
+      "volume": "Volume",
+      "network": "Rede"
+    }
+  }
+}

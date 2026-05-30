@@ -1,0 +1,47 @@
+{
+  "slug": "minecraft",
+  "name": "Minecraft Server",
+  "description": "Dedicated Minecraft Java Edition server with easy configuration.",
+  "category": "Gaming",
+  "image": "itzg/minecraft-server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/minecraft.png",
+  "website": "https://www.minecraft.net",
+  "docsUrl": "https://docker-minecraft-server.readthedocs.io",
+  "ports": [
+    {
+      "host": 25565,
+      "container": 25565,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/minecraft/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "EULA",
+      "default": "TRUE",
+      "description": "Accept Minecraft EULA"
+    },
+    {
+      "key": "TYPE",
+      "default": "VANILLA",
+      "description": "Server type (VANILLA, PAPER, FORGE, FABRIC)"
+    },
+    {
+      "key": "MEMORY",
+      "default": "2G",
+      "description": "Server memory allocation"
+    },
+    {
+      "key": "DIFFICULTY",
+      "default": "normal",
+      "description": "Game difficulty"
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

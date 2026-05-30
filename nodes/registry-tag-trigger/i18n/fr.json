@@ -1,0 +1,17 @@
+{
+  "label": "Declencheur de tag registry",
+  "description": "Demarre un workflow quand le digest d'un tag d'image surveille change",
+  "config": {
+    "environment": "Environnement",
+    "image": "Tag d'image",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "interval": "Intervalle (secondes)"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Registry configure",
+      "custom": "Autre"
+    }
+  }
+}

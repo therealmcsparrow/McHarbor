@@ -1,0 +1,47 @@
+{
+  "slug": "satisfactory",
+  "name": "Satisfactory",
+  "description": "Dedicated server for Satisfactory factory building game.",
+  "category": "Gaming",
+  "image": "wolveix/satisfactory-server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/satisfactory.png",
+  "website": "https://www.satisfactorygame.com",
+  "docsUrl": "https://github.com/wolveix/satisfactory-server",
+  "ports": [
+    {
+      "host": 7777,
+      "container": 7777,
+      "protocol": "udp"
+    },
+    {
+      "host": 15000,
+      "container": 15000,
+      "protocol": "udp"
+    },
+    {
+      "host": 15777,
+      "container": 15777,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/satisfactory/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MAXPLAYERS",
+      "default": "4",
+      "description": "Maximum number of players"
+    },
+    {
+      "key": "STEAMBETA",
+      "default": "false",
+      "description": "Use Steam beta branch"
+    }
+  ],
+  "minMemory": "6GB",
+  "version": "latest"
+}

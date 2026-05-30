@@ -1,0 +1,8 @@
+{
+  "label": "Stack-backup",
+  "description": "Exporteer stack-containermetadata voor risicovolle acties",
+  "config": {
+    "environment": "Omgeving",
+    "stack_name": "Stacknaam"
+  }
+}

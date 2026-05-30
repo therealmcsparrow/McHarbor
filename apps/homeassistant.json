@@ -1,0 +1,32 @@
+{
+  "slug": "homeassistant",
+  "name": "Home Assistant",
+  "description": "Open-source home automation platform with thousands of integrations.",
+  "category": "Home Automation",
+  "image": "ghcr.io/home-assistant/home-assistant:stable",
+  "logo": "https://www.home-assistant.io/images/favicon-192x192-full.png",
+  "website": "https://www.home-assistant.io",
+  "docsUrl": "https://www.home-assistant.io/docs/",
+  "ports": [
+    {
+      "host": 8123,
+      "container": 8123,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/homeassistant/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "stable"
+}

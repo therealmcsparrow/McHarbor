@@ -17,6 +17,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/metrics"
 	"github.com/therealmcsparrow/mcharbor/modules/scans"
 	"github.com/therealmcsparrow/mcharbor/modules/stacks"
+	"github.com/therealmcsparrow/mcharbor/modules/workflows"
 )
 
 type appStoreStackInstaller struct {
@@ -64,6 +65,53 @@ func (a appStoreScanner) ScanOnInstall(ctx context.Context, imageRef, environmen
 		MediumCount:   scan.MediumCount,
 		LowCount:      scan.LowCount,
 	}, nil
+}
+
+type workflowScanner struct {
+	db     *sql.DB
+	logger *slog.Logger
+}
+
+func (w workflowScanner) StartScan(ctx context.Context, input workflows.ImageScanInput) (*workflows.ImageScanResult, error) {
+	scan, err := w.service().StartScan(ctx, scans.StartScanInput{
+		ImageRef:      input.ImageRef,
+		Scanner:       input.Scanner,
+		EnvironmentID: input.EnvironmentID,
+	})
+	return toWorkflowScanResult(scan), err
+}
+
+func (w workflowScanner) StartScanSync(ctx context.Context, input workflows.ImageScanInput) (*workflows.ImageScanResult, error) {
+	scan, err := w.service().StartScanSync(ctx, scans.StartScanInput{
+		ImageRef:      input.ImageRef,
+		Scanner:       input.Scanner,
+		EnvironmentID: input.EnvironmentID,
+	})
+	return toWorkflowScanResult(scan), err
+}
+
+func (w workflowScanner) service() *scans.Service {
+	scannerSettings := coreSettings.ReadScannerSettings(w.db)
+	scannerRegistry := scans.NewScannerRegistry(scannerSettings.ClairURL)
+	return scans.NewService(w.db, scannerRegistry, w.logger)
+}
+
+func toWorkflowScanResult(scan *scans.Scan) *workflows.ImageScanResult {
+	if scan == nil {
+		return nil
+	}
+	return &workflows.ImageScanResult{
+		ID:            scan.ID,
+		ImageRef:      scan.ImageRef,
+		Scanner:       scan.Scanner,
+		Status:        scan.Status,
+		Severity:      scan.Severity,
+		TotalVulns:    scan.TotalVulns,
+		CriticalCount: scan.CriticalCount,
+		HighCount:     scan.HighCount,
+		MediumCount:   scan.MediumCount,
+		LowCount:      scan.LowCount,
+	}
 }
 
 type alertMetricsSource struct {
@@ -189,4 +237,9 @@ func NewAppStoreService(db *sql.DB, dockerPool *docker.ClientPool, dataDir strin
 		appStoreScanner{svc: scanSvc},
 		logger,
 	)
+}
+
+// NewWorkflowScanner builds the workflow vulnerability scanner adapter.
+func NewWorkflowScanner(db *sql.DB, logger *slog.Logger) workflows.ImageScanner {
+	return workflowScanner{db: db, logger: logger}
 }

@@ -1,0 +1,56 @@
+{
+  "slug": "pihole",
+  "name": "Pi-hole",
+  "description": "Network-wide ad blocking via your own DNS server.",
+  "category": "Networking",
+  "image": "pihole/pihole:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pi-hole.png",
+  "website": "https://pi-hole.net",
+  "docsUrl": "https://docs.pi-hole.net",
+  "ports": [
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "tcp"
+    },
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "udp"
+    },
+    {
+      "host": 8880,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/pihole/etc-pihole",
+      "container": "/etc/pihole"
+    },
+    {
+      "host": "/opt/appdata/pihole/etc-dnsmasq.d",
+      "container": "/etc/dnsmasq.d"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "WEBPASSWORD",
+      "default": "",
+      "description": "Admin dashboard password",
+      "secret": true
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "PIHOLE_DNS_",
+      "default": "8.8.8.8;8.8.4.4",
+      "description": "Upstream DNS servers"
+    }
+  ],
+  "version": "latest"
+}

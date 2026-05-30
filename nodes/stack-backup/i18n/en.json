@@ -1,0 +1,8 @@
+{
+  "label": "Stack Backup",
+  "description": "Export stack container metadata before risky operations",
+  "config": {
+    "environment": "Environment",
+    "stack_name": "Stack Name"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "slug": "sabnzbd",
+  "name": "SABnzbd",
+  "description": "Free and open-source binary newsreader for Usenet downloading.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/sabnzbd:latest",
+  "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/sabnzbd-icon.png",
+  "website": "https://sabnzbd.org",
+  "docsUrl": "https://sabnzbd.org/wiki/",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/sabnzbd/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/sabnzbd/downloads",
+      "container": "/downloads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

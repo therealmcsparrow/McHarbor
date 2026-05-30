@@ -1,0 +1,41 @@
+{
+  "slug": "overseerr",
+  "name": "Overseerr",
+  "description": "Request management and media discovery tool for your Plex ecosystem.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/overseerr:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/overseerr.png",
+  "website": "https://overseerr.dev",
+  "docsUrl": "https://docs.overseerr.dev",
+  "ports": [
+    {
+      "host": 5055,
+      "container": 5055,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/overseerr/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

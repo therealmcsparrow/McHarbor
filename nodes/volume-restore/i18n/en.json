@@ -1,0 +1,11 @@
+{
+  "label": "Volume Restore",
+  "description": "Restore a Docker volume from a tar archive using a helper container",
+  "config": {
+    "environment": "Environment",
+    "volume": "Volume",
+    "backup_path": "Backup File Path",
+    "overwrite": "Overwrite Existing Files",
+    "helper_image": "Helper Image"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "label": "Porta de aprovacao",
+  "description": "Roteia um workflow por uma aprovacao ou rejeicao explicita",
+  "config": {
+    "decision": "Decisao",
+    "reason": "Motivo"
+  },
+  "options": {
+    "decision": {
+      "approved": "Aprovado",
+      "rejected": "Rejeitado",
+      "pending": "Pendente"
+    }
+  }
+}

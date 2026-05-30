@@ -1,0 +1,10 @@
+{
+  "label": "Backup de volume",
+  "description": "Arquiva um volume Docker para um caminho do host usando um conteiner auxiliar",
+  "config": {
+    "environment": "Ambiente",
+    "volume": "Volume",
+    "backup_path": "Caminho do arquivo de backup",
+    "helper_image": "Image auxiliar"
+  }
+}

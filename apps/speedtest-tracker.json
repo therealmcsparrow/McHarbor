@@ -1,0 +1,47 @@
+{
+  "slug": "speedtest-tracker",
+  "name": "Speedtest Tracker",
+  "description": "Run scheduled internet speed tests and track results over time.",
+  "category": "Utilities",
+  "image": "lscr.io/linuxserver/speedtest-tracker:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/speedtest-tracker.png",
+  "website": "https://docs.speedtest-tracker.dev",
+  "docsUrl": "https://docs.speedtest-tracker.dev",
+  "ports": [
+    {
+      "host": 8765,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/speedtest-tracker/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "APP_KEY",
+      "default": "",
+      "description": "Laravel app key",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

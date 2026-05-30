@@ -1,0 +1,29 @@
+{
+  "slug": "filebrowser",
+  "name": "FileBrowser",
+  "description": "Web-based file manager with a clean interface for managing files.",
+  "category": "Utilities",
+  "image": "filebrowser/filebrowser:latest",
+  "logo": "https://raw.githubusercontent.com/filebrowser/logo/master/icon.svg",
+  "website": "https://filebrowser.org",
+  "docsUrl": "https://filebrowser.org/features",
+  "ports": [
+    {
+      "host": 8585,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/filebrowser/srv",
+      "container": "/srv"
+    },
+    {
+      "host": "/opt/appdata/filebrowser/database.db",
+      "container": "/database.db"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

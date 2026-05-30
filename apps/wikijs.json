@@ -1,0 +1,40 @@
+{
+  "slug": "wikijs",
+  "name": "Wiki.js",
+  "description": "Modern and powerful wiki app built on Node.js with a beautiful interface.",
+  "category": "Productivity",
+  "image": "ghcr.io/requarks/wiki:2",
+  "logo": "https://js.wiki/img/logo.svg",
+  "website": "https://js.wiki",
+  "docsUrl": "https://docs.requarks.io",
+  "ports": [
+    {
+      "host": 3300,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/wikijs/config",
+      "container": "/wiki/config"
+    },
+    {
+      "host": "/opt/appdata/wikijs/data",
+      "container": "/wiki/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "DB_TYPE",
+      "default": "sqlite",
+      "description": "Database type"
+    },
+    {
+      "key": "DB_FILEPATH",
+      "default": "/wiki/data/wiki.db",
+      "description": "SQLite file path"
+    }
+  ],
+  "version": "2"
+}

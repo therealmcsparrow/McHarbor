@@ -1,0 +1,17 @@
+{
+  "label": "Registry Tag Trigger",
+  "description": "Start a workflow when a watched image tag digest changes",
+  "config": {
+    "environment": "Environment",
+    "image": "Image Tag",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "interval": "Interval (seconds)"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Configured Registry",
+      "custom": "Other"
+    }
+  }
+}

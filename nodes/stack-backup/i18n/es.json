@@ -1,0 +1,8 @@
+{
+  "label": "Backup de stack",
+  "description": "Exporta metadatos de contenedores del stack antes de acciones de riesgo",
+  "config": {
+    "environment": "Entorno",
+    "stack_name": "Nombre del stack"
+  }
+}

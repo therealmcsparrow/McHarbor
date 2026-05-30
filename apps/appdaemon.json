@@ -1,0 +1,42 @@
+{
+  "slug": "appdaemon",
+  "name": "AppDaemon",
+  "description": "Python automation runtime for Home Assistant and MQTT with support for custom apps and tablet dashboards.",
+  "category": "Home Automation",
+  "image": "acockburn/appdaemon:latest",
+  "logo": "https://github.githubassets.com/favicons/favicon.svg",
+  "website": "https://appdaemon.readthedocs.io",
+  "docsUrl": "https://appdaemon.readthedocs.io/en/latest/DOCKER_TUTORIAL.html",
+  "ports": [
+    {
+      "host": 5050,
+      "container": 5050,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/appdaemon/conf",
+      "container": "/conf"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "HA_URL",
+      "default": "http://homeassistant:8123",
+      "description": "Home Assistant URL"
+    },
+    {
+      "key": "TOKEN",
+      "default": "",
+      "description": "Home Assistant long-lived access token",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

@@ -11,6 +11,7 @@ import {
   IconTerminal2,
   IconFileText,
   IconLock,
+  IconTag,
 } from '@tabler/icons-react';
 import type { ContainerInfo } from '@core/types/docker';
 import { isProtectedContainer } from '@core/utils/protection';
@@ -36,6 +37,7 @@ type ContainerCardProps = {
   onAction: (id: string, action: string) => void;
   onTerminal: (c: ContainerInfo) => void;
   onLogs: (c: ContainerInfo) => void;
+  onRename: (c: ContainerInfo) => void;
   onRemove: (c: ContainerInfo) => void;
   onClick: (c: ContainerInfo) => void;
 };
@@ -47,6 +49,7 @@ export function ContainerCard({
   onAction,
   onTerminal,
   onLogs,
+  onRename,
   onRemove,
   onClick,
 }: ContainerCardProps) {
@@ -169,6 +172,12 @@ export function ContainerCard({
           onClick={() => onAction(c.Id, 'restart')}
           disabled={locked}
           icon={<IconRotate className="h-3.5 w-3.5 text-blue-400" />}
+        />
+        <ActionButton
+          label={t('actions.rename')}
+          onClick={() => onRename(c)}
+          disabled={locked}
+          icon={<IconTag className="h-3.5 w-3.5 text-lime-400" />}
         />
         {isRunning && (
           <ActionButton

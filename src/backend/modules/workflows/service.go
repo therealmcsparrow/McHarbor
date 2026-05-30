@@ -36,6 +36,7 @@ import (
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/registry"
 	"github.com/docker/docker/api/types/volume"
@@ -49,6 +50,7 @@ import (
 	coreemail "github.com/therealmcsparrow/mcharbor/core/email"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	corenotify "github.com/therealmcsparrow/mcharbor/core/notify"
+	coresettings "github.com/therealmcsparrow/mcharbor/core/settings"
 )
 
 func unusedImagePruneFilters() filters.Args {
@@ -79,7 +81,8 @@ type Service struct {
 		ExecuteCustom(ctx context.Context, nodeKey string, config, msg map[string]interface{}, timeout float64) (string, map[string]interface{}, error)
 		IsCustomNode(key string) bool
 	}
-	notifier *corenotify.Dispatcher
+	notifier     *corenotify.Dispatcher
+	imageScanner ImageScanner
 }
 
 // NewService creates a new workflow service.
@@ -93,6 +96,11 @@ func (s *Service) SetCustomExecutor(executor interface {
 	IsCustomNode(key string) bool
 }) {
 	s.customExecutor = executor
+}
+
+// SetImageScanner registers the vulnerability scanner runtime adapter.
+func (s *Service) SetImageScanner(scanner ImageScanner) {
+	s.imageScanner = scanner
 }
 
 // SetLinkOutCallback registers a callback invoked when a link-out node fires.
@@ -579,6 +587,15 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 	case "container-status-trigger":
 		return s.executeContainerStatusTrigger(ctx, node, nodeEnvID)
 
+	case "container-health-trigger":
+		return s.executeContainerHealthTrigger(ctx, node, nodeEnvID)
+
+	case "docker-event-trigger":
+		return s.executeDockerEventTrigger(ctx, node, nodeEnvID)
+
+	case "registry-tag-trigger":
+		return s.executeRegistryTagTrigger(ctx, node, nodeEnvID)
+
 	case "metric-trigger":
 		return s.executeMetricTrigger(ctx, node, nodeEnvID)
 
@@ -603,6 +620,9 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		}
 		// Pass msg through unchanged — routing decision only
 		return port, msg, nil
+
+	case "approval":
+		return s.executeApproval(node, msg)
 
 	case "delay":
 		seconds := configFloat(node.Config, "seconds", 1.0)
@@ -697,8 +717,14 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 	case "docker-image-pull":
 		return s.executeDockerImagePull(ctx, node, msg, nodeEnvID)
 
+	case "image-vulnerability-scan":
+		return s.executeImageVulnerabilityScan(ctx, node, msg, nodeEnvID)
+
 	case "host-info":
 		return s.executeHostInfo(ctx, node, msg, nodeEnvID)
+
+	case "environment-status":
+		return s.executeEnvironmentStatus(ctx, node, msg, nodeEnvID)
 
 	case "host-exec":
 		return s.executeHostExec(ctx, node, msg, nodeEnvID)
@@ -774,6 +800,8 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		return s.executeStackStatus(ctx, node, msg, nodeEnvID)
 	case "stack-remove":
 		return s.executeStackRemove(ctx, node, msg, nodeEnvID)
+	case "stack-backup":
+		return s.executeStackBackup(ctx, node, msg, nodeEnvID)
 
 	// Image nodes
 	case "image-list":
@@ -794,6 +822,10 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 		return s.executeVolumeRemove(ctx, node, msg, nodeEnvID)
 	case "volume-inspect":
 		return s.executeVolumeInspect(ctx, node, msg, nodeEnvID)
+	case "volume-backup":
+		return s.executeVolumeBackup(ctx, node, msg, nodeEnvID)
+	case "volume-restore":
+		return s.executeVolumeRestore(ctx, node, msg, nodeEnvID)
 
 	// Network nodes
 	case "network-list":
@@ -1052,6 +1084,117 @@ func (s *Service) executeContainerStatusTrigger(ctx context.Context, node *Canva
 	out := NewMsg(payload)
 	out["topic"] = "container-status"
 	return "output", out, nil
+}
+
+func (s *Service) executeContainerHealthTrigger(ctx context.Context, node *CanvasNode, envID string) (string, Msg, error) {
+	containerName, _ := node.Config["container"].(string)
+	if containerName == "" {
+		return "", nil, fmt.Errorf("container is required")
+	}
+
+	cli, err := s.pool.Get(envID)
+	if err != nil {
+		return "", nil, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	info, err := cli.ContainerInspect(opCtx, containerName)
+	if err != nil {
+		return "", nil, fmt.Errorf("inspecting container health: %w", err)
+	}
+
+	health := "none"
+	if info.State != nil && info.State.Health != nil {
+		health = info.State.Health.Status
+	}
+	want, _ := node.Config["health"].(string)
+	if want == "" {
+		want = "any"
+	}
+
+	out := NewMsg(map[string]interface{}{
+		"trigger":   "container-health",
+		"container": containerName,
+		"health":    health,
+		"matched":   want == "any" || want == health,
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
+	})
+	out["topic"] = "container-health"
+	return "output", out, nil
+}
+
+func (s *Service) executeDockerEventTrigger(ctx context.Context, node *CanvasNode, envID string) (string, Msg, error) {
+	cli, err := s.pool.Get(envID)
+	if err != nil {
+		return "", nil, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	filterArgs := filters.NewArgs()
+	if eventType, _ := node.Config["type"].(string); eventType != "" && eventType != "any" {
+		filterArgs.Add("type", eventType)
+	}
+	if action, _ := node.Config["action"].(string); strings.TrimSpace(action) != "" {
+		filterArgs.Add("event", strings.TrimSpace(action))
+	}
+	if label, _ := node.Config["label"].(string); strings.TrimSpace(label) != "" {
+		filterArgs.Add("label", strings.TrimSpace(label))
+	}
+
+	eventCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	eventsCh, errCh := cli.Events(eventCtx, events.ListOptions{Filters: filterArgs})
+	for {
+		select {
+		case evt := <-eventsCh:
+			if !matchesDockerEventNode(node, evt) {
+				continue
+			}
+			return "output", dockerEventMsg(evt, false), nil
+		case err := <-errCh:
+			if err != nil && !dockerEventStreamClosed(eventCtx, err) {
+				return "", nil, fmt.Errorf("watching docker events: %w", err)
+			}
+			return "output", dockerEventMsg(events.Message{}, false), nil
+		case <-eventCtx.Done():
+			return "output", dockerEventMsg(events.Message{}, false), nil
+		}
+	}
+}
+
+func (s *Service) executeRegistryTagTrigger(ctx context.Context, node *CanvasNode, envID string) (string, Msg, error) {
+	digest, payload, err := s.inspectRegistryTagDigest(ctx, node, envID)
+	if err != nil {
+		return "", nil, err
+	}
+	payload["digest"] = digest
+	payload["changed"] = false
+	out := NewMsg(payload)
+	out["topic"] = "registry-tag"
+	return "output", out, nil
+}
+
+func (s *Service) executeApproval(node *CanvasNode, msg Msg) (string, Msg, error) {
+	decision, _ := node.Config["decision"].(string)
+	if decision == "" {
+		decision = "pending"
+	}
+	if decision != "approved" && decision != "rejected" {
+		decision = "pending"
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	payload := map[string]interface{}{
+		"decision": decision,
+	}
+	if reason, _ := node.Config["reason"].(string); reason != "" {
+		payload["reason"] = reason
+	}
+	out["payload"] = payload
+	return decision, out, nil
 }
 
 // executeMetricTrigger handles the metric-trigger node action.
@@ -1404,6 +1547,55 @@ func (s *Service) executeDockerInfo(ctx context.Context, node *CanvasNode, msg M
 	return "output", out, nil
 }
 
+func (s *Service) executeEnvironmentStatus(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
+	cli, err := s.pool.Get(envID)
+	if err != nil {
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"reachable": false, "error": "docker connection failed"}
+		return "error", out, nil
+	}
+
+	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	ping, err := cli.Ping(opCtx)
+	if err != nil {
+		s.logger.Error("workflows: environment ping failed", "error", err, "envID", envID)
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"reachable": false, "error": "environment ping failed"}
+		return "error", out, nil
+	}
+
+	info, infoErr := cli.Info(opCtx)
+	payload := map[string]interface{}{
+		"reachable":      true,
+		"environmentId":  envID,
+		"apiVersion":     ping.APIVersion,
+		"osType":         ping.OSType,
+		"experimental":   ping.Experimental,
+		"builderVersion": ping.BuilderVersion,
+	}
+	if infoErr == nil {
+		payload["serverVersion"] = info.ServerVersion
+		payload["name"] = info.Name
+		payload["operatingSystem"] = info.OperatingSystem
+		payload["containers"] = info.Containers
+		payload["images"] = info.Images
+		payload["cpus"] = info.NCPU
+		payload["memoryTotal"] = info.MemTotal
+	} else {
+		s.logger.Warn("workflows: environment info failed after ping", "error", infoErr, "envID", envID)
+		payload["infoError"] = "environment info failed"
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	out["payload"] = payload
+	return "output", out, nil
+}
+
 // executeDockerPrune removes unused Docker resources.
 func (s *Service) executeDockerPrune(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
 	cli, err := s.pool.Get(envID)
@@ -1537,6 +1729,96 @@ func (s *Service) executeDockerImagePull(ctx context.Context, node *CanvasNode, 
 		"status":   "pulled",
 	}
 	return "output", out, nil
+}
+
+func (s *Service) executeImageVulnerabilityScan(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
+	imageRef, _ := node.Config["image"].(string)
+	if strings.TrimSpace(imageRef) == "" {
+		return "", nil, fmt.Errorf("image is required")
+	}
+
+	scannerName, _ := node.Config["scanner"].(string)
+	settings := coresettings.ReadScannerSettings(s.db)
+	if scannerName == "" {
+		scannerName = settings.DefaultScanner
+	}
+	enabled := map[string]bool{
+		"trivy": settings.TrivyEnabled,
+		"grype": settings.GrypeEnabled,
+		"clair": settings.ClairEnabled,
+	}
+	if !enabled[scannerName] {
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"image": imageRef, "scanner": scannerName, "error": "scanner is disabled"}
+		return "error", out, nil
+	}
+
+	if s.imageScanner == nil {
+		s.logger.Error("workflows: image vulnerability scanner is not configured", "image", imageRef, "scanner", scannerName)
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"image": imageRef, "scanner": scannerName, "error": "scanner is unavailable"}
+		return "error", out, nil
+	}
+
+	input := ImageScanInput{ImageRef: imageRef, Scanner: scannerName, EnvironmentID: envID}
+
+	wait := false
+	if v, ok := node.Config["wait"].(bool); ok {
+		wait = v
+	}
+
+	scanCtx := ctx
+	cancel := func() {}
+	if wait {
+		timeout := time.Duration(settings.ScanTimeout) * time.Second
+		if timeout < 30*time.Second {
+			timeout = 30 * time.Second
+		}
+		scanCtx, cancel = context.WithTimeout(ctx, timeout)
+	}
+	defer cancel()
+
+	var scan *ImageScanResult
+	var err error
+	if wait {
+		scan, err = s.imageScanner.StartScanSync(scanCtx, input)
+	} else {
+		scan, err = s.imageScanner.StartScan(scanCtx, input)
+	}
+	if err != nil {
+		s.logger.Error("workflows: image vulnerability scan failed", "error", err, "image", imageRef, "scanner", scannerName)
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"image": imageRef, "scanner": scannerName, "error": "scan failed"}
+		return "error", out, nil
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	out["payload"] = map[string]interface{}{
+		"id":            scan.ID,
+		"image":         scan.ImageRef,
+		"scanner":       scan.Scanner,
+		"status":        scan.Status,
+		"severity":      scan.Severity,
+		"totalVulns":    scan.TotalVulns,
+		"criticalCount": scan.CriticalCount,
+		"highCount":     scan.HighCount,
+		"mediumCount":   scan.MediumCount,
+		"lowCount":      scan.LowCount,
+	}
+
+	if !wait || scan.Status != "completed" {
+		return "output", out, nil
+	}
+	switch scan.Severity {
+	case "critical", "high", "medium", "low":
+		return scan.Severity, out, nil
+	default:
+		return "clean", out, nil
+	}
 }
 
 // executeHostInfo returns system information from the Docker host via Docker info.
@@ -2511,6 +2793,62 @@ func (s *Service) executeStackRemove(ctx context.Context, node *CanvasNode, msg 
 	return "output", out, nil
 }
 
+func (s *Service) executeStackBackup(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
+	cli, err := s.pool.Get(envID)
+	if err != nil {
+		return "", nil, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	stackName, _ := node.Config["stack_name"].(string)
+	if stackName == "" {
+		return "", nil, fmt.Errorf("stack name is required")
+	}
+
+	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	f := filters.NewArgs()
+	f.Add("label", "com.docker.compose.project="+stackName)
+	containers, listErr := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	if listErr != nil {
+		s.logger.Error("workflows: stack backup list failed", "error", listErr, "stack", stackName, "envID", envID)
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"error": "stack backup failed", "stack": stackName}
+		return "error", out, nil
+	}
+
+	items := make([]interface{}, 0, len(containers))
+	for _, c := range containers {
+		items = append(items, map[string]interface{}{
+			"id":          c.ID[:12],
+			"names":       c.Names,
+			"image":       c.Image,
+			"imageID":     c.ImageID,
+			"command":     c.Command,
+			"state":       c.State,
+			"status":      c.Status,
+			"created":     c.Created,
+			"labels":      c.Labels,
+			"ports":       c.Ports,
+			"mounts":      c.Mounts,
+			"networkMode": c.HostConfig.NetworkMode,
+		})
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	out["payload"] = map[string]interface{}{
+		"kind":        "mcharbor.stack-backup",
+		"version":     1,
+		"stack":       stackName,
+		"environment": envID,
+		"exportedAt":  time.Now().UTC().Format(time.RFC3339),
+		"containers":  items,
+	}
+	return "output", out, nil
+}
+
 // ---------------------------------------------------------------------------
 // Image node implementations
 // ---------------------------------------------------------------------------
@@ -2874,6 +3212,87 @@ func (s *Service) executeVolumeInspect(ctx context.Context, node *CanvasNode, ms
 		"options":    vol.Options,
 		"createdAt":  vol.CreatedAt,
 		"status":     vol.Status,
+	}
+	return "output", out, nil
+}
+
+func (s *Service) executeVolumeBackup(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
+	volumeName, _ := node.Config["volume"].(string)
+	backupPath, _ := node.Config["backup_path"].(string)
+	if strings.TrimSpace(volumeName) == "" {
+		return "", nil, fmt.Errorf("volume is required")
+	}
+	if strings.TrimSpace(backupPath) == "" {
+		return "", nil, fmt.Errorf("backup path is required")
+	}
+
+	cli, err := s.pool.Get(envID)
+	if err != nil {
+		return "", nil, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	helperImage := workflowHelperImage(node)
+	opCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	if err := s.runVolumeArchiveHelper(opCtx, cli, helperImage, volumeName, backupPath, false); err != nil {
+		s.logger.Error("workflows: volume backup failed", "error", err, "volume", volumeName, "envID", envID)
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"volume": volumeName, "backupPath": backupPath, "error": "volume backup failed"}
+		return "error", out, nil
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	out["payload"] = map[string]interface{}{
+		"volume":      volumeName,
+		"backupPath":  backupPath,
+		"helperImage": helperImage,
+		"status":      "backed_up",
+	}
+	return "output", out, nil
+}
+
+func (s *Service) executeVolumeRestore(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
+	volumeName, _ := node.Config["volume"].(string)
+	backupPath, _ := node.Config["backup_path"].(string)
+	if strings.TrimSpace(volumeName) == "" {
+		return "", nil, fmt.Errorf("volume is required")
+	}
+	if strings.TrimSpace(backupPath) == "" {
+		return "", nil, fmt.Errorf("backup path is required")
+	}
+
+	cli, err := s.pool.Get(envID)
+	if err != nil {
+		return "", nil, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	overwrite := false
+	if v, ok := node.Config["overwrite"].(bool); ok {
+		overwrite = v
+	}
+	helperImage := workflowHelperImage(node)
+	opCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer cancel()
+
+	if err := s.runVolumeRestoreHelper(opCtx, cli, helperImage, volumeName, backupPath, overwrite); err != nil {
+		s.logger.Error("workflows: volume restore failed", "error", err, "volume", volumeName, "envID", envID)
+		out := CloneMsg(msg)
+		out = EnsureMsgID(out)
+		out["payload"] = map[string]interface{}{"volume": volumeName, "backupPath": backupPath, "error": "volume restore failed"}
+		return "error", out, nil
+	}
+
+	out := CloneMsg(msg)
+	out = EnsureMsgID(out)
+	out["payload"] = map[string]interface{}{
+		"volume":      volumeName,
+		"backupPath":  backupPath,
+		"helperImage": helperImage,
+		"overwrite":   overwrite,
+		"status":      "restored",
 	}
 	return "output", out, nil
 }
@@ -5512,6 +5931,266 @@ func (s *Service) resolveConfiguredRegistry(ctx context.Context, registryID stri
 	}
 
 	return &reg, nil
+}
+
+func (s *Service) inspectRegistryTagDigest(ctx context.Context, node *CanvasNode, envID string) (string, map[string]interface{}, error) {
+	cli, err := s.pool.Get(envID)
+	if err != nil {
+		return "", nil, fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	imageRef, _ := node.Config["image"].(string)
+	if strings.TrimSpace(imageRef) == "" {
+		return "", nil, fmt.Errorf("image is required")
+	}
+
+	opCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	registryAuth, registryName, err := s.registryAuthForNode(opCtx, node)
+	if err != nil {
+		return "", nil, err
+	}
+
+	info, err := cli.DistributionInspect(opCtx, imageRef, registryAuth)
+	if err != nil {
+		return "", nil, fmt.Errorf("inspecting registry tag: %w", err)
+	}
+
+	payload := map[string]interface{}{
+		"trigger":     "registry-tag",
+		"image":       imageRef,
+		"registry":    registryName,
+		"timestamp":   time.Now().UTC().Format(time.RFC3339),
+		"platforms":   info.Platforms,
+		"descriptor":  info.Descriptor,
+		"environment": envID,
+	}
+	return info.Descriptor.Digest.String(), payload, nil
+}
+
+func workflowHelperImage(node *CanvasNode) string {
+	helperImage, _ := node.Config["helper_image"].(string)
+	if strings.TrimSpace(helperImage) == "" {
+		return "alpine:3.20"
+	}
+	return strings.TrimSpace(helperImage)
+}
+
+func (s *Service) runVolumeArchiveHelper(ctx context.Context, cli *dockerclient.Client, helperImage, volumeName, backupPath string, restore bool) error {
+	backupDir, backupFile, err := splitBackupPath(backupPath)
+	if err != nil {
+		return err
+	}
+
+	if err := pullHelperImage(ctx, cli, helperImage); err != nil {
+		s.logger.Warn("workflows: helper image pull failed, trying local image", "error", err, "image", helperImage)
+	}
+
+	cmd := []string{"sh", "-c", `mkdir -p /backup && tar -czf "/backup/$BACKUP_FILE" -C /source .`}
+	readonly := true
+	if restore {
+		cmd = []string{"sh", "-c", `tar -xzf "/backup/$BACKUP_FILE" -C /target`}
+		readonly = false
+	}
+
+	resp, err := cli.ContainerCreate(ctx,
+		&container.Config{
+			Image: helperImage,
+			Cmd:   cmd,
+			Env:   []string{"BACKUP_FILE=" + backupFile},
+		},
+		&container.HostConfig{
+			AutoRemove: false,
+			Mounts: []mount.Mount{
+				{Type: mount.TypeVolume, Source: volumeName, Target: "/source", ReadOnly: readonly},
+				{Type: mount.TypeBind, Source: backupDir, Target: "/backup"},
+			},
+		},
+		nil,
+		nil,
+		"mcharbor-workflow-volume-backup-"+xid.New().String(),
+	)
+	if err != nil {
+		return fmt.Errorf("creating helper container: %w", err)
+	}
+	defer removeHelperContainer(context.Background(), cli, resp.ID, s.logger)
+
+	return runHelperContainer(ctx, cli, resp.ID)
+}
+
+func (s *Service) runVolumeRestoreHelper(ctx context.Context, cli *dockerclient.Client, helperImage, volumeName, backupPath string, overwrite bool) error {
+	backupDir, backupFile, err := splitBackupPath(backupPath)
+	if err != nil {
+		return err
+	}
+
+	if err := pullHelperImage(ctx, cli, helperImage); err != nil {
+		s.logger.Warn("workflows: helper image pull failed, trying local image", "error", err, "image", helperImage)
+	}
+
+	overwriteValue := "false"
+	if overwrite {
+		overwriteValue = "true"
+	}
+
+	resp, err := cli.ContainerCreate(ctx,
+		&container.Config{
+			Image: helperImage,
+			Cmd:   []string{"sh", "-c", `if [ "$OVERWRITE" != "true" ] && [ "$(ls -A /target 2>/dev/null)" ]; then exit 3; fi; tar -xzf "/backup/$BACKUP_FILE" -C /target`},
+			Env:   []string{"BACKUP_FILE=" + backupFile, "OVERWRITE=" + overwriteValue},
+		},
+		&container.HostConfig{
+			AutoRemove: false,
+			Mounts: []mount.Mount{
+				{Type: mount.TypeVolume, Source: volumeName, Target: "/target"},
+				{Type: mount.TypeBind, Source: backupDir, Target: "/backup", ReadOnly: true},
+			},
+		},
+		nil,
+		nil,
+		"mcharbor-workflow-volume-restore-"+xid.New().String(),
+	)
+	if err != nil {
+		return fmt.Errorf("creating helper container: %w", err)
+	}
+	defer removeHelperContainer(context.Background(), cli, resp.ID, s.logger)
+
+	return runHelperContainer(ctx, cli, resp.ID)
+}
+
+func splitBackupPath(path string) (string, string, error) {
+	cleaned := filepath.Clean(strings.TrimSpace(path))
+	dir := filepath.Dir(cleaned)
+	file := filepath.Base(cleaned)
+	if dir == "." || dir == "" || file == "." || file == string(filepath.Separator) {
+		return "", "", fmt.Errorf("backup path must include a directory and file name")
+	}
+	return dir, file, nil
+}
+
+func pullHelperImage(ctx context.Context, cli *dockerclient.Client, imageName string) error {
+	reader, err := cli.ImagePull(ctx, imageName, image.PullOptions{})
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+	_, err = io.Copy(io.Discard, reader)
+	return err
+}
+
+func runHelperContainer(ctx context.Context, cli *dockerclient.Client, id string) error {
+	if err := cli.ContainerStart(ctx, id, container.StartOptions{}); err != nil {
+		return fmt.Errorf("starting helper container: %w", err)
+	}
+	statusCh, errCh := cli.ContainerWait(ctx, id, container.WaitConditionNotRunning)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return fmt.Errorf("waiting for helper container: %w", err)
+		}
+	case status := <-statusCh:
+		if status.StatusCode != 0 {
+			return fmt.Errorf("helper container exited with status %d", status.StatusCode)
+		}
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return nil
+}
+
+func removeHelperContainer(ctx context.Context, cli *dockerclient.Client, id string, logger *slog.Logger) {
+	rmCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	if err := cli.ContainerRemove(rmCtx, id, container.RemoveOptions{Force: true, RemoveVolumes: true}); err != nil {
+		logger.Warn("workflows: helper container cleanup failed", "error", err, "container", id)
+	}
+}
+
+func dockerEventMsg(evt events.Message, autoTriggered bool) Msg {
+	if evt.ID == "" && evt.Actor.ID == "" {
+		out := NewMsg(map[string]interface{}{
+			"trigger":       "docker-event",
+			"matched":       false,
+			"autoTriggered": autoTriggered,
+			"timestamp":     time.Now().UTC().Format(time.RFC3339),
+		})
+		out["topic"] = "docker-event"
+		return out
+	}
+
+	action := strings.TrimSpace(string(evt.Action))
+	normalized := action
+	if idx := strings.Index(normalized, ":"); idx != -1 {
+		normalized = strings.TrimSpace(normalized[:idx])
+	}
+
+	out := NewMsg(map[string]interface{}{
+		"trigger":          "docker-event",
+		"type":             string(evt.Type),
+		"action":           action,
+		"normalizedAction": normalized,
+		"id":               evt.ID,
+		"actorId":          evt.Actor.ID,
+		"actorAttributes":  evt.Actor.Attributes,
+		"scope":            string(evt.Scope),
+		"time":             evt.Time,
+		"timeNano":         evt.TimeNano,
+		"matched":          true,
+		"autoTriggered":    autoTriggered,
+	})
+	out["topic"] = "docker-event"
+	return out
+}
+
+func matchesDockerEventNode(node *CanvasNode, evt events.Message) bool {
+	eventType, _ := node.Config["type"].(string)
+	if eventType != "" && eventType != "any" && eventType != string(evt.Type) {
+		return false
+	}
+
+	cfgAction, _ := node.Config["action"].(string)
+	cfgAction = strings.TrimSpace(cfgAction)
+	if cfgAction != "" {
+		action := strings.TrimSpace(string(evt.Action))
+		normalized := action
+		if idx := strings.Index(normalized, ":"); idx != -1 {
+			normalized = strings.TrimSpace(normalized[:idx])
+		}
+		if cfgAction != action && cfgAction != normalized {
+			return false
+		}
+	}
+
+	name, _ := node.Config["name"].(string)
+	name = strings.TrimSpace(name)
+	if name != "" && name != evt.ID && name != evt.Actor.ID && name != evt.Actor.Attributes["name"] {
+		return false
+	}
+
+	labelFilter, _ := node.Config["label"].(string)
+	labelFilter = strings.TrimSpace(labelFilter)
+	if labelFilter == "" {
+		return true
+	}
+	if strings.Contains(labelFilter, "=") {
+		parts := strings.SplitN(labelFilter, "=", 2)
+		return evt.Actor.Attributes[parts[0]] == parts[1]
+	}
+	_, ok := evt.Actor.Attributes[labelFilter]
+	return ok
+}
+
+func containerHealthFromEvent(evt events.Message) string {
+	action := strings.TrimSpace(string(evt.Action))
+	if !strings.HasPrefix(action, "health_status") {
+		return ""
+	}
+	parts := strings.SplitN(action, ":", 2)
+	if len(parts) != 2 {
+		return ""
+	}
+	return strings.TrimSpace(parts[1])
 }
 
 func (s *Service) executeComposeUp(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {

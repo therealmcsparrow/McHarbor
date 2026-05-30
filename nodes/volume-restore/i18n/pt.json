@@ -1,0 +1,11 @@
+{
+  "label": "Restaurar volume",
+  "description": "Restaura um volume Docker de um arquivo tar usando um conteiner auxiliar",
+  "config": {
+    "environment": "Ambiente",
+    "volume": "Volume",
+    "backup_path": "Caminho do arquivo de backup",
+    "overwrite": "Sobrescrever arquivos existentes",
+    "helper_image": "Image auxiliar"
+  }
+}

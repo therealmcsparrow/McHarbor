@@ -1,0 +1,34 @@
+{
+  "slug": "homarr",
+  "name": "Homarr",
+  "description": "Customizable dashboard for your server with service integrations.",
+  "category": "Utilities",
+  "image": "ghcr.io/ajnart/homarr:latest",
+  "logo": "https://homarr.dev/img/logo.png",
+  "website": "https://homarr.dev",
+  "docsUrl": "https://homarr.dev/docs/getting-started/",
+  "ports": [
+    {
+      "host": 7575,
+      "container": 7575,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/homarr/configs",
+      "container": "/app/data/configs"
+    },
+    {
+      "host": "/opt/appdata/homarr/icons",
+      "container": "/app/public/icons"
+    },
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock",
+      "readOnly": true
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

@@ -1,0 +1,39 @@
+{
+  "slug": "nginx-proxy-manager",
+  "name": "Nginx Proxy Manager",
+  "description": "Expose your services with free SSL, reverse proxy management, and a clean UI.",
+  "category": "Networking",
+  "image": "jc21/nginx-proxy-manager:latest",
+  "logo": "https://nginxproxymanager.com/icon.png",
+  "website": "https://nginxproxymanager.com",
+  "docsUrl": "https://nginxproxymanager.com/guide/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 81,
+      "container": 81,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/npm/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/npm/letsencrypt",
+      "container": "/etc/letsencrypt"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

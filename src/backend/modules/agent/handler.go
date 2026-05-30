@@ -21,8 +21,8 @@ import (
 
 // Handler holds dependencies for agent HTTP handlers.
 type Handler struct {
-	app     *router.AppDeps
-	service *Service
+	app      *router.AppDeps
+	service  *Service
 	upgrader websocket.Upgrader
 }
 
@@ -127,9 +127,10 @@ func (h *Handler) HandleAgentWS(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Cleanup
-	h.app.AgentPool.Remove(envID)
-	h.app.DockerPool.Remove(envID)
-	h.service.UpdateAgentStatus(envID, "disconnected", nil)
+	if h.app.AgentPool.RemoveIfCurrent(envID, agentConn) {
+		h.app.DockerPool.Remove(envID)
+		h.service.UpdateAgentStatus(envID, "disconnected", nil)
+	}
 }
 
 // HandleListAgents returns status of all agent-type environments.

@@ -42,6 +42,7 @@ export default function ContainersPage() {
   const updateResults = useContainerUpdateResults();
   const { viewMode, setViewMode } = useContainersViewStore();
   const [removeTarget, setRemoveTarget] = useState<ContainerInfo | null>(null);
+  const [renameTarget, setRenameTarget] = useState<ContainerInfo | null>(null);
   const [terminalTarget, setTerminalTarget] = useState<ContainerInfo | null>(null);
   const [logsTarget, setLogsTarget] = useState<ContainerInfo | null>(null);
   const [takeOverTarget, setTakeOverTarget] = useState<ContainerInfo | null>(null);
@@ -100,7 +101,15 @@ export default function ContainersPage() {
   const mutableContainers = containers.filter((container) => !isProtectedContainer(container));
   const allTargets = mutableContainers.map(toTarget);
   const updateTargets = mutableContainers.filter((container) => updateAvailableIDs.has(container.Id)).map(toTarget);
-  const columns = useContainerColumns({ action, onTerminal: setTerminalTarget, onLogs: setLogsTarget, onRemove: setRemoveTarget, onTakeOver: setTakeOverTarget, updateResults });
+  const columns = useContainerColumns({
+    action,
+    onTerminal: setTerminalTarget,
+    onLogs: setLogsTarget,
+    onRename: setRenameTarget,
+    onRemove: setRemoveTarget,
+    onTakeOver: setTakeOverTarget,
+    updateResults,
+  });
   const batchActions = useContainerBatchActions({
     action,
     onUpdateSelected: (rows) => runContainerOperation('update', rows.map(toTarget)),
@@ -162,6 +171,7 @@ export default function ContainersPage() {
           }}
           onTerminal={setTerminalTarget}
           onLogs={setLogsTarget}
+          onRename={setRenameTarget}
           onRemove={setRemoveTarget}
           onClick={(container) => navigate(`/containers/${container.Id}`)}
         />
@@ -169,12 +179,14 @@ export default function ContainersPage() {
 
       <ContainerUtilityDialogs
         removeTarget={removeTarget}
+        renameTarget={renameTarget}
         terminalTarget={terminalTarget}
         logsTarget={logsTarget}
         takeOverTarget={takeOverTarget}
         progressState={batchProgress.dialogState}
         closeProgress={batchProgress.closeDialog}
         setRemoveTarget={setRemoveTarget}
+        setRenameTarget={setRenameTarget}
         setTerminalTarget={setTerminalTarget}
         setLogsTarget={setLogsTarget}
         setTakeOverTarget={setTakeOverTarget}

@@ -34,6 +34,7 @@ type UseContainerColumnsProps = {
   action: { mutate: (vars: { id: string; action: string }) => void };
   onTerminal: (c: ContainerInfo) => void;
   onLogs: (c: ContainerInfo) => void;
+  onRename: (c: ContainerInfo) => void;
   onRemove: (c: ContainerInfo) => void;
   onTakeOver: (c: ContainerInfo) => void;
   updateResults?: Map<string, { containerId: string; updateAvailable: boolean; error?: string }>;
@@ -43,6 +44,7 @@ export function useContainerColumns({
   action,
   onTerminal,
   onLogs,
+  onRename,
   onRemove,
   onTakeOver,
   updateResults,
@@ -231,18 +233,19 @@ export function useContainerColumns({
       {
         id: 'actions',
         header: () => <span className="ml-auto">{t('columns.actions')}</span>,
-        size: 130,
+        size: 155,
         cell: ({ row }) => (
           <ContainerActionsCell
             container={row.original}
             onAction={action.mutate}
             onTerminal={onTerminal}
             onLogs={onLogs}
+            onRename={onRename}
             onRemove={onRemove}
           />
         ),
       },
     ],
-    [action, t, tc, onTerminal, onLogs, onRemove, onTakeOver, updateResults]
+    [action, t, tc, onTerminal, onLogs, onRename, onRemove, onTakeOver, updateResults]
   );
 }

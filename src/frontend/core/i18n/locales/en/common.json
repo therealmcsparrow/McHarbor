@@ -49,6 +49,7 @@
     "deploy": "Deploy",
     "update": "Update",
     "refresh": "Refresh",
+    "review": "Review",
     "processing": "Processing...",
     "saving": "Saving...",
     "deleting": "Deleting...",

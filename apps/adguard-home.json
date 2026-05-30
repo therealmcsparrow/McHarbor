@@ -1,0 +1,34 @@
+{
+  "slug": "adguard-home",
+  "name": "AdGuard Home",
+  "description": "Network-wide ad and tracker blocking DNS server with a beautiful UI.",
+  "category": "Networking",
+  "image": "adguard/adguardhome:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/adguard-home.png",
+  "website": "https://adguard.com/en/adguard-home/overview.html",
+  "docsUrl": "https://github.com/AdguardTeam/AdGuardHome/wiki",
+  "ports": [
+    {
+      "host": 3000,
+      "container": 3000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/adguard/work",
+      "container": "/opt/adguardhome/work"
+    },
+    {
+      "host": "/opt/appdata/adguard/conf",
+      "container": "/opt/adguardhome/conf"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

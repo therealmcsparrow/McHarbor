@@ -1,0 +1,36 @@
+{
+  "slug": "zwavejs",
+  "name": "Z-Wave JS UI",
+  "description": "Full-featured Z-Wave control panel and MQTT gateway for your Z-Wave network.",
+  "category": "Home Automation",
+  "image": "zwavejs/zwave-js-ui:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/z-wave-js-ui.png",
+  "website": "https://zwave-js.github.io/zwave-js-ui/",
+  "docsUrl": "https://zwave-js.github.io/zwave-js-ui/#/getting-started/quick-start",
+  "ports": [
+    {
+      "host": 8091,
+      "container": 8091,
+      "protocol": "tcp"
+    },
+    {
+      "host": 3500,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/zwavejs/store",
+      "container": "/usr/src/app/store"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

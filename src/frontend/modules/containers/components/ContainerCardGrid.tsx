@@ -17,6 +17,7 @@ type ContainerCardGridProps = {
   onAction: (id: string, action: string) => void;
   onTerminal: (c: ContainerInfo) => void;
   onLogs: (c: ContainerInfo) => void;
+  onRename: (c: ContainerInfo) => void;
   onRemove: (c: ContainerInfo) => void;
   onClick: (c: ContainerInfo) => void;
 };
@@ -29,6 +30,7 @@ export function ContainerCardGrid({
   onAction,
   onTerminal,
   onLogs,
+  onRename,
   onRemove,
   onClick,
 }: ContainerCardGridProps) {
@@ -64,6 +66,7 @@ export function ContainerCardGrid({
             onAction={onAction}
             onTerminal={onTerminal}
             onLogs={onLogs}
+            onRename={onRename}
             onRemove={onRemove}
             onClick={onClick}
           />

@@ -1,0 +1,33 @@
+{
+  "slug": "netdata",
+  "name": "Netdata",
+  "description": "Real-time performance and health monitoring with zero configuration.",
+  "category": "Monitoring",
+  "image": "netdata/netdata:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/netdata.png",
+  "website": "https://www.netdata.cloud",
+  "docsUrl": "https://learn.netdata.cloud",
+  "ports": [
+    {
+      "host": 19999,
+      "container": 19999,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/netdata/config",
+      "container": "/etc/netdata"
+    },
+    {
+      "host": "/opt/appdata/netdata/lib",
+      "container": "/var/lib/netdata"
+    },
+    {
+      "host": "/opt/appdata/netdata/cache",
+      "container": "/var/cache/netdata"
+    }
+  ],
+  "envVars": [],
+  "version": "latest"
+}

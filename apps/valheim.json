@@ -1,0 +1,52 @@
+{
+  "slug": "valheim",
+  "name": "Valheim",
+  "description": "Dedicated Valheim server for multiplayer Viking survival.",
+  "category": "Gaming",
+  "image": "lloesche/valheim-server:latest",
+  "logo": "https://img.icons8.com/?size=512&id=zCYKMxlXCZhw&format=png",
+  "website": "https://www.valheimgame.com",
+  "docsUrl": "https://github.com/lloesche/valheim-server-docker",
+  "ports": [
+    {
+      "host": 2456,
+      "container": 2456,
+      "protocol": "udp"
+    },
+    {
+      "host": 2457,
+      "container": 2457,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/valheim/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/valheim/data",
+      "container": "/opt/valheim"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "SERVER_NAME",
+      "default": "My Valheim Server",
+      "description": "Server name"
+    },
+    {
+      "key": "WORLD_NAME",
+      "default": "Dedicated",
+      "description": "World name"
+    },
+    {
+      "key": "SERVER_PASS",
+      "default": "",
+      "description": "Server password (min 5 chars)",
+      "secret": true
+    }
+  ],
+  "minMemory": "4GB",
+  "version": "latest"
+}

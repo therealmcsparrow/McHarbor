@@ -1,0 +1,31 @@
+{
+  "slug": "ring-mqtt",
+  "name": "Ring-MQTT",
+  "description": "Bridge Ring cameras, alarms, sensors, and smart lighting into MQTT with Home Assistant discovery.",
+  "category": "Home Automation",
+  "image": "tsightler/ring-mqtt:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ring.png",
+  "website": "https://github.com/tsightler/ring-mqtt",
+  "docsUrl": "https://github.com/tsightler/ring-mqtt/wiki/Installation-(Docker)",
+  "ports": [
+    {
+      "host": 8554,
+      "container": 8554,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/ring-mqtt",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "BRANCH",
+      "default": "",
+      "description": "Optional branch override; leave empty for bundled image code"
+    }
+  ],
+  "version": "latest"
+}

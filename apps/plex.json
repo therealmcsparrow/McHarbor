@@ -1,0 +1,52 @@
+{
+  "slug": "plex",
+  "name": "Plex",
+  "description": "Organize and stream your personal media collection to any device.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/plex:latest",
+  "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/plex-icon.png",
+  "website": "https://www.plex.tv",
+  "docsUrl": "https://support.plex.tv",
+  "ports": [
+    {
+      "host": 32400,
+      "container": 32400,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/plex/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/plex/media",
+      "container": "/media"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "PLEX_CLAIM",
+      "default": "",
+      "description": "Plex claim token from plex.tv/claim",
+      "secret": true
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

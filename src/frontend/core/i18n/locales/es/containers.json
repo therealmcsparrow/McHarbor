@@ -50,6 +50,7 @@
     "actionCompleted": "Acción completada",
     "takeOver": "Tomar el control",
     "relinkStack": "Volver a vincular la pila",
+    "rename": "Renombrar",
     "edit": "Editar"
   },
   "detail": {
@@ -88,9 +89,18 @@
     "created": "Contenedor creado",
     "recreated": "Contenedor recreado",
     "updated": "Contenedor actualizado",
+    "renamed": "Contenedor renombrado",
     "reinstalled": "Contenedor reinstalado",
     "resumed": "Contenedor reanudado",
     "pruned": "Recipientes no utilizados podados"
+  },
+  "rename": {
+    "title": "Renombrar contenedor",
+    "description": "Cambie el nombre visible de {{name}}.",
+    "nameLabel": "Nombre del contenedor",
+    "namePlaceholder": "mi-contenedor",
+    "submit": "Renombrar",
+    "saving": "Renombrando..."
   },
   "confirm": {
     "stopTitle": "Detener contenedor",

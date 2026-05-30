@@ -50,6 +50,7 @@
     "actionCompleted": "Action completed",
     "takeOver": "Take Over",
     "relinkStack": "Relink Stack",
+    "rename": "Rename",
     "edit": "Edit"
   },
   "detail": {
@@ -88,9 +89,18 @@
     "created": "Container created",
     "recreated": "Container recreated",
     "updated": "Container updated",
+    "renamed": "Container renamed",
     "reinstalled": "Container reinstalled",
     "resumed": "Container resumed",
     "pruned": "Unused containers pruned"
+  },
+  "rename": {
+    "title": "Rename Container",
+    "description": "Change the display name for {{name}}.",
+    "nameLabel": "Container name",
+    "namePlaceholder": "my-container",
+    "submit": "Rename",
+    "saving": "Renaming..."
   },
   "confirm": {
     "stopTitle": "Stop Container",

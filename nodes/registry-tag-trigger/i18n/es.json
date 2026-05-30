@@ -1,0 +1,17 @@
+{
+  "label": "Disparador de tag de registry",
+  "description": "Inicia un workflow cuando cambia el digest de una tag de image vigilada",
+  "config": {
+    "environment": "Entorno",
+    "image": "Tag de image",
+    "registry_mode": "Registry",
+    "registry_id": "Registry",
+    "interval": "Intervalo (segundos)"
+  },
+  "options": {
+    "registry_mode": {
+      "configured": "Registry configurado",
+      "custom": "Otro"
+    }
+  }
+}

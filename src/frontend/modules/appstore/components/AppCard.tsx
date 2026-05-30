@@ -2,7 +2,7 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from "react-i18next";
-import { IconCheck, IconDownload } from "@tabler/icons-react";
+import { IconCheck, IconDownload, IconEye } from "@tabler/icons-react";
 import { Badge } from "@resources/components/ui/Badge";
 import { Button } from "@resources/components/ui/Button";
 import { AppInstallationsSummary } from "./AppInstallations";
@@ -63,25 +63,33 @@ export function AppCard({ app, onInstall, onViewDetail }: AppCardProps) {
 
         <AppInstallationsSummary installations={app.installations ?? []} />
 
-        <div className="flex items-center justify-between gap-2">
-          {app.installed ? (
-            <Badge variant="success" className="gap-1">
-              <IconCheck className="size-3" />
-              {t("appStore.installed")}
-            </Badge>
-          ) : (
-            <span className="text-xs text-muted-foreground">
-              {t("appStore.availableForInstall")}
-            </span>
-          )}
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="ghost" onClick={() => onViewDetail(app)}>
-              {t("actions.view")}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center">
+            {app.installed ? (
+              <Badge variant="success" className="gap-1">
+                <IconCheck className="size-3" />
+                {t("appStore.installed")}
+              </Badge>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                {t("appStore.availableForInstall")}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 justify-start gap-1 px-2"
+              onClick={() => onViewDetail(app)}
+            >
+              <IconEye className="size-3.5" />
+              {t("actions.review")}
             </Button>
             <Button
               size="sm"
               variant="outline"
-              className="gap-1"
+              className="h-8 justify-end gap-1"
               onClick={() => onInstall(app)}
             >
               <IconDownload className="size-3.5" />

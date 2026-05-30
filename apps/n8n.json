@@ -1,0 +1,52 @@
+{
+  "slug": "n8n",
+  "name": "n8n",
+  "description": "Workflow automation tool that connects apps and services with a visual editor.",
+  "category": "Productivity",
+  "image": "n8nio/n8n:latest",
+  "logo": "https://n8n.io/favicon.ico",
+  "website": "https://n8n.io",
+  "docsUrl": "https://docs.n8n.io",
+  "ports": [
+    {
+      "host": 5678,
+      "container": 5678,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/n8n/data",
+      "container": "/home/node/.n8n"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "N8N_BASIC_AUTH_ACTIVE",
+      "default": "true",
+      "description": "Enable basic auth"
+    },
+    {
+      "key": "N8N_BASIC_AUTH_USER",
+      "default": "admin",
+      "description": "Basic auth username"
+    },
+    {
+      "key": "N8N_BASIC_AUTH_PASSWORD",
+      "default": "",
+      "description": "Basic auth password",
+      "secret": true
+    },
+    {
+      "key": "TZ",
+      "default": "America/New_York",
+      "description": "Timezone"
+    },
+    {
+      "key": "GENERIC_TIMEZONE",
+      "default": "America/New_York",
+      "description": "Timezone for cron"
+    }
+  ],
+  "version": "latest"
+}

@@ -8,6 +8,7 @@ import { TakeOverDialog } from '@resources/components/TakeOverDialog';
 import type { ContainerInspect } from '@core/types/docker';
 import { RecreateConfirmDialog } from './RecreateConfirmDialog';
 import { RemoveContainerDialog } from './RemoveContainerDialog';
+import { RenameContainerDialog } from './RenameContainerDialog';
 
 type ContainerDetailDialogsProps = {
   container: ContainerInspect;
@@ -15,6 +16,7 @@ type ContainerDetailDialogsProps = {
   confirmKill: boolean;
   recreateConfirmOpen: boolean;
   removeDialogOpen: boolean;
+  renameDialogOpen: boolean;
   takeOverOpen: boolean;
   relinkOpen: boolean;
   linkedStackName: string | null;
@@ -24,6 +26,7 @@ type ContainerDetailDialogsProps = {
   onConfirmKillChange: (open: boolean) => void;
   onRecreateConfirmChange: (open: boolean) => void;
   onRemoveDialogChange: (open: boolean) => void;
+  onRenameDialogChange: (open: boolean) => void;
   onTakeOverChange: (open: boolean) => void;
   onRelinkChange: (open: boolean) => void;
   onKill: () => void;
@@ -37,6 +40,7 @@ export function ContainerDetailDialogs({
   confirmKill,
   recreateConfirmOpen,
   removeDialogOpen,
+  renameDialogOpen,
   takeOverOpen,
   relinkOpen,
   linkedStackName,
@@ -46,6 +50,7 @@ export function ContainerDetailDialogs({
   onConfirmKillChange,
   onRecreateConfirmChange,
   onRemoveDialogChange,
+  onRenameDialogChange,
   onTakeOverChange,
   onRelinkChange,
   onKill,
@@ -85,6 +90,15 @@ export function ContainerDetailDialogs({
         open={removeDialogOpen}
         onOpenChange={onRemoveDialogChange}
         onSuccess={onRemoveSuccess}
+      />
+
+      <RenameContainerDialog
+        container={{
+          id: container.Id,
+          name: containerName,
+        }}
+        open={renameDialogOpen}
+        onOpenChange={onRenameDialogChange}
       />
 
       <TakeOverDialog
