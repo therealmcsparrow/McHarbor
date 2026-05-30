@@ -2,6 +2,26 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.2.4] - 2026-05-30
+
+### Changed
+
+- Updated frontend dependency lockfile packages to the newest versions allowed by the existing semver ranges, including Vite `8.0.14`, React `19.2.6`, React Router `7.16.0`, Tailwind CSS `4.3.0`, TanStack Query `5.100.14`, i18next `26.3.0`, and related tooling/runtime packages.
+- Updated backend Go dependencies, including chi `5.3.0`, Kubernetes client libraries `0.36.1`, modernc SQLite `1.51.0`, `golang.org/x/crypto` `0.52.0`, `golang.org/x/net` `0.55.0`, SAML XML signature support `1.6.0`, and related transitive modules.
+- Bumped the backend Go module directive to `go 1.26.0`, matching the Docker builder image already used for production builds.
+- Bumped the canonical application version in `VERSION`, agent metadata, frontend package metadata, and lockfile root version to `1.2.4`.
+
+### Fixed
+
+- Cleared all frontend packages reported by `npm outdated` within the configured package ranges.
+- Refreshed backend module checksums after the Go dependency update and tidy pass.
+
+### Tests
+
+- Rebuilt the frontend successfully after the npm update.
+- Ran the full backend test suite after Go dependency updates.
+- Rebuilt and restarted the Docker container and verified `/api/health` returned OK after the dependency updates.
+
 ## [1.2.3] - 2026-05-30
 
 ### Added
