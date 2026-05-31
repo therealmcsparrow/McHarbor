@@ -27,6 +27,9 @@ func Mount(app *router.AppDeps) {
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersDelete)).Delete("/", h.HandleRemove)
 
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersDelete)).Post("/remove", h.HandleRemoveExtended)
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersView)).Post("/move/plan", h.HandleMovePlan)
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/move", h.HandleMove)
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/move/stream", h.HandleMoveStream)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/start", h.HandleStart)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/stop", h.HandleStop)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/restart", h.HandleRestart)

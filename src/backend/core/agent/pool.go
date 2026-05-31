@@ -100,6 +100,17 @@ func (p *AgentPool) Get(envID string) (*AgentConnection, bool) {
 	return conn, ok
 }
 
+// Version returns the connected agent version for an environment.
+func (p *AgentPool) Version(envID string) (string, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	conn, ok := p.conns[envID]
+	if !ok {
+		return "", false
+	}
+	return conn.Version, true
+}
+
 // IsConnected checks if an agent is connected for the given environment.
 func (p *AgentPool) IsConnected(envID string) bool {
 	p.mu.RLock()

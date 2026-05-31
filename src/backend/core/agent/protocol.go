@@ -17,8 +17,11 @@ const (
 	MsgPong = "pong" // Bidirectional
 
 	// HTTP proxy (Docker API calls)
-	MsgHTTPRequest  = "http_request"  // Server→Agent: proxied Docker API call
-	MsgHTTPResponse = "http_response" // Agent→Server: full response
+	MsgHTTPRequest      = "http_request"       // Server→Agent: proxied Docker API call
+	MsgHTTPRequestStart = "http_request_start" // Server→Agent: proxied Docker API call with streamed request body
+	MsgHTTPRequestChunk = "http_request_chunk" // Server→Agent: request body chunk
+	MsgHTTPRequestEnd   = "http_request_end"   // Server→Agent: end of request body stream
+	MsgHTTPResponse     = "http_response"      // Agent→Server: full response
 
 	// Streaming responses (logs, stats, exec)
 	MsgHTTPResponseStart = "http_response_start" // Agent→Server: streaming header
@@ -41,14 +44,14 @@ type WSMessage struct {
 	Type string `json:"type"`
 	ID   string `json:"id,omitempty"` // Request ID for multiplexing
 	// Payload fields (only populated per message type)
-	Auth         *AuthPayload        `json:"auth,omitempty"`
-	AuthResult   *AuthResultPayload  `json:"authResult,omitempty"`
-	HTTPRequest  *WSHTTPRequest      `json:"httpRequest,omitempty"`
-	HTTPResponse *WSHTTPResponse     `json:"httpResponse,omitempty"`
-	StreamStart  *WSStreamStart      `json:"streamStart,omitempty"`
-	StreamChunk  *WSStreamChunk      `json:"streamChunk,omitempty"`
-	ExecStart    *ExecStartPayload   `json:"execStart,omitempty"`
-	ExecResize   *ExecResizePayload  `json:"execResize,omitempty"`
+	Auth         *AuthPayload       `json:"auth,omitempty"`
+	AuthResult   *AuthResultPayload `json:"authResult,omitempty"`
+	HTTPRequest  *WSHTTPRequest     `json:"httpRequest,omitempty"`
+	HTTPResponse *WSHTTPResponse    `json:"httpResponse,omitempty"`
+	StreamStart  *WSStreamStart     `json:"streamStart,omitempty"`
+	StreamChunk  *WSStreamChunk     `json:"streamChunk,omitempty"`
+	ExecStart    *ExecStartPayload  `json:"execStart,omitempty"`
+	ExecResize   *ExecResizePayload `json:"execResize,omitempty"`
 }
 
 // ExecStartPayload is sent by the server to start an exec attach on the agent.

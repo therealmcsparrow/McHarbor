@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -142,6 +144,50 @@ func (p *ClientPool) IsAgentEnv(envID string) bool {
 		return false
 	}
 	return connType.String == "agent"
+}
+
+// AgentVersion returns the connected agent version for an environment.
+func (p *ClientPool) AgentVersion(envID string) (string, bool) {
+	if p.agentPool == nil || envID == "" || envID == "default" {
+		return "", false
+	}
+	return p.agentPool.Version(envID)
+}
+
+// AgentAtLeast reports whether the connected agent meets a minimum version.
+func (p *ClientPool) AgentAtLeast(envID, minimum string) bool {
+	version, ok := p.AgentVersion(envID)
+	if !ok {
+		return false
+	}
+	return compareAgentVersion(version, minimum) >= 0
+}
+
+func compareAgentVersion(version, minimum string) int {
+	versionParts := parseAgentVersion(version)
+	minimumParts := parseAgentVersion(minimum)
+	for i := 0; i < 3; i++ {
+		if versionParts[i] > minimumParts[i] {
+			return 1
+		}
+		if versionParts[i] < minimumParts[i] {
+			return -1
+		}
+	}
+	return 0
+}
+
+func parseAgentVersion(version string) [3]int {
+	version = strings.TrimPrefix(strings.TrimSpace(version), "v")
+	parts := strings.Split(version, ".")
+	var result [3]int
+	for i := 0; i < len(parts) && i < len(result); i++ {
+		n, err := strconv.Atoi(parts[i])
+		if err == nil {
+			result[i] = n
+		}
+	}
+	return result
 }
 
 // DockerHost returns the Docker host URL for an environment (e.g., "unix:///var/run/docker.sock").

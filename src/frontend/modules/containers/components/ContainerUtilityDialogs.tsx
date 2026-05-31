@@ -15,12 +15,14 @@ import {
 import type { ContainerInfo } from '@core/types/docker';
 import type { BatchProgressDialogState } from '@resources/hooks/useBatchProgressOperation';
 import { LogsModal } from './LogsModal';
+import { MoveContainerDialog } from './MoveContainerDialog';
 import { RemoveContainerDialog } from './RemoveContainerDialog';
 import { RenameContainerDialog } from './RenameContainerDialog';
 import { TerminalModal } from './TerminalModal';
 
 type ContainerUtilityDialogsProps = {
   removeTarget: ContainerInfo | null;
+  moveTarget: ContainerInfo | null;
   renameTarget: ContainerInfo | null;
   terminalTarget: ContainerInfo | null;
   logsTarget: ContainerInfo | null;
@@ -28,6 +30,7 @@ type ContainerUtilityDialogsProps = {
   progressState: BatchProgressDialogState;
   closeProgress: () => void;
   setRemoveTarget: (container: ContainerInfo | null) => void;
+  setMoveTarget: (container: ContainerInfo | null) => void;
   setRenameTarget: (container: ContainerInfo | null) => void;
   setTerminalTarget: (container: ContainerInfo | null) => void;
   setLogsTarget: (container: ContainerInfo | null) => void;
@@ -37,6 +40,7 @@ type ContainerUtilityDialogsProps = {
 
 export function ContainerUtilityDialogs({
   removeTarget,
+  moveTarget,
   renameTarget,
   terminalTarget,
   logsTarget,
@@ -44,6 +48,7 @@ export function ContainerUtilityDialogs({
   progressState,
   closeProgress,
   setRemoveTarget,
+  setMoveTarget,
   setRenameTarget,
   setTerminalTarget,
   setLogsTarget,
@@ -79,6 +84,21 @@ export function ContainerUtilityDialogs({
         }
         open={removeTarget !== null}
         onOpenChange={(open) => !open && setRemoveTarget(null)}
+      />
+
+      <MoveContainerDialog
+        container={
+          moveTarget
+            ? {
+                id: moveTarget.Id,
+                name: moveTarget.Names?.[0]?.replace(/^\//, '') ?? moveTarget.Id,
+                image: moveTarget.Image,
+                stackName: moveTarget.StackName ?? moveTarget.Labels?.['com.docker.compose.project'] ?? null,
+              }
+            : null
+        }
+        open={moveTarget !== null}
+        onOpenChange={(open) => !open && setMoveTarget(null)}
       />
 
       <Dialog open={terminalTarget !== null} onOpenChange={(open) => !open && setTerminalTarget(null)}>

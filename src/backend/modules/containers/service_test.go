@@ -4,6 +4,9 @@
 package containers
 
 import (
+	"errors"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/docker/docker/api/types"
@@ -67,6 +70,85 @@ func TestReplacementNetworkingConfigDropsRuntimeEndpointFields(t *testing.T) {
 	}
 	if ep.MacAddress != "02:42:ac:14:00:05" || ep.GwPriority != 10 {
 		t.Fatalf("expected create-time endpoint options to be preserved, got %#v", ep)
+	}
+}
+
+func TestFormatMoveTransferProgressIncludesTotal(t *testing.T) {
+	got := formatMoveTransferProgress(1024*1024, 2*1024*1024)
+	want := "Transferred 1.0 MB of 2.0 MB from source image archive."
+	if got != want {
+		t.Fatalf("expected %q, got %q", want, got)
+	}
+}
+
+func TestMoveProgressTotalBytesExpandsForLargerArchive(t *testing.T) {
+	got := moveProgressTotalBytes(3*1024*1024, 2*1024*1024)
+	want := int64(3 * 1024 * 1024)
+	if got != want {
+		t.Fatalf("expected total to expand to %d, got %d", want, got)
+	}
+}
+
+func TestMoveProgressReaderEmitsTransferredBytes(t *testing.T) {
+	var events []MoveContainerEvent
+	reader := &moveProgressReader{
+		reader: strings.NewReader("abcdef"),
+		total:  12,
+		emit: func(event MoveContainerEvent) {
+			events = append(events, event)
+		},
+	}
+
+	buf := make([]byte, 3)
+	n, err := reader.Read(buf)
+	if err != nil && err != io.EOF {
+		t.Fatalf("expected read to succeed, got %v", err)
+	}
+	if n != 3 {
+		t.Fatalf("expected 3 bytes read, got %d", n)
+	}
+	if len(events) != 1 {
+		t.Fatalf("expected one progress event, got %d", len(events))
+	}
+	event := events[0]
+	if event.BytesTransferred != 3 || event.BytesTotal != 12 {
+		t.Fatalf("expected byte counters 3/12, got %d/%d", event.BytesTransferred, event.BytesTotal)
+	}
+	if !strings.Contains(event.Message, "Transferred 3 B of 12 B") {
+		t.Fatalf("expected byte progress message, got %q", event.Message)
+	}
+}
+
+func TestMoveImageLoadHeartbeatMessageReportsLoadingWhenArchiveRead(t *testing.T) {
+	got := moveImageLoadHeartbeatMessage(12, 12)
+	want := "Target Docker is loading the image archive. This can take several minutes for large images."
+	if got != want {
+		t.Fatalf("expected %q, got %q", want, got)
+	}
+}
+
+func TestMoveImageLoadHeartbeatMessageReportsReceivingBeforeArchiveRead(t *testing.T) {
+	got := moveImageLoadHeartbeatMessage(6, 12)
+	want := "Target Docker is receiving the image archive."
+	if got != want {
+		t.Fatalf("expected %q, got %q", want, got)
+	}
+}
+
+func TestMoveProgressErrorMessageExplainsOldAgent(t *testing.T) {
+	got := moveProgressErrorMessage(errors.New("streaming docker request bodies require mcharbor-agent 1.3.0 or newer, connected agent is 1.2.1"))
+	want := "The target agent must be updated to mcharbor-agent 1.3.0 or newer before moving images or volume data."
+	if got != want {
+		t.Fatalf("expected %q, got %q", want, got)
+	}
+}
+
+func TestSelfRecreateOperation(t *testing.T) {
+	if got := selfRecreateOperation(RecreateRequest{}); got != "reinstall" {
+		t.Fatalf("expected reinstall operation, got %q", got)
+	}
+	if got := selfRecreateOperation(RecreateRequest{PullImage: true}); got != "update" {
+		t.Fatalf("expected update operation, got %q", got)
 	}
 }
 

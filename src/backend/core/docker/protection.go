@@ -23,11 +23,17 @@ const (
 
 var ErrProtectedResource = errors.New("protected mcharbor resource")
 
-// IsProtectedContainer returns true for the McHarbor application container.
+// IsProtectedContainer returns true for containers McHarbor should not mutate
+// through normal container actions.
 func IsProtectedContainer(names []string, image string, labels map[string]string) bool {
 	if isProtectedLabel(labels) {
 		return true
 	}
+	return IsMcHarborContainer(names, image, labels)
+}
+
+// IsMcHarborContainer returns true for the McHarbor application container.
+func IsMcHarborContainer(names []string, image string, labels map[string]string) bool {
 	if labels[composeProjectLabel] == mcHarborProject && labels[composeServiceLabel] == mcHarborService {
 		return true
 	}

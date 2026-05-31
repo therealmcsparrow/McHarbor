@@ -23,6 +23,12 @@ import (
 // recreate McHarbor after the API process stops. The caller must pass the
 // inspected currently running McHarbor container, not an arbitrary container.
 func ScheduleDetachedSelfUpdateHelper(ctx context.Context, cli *client.Client, current types.ContainerJSON, dataDir, dockerHost, operation string) (string, error) {
+	return ScheduleDetachedSelfUpdateHelperForImage(ctx, cli, current, dataDir, dockerHost, operation, current.Config.Image)
+}
+
+// ScheduleDetachedSelfUpdateHelperForImage schedules the self-update helper and
+// lets callers choose the image used by the replacement McHarbor container.
+func ScheduleDetachedSelfUpdateHelperForImage(ctx context.Context, cli *client.Client, current types.ContainerJSON, dataDir, dockerHost, operation, targetImage string) (string, error) {
 	helperMounts, err := selfUpdateHelperMounts(current, dataDir)
 	if err != nil {
 		slog.Error("docker: resolve self-update helper mounts failed", "error", err, "container", current.ID)
@@ -34,7 +40,7 @@ func ScheduleDetachedSelfUpdateHelper(ctx context.Context, cli *client.Client, c
 	envOverrides := map[string]string{
 		"MCHARBOR_SELF_UPDATE_CONTAINER_ID": current.ID,
 		"MCHARBOR_SELF_UPDATE_CONTAINER":    strings.TrimPrefix(current.Name, "/"),
-		"MCHARBOR_SELF_UPDATE_IMAGE":        current.Config.Image,
+		"MCHARBOR_SELF_UPDATE_IMAGE":        selfUpdateTargetImage(current, targetImage),
 		"MCHARBOR_SELF_UPDATE_LOG":          "/app/data/self-update/" + helperName + ".log",
 		"MCHARBOR_SELF_UPDATE_OPERATION":    operation,
 	}
@@ -110,6 +116,14 @@ func ScheduleDetachedSelfUpdateHelper(ctx context.Context, cli *client.Client, c
 	}
 
 	return "scheduled detached self-update helper; waiting for McHarbor to restart", nil
+}
+
+func selfUpdateTargetImage(current types.ContainerJSON, targetImage string) string {
+	targetImage = strings.TrimSpace(targetImage)
+	if targetImage != "" {
+		return targetImage
+	}
+	return current.Config.Image
 }
 
 func selfUpdateHelperMounts(current types.ContainerJSON, dataDir string) ([]mount.Mount, error) {

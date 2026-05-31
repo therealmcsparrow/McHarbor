@@ -33,15 +33,16 @@ import (
 
 // Service wraps Docker SDK container operations.
 type Service struct {
-	pool *docker.ClientPool
-	db   *sql.DB
+	pool    *docker.ClientPool
+	db      *sql.DB
+	dataDir string
 }
 
 var containerNamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
 
 // NewService creates a new container service.
-func NewService(pool *docker.ClientPool, db *sql.DB) *Service {
-	return &Service{pool: pool, db: db}
+func NewService(pool *docker.ClientPool, db *sql.DB, dataDir string) *Service {
+	return &Service{pool: pool, db: db, dataDir: dataDir}
 }
 
 // getClient returns a Docker client for the given environment.
@@ -515,6 +516,9 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 		labels = info.Config.Labels
 	}
 	if docker.IsProtectedContainer([]string{info.Name}, imageName, labels) {
+		if docker.IsMcHarborContainer([]string{info.Name}, imageName, labels) {
+			return s.recreateSelfContainer(ctx, envID, cli, info, req)
+		}
 		return container.CreateResponse{}, docker.ErrProtectedResource
 	}
 
@@ -591,6 +595,37 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	}
 
 	return newResp, nil
+}
+
+func (s *Service) recreateSelfContainer(ctx context.Context, envID string, cli *client.Client, info types.ContainerJSON, req RecreateRequest) (container.CreateResponse, error) {
+	if info.Config == nil {
+		return container.CreateResponse{}, fmt.Errorf("inspected container has no config")
+	}
+
+	targetImage := info.Config.Image
+	if req.Image != "" {
+		targetImage = req.Image
+	}
+
+	dockerHost := ""
+	if envID != "" {
+		if host, err := s.pool.DockerHost(envID); err == nil && host != "" {
+			dockerHost = host
+		}
+	}
+
+	if _, err := docker.ScheduleDetachedSelfUpdateHelperForImage(ctx, cli, info, s.dataDir, dockerHost, selfRecreateOperation(req), targetImage); err != nil {
+		return container.CreateResponse{}, fmt.Errorf("scheduling self container recreate: %w", err)
+	}
+
+	return container.CreateResponse{ID: info.ID}, nil
+}
+
+func selfRecreateOperation(req RecreateRequest) string {
+	if req.PullImage {
+		return "update"
+	}
+	return "reinstall"
 }
 
 func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *client.Client, info types.ContainerJSON, originalName string, req RecreateRequest) (container.CreateResponse, error) {

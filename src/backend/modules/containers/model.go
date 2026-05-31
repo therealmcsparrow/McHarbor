@@ -210,6 +210,147 @@ type RemoveExtendedResult struct {
 	StackRemoved     bool `json:"stackRemoved"`
 }
 
+// MoveContainerPlanRequest is the JSON body for POST /containers/{id}/move/plan.
+type MoveContainerPlanRequest struct {
+	TargetEnvID string              `json:"targetEnvId"`
+	TargetName  string              `json:"targetName,omitempty"`
+	NetworkMode string              `json:"networkMode,omitempty"`
+	Networks    []MoveNetworkConfig `json:"networks,omitempty"`
+}
+
+// MoveContainerRequest is the JSON body for POST /containers/{id}/move.
+type MoveContainerRequest struct {
+	TargetEnvID           string              `json:"targetEnvId"`
+	TargetName            string              `json:"targetName,omitempty"`
+	NetworkMode           string              `json:"networkMode,omitempty"`
+	TransferImage         bool                `json:"transferImage"`
+	CreateMissingNetworks bool                `json:"createMissingNetworks"`
+	CreateMissingVolumes  bool                `json:"createMissingVolumes"`
+	CopyNamedVolumes      bool                `json:"copyNamedVolumes"`
+	StartTarget           bool                `json:"startTarget"`
+	StopSource            bool                `json:"stopSource"`
+	RemoveSource          bool                `json:"removeSource"`
+	Networks              []MoveNetworkConfig `json:"networks,omitempty"`
+}
+
+// MoveContainerPlan describes the resources and configuration changes required to move a container.
+type MoveContainerPlan struct {
+	SourceEnvID     string            `json:"sourceEnvId"`
+	TargetEnvID     string            `json:"targetEnvId"`
+	ContainerID     string            `json:"containerId"`
+	ContainerName   string            `json:"containerName"`
+	TargetName      string            `json:"targetName"`
+	Image           MoveImagePlan     `json:"image"`
+	Stack           MoveStackPlan     `json:"stack"`
+	Volumes         []MoveVolumePlan  `json:"volumes"`
+	Networks        []MoveNetworkPlan `json:"networks"`
+	NetworkMode     string            `json:"networkMode,omitempty"`
+	Ports           []MovePortPlan    `json:"ports"`
+	RequiredChanges []string          `json:"requiredChanges"`
+	Warnings        []string          `json:"warnings"`
+}
+
+// MoveImagePlan reports image availability on the destination environment.
+type MoveImagePlan struct {
+	Reference    string `json:"reference"`
+	ID           string `json:"id"`
+	Size         int64  `json:"size,omitempty"`
+	Exists       bool   `json:"exists"`
+	WillTransfer bool   `json:"willTransfer"`
+}
+
+// MoveStackPlan reports Compose stack labels preserved during the move.
+type MoveStackPlan struct {
+	Name           string `json:"name,omitempty"`
+	Service        string `json:"service,omitempty"`
+	LabelsPreserve bool   `json:"labelsPreserve"`
+	ManagedRecord  bool   `json:"managedRecord"`
+}
+
+// MoveVolumePlan reports a mount that affects the container move.
+type MoveVolumePlan struct {
+	Type        string `json:"type"`
+	Name        string `json:"name,omitempty"`
+	Source      string `json:"source,omitempty"`
+	Destination string `json:"destination"`
+	Mode        string `json:"mode,omitempty"`
+	Exists      bool   `json:"exists"`
+	WillCreate  bool   `json:"willCreate"`
+	WillCopy    bool   `json:"willCopy"`
+	Manual      bool   `json:"manual"`
+}
+
+// MoveNetworkPlan reports a network attachment needed on the destination environment.
+type MoveNetworkPlan struct {
+	Name             string             `json:"name"`
+	SourceName       string             `json:"sourceName"`
+	TargetName       string             `json:"targetName"`
+	ID               string             `json:"id,omitempty"`
+	Driver           string             `json:"driver,omitempty"`
+	Exists           bool               `json:"exists"`
+	WillCreate       bool               `json:"willCreate"`
+	Aliases          []string           `json:"aliases,omitempty"`
+	TargetAliases    []string           `json:"targetAliases,omitempty"`
+	IPAddress        string             `json:"ipAddress,omitempty"`
+	TargetIPAddress  string             `json:"targetIpAddress,omitempty"`
+	MacAddress       string             `json:"macAddress,omitempty"`
+	TargetMacAddress string             `json:"targetMacAddress,omitempty"`
+	Builtin          bool               `json:"builtin"`
+	Internal         bool               `json:"internal"`
+	Attachable       bool               `json:"attachable"`
+	IPAM             *networkTypes.IPAM `json:"ipam,omitempty"`
+	Options          map[string]string  `json:"options,omitempty"`
+	Labels           map[string]string  `json:"labels,omitempty"`
+}
+
+// MoveNetworkConfig describes target network settings for a container move.
+type MoveNetworkConfig struct {
+	SourceName string             `json:"sourceName"`
+	TargetName string             `json:"targetName"`
+	Driver     string             `json:"driver,omitempty"`
+	Internal   bool               `json:"internal,omitempty"`
+	Attachable bool               `json:"attachable,omitempty"`
+	IPAM       *networkTypes.IPAM `json:"ipam,omitempty"`
+	Options    map[string]string  `json:"options,omitempty"`
+	Labels     map[string]string  `json:"labels,omitempty"`
+	Aliases    []string           `json:"aliases,omitempty"`
+	IPAddress  string             `json:"ipAddress,omitempty"`
+	MacAddress string             `json:"macAddress,omitempty"`
+}
+
+// MovePortPlan reports a host port binding that will be reused on the destination.
+type MovePortPlan struct {
+	ContainerPort string `json:"containerPort"`
+	HostIP        string `json:"hostIp,omitempty"`
+	HostPort      string `json:"hostPort,omitempty"`
+}
+
+// MoveContainerResult reports resources changed during a container move.
+type MoveContainerResult struct {
+	TargetContainerID string   `json:"targetContainerId"`
+	TargetName        string   `json:"targetName"`
+	ImageTransferred  bool     `json:"imageTransferred"`
+	NetworksCreated   []string `json:"networksCreated"`
+	VolumesCreated    []string `json:"volumesCreated"`
+	VolumesCopied     []string `json:"volumesCopied"`
+	SourceStopped     bool     `json:"sourceStopped"`
+	SourceRemoved     bool     `json:"sourceRemoved"`
+	Warnings          []string `json:"warnings"`
+}
+
+// MoveContainerEvent reports progress while moving a container.
+type MoveContainerEvent struct {
+	Step              int    `json:"step"`
+	Total             int    `json:"total"`
+	Message           string `json:"message"`
+	Status            string `json:"status"`
+	Phase             string `json:"phase,omitempty"`
+	BytesTransferred  int64  `json:"bytesTransferred,omitempty"`
+	BytesTotal        int64  `json:"bytesTotal,omitempty"`
+	TargetContainerID string `json:"targetContainerId,omitempty"`
+	TargetName        string `json:"targetName,omitempty"`
+}
+
 // ContainerService represents an OS-level service detected inside a container.
 type ContainerService struct {
 	Name   string `json:"name"`

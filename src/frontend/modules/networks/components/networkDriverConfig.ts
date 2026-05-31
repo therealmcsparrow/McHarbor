@@ -1,7 +1,9 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-export type Driver = 'bridge' | 'host' | 'overlay' | 'macvlan' | 'ipvlan' | 'none';
+import { DRIVER_OPTIONS, type Driver } from '@resources/constants/network-drivers';
+
+export { DRIVER_OPTIONS, type Driver };
 
 export interface DriverConfig {
   hasIpam: boolean;
@@ -19,12 +21,3 @@ export const DRIVER_CONFIG: Record<Driver, DriverConfig> = {
   ipvlan:  { hasIpam: true,  hasParent: true,  hasMode: true,  hasToggles: true, modes: ['l2', 'l3', 'l3s'] },
   none:    { hasIpam: false, hasParent: false, hasMode: false, hasToggles: false },
 };
-
-export const DRIVER_OPTIONS = [
-  { value: 'bridge', label: 'bridge' },
-  { value: 'host', label: 'host' },
-  { value: 'overlay', label: 'overlay' },
-  { value: 'macvlan', label: 'macvlan' },
-  { value: 'ipvlan', label: 'ipvlan' },
-  { value: 'none', label: 'none' },
-] as const;

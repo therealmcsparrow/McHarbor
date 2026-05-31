@@ -2,36 +2,14 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
 import { useEnvironmentStore } from '@resources/stores/environment';
+import { useEnvironmentList, type EnvironmentListItem } from '@resources/hooks/useEnvironmentList';
 import type { EnvironmentInfo } from './useEnvironments';
 
-export type EnvironmentListItem = {
-  id: string;
-  name: string;
-  orchestratorType: 'docker' | 'kubernetes';
-  connectionType: string;
-  socketPath?: string;
-  host?: string;
-  port?: number;
-  dockerVersion: string | null;
-  k8sVersion: string | null;
-  isDefault: boolean;
-  isActive: boolean;
-  lastConnected: string | null;
-  scheduledUpdateCheckEnabled: boolean;
-  automaticImagePruningEnabled: boolean;
-  trackContainerEventsEnabled: boolean;
-  collectContainerMetricsEnabled: boolean;
-  highlightContainerChangesEnabled: boolean;
-  dockerDiskUsageNotificationsEnabled: boolean;
-  dockerDiskUsageThresholdPercent: number;
-  agentStatus?: string;
-  agentHostname?: string;
-  agentVersion?: string;
-};
+export { useEnvironmentList, type EnvironmentListItem };
 
 export type CreateEnvironmentData = {
   name: string;
@@ -73,15 +51,6 @@ export type UpdateEnvironmentData = {
   dockerDiskUsageThresholdPercent?: number;
   timezone?: string;
 };
-
-export function useEnvironmentList() {
-  return useQuery({
-    queryKey: ['environments'],
-    queryFn: () =>
-      api.get<EnvironmentListItem[]>('/environments').then((r) => r.data ?? []),
-    refetchInterval: 30_000,
-  });
-}
 
 export function useCreateEnvironment() {
   const queryClient = useQueryClient();

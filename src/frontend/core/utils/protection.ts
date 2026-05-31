@@ -32,9 +32,7 @@ function isMcHarborImageRef(ref?: string | null) {
     repo === 'mcharbor';
 }
 
-export function isProtectedContainer(container: ContainerInfo | ContainerInspect) {
-  if ('Protected' in container && container.Protected) return true;
-
+function containerProtectionParts(container: ContainerInfo | ContainerInspect) {
   const labels = 'Labels' in container
     ? container.Labels
     : container.Config?.Labels;
@@ -45,7 +43,12 @@ export function isProtectedContainer(container: ContainerInfo | ContainerInspect
     ? container.Config?.Image ?? container.Image
     : container.Image;
 
-  if (hasProtectedLabel(labels)) return true;
+  return { labels, names, image };
+}
+
+export function isMcHarborContainer(container: ContainerInfo | ContainerInspect) {
+  const { labels, names, image } = containerProtectionParts(container);
+
   if (labels?.[composeProjectLabel] === mcHarborProject && labels?.[composeServiceLabel] === mcHarborService) {
     return true;
   }
@@ -54,6 +57,18 @@ export function isProtectedContainer(container: ContainerInfo | ContainerInspect
     const normalized = name.replace(/^\//, '').trim().toLowerCase();
     return normalized === mcHarborService || normalized.startsWith('mcharbor-mcharbor-');
   });
+}
+
+export function isProtectedContainer(container: ContainerInfo | ContainerInspect) {
+  if ('Protected' in container && container.Protected) return true;
+
+  const { labels } = containerProtectionParts(container);
+  if (hasProtectedLabel(labels)) return true;
+  return isMcHarborContainer(container);
+}
+
+export function canRunContainerUpdateOperation(container: ContainerInfo | ContainerInspect) {
+  return !isProtectedContainer(container) || isMcHarborContainer(container);
 }
 
 export function isProtectedImage(image: ImageInfo | ImageInspect) {

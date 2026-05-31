@@ -12,6 +12,7 @@ import {
   IconFileText,
   IconLock,
   IconTag,
+  IconArrowsExchange,
 } from '@tabler/icons-react';
 import type { ContainerInfo } from '@core/types/docker';
 import { isProtectedContainer } from '@core/utils/protection';
@@ -38,6 +39,7 @@ type ContainerCardProps = {
   onTerminal: (c: ContainerInfo) => void;
   onLogs: (c: ContainerInfo) => void;
   onRename: (c: ContainerInfo) => void;
+  onMove: (c: ContainerInfo) => void;
   onRemove: (c: ContainerInfo) => void;
   onClick: (c: ContainerInfo) => void;
 };
@@ -50,6 +52,7 @@ export function ContainerCard({
   onTerminal,
   onLogs,
   onRename,
+  onMove,
   onRemove,
   onClick,
 }: ContainerCardProps) {
@@ -178,6 +181,12 @@ export function ContainerCard({
           onClick={() => onRename(c)}
           disabled={locked}
           icon={<IconTag className="h-3.5 w-3.5 text-lime-400" />}
+        />
+        <ActionButton
+          label={t('actions.move')}
+          onClick={() => onMove(c)}
+          disabled={locked}
+          icon={<IconArrowsExchange className="h-3.5 w-3.5 text-orange-400" />}
         />
         {isRunning && (
           <ActionButton

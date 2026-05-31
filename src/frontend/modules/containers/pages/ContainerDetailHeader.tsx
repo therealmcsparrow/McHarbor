@@ -13,6 +13,7 @@ import {
   IconArrowLeft,
   IconExternalLink,
   IconArrowsTransferUp,
+  IconArrowsExchange,
   IconLink,
   IconPencil,
   IconCheck,
@@ -116,6 +117,7 @@ type ContainerDetailHeaderProps = {
   onAction: (action: string) => void;
   onKill: () => void;
   onRemove: () => void;
+  onMove: () => void;
   onTakeOver: () => void;
   onRelink: () => void;
 };
@@ -135,6 +137,7 @@ export function ContainerDetailHeader({
   onAction,
   onKill,
   onRemove,
+  onMove,
   onTakeOver,
   onRelink,
 }: ContainerDetailHeaderProps) {
@@ -271,6 +274,13 @@ export function ContainerDetailHeader({
               variant="secondary"
               disabled={locked}
               icon={<IconLink className="size-3.5" />}
+            />
+            <HeaderActionButton
+              tooltip={t('actions.move')}
+              onClick={onMove}
+              variant="secondary"
+              disabled={locked}
+              icon={<IconArrowsExchange className="size-3.5" />}
             />
             {!container.Config?.Labels?.['com.docker.compose.project'] && (
               <HeaderActionButton

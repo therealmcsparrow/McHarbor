@@ -2,6 +2,38 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.3.1] - 2026-05-31
+### Added
+
+- Added container moves between Docker environments, including a preview dialog that lists required image, volume, stack-label, and network changes before execution.
+- Added editable target network settings to the container move dialog, including target network name, network mode, driver/type, IPAM subnet/gateway/range, aliases, target IP/MAC, and internal/attachable options before moving the container.
+
+### Changed
+
+- Added move execution support for transferring missing images, creating missing named volumes and Docker networks, copying named volume data, preserving Compose stack labels, and optionally stopping/removing the source container.
+- Kept the production frontend build on Rollup-based Vite `7.3.3` with `@vitejs/plugin-react` `5.2.0` to avoid the Vite 8 Rolldown Recharts chunk runtime regression.
+- Bumped the patch application version to `1.3.1` across canonical runtime metadata, agent metadata, frontend package metadata, and lockfile root metadata.
+
+### Fixed
+
+- Cleared frontend packages reported by `npm outdated` where compatible, while holding Vite and `@vitejs/plugin-react` on their Rollup-based major versions because Vite 8 generated a broken Recharts production chunk.
+- Fixed the production chart bundle regression that caused Recharts Cartesian chart chunks to throw `TypeError: t is not a function` at runtime.
+- Fixed ineffective cancellation breaks in agent Docker proxy streaming loops so canceled HTTP streams and exec sessions exit the intended loop.
+- Prevented Recharts dashboard charts from rendering before their containers have a positive measured size, avoiding repeated `width(-1)` / `height(-1)` console warnings during dashboard layout changes.
+
+### Tests
+
+- Ran the frontend validation suite after pinning the production build back to Vite 7.
+- Ran the agent validation suite after the proxy cancellation fix.
+- Ran the frontend validation suite after adding measured chart containers.
+- Ran the backend version package validation and backend i18n coverage after the minor version bump (`.results/tests/backend-20260531-040651.log`).
+- Ran the agent validation suite after updating agent metadata (`.results/tests/agent-20260531-040651.log`).
+- Ran the frontend validation suite after updating frontend package metadata (`.results/tests/frontend-20260531-040657.log`).
+- Rebuilt and restarted the Docker container and verified `/api/health` and `/api/about` after the minor version bump.
+- Ran the backend containers validation and backend i18n coverage after adding editable move network settings (`.results/tests/backend-20260531-042302.log`).
+- Ran the agent validation suite after updating agent version metadata (`.results/tests/agent-20260531-042302.log`).
+- Ran the frontend validation suite after adding the move network settings UI and updating package metadata (`.results/tests/frontend-20260531-042302.log`).
+
 ## [1.2.4] - 2026-05-30
 
 ### Changed

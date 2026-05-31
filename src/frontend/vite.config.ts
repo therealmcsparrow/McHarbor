@@ -54,6 +54,14 @@ export default defineConfig({
             return undefined;
           }
 
+          if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/react-router/')) {
+            return 'react-core';
+          }
+
+          if (id.includes('@tanstack/react-query') || id.includes('zustand')) {
+            return 'state-core';
+          }
+
           if (id.includes('@codemirror/lang-yaml') || id.includes('@lezer/yaml')) {
             return 'codemirror-yaml';
           }

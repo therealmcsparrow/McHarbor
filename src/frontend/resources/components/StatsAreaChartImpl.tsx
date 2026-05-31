@@ -1,8 +1,9 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, Tooltip } from 'recharts';
 import type { StatsAreaChartProps } from './StatsAreaChart';
+import { MeasuredResponsiveContainer } from './MeasuredResponsiveContainer';
 
 export function StatsAreaChartImpl({
   data,
@@ -17,8 +18,8 @@ export function StatsAreaChartImpl({
   compact,
 }: StatsAreaChartProps) {
   return (
-    <div className={compact ? 'h-full' : 'my-2 flex-1'}>
-      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+    <div className={compact ? 'h-full min-h-0 min-w-0' : 'my-2 min-h-[120px] min-w-0 flex-1'}>
+      <MeasuredResponsiveContainer>
         <AreaChart data={data} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={`gradient-${dataKey}`} x1="0" y1="0" x2="0" y2="1">
@@ -70,7 +71,7 @@ export function StatsAreaChartImpl({
             />
           )}
         </AreaChart>
-      </ResponsiveContainer>
+      </MeasuredResponsiveContainer>
     </div>
   );
 }

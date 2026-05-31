@@ -12,6 +12,8 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,9 +24,13 @@ import (
 
 // pendingReq tracks an in-flight HTTP request waiting for a response.
 type pendingReq struct {
-	respCh chan *WSMessage
-	stream *StreamReader // non-nil for streaming responses
+	respCh        chan *WSMessage
+	stream        *StreamReader // non-nil for streaming responses
+	discardStream bool
 }
+
+const agentRequestChunkSize = 32 * 1024
+const agentRequestStreamingMinVersion = "1.3.1"
 
 // ExecSession tracks an active exec terminal session over the agent WebSocket.
 type ExecSession struct {
@@ -111,23 +117,10 @@ func (t *AgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 	}
 
-	if req.Body != nil {
-		body, err := io.ReadAll(req.Body)
-		if err != nil {
-			return nil, fmt.Errorf("reading request body: %w", err)
-		}
-		wsReq.Body = body
-	}
-
-	msg := WSMessage{
-		Type:        MsgHTTPRequest,
-		ID:          reqID,
-		HTTPRequest: wsReq,
-	}
-
 	// Register pending request
 	pending := &pendingReq{
-		respCh: make(chan *WSMessage, 1),
+		respCh:        make(chan *WSMessage, 1),
+		discardStream: shouldDiscardResponseStream(wsReq),
 	}
 	t.mu.Lock()
 	t.pending[reqID] = pending
@@ -146,9 +139,9 @@ func (t *AgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	// Send request
 	t.logger.Debug("agent RoundTrip: sending", "id", reqID, "method", wsReq.Method, "path", wsReq.Path)
-	if err := t.conn.WriteJSON(msg); err != nil {
+	if err := t.sendRequest(req, reqID, wsReq); err != nil {
 		cleanup()
-		return nil, fmt.Errorf("sending request to agent: %w", err)
+		return nil, err
 	}
 
 	// Wait for response or context cancellation
@@ -183,6 +176,125 @@ func (t *AgentTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		cleanup()
 		return nil, fmt.Errorf("agent transport closed")
 	}
+}
+
+func (t *AgentTransport) sendRequest(req *http.Request, reqID string, wsReq *WSHTTPRequest) error {
+	if req.Body == nil {
+		return t.conn.WriteJSON(WSMessage{
+			Type:        MsgHTTPRequest,
+			ID:          reqID,
+			HTTPRequest: wsReq,
+		})
+	}
+
+	streamBody := shouldStreamRequestBody(req)
+	if streamBody && !agentSupportsRequestStreaming(t.conn.Version) {
+		return fmt.Errorf("streaming docker request bodies require mcharbor-agent %s or newer, connected agent is %s", agentRequestStreamingMinVersion, t.conn.Version)
+	}
+
+	if !streamBody {
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			return fmt.Errorf("reading request body: %w", err)
+		}
+		wsReq.Body = body
+		return t.conn.WriteJSON(WSMessage{
+			Type:        MsgHTTPRequest,
+			ID:          reqID,
+			HTTPRequest: wsReq,
+		})
+	}
+
+	if err := t.conn.WriteJSON(WSMessage{
+		Type:        MsgHTTPRequestStart,
+		ID:          reqID,
+		HTTPRequest: wsReq,
+	}); err != nil {
+		return fmt.Errorf("starting streamed request to agent: %w", err)
+	}
+
+	buf := make([]byte, agentRequestChunkSize)
+	for {
+		n, readErr := req.Body.Read(buf)
+		if n > 0 {
+			chunk := make([]byte, n)
+			copy(chunk, buf[:n])
+			if err := t.conn.WriteJSON(WSMessage{
+				Type:        MsgHTTPRequestChunk,
+				ID:          reqID,
+				StreamChunk: &WSStreamChunk{Data: chunk},
+			}); err != nil {
+				return fmt.Errorf("sending streamed request chunk to agent: %w", err)
+			}
+		}
+		if readErr == io.EOF {
+			break
+		}
+		if readErr != nil {
+			return fmt.Errorf("reading streamed request body: %w", readErr)
+		}
+		select {
+		case <-req.Context().Done():
+			return req.Context().Err()
+		default:
+		}
+	}
+
+	if err := t.conn.WriteJSON(WSMessage{Type: MsgHTTPRequestEnd, ID: reqID}); err != nil {
+		return fmt.Errorf("ending streamed request to agent: %w", err)
+	}
+	return nil
+}
+
+func shouldStreamRequestBody(req *http.Request) bool {
+	if req.Body == nil {
+		return false
+	}
+	if req.ContentLength < 0 {
+		return true
+	}
+	return req.ContentLength > 8<<20
+}
+
+func shouldDiscardResponseStream(req *WSHTTPRequest) bool {
+	if req == nil {
+		return false
+	}
+	return strings.HasSuffix(req.Path, "/images/load") && strings.Contains(req.Query, "quiet=1")
+}
+
+func agentSupportsRequestStreaming(version string) bool {
+	version = strings.TrimPrefix(strings.TrimSpace(version), "v")
+	parts := strings.Split(version, ".")
+	if len(parts) < 2 {
+		return false
+	}
+	return compareAgentProtocolVersion(parts, strings.Split(agentRequestStreamingMinVersion, ".")) >= 0
+}
+
+func compareAgentProtocolVersion(versionParts, minimumParts []string) int {
+	for i := 0; i < 3; i++ {
+		versionPart := parseAgentProtocolVersionPart(versionParts, i)
+		minimumPart := parseAgentProtocolVersionPart(minimumParts, i)
+		if versionPart > minimumPart {
+			return 1
+		}
+		if versionPart < minimumPart {
+			return -1
+		}
+	}
+	return 0
+}
+
+func parseAgentProtocolVersionPart(parts []string, index int) int {
+	if index >= len(parts) {
+		return 0
+	}
+	value, err := strconv.Atoi(parts[index])
+	if err != nil {
+		return 0
+	}
+	return value
 }
 
 // buildResponse constructs an http.Response from the agent's WebSocket message.
@@ -267,6 +379,9 @@ func (t *AgentTransport) ReadLoop() error {
 			t.mu.Lock()
 			p, ok := t.pending[msg.ID]
 			t.mu.Unlock()
+			if ok && p.discardStream {
+				continue
+			}
 			if ok && p.stream != nil && msg.StreamChunk != nil {
 				p.stream.Push(msg.StreamChunk.Data)
 			}

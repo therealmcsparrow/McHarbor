@@ -3,8 +3,9 @@
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell } from 'recharts';
 import { useHostMetrics } from '@modules/dashboard/hooks/useHostMetrics';
+import { MeasuredResponsiveContainer } from '@resources/components/MeasuredResponsiveContainer';
 import { cn } from '@resources/utils/cn';
 import { formatBytes } from '@resources/utils/format';
 import type { WidgetTypeId } from '@modules/dashboard/widgets/registry';
@@ -63,7 +64,7 @@ export default function StorageBreakdownWidget({ typeId: _typeId }: { colSpan: n
       </h3>
       <div className="flex flex-1 items-center gap-4 px-4 pb-3">
         <div className="relative h-[140px] w-[140px] shrink-0">
-          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+          <MeasuredResponsiveContainer>
             <PieChart>
               <Pie
                 data={segments}
@@ -80,7 +81,7 @@ export default function StorageBreakdownWidget({ typeId: _typeId }: { colSpan: n
                 ))}
               </Pie>
             </PieChart>
-          </ResponsiveContainer>
+          </MeasuredResponsiveContainer>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-lg font-semibold text-foreground">{formatBytes(total)}</span>
             <span className="text-[10px] text-muted-foreground">{t('storageBreakdownWidget.total')}</span>

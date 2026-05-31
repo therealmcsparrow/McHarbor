@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconPlayerPlay, IconPlayerStop, IconRotate, IconArrowUp, IconTrash } from '@tabler/icons-react';
 import type { ContainerInfo } from '@core/types/docker';
-import { isProtectedContainer } from '@core/utils/protection';
+import { canRunContainerUpdateOperation, isProtectedContainer } from '@core/utils/protection';
 import type { BatchAction } from '@resources/components/DataGrid';
 
 type UseContainerBatchActionsProps = {
@@ -60,13 +60,13 @@ export function useContainerBatchActions({
         label: tc('batch.updateSelected'),
         icon: IconArrowUp,
         variant: 'default',
-        onClick: (rows) => onUpdateSelected?.((rows as ContainerInfo[]).filter((row) => !isProtectedContainer(row))),
+        onClick: (rows) => onUpdateSelected?.((rows as ContainerInfo[]).filter(canRunContainerUpdateOperation)),
       },
       {
         label: tc('batch.reinstallSelected'),
         icon: IconRotate,
         variant: 'default',
-        onClick: (rows) => onReinstallSelected?.((rows as ContainerInfo[]).filter((row) => !isProtectedContainer(row))),
+        onClick: (rows) => onReinstallSelected?.((rows as ContainerInfo[]).filter(canRunContainerUpdateOperation)),
       },
       {
         label: tc('batch.remove'),

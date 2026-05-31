@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -17,7 +18,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.2.4"
+const agentVersion = "1.3.1"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -96,6 +97,7 @@ func (a *Agent) Connect(ctx context.Context) error {
 	// Track in-flight request cancellations
 	var cancelMu sync.Mutex
 	cancels := make(map[string]context.CancelFunc)
+	uploads := make(map[string]*io.PipeWriter)
 
 	// Message loop
 	for {
@@ -133,11 +135,61 @@ func (a *Agent) Connect(ctx context.Context) error {
 				a.proxy.HandleRequest(reqCtx, conn, id, req)
 			}(msg.ID, msg.HTTPRequest)
 
+		case MsgHTTPRequestStart:
+			if msg.HTTPRequest == nil {
+				continue
+			}
+			reqCtx, reqCancel := context.WithCancel(ctx)
+			bodyReader, bodyWriter := io.Pipe()
+
+			cancelMu.Lock()
+			cancels[msg.ID] = reqCancel
+			uploads[msg.ID] = bodyWriter
+			cancelMu.Unlock()
+
+			go func(id string, req *WSHTTPRequest) {
+				defer func() {
+					cancelMu.Lock()
+					delete(cancels, id)
+					delete(uploads, id)
+					cancelMu.Unlock()
+					reqCancel()
+					bodyReader.Close()
+				}()
+				a.proxy.HandleRequestStream(reqCtx, conn, id, req, bodyReader)
+			}(msg.ID, msg.HTTPRequest)
+
+		case MsgHTTPRequestChunk:
+			if msg.StreamChunk == nil {
+				continue
+			}
+			cancelMu.Lock()
+			bodyWriter := uploads[msg.ID]
+			cancelMu.Unlock()
+			if bodyWriter != nil {
+				if _, err := bodyWriter.Write(msg.StreamChunk.Data); err != nil {
+					a.logger.Warn("request body stream write failed", "id", msg.ID, "error", err)
+				}
+			}
+
+		case MsgHTTPRequestEnd:
+			cancelMu.Lock()
+			bodyWriter := uploads[msg.ID]
+			delete(uploads, msg.ID)
+			cancelMu.Unlock()
+			if bodyWriter != nil {
+				bodyWriter.Close()
+			}
+
 		case MsgHTTPCancel:
 			cancelMu.Lock()
 			if cancel, ok := cancels[msg.ID]; ok {
 				cancel()
 				delete(cancels, msg.ID)
+			}
+			if bodyWriter := uploads[msg.ID]; bodyWriter != nil {
+				bodyWriter.CloseWithError(context.Canceled)
+				delete(uploads, msg.ID)
 			}
 			cancelMu.Unlock()
 

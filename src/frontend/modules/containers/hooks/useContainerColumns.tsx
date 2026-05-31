@@ -35,6 +35,7 @@ type UseContainerColumnsProps = {
   onTerminal: (c: ContainerInfo) => void;
   onLogs: (c: ContainerInfo) => void;
   onRename: (c: ContainerInfo) => void;
+  onMove: (c: ContainerInfo) => void;
   onRemove: (c: ContainerInfo) => void;
   onTakeOver: (c: ContainerInfo) => void;
   updateResults?: Map<string, { containerId: string; updateAvailable: boolean; error?: string }>;
@@ -45,6 +46,7 @@ export function useContainerColumns({
   onTerminal,
   onLogs,
   onRename,
+  onMove,
   onRemove,
   onTakeOver,
   updateResults,
@@ -241,11 +243,12 @@ export function useContainerColumns({
             onTerminal={onTerminal}
             onLogs={onLogs}
             onRename={onRename}
+            onMove={onMove}
             onRemove={onRemove}
           />
         ),
       },
     ],
-    [action, t, tc, onTerminal, onLogs, onRename, onRemove, onTakeOver, updateResults]
+    [action, t, tc, onTerminal, onLogs, onRename, onMove, onRemove, onTakeOver, updateResults]
   );
 }

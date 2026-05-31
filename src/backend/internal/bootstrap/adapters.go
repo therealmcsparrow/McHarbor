@@ -219,7 +219,7 @@ func (a alertSystemInfoSource) SystemInfo(ctx context.Context, envID string) (*a
 func NewAlertsEngineDeps(db *sql.DB, dockerPool *docker.ClientPool) alerts.EngineDeps {
 	return alerts.EngineDeps{
 		Metrics:    alertMetricsSource{svc: metrics.NewService(dockerPool)},
-		Containers: alertContainerSource{svc: containers.NewService(dockerPool, db)},
+		Containers: alertContainerSource{svc: containers.NewService(dockerPool, db, "")},
 		SystemInfo: alertSystemInfoSource{svc: dockerinfo.NewService(dockerPool)},
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -37,7 +38,7 @@ type Handler struct {
 // NewHandler creates a new container handler.
 func NewHandler(app *router.AppDeps) *Handler {
 	return &Handler{
-		svc:      NewService(app.DockerPool, app.DB),
+		svc:      NewService(app.DockerPool, app.DB, app.Config.DataDir),
 		stackSvc: newStackStore(app.DB),
 		app:      app,
 	}
@@ -343,6 +344,159 @@ func (h *Handler) HandleRemoveExtended(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, result)
+}
+
+// HandleMovePlan previews the resources and settings needed to move a container.
+// POST /containers/{id}/move/plan
+func (h *Handler) HandleMovePlan(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+	id := chi.URLParam(r, "id")
+
+	var req MoveContainerPlanRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	plan, err := h.svc.MovePlan(r.Context(), envID, id, req)
+	if err != nil {
+		if client.IsErrNotFound(err) {
+			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
+			return
+		}
+		h.app.Logger.Error("plan container move failed", "env", envID, "target_env", req.TargetEnvID, "id", id, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		return
+	}
+
+	response.OK(w, plan)
+}
+
+// HandleMove moves a container to another Docker environment.
+// POST /containers/{id}/move
+func (h *Handler) HandleMove(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+	id := chi.URLParam(r, "id")
+
+	if isSelfTarget(id) {
+		response.BadRequestCode(w, r, i18n.ErrContainerSelfRemove)
+		return
+	}
+
+	var req MoveContainerRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	auditName := h.containerAuditName(r.Context(), envID, id)
+	result, err := h.svc.Move(r.Context(), envID, id, req)
+	if err != nil {
+		if writeProtectedError(w, r, err) {
+			return
+		}
+		if client.IsErrNotFound(err) {
+			response.NotFoundCode(w, r, i18n.ErrContainerNotFound)
+			return
+		}
+		h.app.Logger.Error("move container failed", "env", envID, "target_env", req.TargetEnvID, "id", id, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		return
+	}
+
+	h.logContainerAuditWithName(r, envID, "move", id, auditName, "target_env="+req.TargetEnvID)
+	response.OK(w, result)
+}
+
+// HandleMoveStream moves a container and streams progress via Server-Sent Events.
+// POST /containers/{id}/move/stream
+func (h *Handler) HandleMoveStream(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+	id := chi.URLParam(r, "id")
+
+	if isSelfTarget(id) {
+		response.BadRequestCode(w, r, i18n.ErrContainerSelfRemove)
+		return
+	}
+
+	var req MoveContainerRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+
+	rc := http.NewResponseController(w)
+	_ = rc.SetWriteDeadline(time.Time{})
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("X-Accel-Buffering", "no")
+	w.WriteHeader(http.StatusOK)
+
+	auditName := h.containerAuditName(r.Context(), envID, id)
+	events := make(chan MoveContainerEvent, 16)
+	go func() {
+		result, err := h.svc.MoveWithProgress(r.Context(), envID, id, req, events)
+		if err != nil {
+			h.app.Logger.Error("move container failed", "env", envID, "target_env", req.TargetEnvID, "id", id, "error", err)
+			return
+		}
+		h.app.Logger.Info("container moved", "env", envID, "target_env", req.TargetEnvID, "id", id, "target_id", result.TargetContainerID)
+		h.logContainerAuditWithName(r, envID, "move", id, auditName, "target_env="+req.TargetEnvID)
+	}()
+
+	ctx := r.Context()
+	heartbeat := time.NewTicker(15 * time.Second)
+	defer heartbeat.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-heartbeat.C:
+			if _, err := fmt.Fprint(w, ": keepalive\n\n"); err != nil {
+				return
+			}
+			flusher.Flush()
+		case event, ok := <-events:
+			if !ok {
+				return
+			}
+			data, err := json.Marshal(event)
+			if err != nil {
+				h.app.Logger.Error("marshal move progress event failed", "error", err)
+				continue
+			}
+			fmt.Fprintf(w, "data: %s\n\n", data)
+			flusher.Flush()
+
+			if event.Status == "done" || event.Status == "error" {
+				return
+			}
+		}
+	}
 }
 
 // HandleStart starts a container.

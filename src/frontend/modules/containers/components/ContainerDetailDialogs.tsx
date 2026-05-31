@@ -6,6 +6,7 @@ import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { LinkContainerDialog } from '@resources/components/LinkContainerDialog';
 import { TakeOverDialog } from '@resources/components/TakeOverDialog';
 import type { ContainerInspect } from '@core/types/docker';
+import { MoveContainerDialog } from './MoveContainerDialog';
 import { RecreateConfirmDialog } from './RecreateConfirmDialog';
 import { RemoveContainerDialog } from './RemoveContainerDialog';
 import { RenameContainerDialog } from './RenameContainerDialog';
@@ -16,6 +17,7 @@ type ContainerDetailDialogsProps = {
   confirmKill: boolean;
   recreateConfirmOpen: boolean;
   removeDialogOpen: boolean;
+  moveDialogOpen: boolean;
   renameDialogOpen: boolean;
   takeOverOpen: boolean;
   relinkOpen: boolean;
@@ -26,6 +28,7 @@ type ContainerDetailDialogsProps = {
   onConfirmKillChange: (open: boolean) => void;
   onRecreateConfirmChange: (open: boolean) => void;
   onRemoveDialogChange: (open: boolean) => void;
+  onMoveDialogChange: (open: boolean) => void;
   onRenameDialogChange: (open: boolean) => void;
   onTakeOverChange: (open: boolean) => void;
   onRelinkChange: (open: boolean) => void;
@@ -40,6 +43,7 @@ export function ContainerDetailDialogs({
   confirmKill,
   recreateConfirmOpen,
   removeDialogOpen,
+  moveDialogOpen,
   renameDialogOpen,
   takeOverOpen,
   relinkOpen,
@@ -50,6 +54,7 @@ export function ContainerDetailDialogs({
   onConfirmKillChange,
   onRecreateConfirmChange,
   onRemoveDialogChange,
+  onMoveDialogChange,
   onRenameDialogChange,
   onTakeOverChange,
   onRelinkChange,
@@ -90,6 +95,17 @@ export function ContainerDetailDialogs({
         open={removeDialogOpen}
         onOpenChange={onRemoveDialogChange}
         onSuccess={onRemoveSuccess}
+      />
+
+      <MoveContainerDialog
+        container={{
+          id: container.Id,
+          name: containerName,
+          image: container.Config?.Image ?? '',
+          stackName: linkedStackName,
+        }}
+        open={moveDialogOpen}
+        onOpenChange={onMoveDialogChange}
       />
 
       <RenameContainerDialog

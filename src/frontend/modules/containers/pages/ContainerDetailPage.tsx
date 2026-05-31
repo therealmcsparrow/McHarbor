@@ -1,7 +1,6 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
-
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +11,7 @@ import { useContainer, useContainerAction } from '../hooks/useContainers';
 import { useContainerEdit } from '../hooks/useContainerEdit';
 import { ContainerDetailDialogs } from '../components/ContainerDetailDialogs';
 import { ContainerDetailTabs, type DetailTabId } from '../components/ContainerDetailTabs';
+import type { EditFormData } from '../types/edit-form';
 import { EnvironmentTab } from '../components/tabs/EnvironmentTab';
 import { FilesTab } from '../components/tabs/FilesTab';
 import { LabelsTab } from '../components/tabs/LabelsTab';
@@ -26,7 +26,7 @@ import { TerminalTab } from '../components/tabs/TerminalTab';
 import { SaveBar } from '../components/SaveBar';
 import { ContainerDetailHeader, getInspectWebUrl } from './ContainerDetailHeader';
 import { isProtectedContainer } from '@core/utils/protection';
-
+import type { ScrollSnapshot } from './container-detail-types';
 export default function ContainerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,17 +38,19 @@ export default function ContainerDetailPage() {
   const [confirmKill, setConfirmKill] = useState(false);
   const [recreateConfirmOpen, setRecreateConfirmOpen] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [takeOverOpen, setTakeOverOpen] = useState(false);
   const [relinkOpen, setRelinkOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DetailTabId>('overview');
   const setHeaderActive = useHeaderSlot((store) => store.setActive);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const pendingScrollRef = useRef<ScrollSnapshot | null>(null);
 
   useEffect(() => {
     setHeaderActive(true);
     return () => setHeaderActive(false);
   }, [setHeaderActive]);
-
   const handleSave = useCallback(() => {
     if (edit.changes.hasConfigChanges) {
       setRecreateConfirmOpen(true);
@@ -56,7 +58,44 @@ export default function ContainerDetailPage() {
     }
     edit.save();
   }, [edit]);
+  const captureScroll = useCallback(() => {
+    const main = document.querySelector('main');
+    pendingScrollRef.current = {
+      mainTop: main?.scrollTop ?? 0,
+      paneTop: scrollContainerRef.current?.scrollTop ?? 0,
+      windowTop: window.scrollY,
+    };
+  }, []);
+  const restoreScroll = useCallback((snapshot: ScrollSnapshot) => {
+    const main = document.querySelector('main');
+    if (main) main.scrollTop = snapshot.mainTop;
+    if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = snapshot.paneTop;
+    window.scrollTo({ top: snapshot.windowTop });
+  }, []);
+  useLayoutEffect(() => {
+    const snapshot = pendingScrollRef.current;
+    if (!snapshot) return;
 
+    pendingScrollRef.current = null;
+    restoreScroll(snapshot);
+    const frame = requestAnimationFrame(() => restoreScroll(snapshot));
+    return () => cancelAnimationFrame(frame);
+  }, [edit.editing, edit.editData, restoreScroll]);
+  const handleStartEditing = useCallback(() => {
+    captureScroll();
+    edit.startEditing();
+  }, [captureScroll, edit.startEditing]);
+  const handleCancelEditing = useCallback(() => {
+    captureScroll();
+    edit.cancelEditing();
+  }, [captureScroll, edit.cancelEditing]);
+  const handleEditFieldChange = useCallback(<K extends keyof EditFormData>(
+    field: K,
+    value: EditFormData[K],
+  ) => {
+    captureScroll();
+    edit.onFieldChange(field, value);
+  }, [captureScroll, edit.onFieldChange]);
   if (isLoading) {
     return <div className="flex h-64 items-center justify-center"><Spinner size="lg" /></div>;
   }
@@ -64,14 +103,12 @@ export default function ContainerDetailPage() {
   if (!container) {
     return <div className="py-12 text-center text-muted-foreground">{t('containerNotFound')}</div>;
   }
-
   const name = (container.Name ?? '').replace(/^\//, '');
   const isRunning = (container.State?.Status ?? 'unknown') === 'running';
   const webURL = isRunning ? getInspectWebUrl(container.NetworkSettings?.Ports) : null;
   const linkedStackName = stackLink?.stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
   const isComposeManaged = !!container.Config?.Labels?.['com.docker.compose.project'];
   const locked = isProtectedContainer(container);
-
   return (
     <div className="flex h-full flex-col gap-0">
       {document.getElementById('header-slot') &&
@@ -82,35 +119,35 @@ export default function ContainerDetailPage() {
             name={name}
             webUrl={webURL}
             editing={edit.editing}
-            onEdit={edit.startEditing}
+            onEdit={handleStartEditing}
             onRename={() => setRenameDialogOpen(true)}
             onSave={handleSave}
-            onCancelEdit={edit.cancelEditing}
+            onCancelEdit={handleCancelEditing}
             saving={edit.isSaving}
             stackName={linkedStackName}
             onAction={(nextAction) => action.mutate({ id: container.Id, action: nextAction })}
             onKill={() => setConfirmKill(true)}
             onRemove={() => setRemoveDialogOpen(true)}
+            onMove={() => setMoveDialogOpen(true)}
             onTakeOver={() => setTakeOverOpen(true)}
             onRelink={() => setRelinkOpen(true)}
           />,
           document.getElementById('header-slot')!,
         )}
-
       <div className="flex h-full flex-col overflow-hidden">
         <ContainerDetailTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
           labelFor={(tab) => t(`detail.${tab}`)}
         />
-        <div className={`flex min-h-0 flex-1 flex-col p-5 ${activeTab === 'terminal' || activeTab === 'logs' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+        <div ref={scrollContainerRef} className={`flex min-h-0 flex-1 flex-col p-5 ${activeTab === 'terminal' || activeTab === 'logs' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {activeTab === 'overview' && <OverviewTab container={container} />}
-          {activeTab === 'environment' && <EnvironmentTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={edit.onFieldChange} />}
-          {activeTab === 'labels' && <LabelsTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={edit.onFieldChange} />}
-          {activeTab === 'network' && <NetworkTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={edit.onFieldChange} />}
+          {activeTab === 'environment' && <EnvironmentTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
+          {activeTab === 'labels' && <LabelsTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
+          {activeTab === 'network' && <NetworkTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
           {activeTab === 'mounts' && <MountsTab container={container} />}
-          {activeTab === 'resources' && <ResourcesTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={edit.onFieldChange} />}
-          {activeTab === 'security' && <SecurityTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={edit.onFieldChange} />}
+          {activeTab === 'resources' && <ResourcesTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
+          {activeTab === 'security' && <SecurityTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
           <div className={activeTab !== 'logs' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}><LogsTab containerId={container.Id} isRunning={isRunning} /></div>
           <div className={activeTab !== 'terminal' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}><TerminalTab containerId={container.Id} isRunning={isRunning} active={activeTab === 'terminal'} /></div>
           {activeTab === 'processes' && <ProcessesTab containerId={container.Id} isRunning={isRunning} />}
@@ -121,19 +158,19 @@ export default function ContainerDetailPage() {
           <SaveBar
             changes={edit.changes}
             onSave={handleSave}
-            onCancel={edit.cancelEditing}
+            onCancel={handleCancelEditing}
             isSaving={edit.isSaving}
             isComposeManaged={isComposeManaged}
           />
         )}
       </div>
-
       <ContainerDetailDialogs
         container={container}
         containerName={name}
         confirmKill={confirmKill}
         recreateConfirmOpen={recreateConfirmOpen}
         removeDialogOpen={removeDialogOpen}
+        moveDialogOpen={moveDialogOpen}
         renameDialogOpen={renameDialogOpen}
         takeOverOpen={takeOverOpen}
         relinkOpen={relinkOpen}
@@ -144,6 +181,7 @@ export default function ContainerDetailPage() {
         onConfirmKillChange={(open) => setConfirmKill(open)}
         onRecreateConfirmChange={setRecreateConfirmOpen}
         onRemoveDialogChange={setRemoveDialogOpen}
+        onMoveDialogChange={setMoveDialogOpen}
         onRenameDialogChange={setRenameDialogOpen}
         onTakeOverChange={setTakeOverOpen}
         onRelinkChange={setRelinkOpen}

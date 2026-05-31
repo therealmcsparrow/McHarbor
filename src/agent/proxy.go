@@ -5,12 +5,14 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
@@ -73,15 +75,37 @@ func (p *Proxy) DetectDockerVersion() string {
 
 // HandleRequest processes a proxied Docker API request and sends the response back.
 func (p *Proxy) HandleRequest(ctx context.Context, conn *websocket.Conn, id string, wsReq *WSHTTPRequest) {
+	var bodyReader io.Reader
+	if len(wsReq.Body) > 0 {
+		bodyReader = bytes.NewReader(wsReq.Body)
+	}
+	p.handleRequestWithBody(ctx, conn, id, wsReq, bodyReader)
+}
+
+// HandleRequestStream processes a proxied Docker API request with a streamed body.
+func (p *Proxy) HandleRequestStream(ctx context.Context, conn *websocket.Conn, id string, wsReq *WSHTTPRequest, bodyReader io.Reader) {
+	p.handleRequestWithBody(ctx, conn, id, wsReq, bodyReader)
+}
+
+func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn, id string, wsReq *WSHTTPRequest, bodyReader io.Reader) {
+	var cleanup func()
+	if shouldSpoolRequestBody(wsReq, bodyReader) {
+		spooledBody, bodyCleanup, err := p.spoolRequestBody(bodyReader)
+		if err != nil {
+			p.sendErrorResponse(conn, id, http.StatusBadGateway, err)
+			return
+		}
+		bodyReader = spooledBody
+		cleanup = bodyCleanup
+	}
+	if cleanup != nil {
+		defer cleanup()
+	}
+
 	// Build the real HTTP request
 	urlStr := fmt.Sprintf("http://docker%s", wsReq.Path)
 	if wsReq.Query != "" {
 		urlStr += "?" + wsReq.Query
-	}
-
-	var bodyReader io.Reader
-	if len(wsReq.Body) > 0 {
-		bodyReader = strings.NewReader(string(wsReq.Body))
 	}
 
 	req, err := http.NewRequestWithContext(ctx, wsReq.Method, urlStr, bodyReader)
@@ -160,10 +184,11 @@ func (p *Proxy) handleStreamingResponse(ctx context.Context, conn *websocket.Con
 
 	// Stream chunks
 	buf := make([]byte, 32*1024)
+streamLoop:
 	for {
 		select {
 		case <-ctx.Done():
-			break
+			break streamLoop
 		default:
 		}
 
@@ -217,6 +242,38 @@ func (p *Proxy) sendErrorResponse(conn *websocket.Conn, id string, status int, e
 	writeMu.Unlock()
 }
 
+func shouldSpoolRequestBody(wsReq *WSHTTPRequest, bodyReader io.Reader) bool {
+	if wsReq == nil || bodyReader == nil {
+		return false
+	}
+	return strings.HasSuffix(wsReq.Path, "/images/load")
+}
+
+func (p *Proxy) spoolRequestBody(bodyReader io.Reader) (io.Reader, func(), error) {
+	archiveFile, err := os.CreateTemp("", "mcharbor-agent-image-load-*.tar")
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating temporary image archive: %w", err)
+	}
+	archivePath := archiveFile.Name()
+	cleanup := func() {
+		if err := archiveFile.Close(); err != nil {
+			p.logger.Warn("close temporary image archive failed", "error", err, "path", archivePath)
+		}
+		if err := os.Remove(archivePath); err != nil && !os.IsNotExist(err) {
+			p.logger.Warn("remove temporary image archive failed", "error", err, "path", archivePath)
+		}
+	}
+	if _, err := io.Copy(archiveFile, bodyReader); err != nil {
+		cleanup()
+		return nil, nil, fmt.Errorf("spooling image archive: %w", err)
+	}
+	if _, err := archiveFile.Seek(0, io.SeekStart); err != nil {
+		cleanup()
+		return nil, nil, fmt.Errorf("rewinding image archive: %w", err)
+	}
+	return archiveFile, cleanup, nil
+}
+
 // isStreamingResponse checks if the response is a streaming/chunked response.
 func isStreamingResponse(resp *http.Response) bool {
 	ct := resp.Header.Get("Content-Type")
@@ -257,6 +314,15 @@ func (p *Proxy) HandleExec(ctx context.Context, wsConn *websocket.Conn, sessionI
 		return
 	}
 	defer rawConn.Close()
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			rawConn.Close()
+		case <-done:
+		}
+	}()
+	defer close(done)
 
 	// Register connection for input forwarding
 	p.execMu.Lock()
@@ -270,10 +336,11 @@ func (p *Proxy) HandleExec(ctx context.Context, wsConn *websocket.Conn, sessionI
 
 	// Read Docker stdout and send as exec_output
 	buf := make([]byte, 4096)
+execLoop:
 	for {
 		select {
 		case <-ctx.Done():
-			break
+			break execLoop
 		default:
 		}
 

@@ -10,7 +10,7 @@ import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { useBatchProgressOperation } from '@resources/hooks/useBatchProgressOperation';
 import { useCurrentEnvironmentActivitySettings } from '@resources/hooks/useCurrentEnvironmentActivitySettings';
-import { isProtectedContainer } from '@core/utils/protection';
+import { canRunContainerUpdateOperation, isProtectedContainer } from '@core/utils/protection';
 import { ContainerCardGrid } from '../components/ContainerCardGrid';
 import { ContainerUtilityDialogs } from '../components/ContainerUtilityDialogs';
 import { ContainersPageActions } from '../components/ContainersPageActions';
@@ -42,6 +42,7 @@ export default function ContainersPage() {
   const updateResults = useContainerUpdateResults();
   const { viewMode, setViewMode } = useContainersViewStore();
   const [removeTarget, setRemoveTarget] = useState<ContainerInfo | null>(null);
+  const [moveTarget, setMoveTarget] = useState<ContainerInfo | null>(null);
   const [renameTarget, setRenameTarget] = useState<ContainerInfo | null>(null);
   const [terminalTarget, setTerminalTarget] = useState<ContainerInfo | null>(null);
   const [logsTarget, setLogsTarget] = useState<ContainerInfo | null>(null);
@@ -98,14 +99,15 @@ export default function ContainersPage() {
     });
   }
 
-  const mutableContainers = containers.filter((container) => !isProtectedContainer(container));
-  const allTargets = mutableContainers.map(toTarget);
-  const updateTargets = mutableContainers.filter((container) => updateAvailableIDs.has(container.Id)).map(toTarget);
+  const updateOperationContainers = containers.filter(canRunContainerUpdateOperation);
+  const allTargets = updateOperationContainers.map(toTarget);
+  const updateTargets = updateOperationContainers.filter((container) => updateAvailableIDs.has(container.Id)).map(toTarget);
   const columns = useContainerColumns({
     action,
     onTerminal: setTerminalTarget,
     onLogs: setLogsTarget,
     onRename: setRenameTarget,
+    onMove: setMoveTarget,
     onRemove: setRemoveTarget,
     onTakeOver: setTakeOverTarget,
     updateResults,
@@ -172,6 +174,7 @@ export default function ContainersPage() {
           onTerminal={setTerminalTarget}
           onLogs={setLogsTarget}
           onRename={setRenameTarget}
+          onMove={setMoveTarget}
           onRemove={setRemoveTarget}
           onClick={(container) => navigate(`/containers/${container.Id}`)}
         />
@@ -179,6 +182,7 @@ export default function ContainersPage() {
 
       <ContainerUtilityDialogs
         removeTarget={removeTarget}
+        moveTarget={moveTarget}
         renameTarget={renameTarget}
         terminalTarget={terminalTarget}
         logsTarget={logsTarget}
@@ -186,6 +190,7 @@ export default function ContainersPage() {
         progressState={batchProgress.dialogState}
         closeProgress={batchProgress.closeDialog}
         setRemoveTarget={setRemoveTarget}
+        setMoveTarget={setMoveTarget}
         setRenameTarget={setRenameTarget}
         setTerminalTarget={setTerminalTarget}
         setLogsTarget={setLogsTarget}

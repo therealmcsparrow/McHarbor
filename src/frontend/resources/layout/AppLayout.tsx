@@ -18,7 +18,7 @@ export function AppLayout() {
   useDockerEvents();
   useDockerDiskUsageNotifications();
 
-  const routeOwnsScroll = pathname === '/store';
+  const routeOwnsScroll = pathname === '/store' || pathname.startsWith('/containers/');
 
   if (isLoading) {
     return (
