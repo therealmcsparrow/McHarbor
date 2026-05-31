@@ -17,6 +17,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 	networkTypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
@@ -28,6 +29,7 @@ const composeProjectLabel = "com.docker.compose.project"
 const composeServiceLabel = "com.docker.compose.service"
 const moveProgressTotal = 10
 const moveImageLoadHeartbeat = 15 * time.Second
+const moveOperationTimeout = 2 * time.Hour
 const moveAgentSpoolMinVersion = "1.3.1"
 
 type moveProgressEmitter func(MoveContainerEvent)
@@ -127,7 +129,7 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 		return MoveContainerResult{}, err
 	}
 
-	opCtx, cancel := context.WithTimeout(ctx, 15*time.Minute)
+	opCtx, cancel := context.WithTimeout(ctx, moveOperationTimeout)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(opCtx, sourceCli, id); err != nil {
@@ -218,6 +220,7 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	if err != nil {
 		return MoveContainerResult{}, err
 	}
+	applyMoveVolumeSettings(info, hc)
 	applyMoveNetworkSettings(info, hc, netConfig, plan.NetworkMode, req.Networks)
 
 	emitMoveProgress(emit, 8, "create-target", "Creating target container.", "progress")
@@ -645,6 +648,7 @@ func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref
 	emitMoveProgress(emit, 4, "image", "Source image archive transfer finished; loading target image.", "progress")
 
 	loadDone := make(chan struct{})
+	defer close(loadDone)
 	if _, err := archiveFile.Seek(0, io.SeekStart); err != nil {
 		return fmt.Errorf("rewinding image archive %s: %w", ref, err)
 	}
@@ -656,8 +660,7 @@ func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref
 	}
 	go emitImageLoadHeartbeat(ctx, loadDone, targetProgress, archiveSize, emit)
 
-	resp, err := targetCli.ImageLoad(ctx, targetProgress, client.ImageLoadWithQuiet(true))
-	close(loadDone)
+	resp, err := targetCli.ImageLoad(ctx, targetProgress)
 	if err != nil {
 		return fmt.Errorf("loading image %s: %w", ref, err)
 	}
@@ -811,6 +814,60 @@ func applyMoveNetworkSettings(info types.ContainerJSON, hc *container.HostConfig
 	}
 	netConfig.EndpointsConfig = endpoints
 	_ = info
+}
+
+func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig) {
+	if hc == nil {
+		return
+	}
+
+	covered := make(map[string]struct{})
+	for _, existingMount := range hc.Mounts {
+		if existingMount.Target != "" {
+			covered[path.Clean(existingMount.Target)] = struct{}{}
+		}
+	}
+	for _, bind := range hc.Binds {
+		if destination := bindMountDestination(bind); destination != "" {
+			covered[path.Clean(destination)] = struct{}{}
+		}
+	}
+	for destination := range hc.Tmpfs {
+		if destination != "" {
+			covered[path.Clean(destination)] = struct{}{}
+		}
+	}
+
+	for _, mountPoint := range info.Mounts {
+		if string(mountPoint.Type) != "volume" || mountPoint.Name == "" || mountPoint.Destination == "" {
+			continue
+		}
+		destination := path.Clean(mountPoint.Destination)
+		if _, ok := covered[destination]; ok {
+			continue
+		}
+		hc.Mounts = append(hc.Mounts, mount.Mount{
+			Type:     mount.TypeVolume,
+			Source:   mountPoint.Name,
+			Target:   mountPoint.Destination,
+			ReadOnly: !mountPoint.RW,
+		})
+		covered[destination] = struct{}{}
+	}
+}
+
+func bindMountDestination(bind string) string {
+	parts := strings.Split(bind, ":")
+	for i := len(parts) - 1; i >= 0; i-- {
+		part := strings.TrimSpace(parts[i])
+		if strings.HasPrefix(part, "/") {
+			return part
+		}
+	}
+	if len(parts) >= 2 {
+		return strings.TrimSpace(parts[1])
+	}
+	return ""
 }
 
 func createTargetVolume(ctx context.Context, sourceCli, targetCli *client.Client, name string) error {

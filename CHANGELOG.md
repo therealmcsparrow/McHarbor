@@ -2,6 +2,19 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.3.2] - 2026-05-31
+
+### Changed
+
+- Bumped the patch application version to `1.3.2` across canonical runtime metadata, agent metadata, frontend package metadata, and lockfile root metadata.
+- Extended the bounded container move operation window so remote agent image and volume moves can finish on slower Docker hosts.
+- Switched container image loading during moves away from quiet Docker load mode so target Docker can stream load progress/results back through the agent path instead of waiting until unpacking completes.
+
+### Fixed
+
+- Fixed moved containers missing Docker volume attachments when the original container used image-declared or otherwise implicit named/anonymous volumes.
+- Fixed container moves timing out while the target Docker daemon was still loading the transferred image archive.
+
 ## [1.3.1] - 2026-05-31
 ### Added
 

@@ -18,7 +18,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.3.1"
+const agentVersion = "1.3.2"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
