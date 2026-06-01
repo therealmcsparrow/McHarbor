@@ -37,6 +37,14 @@ const (
 	MsgExecOutput = "exec_output" // Agent->Server: stdout data
 	MsgExecResize = "exec_resize" // Server->Agent: terminal resize
 	MsgExecEnd    = "exec_end"    // Bidirectional: exec session ended
+
+	// Direct agent-to-agent transfers
+	MsgTransferPrepare  = "transfer_prepare"  // Server->Target agent: prepare upload receiver
+	MsgTransferReady    = "transfer_ready"    // Target agent->Server: receiver status
+	MsgTransferImage    = "transfer_image"    // Server->Source agent: stream Docker image to target
+	MsgTransferProgress = "transfer_progress" // Source agent->Server: bytes sent directly
+	MsgTransferResult   = "transfer_result"   // Agent->Server: direct transfer result
+	MsgTransferCancel   = "transfer_cancel"   // Server->Agent: cancel direct transfer
 )
 
 // WSMessage is the envelope for all WebSocket messages.
@@ -52,6 +60,18 @@ type WSMessage struct {
 	StreamChunk  *WSStreamChunk     `json:"streamChunk,omitempty"`
 	ExecStart    *ExecStartPayload  `json:"execStart,omitempty"`
 	ExecResize   *ExecResizePayload `json:"execResize,omitempty"`
+	Transfer     *TransferPayload   `json:"transfer,omitempty"`
+}
+
+// TransferPayload carries direct agent-to-agent transfer control metadata.
+type TransferPayload struct {
+	TransferID string `json:"transferId"`
+	Token      string `json:"token,omitempty"`
+	URL        string `json:"url,omitempty"`
+	ImageRef   string `json:"imageRef,omitempty"`
+	Bytes      int64  `json:"bytes,omitempty"`
+	Success    bool   `json:"success,omitempty"`
+	Error      string `json:"error,omitempty"`
 }
 
 // ExecStartPayload is sent by the server to start an exec attach on the agent.
@@ -74,6 +94,7 @@ type AuthPayload struct {
 	Arch          string `json:"arch"`
 	AgentVersion  string `json:"agentVersion"`
 	DockerVersion string `json:"dockerVersion"`
+	TransferURL   string `json:"transferUrl,omitempty"`
 }
 
 // AuthResultPayload is sent by the server after validating the auth.

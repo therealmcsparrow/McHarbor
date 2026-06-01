@@ -90,20 +90,28 @@ func (h *Handler) HandleAgentWS(w http.ResponseWriter, r *http.Request) {
 
 	// Create transport and agent connection
 	agentConn := &coreagent.AgentConnection{
-		EnvID:     envID,
-		Hostname:  authMsg.Auth.Hostname,
-		OS:        authMsg.Auth.OS,
-		Arch:      authMsg.Auth.Arch,
-		Version:   authMsg.Auth.AgentVersion,
-		DockerVer: authMsg.Auth.DockerVersion,
-		Conn:      conn,
+		EnvID:       envID,
+		Hostname:    authMsg.Auth.Hostname,
+		OS:          authMsg.Auth.OS,
+		Arch:        authMsg.Auth.Arch,
+		Version:     authMsg.Auth.AgentVersion,
+		DockerVer:   authMsg.Auth.DockerVersion,
+		TransferURL: authMsg.Auth.TransferURL,
+		Conn:        conn,
 	}
 
 	transport := coreagent.NewAgentTransport(agentConn, h.app.DB, h.app.Logger)
 	agentConn.Transport = transport
 
 	// Register in pool
-	h.app.AgentPool.Register(envID, agentConn)
+	if !h.app.AgentPool.Register(envID, agentConn) {
+		h.app.Logger.Warn("agent connection rejected",
+			"env", envID,
+			"hostname", authMsg.Auth.Hostname,
+			"agentVersion", authMsg.Auth.AgentVersion,
+		)
+		return
+	}
 
 	// Update DB status
 	h.service.UpdateAgentStatus(envID, "connected", authMsg.Auth)
@@ -118,6 +126,7 @@ func (h *Handler) HandleAgentWS(w http.ResponseWriter, r *http.Request) {
 		"arch", authMsg.Auth.Arch,
 		"agentVersion", authMsg.Auth.AgentVersion,
 		"dockerVersion", authMsg.Auth.DockerVersion,
+		"directTransfer", authMsg.Auth.TransferURL != "",
 	)
 
 	// Block on read loop until agent disconnects

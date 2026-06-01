@@ -8,10 +8,11 @@ import { Input } from '@resources/components/ui/Input';
 import { Label } from '@resources/components/ui/Label';
 import { Select } from '@resources/components/ui/Select';
 import type { NetworkInfo } from '@core/types/docker';
-import type { MoveContainerPlan, MoveNetworkConfig } from '../hooks/useContainers';
+import type { MoveContainerPlan, MoveNetworkConfig, MoveVolumeConfig } from '../hooks/useContainers';
 import { MoveContainerOptions } from './MoveContainerOptions';
 import { MoveContainerPlanSummary } from './MoveContainerPlanSummary';
 import { MoveNetworkSettings } from './MoveNetworkSettings';
+import { MoveVolumeSettings } from './MoveVolumeSettings';
 
 type TargetOption = {
   value: string;
@@ -28,12 +29,14 @@ type MoveContainerSetupProps = {
   fallbackImage: string;
   networkMode: string;
   networks: MoveNetworkConfig[];
+  volumes: MoveVolumeConfig[];
   targetNetworks: NetworkInfo[];
   moveOptions: ComponentProps<typeof MoveContainerOptions>['options'];
   onTargetEnvChange: (value: string) => void;
   onTargetNameChange: (value: string) => void;
   onNetworkModeChange: (value: string) => void;
   onNetworksChange: (value: MoveNetworkConfig[]) => void;
+  onVolumesChange: (value: MoveVolumeConfig[]) => void;
 };
 
 export function MoveContainerSetup({
@@ -46,12 +49,14 @@ export function MoveContainerSetup({
   fallbackImage,
   networkMode,
   networks,
+  volumes,
   targetNetworks,
   moveOptions,
   onTargetEnvChange,
   onTargetNameChange,
   onNetworkModeChange,
   onNetworksChange,
+  onVolumesChange,
 }: MoveContainerSetupProps) {
   return (
     <>
@@ -83,6 +88,7 @@ export function MoveContainerSetup({
       ) : plan ? (
         <>
           <MoveContainerPlanSummary plan={plan} fallbackImage={fallbackImage} />
+          <MoveVolumeSettings plan={plan} volumes={volumes} onVolumesChange={onVolumesChange} />
           <MoveNetworkSettings
             networkMode={networkMode || plan.networkMode || 'bridge'}
             networks={networks}

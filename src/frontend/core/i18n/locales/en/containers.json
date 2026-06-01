@@ -460,6 +460,10 @@
     "removeSourceDesc": "Remove the source container after the target is created. Named volumes stay on the source host.",
     "startTarget": "Start target container",
     "startTargetDesc": "Start the target container after creation and data copy.",
+    "editVolumeMounts": "Edit volume mounts",
+    "targetVolume": "Target volume",
+    "targetHostPath": "Target host path",
+    "targetContainerPath": "Target container path",
     "editNetworkSettings": "Edit network settings",
     "networkMode": "Network mode",
     "targetNetwork": "Target network",
@@ -479,6 +483,8 @@
       "starting": "Starting container move.",
       "connectFailed": "Could not connect to the move progress stream.",
       "networkError": "The move progress connection was interrupted.",
+      "cancelled": "Move cancelled.",
+      "cancelNote": "Cancel stops the active move request. It does not roll back resources that were already created.",
       "done": "Done"
     }
   },

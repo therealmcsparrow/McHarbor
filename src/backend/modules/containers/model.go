@@ -216,6 +216,7 @@ type MoveContainerPlanRequest struct {
 	TargetName  string              `json:"targetName,omitempty"`
 	NetworkMode string              `json:"networkMode,omitempty"`
 	Networks    []MoveNetworkConfig `json:"networks,omitempty"`
+	Volumes     []MoveVolumeConfig  `json:"volumes,omitempty"`
 }
 
 // MoveContainerRequest is the JSON body for POST /containers/{id}/move.
@@ -231,6 +232,7 @@ type MoveContainerRequest struct {
 	StopSource            bool                `json:"stopSource"`
 	RemoveSource          bool                `json:"removeSource"`
 	Networks              []MoveNetworkConfig `json:"networks,omitempty"`
+	Volumes               []MoveVolumeConfig  `json:"volumes,omitempty"`
 }
 
 // MoveContainerPlan describes the resources and configuration changes required to move a container.
@@ -269,15 +271,27 @@ type MoveStackPlan struct {
 
 // MoveVolumePlan reports a mount that affects the container move.
 type MoveVolumePlan struct {
-	Type        string `json:"type"`
-	Name        string `json:"name,omitempty"`
-	Source      string `json:"source,omitempty"`
-	Destination string `json:"destination"`
-	Mode        string `json:"mode,omitempty"`
-	Exists      bool   `json:"exists"`
-	WillCreate  bool   `json:"willCreate"`
-	WillCopy    bool   `json:"willCopy"`
-	Manual      bool   `json:"manual"`
+	Type              string `json:"type"`
+	Name              string `json:"name,omitempty"`
+	TargetName        string `json:"targetName,omitempty"`
+	Source            string `json:"source,omitempty"`
+	TargetSource      string `json:"targetSource,omitempty"`
+	Destination       string `json:"destination"`
+	TargetDestination string `json:"targetDestination"`
+	Mode              string `json:"mode,omitempty"`
+	Exists            bool   `json:"exists"`
+	WillCreate        bool   `json:"willCreate"`
+	WillCopy          bool   `json:"willCopy"`
+	Manual            bool   `json:"manual"`
+}
+
+// MoveVolumeConfig describes target mount settings for a container move.
+type MoveVolumeConfig struct {
+	SourceName        string `json:"sourceName"`
+	SourceDestination string `json:"sourceDestination,omitempty"`
+	TargetName        string `json:"targetName,omitempty"`
+	TargetSource      string `json:"targetSource,omitempty"`
+	TargetDestination string `json:"targetDestination,omitempty"`
 }
 
 // MoveNetworkPlan reports a network attachment needed on the destination environment.

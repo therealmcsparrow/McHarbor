@@ -2,6 +2,29 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.3.5] - 2026-06-01
+
+### Added
+- Added optional direct agent-to-agent container snapshot image transfer for moves between remote agent environments. When both agents are updated and the target agent advertises a transfer listener, snapshot data streams from source agent to target agent instead of through the McHarbor server.
+- Added target-agent transfer listener configuration through `MCHARBOR_TRANSFER_LISTEN` and `MCHARBOR_TRANSFER_ADVERTISE_URL`.
+
+### Changed
+- Bumped the patch application version to `1.3.5` across canonical runtime metadata, agent metadata, frontend package metadata, lockfile root metadata, and generated agent install image references.
+- Raised the direct-transfer agent requirement to `mcharbor-agent` `1.3.5`; moves automatically fall back to the existing McHarbor relay path when direct transfer is unavailable.
+
+### Fixed
+- Fixed remote-agent image load hangs by streaming Docker `/images/load` request bodies through the agent even when the Docker SDK reports a zero content length.
+- Added move cancellation UI handling and de-duplicated repeated image-load progress messages.
+- Added editable move volume mapping for both named volumes and bind mounts, including target host path and target container path.
+
+## [1.3.4] - 2026-06-01
+
+### Changed
+- Added editable target volume mount settings to container moves, prefilled from the source volume name and container path.
+- Pinned generated remote agent Docker install commands to the current agent version and force-pull before restart so stale local `latest` images are not reused.
+- Added progress of receiving staged image on target docker.
+- Bumped the patch application version to `1.3.4` across canonical runtime metadata, agent metadata, frontend package metadata, lockfile root metadata, and generated agent install image references.
+
 ## [1.3.3] - 2026-06-01
 
 ### Changed
@@ -9,10 +32,12 @@ All notable changes to McHarbor are documented in this file.
 - Bumped the patch application version to `1.3.3` across canonical runtime metadata, agent metadata, frontend package metadata, and lockfile root metadata.
 - Raised the target-agent requirement for container snapshot/image data moves to `mcharbor-agent` `1.3.3` so move operations use the staged image-upload protocol.
 
+
 ### Fixed
 
 - Fixed remote-agent container moves still stalling after the first target image-load chunk by staging `/images/load` uploads on the agent before calling the local Docker daemon.
 - Fixed duplicate same-version agent connections replacing the active connection during long container moves.
+- Fixed rejected older duplicate agents overwriting the connected agent version shown in environment status.
 
 ## [1.3.2] - 2026-05-31
 

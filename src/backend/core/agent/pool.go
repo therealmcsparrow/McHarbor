@@ -19,15 +19,16 @@ import (
 
 // AgentConnection represents a connected remote agent.
 type AgentConnection struct {
-	EnvID     string
-	Hostname  string
-	OS        string
-	Arch      string
-	Version   string
-	DockerVer string
-	Conn      *websocket.Conn
-	Transport *AgentTransport
-	mu        sync.Mutex
+	EnvID       string
+	Hostname    string
+	OS          string
+	Arch        string
+	Version     string
+	DockerVer   string
+	TransferURL string
+	Conn        *websocket.Conn
+	Transport   *AgentTransport
+	mu          sync.Mutex
 }
 
 // WriteMessage sends a WebSocket message with write locking.
@@ -59,8 +60,9 @@ func NewAgentPool(logger *slog.Logger) *AgentPool {
 	}
 }
 
-// Register adds an agent connection to the pool.
-func (p *AgentPool) Register(envID string, conn *AgentConnection) {
+// Register adds an agent connection to the pool and reports whether it became
+// the active connection for the environment.
+func (p *AgentPool) Register(envID string, conn *AgentConnection) bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -69,12 +71,13 @@ func (p *AgentPool) Register(envID string, conn *AgentConnection) {
 		if compareAgentVersions(conn.Version, existing.Version) <= 0 {
 			conn.Conn.Close()
 			p.logger.Warn("duplicate agent rejected; current connection remains active", "env", envID, "hostname", conn.Hostname, "agentVersion", conn.Version, "currentVersion", existing.Version)
-			return
+			return false
 		}
 		existing.Conn.Close()
 	}
 	p.conns[envID] = conn
 	p.logger.Info("agent registered", "env", envID, "hostname", conn.Hostname)
+	return true
 }
 
 func compareAgentVersions(a, b string) int {

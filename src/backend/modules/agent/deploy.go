@@ -108,7 +108,7 @@ func (s *Service) DeployViaSSH(ctx context.Context, envID string, req DeployRequ
 			hostKeyMismatch = true
 			return fmt.Errorf("ssh host key verification failed")
 		},
-		Timeout:         15 * time.Second,
+		Timeout: 15 * time.Second,
 	}
 
 	addr := fmt.Sprintf("%s:%d", req.SSHHost, port)
@@ -251,12 +251,14 @@ func runSSHCommand(client *ssh.Client, cmd string) (string, error) {
 // buildDockerDeployCmd generates the shell command to deploy the agent via Docker.
 func buildDockerDeployCmd(serverURL, token, agentImage string) string {
 	if agentImage == "" {
-		agentImage = "ghcr.io/therealmcsparrow/mcharbor-agent:latest"
+		agentImage = "ghcr.io/therealmcsparrow/mcharbor-agent:1.3.5"
 	}
 
 	// Stop and remove existing agent container if any, then run new one
 	return fmt.Sprintf(`
 set -e
+# Pull the requested agent image so a stale local latest tag is not reused.
+docker pull %s
 # Remove existing agent container if present
 docker rm -f mcharbor-agent 2>/dev/null || true
 # Pull and run the agent
@@ -268,7 +270,7 @@ docker run -d \
   -e MCHARBOR_AGENT_TOKEN=%s \
   %s
 echo "Agent container started successfully"
-`, shellEscape(serverURL), shellEscape(token), shellEscape(agentImage))
+`, shellEscape(agentImage), shellEscape(serverURL), shellEscape(token), shellEscape(agentImage))
 }
 
 // buildBinaryDeployCmd generates the shell command to deploy the agent as a binary.

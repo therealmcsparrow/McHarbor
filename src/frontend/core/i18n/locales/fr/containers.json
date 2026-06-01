@@ -460,6 +460,10 @@
     "removeSourceDesc": "Supprimer le conteneur source après la création de la cible. Les volumes nommés restent sur l'hôte source.",
     "startTarget": "Démarrer le conteneur cible",
     "startTargetDesc": "Démarrer le conteneur cible après création et copie des données.",
+    "editVolumeMounts": "Modifier les montages de volume",
+    "targetVolume": "Volume cible",
+    "targetHostPath": "Chemin hôte cible",
+    "targetContainerPath": "Chemin du conteneur cible",
     "editNetworkSettings": "Modifier les parametres reseau",
     "networkMode": "Mode reseau",
     "targetNetwork": "Reseau cible",
@@ -479,6 +483,8 @@
       "starting": "Demarrage du deplacement du conteneur.",
       "connectFailed": "Impossible de se connecter au flux de progression.",
       "networkError": "La connexion de progression a ete interrompue.",
+      "cancelled": "Deplacement annule.",
+      "cancelNote": "Annuler arrête la demande de déplacement active. Les ressources déjà créées ne sont pas restaurées.",
       "done": "Termine"
     }
   },

@@ -2,7 +2,7 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { IconAlertTriangle, IconCheck, IconCopy, IconNetwork, IconStack2 } from '@tabler/icons-react';
+import { IconAlertTriangle, IconCheck, IconCopy, IconStack2 } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { formatBytes } from '@resources/utils/format';
 import type { MoveContainerPlan } from '../hooks/useContainers';
@@ -59,26 +59,6 @@ export function MoveContainerPlanSummary({ plan, fallbackImage }: MoveContainerP
         </Section>
       </div>
 
-      <Section title={t('moveDialog.networkSettings')} icon={<IconNetwork className="size-4 text-cyan-400" />}>
-        <div className="grid gap-2 md:grid-cols-2">
-          {plan.networks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t('moveDialog.noNetworks')}</p>
-          ) : plan.networks.map((network) => (
-            <div key={network.sourceName || network.name} className="rounded-md border border-border bg-background/50 p-2 text-xs">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium">{network.targetName || network.name}</span>
-                <Badge variant={network.willCreate ? 'warning' : 'secondary'}>
-                  {network.willCreate ? t('moveDialog.create') : t('moveDialog.keep')}
-                </Badge>
-              </div>
-              <div className="mt-1 text-muted-foreground">
-                {network.driver ?? '-'} {network.targetIpAddress || network.ipAddress ? `- ${network.targetIpAddress || network.ipAddress}` : ''}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Section>
-
       <Section title={t('moveDialog.volumes')} icon={<IconCopy className="size-4 text-lime-400" />}>
         <div className="space-y-2">
           {plan.volumes.length === 0 ? (
@@ -86,8 +66,12 @@ export function MoveContainerPlanSummary({ plan, fallbackImage }: MoveContainerP
           ) : plan.volumes.map((volume) => (
             <div key={`${volume.type}-${volume.destination}`} className="flex items-center justify-between gap-3 rounded-md border border-border bg-background/50 p-2 text-xs">
               <div className="min-w-0">
-                <div className="truncate font-medium">{volume.name || volume.source || volume.destination}</div>
-                <div className="truncate text-muted-foreground">{volume.destination}</div>
+                <div className="truncate font-medium">{volume.targetName || volume.name || volume.targetSource || volume.source || volume.targetDestination || volume.destination}</div>
+                <div className="truncate text-muted-foreground">
+                  {(volume.targetDestination || volume.destination) === volume.destination
+                    ? volume.destination
+                    : `${volume.destination} ${t('moveDialog.to')} ${volume.targetDestination}`}
+                </div>
               </div>
               <Badge variant={volume.manual ? 'warning' : volume.willCreate ? 'secondary' : 'success'}>
                 {volume.manual ? t('moveDialog.manual') : volume.willCreate ? t('moveDialog.create') : t('moveDialog.copy')}

@@ -56,7 +56,9 @@ export function AgentTokenDialog({ open, onOpenChange, token, serverUrl, install
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const dockerCmd = `docker run -d \\
+  const dockerCmd = `docker pull ${AgentDockerImage}
+docker rm -f mcharbor-agent 2>/dev/null || true
+docker run -d \\
   --name mcharbor-agent \\
   --restart unless-stopped \\
   -v /var/run/docker.sock:/var/run/docker.sock \\

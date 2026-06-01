@@ -460,6 +460,10 @@
     "removeSourceDesc": "Eliminar el contenedor de origen despues de crear el destino. Los volumenes con nombre permanecen en el host origen.",
     "startTarget": "Iniciar contenedor destino",
     "startTargetDesc": "Iniciar el contenedor de destino despues de crear y copiar datos.",
+    "editVolumeMounts": "Editar montajes de volumen",
+    "targetVolume": "Volumen de destino",
+    "targetHostPath": "Ruta del host de destino",
+    "targetContainerPath": "Ruta del contenedor de destino",
     "editNetworkSettings": "Editar configuracion de red",
     "networkMode": "Modo de red",
     "targetNetwork": "Red de destino",
@@ -479,6 +483,8 @@
       "starting": "Iniciando movimiento del contenedor.",
       "connectFailed": "No se pudo conectar al flujo de progreso.",
       "networkError": "La conexion de progreso fue interrumpida.",
+      "cancelled": "Movimiento cancelado.",
+      "cancelNote": "Cancelar detiene la solicitud de movimiento activa. No revierte recursos que ya se hayan creado.",
       "done": "Listo"
     }
   },

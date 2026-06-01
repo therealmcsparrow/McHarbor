@@ -460,6 +460,10 @@
     "removeSourceDesc": "Quellcontainer nach Erstellung des Ziels entfernen. Benannte Volumes bleiben auf dem Quellhost.",
     "startTarget": "Zielcontainer starten",
     "startTargetDesc": "Zielcontainer nach Erstellung und Datenkopie starten.",
+    "editVolumeMounts": "Volume-Mounts bearbeiten",
+    "targetVolume": "Ziel-Volume",
+    "targetHostPath": "Hostpfad im Ziel",
+    "targetContainerPath": "Containerpfad im Ziel",
     "editNetworkSettings": "Netzwerkeinstellungen bearbeiten",
     "networkMode": "Netzwerkmodus",
     "targetNetwork": "Zielnetzwerk",
@@ -479,6 +483,8 @@
       "starting": "Containerverschiebung starten.",
       "connectFailed": "Keine Verbindung zum Fortschrittsstream moeglich.",
       "networkError": "Die Fortschrittsverbindung wurde unterbrochen.",
+      "cancelled": "Verschieben abgebrochen.",
+      "cancelNote": "Abbrechen stoppt die aktive Verschiebung. Bereits erstellte Ressourcen werden nicht zurückgesetzt.",
       "done": "Fertig"
     }
   },

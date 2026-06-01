@@ -34,8 +34,11 @@ export type MoveContainerPlan = {
   volumes: Array<{
     type: string;
     name?: string;
+    targetName?: string;
     source?: string;
+    targetSource?: string;
     destination: string;
+    targetDestination: string;
     mode?: string;
     exists: boolean;
     willCreate: boolean;
@@ -93,12 +96,21 @@ export type MoveNetworkConfig = {
   macAddress?: string;
 };
 
+export type MoveVolumeConfig = {
+  sourceName: string;
+  sourceDestination?: string;
+  targetName?: string;
+  targetSource?: string;
+  targetDestination?: string;
+};
+
 export type MoveContainerOptions = {
   id: string;
   targetEnvId: string;
   targetName?: string;
   networkMode?: string;
   networks?: MoveNetworkConfig[];
+  volumes?: MoveVolumeConfig[];
   transferImage: boolean;
   createMissingNetworks: boolean;
   createMissingVolumes: boolean;
@@ -187,15 +199,16 @@ export function useMoveContainerPlan(
   targetName: string,
   networkMode: string,
   networks: MoveNetworkConfig[],
+  volumes: MoveVolumeConfig[],
   enabled: boolean,
 ) {
   const envId = useEnvironmentStore((s) => s.currentId);
   return useQuery({
-    queryKey: ['container-move-plan', envId, id, targetEnvId, targetName, networkMode, networks],
+    queryKey: ['container-move-plan', envId, id, targetEnvId, targetName, networkMode, networks, volumes],
     queryFn: () => {
       const envQuery = envId ? `?env=${envId}` : '';
       return api
-        .post<MoveContainerPlan>(`/containers/${id}/move/plan${envQuery}`, { targetEnvId, targetName, networkMode, networks })
+        .post<MoveContainerPlan>(`/containers/${id}/move/plan${envQuery}`, { targetEnvId, targetName, networkMode, networks, volumes })
         .then(assertSuccess);
     },
     placeholderData: (previous) => previous,
@@ -230,6 +243,14 @@ function createMoveLogEntry(message: string, phase?: string): MoveProgressLogEnt
     message,
     phase,
   };
+}
+
+function appendMoveLogEntry(entries: MoveProgressLogEntry[], message: string, phase?: string): MoveProgressLogEntry[] {
+  const last = entries[entries.length - 1];
+  if (last?.message === message && last.phase === phase) {
+    return entries;
+  }
+  return [...entries, createMoveLogEntry(message, phase)];
 }
 
 function currentLanguage(): string {
@@ -267,7 +288,10 @@ export function useMoveContainerStream() {
 
   const abort = useCallback(() => {
     abortRef.current?.abort();
-  }, []);
+    setMoving(false);
+    setProgress({ step: 0, total: 10, message: t('moveDialog.progress.cancelled'), status: 'error', phase: 'error' });
+    setLogs((prev) => appendMoveLogEntry(prev, t('moveDialog.progress.cancelled'), 'error'));
+  }, [t]);
 
   const startMove = useCallback(
     (options: MoveContainerOptions, callbacks?: { onDone?: () => void }) => {
@@ -294,7 +318,7 @@ export function useMoveContainerStream() {
           if (!res.ok || !res.body) {
             setMoving(false);
             setProgress({ step: 0, total: 10, message: t('moveDialog.progress.connectFailed'), status: 'error', phase: 'error' });
-            setLogs((prev) => [...prev, createMoveLogEntry(t('moveDialog.progress.connectFailed'), 'error')]);
+            setLogs((prev) => appendMoveLogEntry(prev, t('moveDialog.progress.connectFailed'), 'error'));
             return;
           }
 
@@ -309,7 +333,7 @@ export function useMoveContainerStream() {
                 setMoving(false);
                 if (!completed) {
                   setProgress({ step: 0, total: 10, message: t('moveDialog.progress.networkError'), status: 'error', phase: 'error' });
-                  setLogs((prev) => [...prev, createMoveLogEntry(t('moveDialog.progress.networkError'), 'error')]);
+                  setLogs((prev) => appendMoveLogEntry(prev, t('moveDialog.progress.networkError'), 'error'));
                 }
                 return;
               }
@@ -324,7 +348,7 @@ export function useMoveContainerStream() {
                   const event = JSON.parse(line.slice(6)) as MoveContainerEvent;
                   setProgress(event);
                   if (event.message) {
-                    setLogs((prev) => [...prev, createMoveLogEntry(event.message, event.phase)]);
+                    setLogs((prev) => appendMoveLogEntry(prev, event.message, event.phase));
                   }
                   if (event.status === 'done') {
                     completed = true;
@@ -352,7 +376,7 @@ export function useMoveContainerStream() {
           if (err instanceof DOMException && err.name === 'AbortError') return;
           setMoving(false);
           setProgress({ step: 0, total: 10, message: t('moveDialog.progress.networkError'), status: 'error', phase: 'error' });
-          setLogs((prev) => [...prev, createMoveLogEntry(t('moveDialog.progress.networkError'), 'error')]);
+          setLogs((prev) => appendMoveLogEntry(prev, t('moveDialog.progress.networkError'), 'error'));
         });
     },
     [envId, invalidateMoveQueries, t],

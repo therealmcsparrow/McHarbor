@@ -460,6 +460,10 @@
     "removeSourceDesc": "Verwijder de broncontainer nadat het doel is aangemaakt. Genoemde volumes blijven op de bronhost.",
     "startTarget": "Doelcontainer starten",
     "startTargetDesc": "Start de doelcontainer na aanmaken en kopieren van data.",
+    "editVolumeMounts": "Volumemounts bewerken",
+    "targetVolume": "Doelvolume",
+    "targetHostPath": "Hostpad op doel",
+    "targetContainerPath": "Containerpad op doel",
     "editNetworkSettings": "Netwerkinstellingen bewerken",
     "networkMode": "Netwerkmodus",
     "targetNetwork": "Doelnetwerk",
@@ -479,6 +483,8 @@
       "starting": "Containerverplaatsing starten.",
       "connectFailed": "Kan geen verbinding maken met de voortgangsstream.",
       "networkError": "De voortgangsverbinding is onderbroken.",
+      "cancelled": "Verplaatsing geannuleerd.",
+      "cancelNote": "Annuleren stopt de actieve verplaatsing. Resources die al zijn aangemaakt worden niet teruggedraaid.",
       "done": "Klaar"
     }
   },

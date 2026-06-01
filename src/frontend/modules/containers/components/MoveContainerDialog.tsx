@@ -18,9 +18,10 @@ import {
   DialogTitle,
 } from '@resources/components/ui/Dialog';
 import { useEnvironmentList } from '@resources/hooks/useEnvironmentList';
-import type { MoveNetworkConfig } from '../hooks/useContainers';
+import type { MoveNetworkConfig, MoveVolumeConfig } from '../hooks/useContainers';
 import { useMoveContainerPlan, useMoveContainerStream } from '../hooks/useContainers';
 import { moveNetworkConfigsFromPlan } from './MoveNetworkSettings';
+import { moveVolumeConfigsFromPlan } from './MoveVolumeSettings';
 import { MoveContainerSetup } from './MoveContainerSetup';
 import { MoveProgress } from './MoveProgress';
 import type { ContainerTarget } from './move-dialog-types';
@@ -50,6 +51,7 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
   const [startTarget, setStartTarget] = useState(true);
   const [networkMode, setNetworkMode] = useState('');
   const [networks, setNetworks] = useState<MoveNetworkConfig[]>([]);
+  const [volumes, setVolumes] = useState<MoveVolumeConfig[]>([]);
   const initializedForRef = useRef<string | null>(null);
   const showProgress = moveStream.moving || moveStream.progress !== null;
   const defaultTargetEnvId = dockerEnvironments[0]?.id ?? '';
@@ -75,9 +77,10 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
     setStartTarget(true);
     setNetworkMode('');
     setNetworks([]);
+    setVolumes([]);
     moveStream.reset();
   }, [open, showProgress, container, defaultTargetEnvId, moveStream.reset]);
-  const planQuery = useMoveContainerPlan(container?.id ?? '', targetEnvId, targetName, networkMode, networks, open);
+  const planQuery = useMoveContainerPlan(container?.id ?? '', targetEnvId, targetName, networkMode, networks, volumes, open);
   const targetNetworksQuery = useQuery({
     queryKey: ['networks', targetEnvId],
     queryFn: () =>
@@ -105,11 +108,17 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
     setNetworks(moveNetworkConfigsFromPlan(plan));
   }, [open, plan, networks.length]);
 
+  useEffect(() => {
+    if (!open || !plan || volumes.length > 0) return;
+    setVolumes(moveVolumeConfigsFromPlan(plan));
+  }, [open, plan, volumes.length]);
+
   if (!container) return null;
   const handleTargetEnvChange = (value: string) => {
     setTargetEnvId(value);
     setNetworkMode('');
     setNetworks([]);
+    setVolumes([]);
   };
   const handleMove = () => {
     moveStream.startMove(
@@ -119,6 +128,7 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
         targetName,
         networkMode,
         networks,
+        volumes,
         transferImage,
         createMissingNetworks,
         createMissingVolumes,
@@ -143,6 +153,9 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
     moveStream.reset();
     onOpenChange(false);
   };
+  const handleProgressCancel = () => {
+    moveStream.abort();
+  };
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-3xl">
@@ -162,7 +175,12 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
         </DialogHeader>
         <DialogBody className="space-y-4">
           {showProgress ? (
-            <MoveProgress progress={moveStream.progress} logs={moveStream.logs} onClose={handleProgressClose} />
+            <MoveProgress
+              progress={moveStream.progress}
+              logs={moveStream.logs}
+              onClose={handleProgressClose}
+              onCancel={moveStream.moving ? handleProgressCancel : undefined}
+            />
           ) : (
             <MoveContainerSetup
               t={t}
@@ -174,12 +192,14 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
               fallbackImage={container.image}
               networkMode={networkMode}
               networks={networks}
+              volumes={volumes}
               targetNetworks={targetNetworksQuery.data ?? []}
               moveOptions={moveOptions}
               onTargetEnvChange={handleTargetEnvChange}
               onTargetNameChange={setTargetName}
               onNetworkModeChange={setNetworkMode}
               onNetworksChange={setNetworks}
+              onVolumesChange={setVolumes}
             />
           )}
         </DialogBody>

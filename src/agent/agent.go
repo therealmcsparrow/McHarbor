@@ -15,17 +15,28 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.3.3"
+const agentVersion = "1.3.5"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
-	cfg    Config
-	logger *slog.Logger
-	proxy  *Proxy
+	cfg      Config
+	logger   *slog.Logger
+	proxy    *Proxy
+	transfer *TransferServer
+}
+
+type transferProgressReader struct {
+	reader     io.Reader
+	conn       *websocket.Conn
+	transferID string
+	bytes      atomic.Int64
+	lastEmit   time.Time
 }
 
 type uploadBuffer struct {
@@ -192,11 +203,20 @@ func (b *uploadBuffer) closeWithError(err error) {
 
 // NewAgent creates a new agent instance.
 func NewAgent(cfg Config, logger *slog.Logger) *Agent {
+	proxy := NewProxy(cfg.DockerHost, logger)
 	return &Agent{
-		cfg:    cfg,
-		logger: logger,
-		proxy:  NewProxy(cfg.DockerHost, logger),
+		cfg:      cfg,
+		logger:   logger,
+		proxy:    proxy,
+		transfer: NewTransferServer(cfg.TransferListen, cfg.TransferAdvertiseURL, proxy, logger),
 	}
+}
+
+func (a *Agent) StartTransferServer(ctx context.Context) error {
+	if a.transfer == nil {
+		return nil
+	}
+	return a.transfer.Start(ctx)
 }
 
 // Connect establishes a WebSocket connection and runs the message loop.
@@ -236,6 +256,7 @@ func (a *Agent) Connect(ctx context.Context) error {
 			Arch:          runtime.GOARCH,
 			AgentVersion:  agentVersion,
 			DockerVersion: dockerVersion,
+			TransferURL:   a.transferAdvertiseURL(),
 		},
 	}
 	if err := conn.WriteJSON(authMsg); err != nil {
@@ -260,12 +281,16 @@ func (a *Agent) Connect(ctx context.Context) error {
 	// Track in-flight request cancellations
 	var cancelMu sync.Mutex
 	cancels := make(map[string]context.CancelFunc)
+	transferCancels := make(map[string]context.CancelFunc)
 	uploads := make(map[string]*uploadBuffer)
 	spooledUploads := make(map[string]*spooledUpload)
 	defer func() {
 		cancelMu.Lock()
 		defer cancelMu.Unlock()
 		for _, cancel := range cancels {
+			cancel()
+		}
+		for _, cancel := range transferCancels {
 			cancel()
 		}
 		for _, bodyReader := range uploads {
@@ -434,8 +459,145 @@ func (a *Agent) Connect(ctx context.Context) error {
 
 		case MsgExecEnd:
 			a.proxy.CloseExec(msg.ID)
+
+		case MsgTransferPrepare:
+			if msg.Transfer == nil {
+				continue
+			}
+			a.handleTransferPrepare(conn, msg.Transfer)
+
+		case MsgTransferImage:
+			if msg.Transfer == nil {
+				continue
+			}
+			transferCtx, transferCancel := context.WithCancel(ctx)
+			cancelMu.Lock()
+			transferCancels[msg.Transfer.TransferID] = transferCancel
+			cancelMu.Unlock()
+			go func(payload TransferPayload) {
+				defer func() {
+					cancelMu.Lock()
+					delete(transferCancels, payload.TransferID)
+					cancelMu.Unlock()
+					transferCancel()
+				}()
+				a.runImageTransfer(transferCtx, conn, payload)
+			}(*msg.Transfer)
+
+		case MsgTransferCancel:
+			if msg.Transfer == nil {
+				continue
+			}
+			cancelMu.Lock()
+			if cancel, ok := transferCancels[msg.Transfer.TransferID]; ok {
+				cancel()
+				delete(transferCancels, msg.Transfer.TransferID)
+			}
+			cancelMu.Unlock()
+			if a.transfer != nil {
+				a.transfer.Cancel(msg.Transfer.TransferID)
+			}
 		}
 	}
+}
+
+func (a *Agent) transferAdvertiseURL() string {
+	if a.transfer == nil {
+		return ""
+	}
+	return a.transfer.AdvertiseURL()
+}
+
+func (a *Agent) handleTransferPrepare(conn *websocket.Conn, payload *TransferPayload) {
+	uploadURL, err := a.transfer.Prepare(payload.TransferID, payload.Token)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferReady, payload.TransferID, false, 0, "", err)
+		return
+	}
+	a.sendTransferResult(conn, MsgTransferReady, payload.TransferID, true, 0, uploadURL, nil)
+}
+
+func (a *Agent) runImageTransfer(ctx context.Context, conn *websocket.Conn, payload TransferPayload) {
+	if strings.TrimSpace(payload.TransferID) == "" || strings.TrimSpace(payload.ImageRef) == "" || strings.TrimSpace(payload.URL) == "" || strings.TrimSpace(payload.Token) == "" {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", fmt.Errorf("invalid direct image transfer request"))
+		return
+	}
+
+	reader, err := a.proxy.SaveImage(ctx, payload.ImageRef)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", err)
+		return
+	}
+	defer reader.Close()
+
+	progressReader := &transferProgressReader{
+		reader:     reader,
+		conn:       conn,
+		transferID: payload.TransferID,
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, payload.URL, progressReader)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", fmt.Errorf("building direct transfer upload request: %w", err))
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+payload.Token)
+	req.Header.Set("Content-Type", "application/x-tar")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", fmt.Errorf("uploading direct image transfer: %w", err))
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", fmt.Errorf("target direct upload returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
+		return
+	}
+	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", fmt.Errorf("reading direct upload response: %w", err))
+		return
+	}
+
+	a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, true, progressReader.bytes.Load(), "", nil)
+}
+
+func (r *transferProgressReader) Read(p []byte) (int, error) {
+	n, err := r.reader.Read(p)
+	if n > 0 {
+		total := r.bytes.Add(int64(n))
+		if r.lastEmit.IsZero() || time.Since(r.lastEmit) >= 3*time.Second {
+			r.lastEmit = time.Now()
+			writeMu.Lock()
+			r.conn.WriteJSON(WSMessage{
+				Type: MsgTransferProgress,
+				Transfer: &TransferPayload{
+					TransferID: r.transferID,
+					Bytes:      total,
+				},
+			})
+			writeMu.Unlock()
+		}
+	}
+	return n, err
+}
+
+func (a *Agent) sendTransferResult(conn *websocket.Conn, msgType, transferID string, success bool, bytes int64, uploadURL string, err error) {
+	payload := &TransferPayload{
+		TransferID: transferID,
+		Success:    success,
+		Bytes:      bytes,
+		URL:        uploadURL,
+	}
+	if err != nil {
+		payload.Error = err.Error()
+	}
+	writeMu.Lock()
+	if writeErr := conn.WriteJSON(WSMessage{Type: msgType, Transfer: payload}); writeErr != nil {
+		a.logger.Warn("direct transfer result write failed", "transferId", transferID, "type", msgType, "error", writeErr)
+	}
+	writeMu.Unlock()
 }
 
 // buildWSURL constructs the WebSocket URL from the server URL.

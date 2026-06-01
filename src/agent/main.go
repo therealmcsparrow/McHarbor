@@ -16,11 +16,13 @@ import (
 
 // Config holds agent configuration loaded from environment variables.
 type Config struct {
-	McHarborURL string `env:"MCHARBOR_URL,required"`
-	AgentToken  string `env:"MCHARBOR_AGENT_TOKEN,required"`
-	DockerHost  string `env:"DOCKER_HOST" envDefault:"unix:///var/run/docker.sock"`
-	LogLevel    string `env:"LOG_LEVEL" envDefault:"info"`
-	Insecure    bool   `env:"MCHARBOR_INSECURE" envDefault:"false"`
+	McHarborURL          string `env:"MCHARBOR_URL,required"`
+	AgentToken           string `env:"MCHARBOR_AGENT_TOKEN,required"`
+	DockerHost           string `env:"DOCKER_HOST" envDefault:"unix:///var/run/docker.sock"`
+	LogLevel             string `env:"LOG_LEVEL" envDefault:"info"`
+	Insecure             bool   `env:"MCHARBOR_INSECURE" envDefault:"false"`
+	TransferListen       string `env:"MCHARBOR_TRANSFER_LISTEN"`
+	TransferAdvertiseURL string `env:"MCHARBOR_TRANSFER_ADVERTISE_URL"`
 }
 
 func main() {
@@ -61,6 +63,9 @@ func main() {
 	}()
 
 	agent := NewAgent(cfg, logger)
+	if err := agent.StartTransferServer(ctx); err != nil {
+		logger.Warn("direct transfer receiver disabled", "error", err)
+	}
 	RunWithReconnect(ctx, agent, logger)
 
 	logger.Info("agent stopped")

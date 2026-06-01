@@ -139,7 +139,7 @@ set -e
 
 MCHARBOR_URL=%s
 MCHARBOR_AGENT_TOKEN=%s
-AGENT_IMAGE="ghcr.io/therealmcsparrow/mcharbor-agent:latest"
+AGENT_IMAGE="ghcr.io/therealmcsparrow/mcharbor-agent:1.3.5"
 
 echo "=== McHarbor Agent Installer ==="
 echo ""
@@ -159,6 +159,7 @@ echo "Detected: $OS/$ARCH"
 # Check if Docker is available
 if command -v docker &>/dev/null && docker info &>/dev/null 2>&1; then
   echo "Docker detected — installing as container..."
+  docker pull "$AGENT_IMAGE"
   docker rm -f mcharbor-agent 2>/dev/null || true
   docker run -d \
     --name mcharbor-agent \

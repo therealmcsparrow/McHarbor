@@ -11,6 +11,7 @@ type MoveProgressProps = {
   progress: MoveContainerEvent | null;
   logs: MoveProgressLogEntry[];
   onClose: () => void;
+  onCancel?: () => void;
 };
 
 function logLineColor(entry: MoveProgressLogEntry, isLast: boolean, status?: string): string {
@@ -21,7 +22,7 @@ function logLineColor(entry: MoveProgressLogEntry, isLast: boolean, status?: str
   return 'text-muted-foreground';
 }
 
-export function MoveProgress({ progress, logs, onClose }: MoveProgressProps) {
+export function MoveProgress({ progress, logs, onClose, onCancel }: MoveProgressProps) {
   const { t } = useTranslation('containers');
   const logEndRef = useRef<HTMLDivElement>(null);
   const transferRatio = progress?.bytesTransferred && progress.bytesTotal
@@ -87,7 +88,13 @@ export function MoveProgress({ progress, logs, onClose }: MoveProgressProps) {
         <div ref={logEndRef} />
       </div>
 
-      {finished && (
+      {!finished && (
+        <p className="text-xs text-muted-foreground">
+          {t('moveDialog.progress.cancelNote')}
+        </p>
+      )}
+
+      {finished ? (
         <Button
           size="sm"
           variant={progress.status === 'done' ? 'default' : 'outline'}
@@ -96,7 +103,11 @@ export function MoveProgress({ progress, logs, onClose }: MoveProgressProps) {
         >
           {progress.status === 'done' ? t('moveDialog.progress.done') : t('actions.close', { ns: 'common' })}
         </Button>
-      )}
+      ) : onCancel ? (
+        <Button size="sm" variant="outline" onClick={onCancel} className="self-end">
+          {t('actions.cancel', { ns: 'common' })}
+        </Button>
+      ) : null}
     </div>
   );
 }

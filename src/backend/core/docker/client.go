@@ -154,6 +154,14 @@ func (p *ClientPool) AgentVersion(envID string) (string, bool) {
 	return p.agentPool.Version(envID)
 }
 
+// AgentConnection returns the connected agent for an environment.
+func (p *ClientPool) AgentConnection(envID string) (*agent.AgentConnection, bool) {
+	if p.agentPool == nil || envID == "" || envID == "default" {
+		return nil, false
+	}
+	return p.agentPool.Get(envID)
+}
+
 // AgentAtLeast reports whether the connected agent meets a minimum version.
 func (p *ClientPool) AgentAtLeast(envID, minimum string) bool {
 	version, ok := p.AgentVersion(envID)

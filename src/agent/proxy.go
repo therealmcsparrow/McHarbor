@@ -12,6 +12,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -71,6 +72,46 @@ func (p *Proxy) DetectDockerVersion() string {
 		return "unknown"
 	}
 	return s[:end]
+}
+
+func (p *Proxy) SaveImage(ctx context.Context, ref string) (io.ReadCloser, error) {
+	values := url.Values{}
+	values.Set("names", ref)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://docker/images/get?"+values.Encode(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("building image save request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("saving image %s: %w", ref, err)
+	}
+	if resp.StatusCode >= 300 {
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return nil, fmt.Errorf("saving image %s returned status %d: %s", ref, resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return resp.Body, nil
+}
+
+func (p *Proxy) LoadImage(ctx context.Context, body io.Reader) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://docker/images/load?quiet=1", body)
+	if err != nil {
+		return fmt.Errorf("building image load request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-tar")
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("loading image: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return fmt.Errorf("loading image returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+		return fmt.Errorf("reading image load response: %w", err)
+	}
+	return nil
 }
 
 // HandleRequest processes a proxied Docker API request and sends the response back.

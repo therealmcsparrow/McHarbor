@@ -57,6 +57,68 @@ McHarbor is built for the work that happens after deployment.
 - **User Management and Pluggable Auth**: Start with local auth today and keep a path open for broader identity integration over time.
 - **Plugin-Friendly Architecture**: Grow the platform with custom nodes, plugins, and extension points instead of being locked into a fixed feature list.
 
+## What's New Since 1.0.0
+
+McHarbor has grown from the initial public release into a broader operations platform. These are the user-facing features added after `1.0.0`.
+
+### Identity, Users, and Preferences
+
+- **OIDC Authentication**: Connect McHarbor to generic OpenID Connect providers for centralized sign-in.
+- **SAML 2.0 Authentication**: Configure SAML identity providers for environments that standardize on enterprise SSO.
+- **Profile Management**: Edit account details such as display name and email from a dedicated profile page.
+- **Language Preferences**: Persist each user's language preference across sessions, login responses, settings, and profile controls.
+- **Expanded Locales**: Added Spanish, French, and Portuguese UI translations across frontend resources, backend API messages, widgets, and workflow nodes.
+
+### Environment and System Operations
+
+- **Environment Overview Cards**: Review environments in card or table mode with CPU/RAM sparklines, container state totals, and image update counts.
+- **System Menu**: Inspect host overview metrics, services, processes, runtime dependencies, OS logs, OS terminal access, and OS package updates.
+- **Protected Host System Actions**: Use guarded endpoints for host terminal sessions, bounded log snapshots, and package update checks/apply flows.
+- **Protected McHarbor Container**: McHarbor now detects and locks unsafe actions against its own running container, including bulk actions, removal, updates, reinstalls, file edits, prune candidates, and destructive lifecycle operations.
+- **Container Rename**: Rename Docker containers from the UI with backend validation, audit logging, translated feedback, and protected-container checks.
+- **Container-to-Stack Relinking**: Manually link, relink, or unlink standalone containers to managed stacks from container and stack detail views.
+- **Per-Workflow Import and Export**: Move workflow definitions between installs with portable workflow JSON files.
+- **GitHub Shortcut and Agent Copy Controls**: The About and agent setup surfaces include faster access to the GitHub repository and copyable Docker/binary agent install commands.
+
+### Container Moves and Data Portability
+
+- **Container Moves Between Environments**: Move containers from one Docker environment to another with a preview of required image, volume, stack-label, and network changes.
+- **Move Execution Support**: Transfer missing images, create missing named volumes and networks, copy named volume data, preserve Compose stack labels, and optionally stop or remove the source container.
+- **Filesystem Snapshot Moves**: Preserve data written inside the source container's writable layer, including containers that do not use Docker volumes.
+- **Editable Target Networks**: Adjust target network name, mode, driver, IPAM subnet/gateway/range, aliases, target IP/MAC, internal mode, and attachable settings before moving.
+- **Editable Target Volume Mounts**: Change target Docker volume names and target container paths during a move, prefilled from the source volume name and mount path.
+- **Remote-Agent Move Support**: Large image and filesystem snapshot transfers now use staged remote-agent uploads so slow target Docker hosts can finish loading archives reliably.
+
+### Workflow Automation
+
+- **Workflow Help and Discovery**: Node documentation, category sections, and palette discovery were expanded so workflow building is easier to navigate.
+- **Configured Delivery and Registry Selectors**: Workflow communication, email, webhook, image pull, image push, and registry search nodes can reuse saved channels, webhooks, registries, SMTP settings, encrypted credentials, HMAC-signed webhooks, and custom fallback modes.
+- **Docker Event Triggers**: Trigger workflows from Docker event streams.
+- **Container Health Triggers**: Start workflows when watched container health changes.
+- **Registry Tag Triggers**: Watch registry tag digest changes and trigger automation when images change upstream.
+- **Environment Status Checks**: Add environment health/status checks to workflow logic.
+- **Approval Gates**: Pause workflows for manual approval before continuing sensitive actions.
+- **Image Vulnerability Scan Nodes**: Run vulnerability scan steps inside workflows.
+- **Stack Backup Nodes**: Back up stack definitions as part of automation flows.
+- **Docker Volume Backup and Restore Nodes**: Automate Docker volume backup and restore tasks from the workflow editor.
+- **Automatic Trigger Handling**: Docker events, container health changes, and registry tag digest changes can now launch matching workflows automatically.
+- **Localized Node Metadata**: Built-in workflow nodes include metadata translations for English, Dutch, German, Spanish, French, and Portuguese.
+
+### App Store and Catalog
+
+- **File-Based App Catalog**: Bundled app templates now live as individual JSON files under `apps/`, making the catalog easier to extend and maintain.
+- **Expanded App Templates**: The catalog includes additional templates for popular web apps and WhatsApp gateway deployments.
+- **Homelab and Automation Apps**: Added catalog entries for Piper, Speech-to-Phrase, Frigate, Homebridge, go2rtc, Scrypted, InfluxDB, EMQX, EVCC, rtl_433, Ring-MQTT, AppDaemon, and Technitium DNS Server.
+- **Compose Overrides**: Catalog entries can include custom command blocks and richer generated Compose output for database-backed templates and specialized deployments.
+
+### Updates, Self-Management, and Release Safety
+
+- **Reliable Self-Update Helper**: Production self-update and self-reinstall flows recreate the running McHarbor container through a detached helper with durable logs, rollback behavior, and replacement-container recovery.
+- **Self-Update Watchdog**: McHarbor starts a watchdog before destructive self-update steps so replacement containers can be started if Docker creates them but leaves them stopped.
+- **Improved Self-Detection**: McHarbor recognizes its own container through Docker labels, compose metadata, image references, stored compose data, conventional names, and Docker inspect fallbacks.
+- **Release Version Metadata**: Runtime health/about metadata, update checks, startup logging, OpenAPI metadata, frontend package metadata, Docker image labels, and publishing workflows now use the canonical root `VERSION` file.
+- **Pinned Agent Install Commands**: Generated agent Docker install commands pin the current agent version and pull before restart so stale local `latest` images are not reused.
+
 ## Built For
 
 - DevOps engineers and sysadmins
@@ -134,6 +196,8 @@ http://<your-server-ip>:8705
 To install the optional remote agent on another machine:
 
 ```bash
+docker pull ghcr.io/therealmcsparrow/mcharbor-agent:1.3.5
+docker rm -f mcharbor-agent 2>/dev/null || true
 docker run -d \
   --name mcharbor-agent \
   --restart unless-stopped \
@@ -141,7 +205,7 @@ docker run -d \
   -e MCHARBOR_AGENT_TOKEN=your_agent_token \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/therealmcsparrow/mcharbor-agent:latest
+  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.5
 ```
 
 ## AI
@@ -151,6 +215,6 @@ McHarbor uses AI-assisted tooling in a few parts of the project. AI helps us mov
 We currently use AI assistance for:
 
 - **Translations**: Interface translations may be generated or refined with AI so McHarbor can support more users across more languages. These translations are checked for missing keys and broken placeholders, but they still need human review for tone, technical wording, and regional accuracy.
-- **Code review and sanity checks**: AI helps inspect changes for obvious bugs, missing edge cases, inconsistent naming, or risky patterns. Implementation remain in the hands of the maintainer.
+- **Code review and sanity checks**: AI helps inspect changes for obvious bugs, missing edge cases, inconsistent naming, or risky patterns. Implementation remains in the hands of the maintainer.
 - **Documentation**: AI helps draft or improve README content, API documentation, setup notes, changelogs, release notes, and user-facing explanations.
 - **Developer workflow support**: AI helps summarize changes, generate test ideas, and keep repetitive project maintenance work consistent.

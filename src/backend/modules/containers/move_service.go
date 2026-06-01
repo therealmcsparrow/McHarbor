@@ -5,6 +5,9 @@ package containers
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -31,8 +34,10 @@ const composeProjectLabel = "com.docker.compose.project"
 const composeServiceLabel = "com.docker.compose.service"
 const moveProgressTotal = 10
 const moveImageLoadHeartbeat = 15 * time.Second
+const moveImageLoadTimeout = 30 * time.Minute
 const moveOperationTimeout = 2 * time.Hour
 const moveAgentSpoolMinVersion = "1.3.3"
+const moveAgentDirectTransferMinVersion = "1.3.5"
 
 type moveProgressEmitter func(MoveContainerEvent)
 
@@ -62,7 +67,7 @@ func (s *Service) MovePlan(ctx context.Context, envID, id string, req MoveContai
 		return MoveContainerPlan{}, fmt.Errorf("inspecting source container: %w", err)
 	}
 
-	plan, err := s.buildMovePlan(opCtx, envID, req.TargetEnvID, req.TargetName, req.NetworkMode, req.Networks, sourceCli, targetCli, info)
+	plan, err := s.buildMovePlan(opCtx, envID, req.TargetEnvID, req.TargetName, req.NetworkMode, req.Networks, req.Volumes, sourceCli, targetCli, info)
 	if err != nil {
 		return MoveContainerPlan{}, err
 	}
@@ -110,6 +115,9 @@ func moveProgressErrorMessage(err error) string {
 	if err != nil && strings.Contains(err.Error(), "does not support staged image loading") {
 		return err.Error()
 	}
+	if err != nil && strings.Contains(err.Error(), "image load timed out") {
+		return "The target Docker daemon took too long to load the image archive. Check target disk space and Docker daemon health, then retry."
+	}
 	return "Move failed. Check server logs for details."
 }
 
@@ -145,7 +153,7 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	}
 
 	emitMoveProgress(emit, 3, "plan", "Preparing target resources.", "progress")
-	plan, err := s.buildMovePlan(opCtx, envID, req.TargetEnvID, req.TargetName, req.NetworkMode, req.Networks, sourceCli, targetCli, info)
+	plan, err := s.buildMovePlan(opCtx, envID, req.TargetEnvID, req.TargetName, req.NetworkMode, req.Networks, req.Volumes, sourceCli, targetCli, info)
 	if err != nil {
 		return MoveContainerResult{}, err
 	}
@@ -195,7 +203,7 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 		emitMoveProgress(emit, 4, "image", "Snapshot image size is unknown. Large images can take several minutes.", "progress")
 	}
 	emitMoveProgress(emit, 4, "image", "Transferring container filesystem snapshot to target.", "progress")
-	if err := transferImage(opCtx, sourceCli, targetCli, snapshotRef, firstPositive(snapshotSize, plan.Image.Size), emit); err != nil {
+	if err := s.transferImage(opCtx, envID, req.TargetEnvID, sourceCli, targetCli, snapshotRef, firstPositive(snapshotSize, plan.Image.Size), emit); err != nil {
 		return MoveContainerResult{}, err
 	}
 	result.ImageTransferred = true
@@ -222,17 +230,17 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 		if !req.CreateMissingVolumes {
 			return MoveContainerResult{}, fmt.Errorf("volume %s is missing on target and creation is disabled", volumePlan.Name)
 		}
-		if err := createTargetVolume(opCtx, sourceCli, targetCli, volumePlan.Name); err != nil {
+		if err := createTargetVolume(opCtx, sourceCli, targetCli, volumePlan.Name, volumePlan.TargetName); err != nil {
 			return MoveContainerResult{}, err
 		}
-		result.VolumesCreated = append(result.VolumesCreated, volumePlan.Name)
+		result.VolumesCreated = append(result.VolumesCreated, volumePlan.TargetName)
 	}
 
 	cfg, hc, netConfig, err := replacementContainerSpec(info, RecreateRequest{}, snapshotRef)
 	if err != nil {
 		return MoveContainerResult{}, err
 	}
-	applyMoveVolumeSettings(info, hc)
+	applyMoveVolumeSettings(info, hc, plan.Volumes)
 	applyMoveNetworkSettings(info, hc, netConfig, plan.NetworkMode, req.Networks)
 
 	emitMoveProgress(emit, 8, "create-target", "Creating target container.", "progress")
@@ -245,13 +253,13 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	if req.CopyNamedVolumes {
 		emitMoveProgress(emit, 9, "copy-volumes", "Copying named volume data.", "progress")
 		for _, volumePlan := range plan.Volumes {
-			if volumePlan.Type != "volume" || volumePlan.Destination == "" {
+			if volumePlan.Type != "volume" || volumePlan.Destination == "" || volumePlan.TargetDestination == "" {
 				continue
 			}
-			if err := copyContainerPath(opCtx, sourceCli, targetCli, id, resp.ID, volumePlan.Destination); err != nil {
+			if err := copyContainerPath(opCtx, sourceCli, targetCli, id, resp.ID, volumePlan.Destination, volumePlan.TargetDestination); err != nil {
 				return MoveContainerResult{}, fmt.Errorf("copying volume %s: %w", volumePlan.Name, err)
 			}
-			result.VolumesCopied = append(result.VolumesCopied, volumePlan.Name)
+			result.VolumesCopied = append(result.VolumesCopied, volumePlan.TargetName)
 		}
 	} else {
 		emitMoveProgress(emit, 9, "copy-volumes", "Volume data copy skipped.", "progress")
@@ -293,7 +301,7 @@ func emitMoveProgressBytes(emit moveProgressEmitter, step int, phase, message, s
 	})
 }
 
-func (s *Service) buildMovePlan(ctx context.Context, sourceEnvID, targetEnvID, targetName, networkMode string, networkConfigs []MoveNetworkConfig, sourceCli, targetCli *client.Client, info types.ContainerJSON) (MoveContainerPlan, error) {
+func (s *Service) buildMovePlan(ctx context.Context, sourceEnvID, targetEnvID, targetName, networkMode string, networkConfigs []MoveNetworkConfig, volumeConfigs []MoveVolumeConfig, sourceCli, targetCli *client.Client, info types.ContainerJSON) (MoveContainerPlan, error) {
 	containerName := normalizedMoveName(info.Name, info.ID)
 	targetName = normalizedMoveName(targetName, containerName)
 	imageRef := moveImageReference(info)
@@ -317,7 +325,7 @@ func (s *Service) buildMovePlan(ctx context.Context, sourceEnvID, targetEnvID, t
 			Exists:       imageExists,
 			WillTransfer: !imageExists,
 		},
-		Volumes:     moveVolumePlans(ctx, targetCli, info),
+		Volumes:     moveVolumePlans(ctx, targetCli, info, volumeConfigs),
 		Networks:    moveNetworkPlans(ctx, sourceCli, targetCli, info, networkConfigs),
 		NetworkMode: effectiveMoveNetworkMode(info, networkMode, networkConfigs),
 		Ports:       movePortPlans(info),
@@ -339,13 +347,16 @@ func (s *Service) buildMovePlan(ctx context.Context, sourceEnvID, targetEnvID, t
 	plan.RequiredChanges = append(plan.RequiredChanges, "Snapshot the source container filesystem so writable-layer data is preserved on the target.")
 	for _, vol := range plan.Volumes {
 		if vol.WillCreate {
-			plan.RequiredChanges = append(plan.RequiredChanges, "Create target volume "+vol.Name+".")
+			plan.RequiredChanges = append(plan.RequiredChanges, "Create target volume "+vol.TargetName+".")
 		}
 		if vol.WillCopy {
-			plan.RequiredChanges = append(plan.RequiredChanges, "Copy data for named volume "+vol.Name+".")
+			plan.RequiredChanges = append(plan.RequiredChanges, "Copy data for named volume "+vol.Name+" to "+vol.TargetName+" at "+vol.TargetDestination+".")
+		}
+		if vol.Type == "volume" && (vol.TargetName != "" && vol.TargetName != vol.Name || vol.TargetDestination != "" && vol.TargetDestination != vol.Destination) {
+			plan.RequiredChanges = append(plan.RequiredChanges, "Mount source volume "+vol.Name+" as "+vol.TargetName+" at "+vol.TargetDestination+".")
 		}
 		if vol.Manual {
-			plan.RequiredChanges = append(plan.RequiredChanges, "Verify bind mount "+vol.Source+" exists on the target host.")
+			plan.RequiredChanges = append(plan.RequiredChanges, "Verify bind mount "+firstNonEmpty(vol.TargetSource, vol.Source)+" exists on the target host.")
 		}
 	}
 	for _, net := range plan.Networks {
@@ -476,19 +487,123 @@ func firstPositive(values ...int64) int64 {
 	return 0
 }
 
-func moveVolumePlans(ctx context.Context, targetCli *client.Client, info types.ContainerJSON) []MoveVolumePlan {
+func (s *Service) transferImage(ctx context.Context, sourceEnvID, targetEnvID string, sourceCli, targetCli *client.Client, ref string, imageSize int64, emit moveProgressEmitter) error {
+	directStarted, err := s.tryDirectAgentImageTransfer(ctx, sourceEnvID, targetEnvID, ref, imageSize, emit)
+	if directStarted || err != nil {
+		return err
+	}
+	emitMoveProgress(emit, 4, "image", "Direct agent transfer unavailable; using McHarbor relay.", "progress")
+	return transferImage(ctx, sourceCli, targetCli, ref, imageSize, emit)
+}
+
+func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, targetEnvID, ref string, imageSize int64, emit moveProgressEmitter) (bool, error) {
+	if sourceEnvID == targetEnvID {
+		return false, nil
+	}
+	if !s.pool.IsAgentEnv(sourceEnvID) || !s.pool.IsAgentEnv(targetEnvID) {
+		return false, nil
+	}
+	if !s.pool.AgentAtLeast(sourceEnvID, moveAgentDirectTransferMinVersion) || !s.pool.AgentAtLeast(targetEnvID, moveAgentDirectTransferMinVersion) {
+		return false, nil
+	}
+
+	sourceConn, ok := s.pool.AgentConnection(sourceEnvID)
+	if !ok || sourceConn.Transport == nil {
+		return false, nil
+	}
+	targetConn, ok := s.pool.AgentConnection(targetEnvID)
+	if !ok || targetConn.Transport == nil || strings.TrimSpace(targetConn.TransferURL) == "" {
+		return false, nil
+	}
+
+	token, err := newMoveTransferToken()
+	if err != nil {
+		return false, fmt.Errorf("creating direct transfer token: %w", err)
+	}
+	transferID, err := newMoveTransferID()
+	if err != nil {
+		return false, fmt.Errorf("creating direct transfer id: %w", err)
+	}
+
+	emitMoveProgress(emit, 4, "image", "Direct agent transfer available; preparing target receiver.", "progress")
+	prepareCtx, prepareCancel := context.WithTimeout(ctx, 30*time.Second)
+	uploadURL, err := targetConn.Transport.PrepareTransfer(prepareCtx, transferID, token)
+	prepareCancel()
+	if err != nil {
+		targetConn.Transport.CancelTransfer(transferID)
+		return false, nil
+	}
+
+	started := true
+	completed := false
+	defer func() {
+		if !completed {
+			sourceConn.Transport.CancelTransfer(transferID)
+			targetConn.Transport.CancelTransfer(transferID)
+		}
+	}()
+
+	var lastBytes atomic.Int64
+	emitMoveProgress(emit, 4, "image", "Sending snapshot directly from source agent to target agent.", "progress")
+	err = sourceConn.Transport.StartImageTransfer(ctx, transferID, ref, uploadURL, token, func(transferred int64) {
+		if transferred <= 0 {
+			return
+		}
+		lastBytes.Store(transferred)
+		displayTotal := moveProgressTotalBytes(transferred, imageSize)
+		emitMoveProgressBytes(emit, 4, "image", formatMoveDirectTransferProgress(transferred, displayTotal), "progress", transferred, displayTotal)
+	})
+	if err != nil {
+		return started, err
+	}
+
+	completed = true
+	transferred := lastBytes.Load()
+	if transferred > 0 {
+		displayTotal := moveProgressTotalBytes(transferred, imageSize)
+		emitMoveProgressBytes(emit, 4, "image", formatMoveDirectTransferProgress(transferred, displayTotal), "progress", transferred, displayTotal)
+	}
+	emitMoveProgress(emit, 4, "image", "Direct agent image transfer finished.", "progress")
+	return started, nil
+}
+
+func newMoveTransferToken() (string, error) {
+	var buf [32]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(buf[:]), nil
+}
+
+func newMoveTransferID() (string, error) {
+	var buf [16]byte
+	if _, err := rand.Read(buf[:]); err != nil {
+		return "", err
+	}
+	return "move-" + hex.EncodeToString(buf[:]), nil
+}
+
+func moveVolumePlans(ctx context.Context, targetCli *client.Client, info types.ContainerJSON, configs []MoveVolumeConfig) []MoveVolumePlan {
+	configBySource := moveVolumeConfigBySource(configs)
 	plans := make([]MoveVolumePlan, 0, len(info.Mounts))
 	for _, mount := range info.Mounts {
+		cfg := configBySource[moveVolumeConfigKey(mount.Name, mount.Destination)]
+		targetName := strings.TrimSpace(firstNonEmpty(cfg.TargetName, mount.Name))
+		targetSource := strings.TrimSpace(firstNonEmpty(cfg.TargetSource, mount.Source))
+		targetDestination := cleanContainerPath(firstNonEmpty(cfg.TargetDestination, mount.Destination))
 		plan := MoveVolumePlan{
-			Type:        string(mount.Type),
-			Name:        mount.Name,
-			Source:      mount.Source,
-			Destination: mount.Destination,
-			Mode:        mount.Mode,
+			Type:              string(mount.Type),
+			Name:              mount.Name,
+			TargetName:        targetName,
+			Source:            mount.Source,
+			TargetSource:      targetSource,
+			Destination:       mount.Destination,
+			TargetDestination: targetDestination,
+			Mode:              mount.Mode,
 		}
 		switch string(mount.Type) {
 		case "volume":
-			plan.Exists = targetVolumeExists(ctx, targetCli, mount.Name)
+			plan.Exists = targetVolumeExists(ctx, targetCli, targetName)
 			plan.WillCreate = !plan.Exists
 			plan.WillCopy = true
 		case "bind":
@@ -502,6 +617,41 @@ func moveVolumePlans(ctx context.Context, targetCli *client.Client, info types.C
 		return plans[i].Destination < plans[j].Destination
 	})
 	return plans
+}
+
+func moveVolumeConfigBySource(configs []MoveVolumeConfig) map[string]MoveVolumeConfig {
+	result := make(map[string]MoveVolumeConfig, len(configs))
+	for _, cfg := range configs {
+		key := moveVolumeConfigKey(cfg.SourceName, cfg.SourceDestination)
+		if key == "" {
+			continue
+		}
+		result[key] = cfg
+	}
+	return result
+}
+
+func moveVolumeConfigKey(name, destination string) string {
+	name = strings.TrimSpace(name)
+	destination = strings.TrimSpace(destination)
+	if name != "" {
+		return "name:" + name
+	}
+	if destination != "" {
+		return "destination:" + path.Clean(destination)
+	}
+	return ""
+}
+
+func cleanContainerPath(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	if !strings.HasPrefix(value, "/") {
+		value = "/" + value
+	}
+	return path.Clean(value)
 }
 
 func targetVolumeExists(ctx context.Context, cli *client.Client, name string) bool {
@@ -735,8 +885,14 @@ func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref
 	}
 	go emitImageLoadHeartbeat(ctx, loadDone, targetProgress, archiveSize, emit)
 
-	resp, err := targetCli.ImageLoad(ctx, targetProgress)
+	loadCtx, loadCancel := context.WithTimeout(ctx, moveImageLoadTimeout)
+	defer loadCancel()
+
+	resp, err := targetCli.ImageLoad(loadCtx, targetProgress, client.ImageLoadWithQuiet(true))
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("image load timed out after %s: %w", moveImageLoadTimeout, err)
+		}
 		return fmt.Errorf("loading image %s: %w", ref, err)
 	}
 	defer resp.Body.Close()
@@ -811,6 +967,13 @@ func formatMoveTargetLoadProgress(transferred, total int64) string {
 		return "Sent " + formatMoveBytes(transferred) + " of " + formatMoveBytes(total) + " to target Docker."
 	}
 	return "Sent " + formatMoveBytes(transferred) + " to target Docker."
+}
+
+func formatMoveDirectTransferProgress(transferred, total int64) string {
+	if total > 0 {
+		return "Sent " + formatMoveBytes(transferred) + " of " + formatMoveBytes(total) + " directly between agents."
+	}
+	return "Sent " + formatMoveBytes(transferred) + " directly between agents."
 }
 
 func moveProgressTotalBytes(transferred, total int64) int64 {
@@ -891,17 +1054,63 @@ func applyMoveNetworkSettings(info types.ContainerJSON, hc *container.HostConfig
 	_ = info
 }
 
-func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig) {
+func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig, volumePlans []MoveVolumePlan) {
 	if hc == nil {
 		return
 	}
 
+	volumePlansByDestination := moveVolumePlansByDestination(volumePlans)
 	covered := make(map[string]struct{})
+	binds := hc.Binds[:0]
+	for _, bind := range hc.Binds {
+		destination := bindMountDestination(bind)
+		if _, ok := volumePlansByDestination[path.Clean(destination)]; ok {
+			continue
+		}
+		binds = append(binds, bind)
+	}
+	hc.Binds = binds
+
+	mounts := hc.Mounts[:0]
 	for _, existingMount := range hc.Mounts {
+		if plan, ok := volumePlansByDestination[path.Clean(existingMount.Target)]; ok {
+			targetDestination := cleanContainerPath(plan.TargetDestination)
+			if targetDestination == "" {
+				continue
+			}
+			switch existingMount.Type {
+			case mount.TypeVolume:
+				if plan.Type != "volume" {
+					break
+				}
+				existingMount.Source = plan.TargetName
+				existingMount.Target = targetDestination
+				if !existingMount.ReadOnly {
+					existingMount.ReadOnly = !moveVolumeReadWrite(info, plan)
+				}
+				mounts = append(mounts, existingMount)
+				covered[path.Clean(targetDestination)] = struct{}{}
+				continue
+			case mount.TypeBind:
+				if plan.Type != "bind" {
+					break
+				}
+				existingMount.Source = plan.TargetSource
+				existingMount.Target = targetDestination
+				if !existingMount.ReadOnly {
+					existingMount.ReadOnly = !moveMountReadWrite(info, plan)
+				}
+				mounts = append(mounts, existingMount)
+				covered[path.Clean(targetDestination)] = struct{}{}
+				continue
+			}
+		}
+		mounts = append(mounts, existingMount)
 		if existingMount.Target != "" {
 			covered[path.Clean(existingMount.Target)] = struct{}{}
 		}
 	}
+	hc.Mounts = mounts
 	for _, bind := range hc.Binds {
 		if destination := bindMountDestination(bind); destination != "" {
 			covered[path.Clean(destination)] = struct{}{}
@@ -913,22 +1122,70 @@ func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig)
 		}
 	}
 
-	for _, mountPoint := range info.Mounts {
-		if string(mountPoint.Type) != "volume" || mountPoint.Name == "" || mountPoint.Destination == "" {
+	for _, volumePlan := range volumePlans {
+		if volumePlan.TargetDestination == "" {
 			continue
 		}
-		destination := path.Clean(mountPoint.Destination)
+		destination := path.Clean(volumePlan.TargetDestination)
 		if _, ok := covered[destination]; ok {
 			continue
 		}
-		hc.Mounts = append(hc.Mounts, mount.Mount{
-			Type:     mount.TypeVolume,
-			Source:   mountPoint.Name,
-			Target:   mountPoint.Destination,
-			ReadOnly: !mountPoint.RW,
-		})
-		covered[destination] = struct{}{}
+		switch volumePlan.Type {
+		case "volume":
+			if volumePlan.TargetName == "" {
+				continue
+			}
+			hc.Mounts = append(hc.Mounts, mount.Mount{
+				Type:     mount.TypeVolume,
+				Source:   volumePlan.TargetName,
+				Target:   volumePlan.TargetDestination,
+				ReadOnly: !moveVolumeReadWrite(info, volumePlan),
+			})
+			covered[destination] = struct{}{}
+		case "bind":
+			if volumePlan.TargetSource == "" {
+				continue
+			}
+			hc.Mounts = append(hc.Mounts, mount.Mount{
+				Type:     mount.TypeBind,
+				Source:   volumePlan.TargetSource,
+				Target:   volumePlan.TargetDestination,
+				ReadOnly: !moveMountReadWrite(info, volumePlan),
+			})
+			covered[destination] = struct{}{}
+		}
 	}
+}
+
+func moveVolumePlansByDestination(volumePlans []MoveVolumePlan) map[string]MoveVolumePlan {
+	result := make(map[string]MoveVolumePlan, len(volumePlans))
+	for _, plan := range volumePlans {
+		if plan.Destination == "" || (plan.Type != "volume" && plan.Type != "bind") {
+			continue
+		}
+		result[path.Clean(plan.Destination)] = plan
+	}
+	return result
+}
+
+func moveVolumeReadWrite(info types.ContainerJSON, plan MoveVolumePlan) bool {
+	return moveMountReadWrite(info, plan)
+}
+
+func moveMountReadWrite(info types.ContainerJSON, plan MoveVolumePlan) bool {
+	for _, mountPoint := range info.Mounts {
+		if string(mountPoint.Type) != plan.Type || path.Clean(mountPoint.Destination) != path.Clean(plan.Destination) {
+			continue
+		}
+		if plan.Type == "volume" && mountPoint.Name != plan.Name {
+			continue
+		}
+		if plan.Type == "bind" && mountPoint.Source != plan.Source {
+			continue
+		}
+		return mountPoint.RW
+	}
+	return !strings.Contains(plan.Mode, "ro")
 }
 
 func bindMountDestination(bind string) string {
@@ -945,36 +1202,33 @@ func bindMountDestination(bind string) string {
 	return ""
 }
 
-func createTargetVolume(ctx context.Context, sourceCli, targetCli *client.Client, name string) error {
-	sourceVolume, err := sourceCli.VolumeInspect(ctx, name)
+func createTargetVolume(ctx context.Context, sourceCli, targetCli *client.Client, sourceName, targetName string) error {
+	sourceVolume, err := sourceCli.VolumeInspect(ctx, sourceName)
 	if err != nil {
-		return fmt.Errorf("inspecting source volume %s: %w", name, err)
+		return fmt.Errorf("inspecting source volume %s: %w", sourceName, err)
 	}
 	_, err = targetCli.VolumeCreate(ctx, volume.CreateOptions{
-		Name:       sourceVolume.Name,
+		Name:       firstNonEmpty(targetName, sourceVolume.Name),
 		Driver:     sourceVolume.Driver,
 		DriverOpts: sourceVolume.Options,
 		Labels:     sourceVolume.Labels,
 	})
 	if err != nil {
-		return fmt.Errorf("creating target volume %s: %w", name, err)
+		return fmt.Errorf("creating target volume %s: %w", targetName, err)
 	}
 	return nil
 }
 
-func copyContainerPath(ctx context.Context, sourceCli, targetCli *client.Client, sourceID, targetID, containerPath string) error {
-	reader, _, err := sourceCli.CopyFromContainer(ctx, sourceID, containerPath)
+func copyContainerPath(ctx context.Context, sourceCli, targetCli *client.Client, sourceID, targetID, sourcePath, targetPath string) error {
+	sourceCopyPath := strings.TrimRight(sourcePath, "/") + "/."
+	reader, _, err := sourceCli.CopyFromContainer(ctx, sourceID, sourceCopyPath)
 	if err != nil {
-		return fmt.Errorf("copying from source path %s: %w", containerPath, err)
+		return fmt.Errorf("copying from source path %s: %w", sourcePath, err)
 	}
 	defer reader.Close()
 
-	destinationParent := path.Dir(containerPath)
-	if destinationParent == "." {
-		destinationParent = "/"
-	}
-	if err := targetCli.CopyToContainer(ctx, targetID, destinationParent, reader, container.CopyToContainerOptions{AllowOverwriteDirWithFile: false}); err != nil {
-		return fmt.Errorf("copying to target path %s: %w", containerPath, err)
+	if err := targetCli.CopyToContainer(ctx, targetID, targetPath, reader, container.CopyToContainerOptions{AllowOverwriteDirWithFile: false}); err != nil {
+		return fmt.Errorf("copying to target path %s: %w", targetPath, err)
 	}
 	return nil
 }

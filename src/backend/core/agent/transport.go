@@ -41,24 +41,148 @@ type ExecSession struct {
 // AgentTransport implements http.RoundTripper by proxying HTTP requests
 // over a WebSocket connection to a remote agent.
 type AgentTransport struct {
-	conn         *AgentConnection
-	db           *sql.DB
-	pending      map[string]*pendingReq
-	execSessions map[string]*ExecSession
-	mu           sync.Mutex
-	logger       *slog.Logger
-	done         chan struct{}
+	conn            *AgentConnection
+	db              *sql.DB
+	pending         map[string]*pendingReq
+	execSessions    map[string]*ExecSession
+	transferWaiters map[string]chan *WSMessage
+	mu              sync.Mutex
+	logger          *slog.Logger
+	done            chan struct{}
 }
 
 // NewAgentTransport creates a new transport for the given agent connection.
 func NewAgentTransport(conn *AgentConnection, db *sql.DB, logger *slog.Logger) *AgentTransport {
 	return &AgentTransport{
-		conn:         conn,
-		db:           db,
-		pending:      make(map[string]*pendingReq),
-		execSessions: make(map[string]*ExecSession),
-		logger:       logger,
-		done:         make(chan struct{}),
+		conn:            conn,
+		db:              db,
+		pending:         make(map[string]*pendingReq),
+		execSessions:    make(map[string]*ExecSession),
+		transferWaiters: make(map[string]chan *WSMessage),
+		logger:          logger,
+		done:            make(chan struct{}),
+	}
+}
+
+func (t *AgentTransport) registerTransferWaiter(transferID string) (chan *WSMessage, func()) {
+	ch := make(chan *WSMessage, 64)
+	t.mu.Lock()
+	t.transferWaiters[transferID] = ch
+	t.mu.Unlock()
+	cleanup := func() {
+		t.mu.Lock()
+		delete(t.transferWaiters, transferID)
+		t.mu.Unlock()
+	}
+	return ch, cleanup
+}
+
+// PrepareTransfer asks a target agent to open a one-use direct upload receiver.
+func (t *AgentTransport) PrepareTransfer(ctx context.Context, transferID, token string) (string, error) {
+	ch, cleanup := t.registerTransferWaiter(transferID)
+	defer cleanup()
+
+	msg := WSMessage{
+		Type: MsgTransferPrepare,
+		Transfer: &TransferPayload{
+			TransferID: transferID,
+			Token:      token,
+		},
+	}
+	if err := t.conn.WriteJSON(msg); err != nil {
+		return "", fmt.Errorf("sending direct transfer prepare: %w", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			t.cancelTransfer(transferID)
+			return "", ctx.Err()
+		case msg := <-ch:
+			if msg == nil || msg.Transfer == nil {
+				continue
+			}
+			if msg.Type != MsgTransferReady && msg.Type != MsgTransferResult {
+				continue
+			}
+			if !msg.Transfer.Success {
+				if msg.Transfer.Error != "" {
+					return "", fmt.Errorf("direct transfer prepare failed: %s", msg.Transfer.Error)
+				}
+				return "", fmt.Errorf("direct transfer prepare failed")
+			}
+			if strings.TrimSpace(msg.Transfer.URL) == "" {
+				return "", fmt.Errorf("direct transfer prepare returned no upload URL")
+			}
+			return msg.Transfer.URL, nil
+		case <-t.done:
+			return "", fmt.Errorf("agent transport closed")
+		}
+	}
+}
+
+// StartImageTransfer asks a source agent to stream an image directly to a target upload URL.
+func (t *AgentTransport) StartImageTransfer(ctx context.Context, transferID, imageRef, uploadURL, token string, onProgress func(int64)) error {
+	ch, cleanup := t.registerTransferWaiter(transferID)
+	defer cleanup()
+
+	msg := WSMessage{
+		Type: MsgTransferImage,
+		Transfer: &TransferPayload{
+			TransferID: transferID,
+			ImageRef:   imageRef,
+			URL:        uploadURL,
+			Token:      token,
+		},
+	}
+	if err := t.conn.WriteJSON(msg); err != nil {
+		return fmt.Errorf("sending direct image transfer command: %w", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			t.cancelTransfer(transferID)
+			return ctx.Err()
+		case msg := <-ch:
+			if msg == nil || msg.Transfer == nil {
+				continue
+			}
+			switch msg.Type {
+			case MsgTransferProgress:
+				if onProgress != nil {
+					onProgress(msg.Transfer.Bytes)
+				}
+			case MsgTransferResult:
+				if msg.Transfer.Success {
+					return nil
+				}
+				if msg.Transfer.Error != "" {
+					return fmt.Errorf("direct image transfer failed: %s", msg.Transfer.Error)
+				}
+				return fmt.Errorf("direct image transfer failed")
+			}
+		case <-t.done:
+			return fmt.Errorf("agent transport closed")
+		}
+	}
+}
+
+func (t *AgentTransport) CancelTransfer(transferID string) {
+	t.cancelTransfer(transferID)
+}
+
+func (t *AgentTransport) cancelTransfer(transferID string) {
+	if strings.TrimSpace(transferID) == "" {
+		return
+	}
+	if err := t.conn.WriteJSON(WSMessage{
+		Type: MsgTransferCancel,
+		Transfer: &TransferPayload{
+			TransferID: transferID,
+		},
+	}); err != nil {
+		t.logger.Debug("agent direct transfer cancel failed", "transferId", transferID, "error", err)
 	}
 }
 
@@ -250,6 +374,9 @@ func shouldStreamRequestBody(req *http.Request) bool {
 	if req.Body == nil {
 		return false
 	}
+	if strings.HasSuffix(req.URL.Path, "/images/load") {
+		return true
+	}
 	if req.ContentLength < 0 {
 		return true
 	}
@@ -417,6 +544,21 @@ func (t *AgentTransport) ReadLoop() error {
 				case <-s.DoneCh:
 				default:
 					close(s.DoneCh)
+				}
+			}
+
+		case MsgTransferReady, MsgTransferProgress, MsgTransferResult:
+			if msg.Transfer == nil {
+				continue
+			}
+			t.mu.Lock()
+			ch := t.transferWaiters[msg.Transfer.TransferID]
+			t.mu.Unlock()
+			if ch != nil {
+				select {
+				case ch <- &msg:
+				default:
+					t.logger.Warn("agent direct transfer message dropped", "transferId", msg.Transfer.TransferID, "type", msg.Type)
 				}
 			}
 		}
