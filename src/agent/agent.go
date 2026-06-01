@@ -13,12 +13,13 @@ import (
 	"net/url"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.3.2"
+const agentVersion = "1.3.3"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -36,10 +37,63 @@ type uploadBuffer struct {
 	mu     sync.Mutex
 }
 
+type spooledUpload struct {
+	ctx    context.Context
+	cancel context.CancelFunc
+	req    *WSHTTPRequest
+	file   *os.File
+	path   string
+	bytes  int64
+}
+
 func newUploadBuffer() *uploadBuffer {
 	return &uploadBuffer{
 		ch:   make(chan []byte, 256),
 		done: make(chan struct{}),
+	}
+}
+
+func newSpooledUpload(ctx context.Context, req *WSHTTPRequest) (*spooledUpload, error) {
+	file, err := os.CreateTemp("", "mcharbor-agent-image-load-upload-*.tar")
+	if err != nil {
+		return nil, fmt.Errorf("creating temporary image upload archive: %w", err)
+	}
+	reqCtx, cancel := context.WithCancel(ctx)
+	return &spooledUpload{
+		ctx:    reqCtx,
+		cancel: cancel,
+		req:    req,
+		file:   file,
+		path:   file.Name(),
+	}, nil
+}
+
+func (u *spooledUpload) Write(data []byte) error {
+	n, err := u.file.Write(data)
+	u.bytes += int64(n)
+	if err != nil {
+		return fmt.Errorf("writing temporary image upload archive: %w", err)
+	}
+	if n != len(data) {
+		return io.ErrShortWrite
+	}
+	return nil
+}
+
+func (u *spooledUpload) Rewind() error {
+	if _, err := u.file.Seek(0, io.SeekStart); err != nil {
+		return fmt.Errorf("rewinding temporary image upload archive: %w", err)
+	}
+	return nil
+}
+
+func (u *spooledUpload) Cleanup(logger *slog.Logger) {
+	u.cancel()
+	if err := u.file.Close(); err != nil {
+		logger.Warn("close temporary image upload archive failed", "error", err, "path", u.path)
+	}
+	if err := os.Remove(u.path); err != nil && !os.IsNotExist(err) {
+		logger.Warn("remove temporary image upload archive failed", "error", err, "path", u.path)
 	}
 }
 
@@ -207,6 +261,20 @@ func (a *Agent) Connect(ctx context.Context) error {
 	var cancelMu sync.Mutex
 	cancels := make(map[string]context.CancelFunc)
 	uploads := make(map[string]*uploadBuffer)
+	spooledUploads := make(map[string]*spooledUpload)
+	defer func() {
+		cancelMu.Lock()
+		defer cancelMu.Unlock()
+		for _, cancel := range cancels {
+			cancel()
+		}
+		for _, bodyReader := range uploads {
+			bodyReader.CloseWithError(context.Canceled)
+		}
+		for _, upload := range spooledUploads {
+			upload.Cleanup(a.logger)
+		}
+	}()
 
 	// Message loop
 	for {
@@ -248,6 +316,20 @@ func (a *Agent) Connect(ctx context.Context) error {
 			if msg.HTTPRequest == nil {
 				continue
 			}
+			if strings.HasSuffix(msg.HTTPRequest.Path, "/images/load") {
+				upload, err := newSpooledUpload(ctx, msg.HTTPRequest)
+				if err != nil {
+					a.proxy.sendErrorResponse(conn, msg.ID, http.StatusBadGateway, err)
+					continue
+				}
+
+				cancelMu.Lock()
+				cancels[msg.ID] = upload.cancel
+				spooledUploads[msg.ID] = upload
+				cancelMu.Unlock()
+				continue
+			}
+
 			reqCtx, reqCancel := context.WithCancel(ctx)
 			bodyReader := newUploadBuffer()
 
@@ -273,9 +355,20 @@ func (a *Agent) Connect(ctx context.Context) error {
 				continue
 			}
 			cancelMu.Lock()
+			upload := spooledUploads[msg.ID]
 			bodyReader := uploads[msg.ID]
 			cancelMu.Unlock()
-			if bodyReader != nil {
+			if upload != nil {
+				if err := upload.Write(msg.StreamChunk.Data); err != nil {
+					a.logger.Warn("spooled request body write failed", "id", msg.ID, "path", upload.req.Path, "error", err)
+					cancelMu.Lock()
+					delete(cancels, msg.ID)
+					delete(spooledUploads, msg.ID)
+					cancelMu.Unlock()
+					upload.Cleanup(a.logger)
+					a.proxy.sendErrorResponse(conn, msg.ID, http.StatusBadGateway, err)
+				}
+			} else if bodyReader != nil {
 				if err := bodyReader.Push(msg.StreamChunk.Data); err != nil {
 					a.logger.Warn("request body stream write failed", "id", msg.ID, "error", err)
 				}
@@ -283,10 +376,27 @@ func (a *Agent) Connect(ctx context.Context) error {
 
 		case MsgHTTPRequestEnd:
 			cancelMu.Lock()
+			upload := spooledUploads[msg.ID]
+			delete(spooledUploads, msg.ID)
 			bodyReader := uploads[msg.ID]
 			delete(uploads, msg.ID)
 			cancelMu.Unlock()
-			if bodyReader != nil {
+			if upload != nil {
+				go func(id string, upload *spooledUpload) {
+					defer func() {
+						cancelMu.Lock()
+						delete(cancels, id)
+						cancelMu.Unlock()
+						upload.Cleanup(a.logger)
+					}()
+					if err := upload.Rewind(); err != nil {
+						a.proxy.sendErrorResponse(conn, id, http.StatusBadGateway, err)
+						return
+					}
+					a.logger.Info("received staged Docker image upload", "id", id, "path", upload.req.Path, "bytes", upload.bytes)
+					a.proxy.HandleRequestStream(upload.ctx, conn, id, upload.req, upload.file)
+				}(msg.ID, upload)
+			} else if bodyReader != nil {
 				bodyReader.Close()
 			}
 
@@ -299,6 +409,10 @@ func (a *Agent) Connect(ctx context.Context) error {
 			if bodyReader := uploads[msg.ID]; bodyReader != nil {
 				bodyReader.CloseWithError(context.Canceled)
 				delete(uploads, msg.ID)
+			}
+			if spooledUpload := spooledUploads[msg.ID]; spooledUpload != nil {
+				spooledUpload.Cleanup(a.logger)
+				delete(spooledUploads, msg.ID)
 			}
 			cancelMu.Unlock()
 

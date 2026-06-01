@@ -2,6 +2,18 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.3.3] - 2026-06-01
+
+### Changed
+
+- Bumped the patch application version to `1.3.3` across canonical runtime metadata, agent metadata, frontend package metadata, and lockfile root metadata.
+- Raised the target-agent requirement for container snapshot/image data moves to `mcharbor-agent` `1.3.3` so move operations use the staged image-upload protocol.
+
+### Fixed
+
+- Fixed remote-agent container moves still stalling after the first target image-load chunk by staging `/images/load` uploads on the agent before calling the local Docker daemon.
+- Fixed duplicate same-version agent connections replacing the active connection during long container moves.
+
 ## [1.3.2] - 2026-05-31
 
 ### Changed
@@ -11,6 +23,7 @@ All notable changes to McHarbor are documented in this file.
 - Changed container moves to snapshot and transfer the source container filesystem layer, preserving data written inside containers even when they do not use Docker volumes.
 - Switched container image loading during moves away from quiet Docker load mode so target Docker can stream load progress/results back through the agent path instead of waiting until unpacking completes.
 - Raised the target-agent requirement for container snapshot/image data moves to `mcharbor-agent` `1.3.2` so older agents fail fast instead of hanging during upload.
+- Changed agent registration to keep the newest connected agent for an environment, preventing an older duplicate agent process from replacing the active connection during long transfers.
 
 ### Fixed
 
@@ -18,6 +31,7 @@ All notable changes to McHarbor are documented in this file.
 - Fixed moved containers without volumes being recreated from the original image without their writable-layer data.
 - Fixed container moves timing out while the target Docker daemon was still loading the transferred image archive.
 - Fixed the remote agent streamed request-body reader used by Docker image loads so large snapshot archives do not stall after the first chunk.
+- Fixed long container moves failing with `agent transport closed` when duplicate old and new agents were running with the same environment token.
 
 ## [1.3.1] - 2026-05-31
 ### Added

@@ -113,6 +113,11 @@ func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn,
 		p.sendErrorResponse(conn, id, http.StatusBadGateway, err)
 		return
 	}
+	if bodyFile, ok := bodyReader.(*os.File); ok {
+		if stat, statErr := bodyFile.Stat(); statErr == nil {
+			req.ContentLength = stat.Size()
+		}
+	}
 
 	for k, v := range wsReq.Headers {
 		req.Header.Set(k, v)
@@ -244,6 +249,9 @@ func (p *Proxy) sendErrorResponse(conn *websocket.Conn, id string, status int, e
 
 func shouldSpoolRequestBody(wsReq *WSHTTPRequest, bodyReader io.Reader) bool {
 	if wsReq == nil || bodyReader == nil {
+		return false
+	}
+	if _, ok := bodyReader.(*os.File); ok {
 		return false
 	}
 	return strings.HasSuffix(wsReq.Path, "/images/load")

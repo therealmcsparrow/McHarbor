@@ -32,7 +32,7 @@ const composeServiceLabel = "com.docker.compose.service"
 const moveProgressTotal = 10
 const moveImageLoadHeartbeat = 15 * time.Second
 const moveOperationTimeout = 2 * time.Hour
-const moveAgentSpoolMinVersion = "1.3.2"
+const moveAgentSpoolMinVersion = "1.3.3"
 
 type moveProgressEmitter func(MoveContainerEvent)
 
@@ -105,7 +105,7 @@ func (s *Service) MoveWithProgress(ctx context.Context, envID, id string, req Mo
 
 func moveProgressErrorMessage(err error) string {
 	if err != nil && strings.Contains(err.Error(), "streaming docker request bodies require") {
-		return "The target agent must be updated to mcharbor-agent 1.3.2 or newer before moving container data."
+		return "The target agent must be updated to mcharbor-agent 1.3.3 or newer before moving container data."
 	}
 	if err != nil && strings.Contains(err.Error(), "does not support staged image loading") {
 		return err.Error()

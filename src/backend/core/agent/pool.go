@@ -7,6 +7,8 @@ import (
 	"context"
 	"database/sql"
 	"log/slog"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -64,10 +66,44 @@ func (p *AgentPool) Register(envID string, conn *AgentConnection) {
 
 	// Close existing connection if any
 	if existing, ok := p.conns[envID]; ok {
+		if compareAgentVersions(conn.Version, existing.Version) <= 0 {
+			conn.Conn.Close()
+			p.logger.Warn("duplicate agent rejected; current connection remains active", "env", envID, "hostname", conn.Hostname, "agentVersion", conn.Version, "currentVersion", existing.Version)
+			return
+		}
 		existing.Conn.Close()
 	}
 	p.conns[envID] = conn
 	p.logger.Info("agent registered", "env", envID, "hostname", conn.Hostname)
+}
+
+func compareAgentVersions(a, b string) int {
+	a = strings.TrimPrefix(strings.TrimSpace(a), "v")
+	b = strings.TrimPrefix(strings.TrimSpace(b), "v")
+	aParts := strings.Split(a, ".")
+	bParts := strings.Split(b, ".")
+	for i := 0; i < 3; i++ {
+		aPart := agentVersionPart(aParts, i)
+		bPart := agentVersionPart(bParts, i)
+		if aPart > bPart {
+			return 1
+		}
+		if aPart < bPart {
+			return -1
+		}
+	}
+	return 0
+}
+
+func agentVersionPart(parts []string, index int) int {
+	if index >= len(parts) {
+		return 0
+	}
+	value, err := strconv.Atoi(parts[index])
+	if err != nil {
+		return 0
+	}
+	return value
 }
 
 // Remove removes an agent connection from the pool.
