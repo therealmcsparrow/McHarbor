@@ -11,12 +11,14 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/mount"
 	networkTypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
@@ -30,7 +32,7 @@ const composeServiceLabel = "com.docker.compose.service"
 const moveProgressTotal = 10
 const moveImageLoadHeartbeat = 15 * time.Second
 const moveOperationTimeout = 2 * time.Hour
-const moveAgentSpoolMinVersion = "1.3.1"
+const moveAgentSpoolMinVersion = "1.3.2"
 
 type moveProgressEmitter func(MoveContainerEvent)
 
@@ -103,7 +105,7 @@ func (s *Service) MoveWithProgress(ctx context.Context, envID, id string, req Mo
 
 func moveProgressErrorMessage(err error) string {
 	if err != nil && strings.Contains(err.Error(), "streaming docker request bodies require") {
-		return "The target agent must be updated to mcharbor-agent 1.3.1 or newer before moving images or volume data."
+		return "The target agent must be updated to mcharbor-agent 1.3.2 or newer before moving container data."
 	}
 	if err != nil && strings.Contains(err.Error(), "does not support staged image loading") {
 		return err.Error()
@@ -152,30 +154,51 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 		Warnings:   append([]string{}, plan.Warnings...),
 	}
 
-	if plan.Image.WillTransfer {
-		if !req.TransferImage {
-			return MoveContainerResult{}, fmt.Errorf("image %s is missing on target and transfer is disabled", plan.Image.Reference)
+	if req.StopSource && info.State != nil && info.State.Running {
+		emitMoveProgress(emit, 4, "stop-source", "Stopping source container before snapshot.", "progress")
+		timeout := 10
+		if err := sourceCli.ContainerStop(opCtx, id, container.StopOptions{Timeout: &timeout}); err != nil {
+			return MoveContainerResult{}, fmt.Errorf("stopping source container: %w", err)
 		}
-		if s.pool.IsAgentEnv(req.TargetEnvID) && !s.pool.AgentAtLeast(req.TargetEnvID, moveAgentSpoolMinVersion) {
-			version, _ := s.pool.AgentVersion(req.TargetEnvID)
-			if version == "" {
-				version = "unknown"
-			}
-			return MoveContainerResult{}, fmt.Errorf("target agent %s does not support staged image loading; update mcharbor-agent to %s or newer", version, moveAgentSpoolMinVersion)
+		result.SourceStopped = true
+		info, err = sourceCli.ContainerInspect(opCtx, id)
+		if err != nil {
+			return MoveContainerResult{}, fmt.Errorf("inspecting stopped source container: %w", err)
 		}
-		if plan.Image.Size > 0 {
-			emitMoveProgress(emit, 4, "image", "Image size is "+formatMoveBytes(plan.Image.Size)+". Large images can take several minutes.", "progress")
-		} else {
-			emitMoveProgress(emit, 4, "image", "Image size is unknown. Large images can take several minutes.", "progress")
-		}
-		emitMoveProgress(emit, 4, "image", "Transferring container image to target.", "progress")
-		if err := transferImage(opCtx, sourceCli, targetCli, plan.Image.Reference, plan.Image.Size, emit); err != nil {
-			return MoveContainerResult{}, err
-		}
-		result.ImageTransferred = true
 	} else {
-		emitMoveProgress(emit, 4, "image", "Image already exists on target.", "progress")
+		emitMoveProgress(emit, 4, "stop-source", "Source container stop skipped; snapshot will pause the container briefly.", "progress")
 	}
+
+	if !req.TransferImage {
+		return MoveContainerResult{}, fmt.Errorf("container filesystem data requires image transfer")
+	}
+	if s.pool.IsAgentEnv(req.TargetEnvID) && !s.pool.AgentAtLeast(req.TargetEnvID, moveAgentSpoolMinVersion) {
+		version, _ := s.pool.AgentVersion(req.TargetEnvID)
+		if version == "" {
+			version = "unknown"
+		}
+		return MoveContainerResult{}, fmt.Errorf("target agent %s does not support staged image loading; update mcharbor-agent to %s or newer", version, moveAgentSpoolMinVersion)
+	}
+
+	emitMoveProgress(emit, 4, "image", "Creating source container filesystem snapshot.", "progress")
+	snapshotRef, snapshotSize, cleanupSnapshot, err := createMoveSnapshotImage(opCtx, sourceCli, info, plan.TargetName)
+	if err != nil {
+		return MoveContainerResult{}, err
+	}
+	defer cleanupSnapshot()
+
+	if snapshotSize > 0 {
+		emitMoveProgress(emit, 4, "image", "Snapshot image size is "+formatMoveBytes(snapshotSize)+". Large images can take several minutes.", "progress")
+	} else if plan.Image.Size > 0 {
+		emitMoveProgress(emit, 4, "image", "Base image size is "+formatMoveBytes(plan.Image.Size)+". Snapshot transfer can take several minutes.", "progress")
+	} else {
+		emitMoveProgress(emit, 4, "image", "Snapshot image size is unknown. Large images can take several minutes.", "progress")
+	}
+	emitMoveProgress(emit, 4, "image", "Transferring container filesystem snapshot to target.", "progress")
+	if err := transferImage(opCtx, sourceCli, targetCli, snapshotRef, firstPositive(snapshotSize, plan.Image.Size), emit); err != nil {
+		return MoveContainerResult{}, err
+	}
+	result.ImageTransferred = true
 
 	emitMoveProgress(emit, 5, "networks", "Preparing target networks.", "progress")
 	for _, networkPlan := range plan.Networks {
@@ -205,18 +228,7 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 		result.VolumesCreated = append(result.VolumesCreated, volumePlan.Name)
 	}
 
-	if req.StopSource && info.State != nil && info.State.Running {
-		emitMoveProgress(emit, 7, "stop-source", "Stopping source container.", "progress")
-		timeout := 10
-		if err := sourceCli.ContainerStop(opCtx, id, container.StopOptions{Timeout: &timeout}); err != nil {
-			return MoveContainerResult{}, fmt.Errorf("stopping source container: %w", err)
-		}
-		result.SourceStopped = true
-	} else {
-		emitMoveProgress(emit, 7, "stop-source", "Source container stop skipped.", "progress")
-	}
-
-	cfg, hc, netConfig, err := replacementContainerSpec(info, RecreateRequest{}, plan.Image.Reference)
+	cfg, hc, netConfig, err := replacementContainerSpec(info, RecreateRequest{}, snapshotRef)
 	if err != nil {
 		return MoveContainerResult{}, err
 	}
@@ -324,6 +336,7 @@ func (s *Service) buildMovePlan(ctx context.Context, sourceEnvID, targetEnvID, t
 	if plan.Image.WillTransfer {
 		plan.RequiredChanges = append(plan.RequiredChanges, "Transfer the container image to the target environment.")
 	}
+	plan.RequiredChanges = append(plan.RequiredChanges, "Snapshot the source container filesystem so writable-layer data is preserved on the target.")
 	for _, vol := range plan.Volumes {
 		if vol.WillCreate {
 			plan.RequiredChanges = append(plan.RequiredChanges, "Create target volume "+vol.Name+".")
@@ -396,6 +409,68 @@ func sourceImageSize(ctx context.Context, cli *client.Client, ref, id string) in
 		info, _, err := cli.ImageInspectWithRaw(ctx, imageRef)
 		if err == nil && info.Size > 0 {
 			return info.Size
+		}
+	}
+	return 0
+}
+
+func createMoveSnapshotImage(ctx context.Context, cli *client.Client, info types.ContainerJSON, targetName string) (string, int64, func(), error) {
+	if info.Config == nil {
+		return "", 0, func() {}, fmt.Errorf("inspected container has no config")
+	}
+
+	ref := moveSnapshotImageRef(info.ID, targetName)
+	cfg := *info.Config
+	commit, err := cli.ContainerCommit(ctx, info.ID, container.CommitOptions{
+		Reference: ref,
+		Comment:   "McHarbor container move filesystem snapshot",
+		Author:    "McHarbor",
+		Pause:     info.State != nil && info.State.Running,
+		Config:    &cfg,
+	})
+	cleanup := func() {
+		cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 30*time.Second)
+		defer cancel()
+		if _, err := cli.ImageRemove(cleanupCtx, ref, image.RemoveOptions{Force: true, PruneChildren: true}); err != nil && !client.IsErrNotFound(err) {
+			slog.Warn("containers: remove temporary move snapshot image failed", "image", ref, "error", err)
+		}
+	}
+	if err != nil {
+		return "", 0, func() {}, fmt.Errorf("creating source container filesystem snapshot: %w", err)
+	}
+
+	size := sourceImageSize(ctx, cli, ref, commit.ID)
+	return ref, size, cleanup, nil
+}
+
+func moveSnapshotImageRef(containerID, targetName string) string {
+	name := strings.ToLower(normalizedMoveName(targetName, "container"))
+	var builder strings.Builder
+	for _, char := range name {
+		if char >= 'a' && char <= 'z' || char >= '0' && char <= '9' || char == '.' || char == '_' || char == '-' {
+			builder.WriteRune(char)
+			continue
+		}
+		builder.WriteByte('-')
+	}
+	name = strings.Trim(builder.String(), ".-_")
+	if name == "" {
+		name = "container"
+	}
+	shortID := strings.ToLower(strings.TrimSpace(containerID))
+	if len(shortID) > 12 {
+		shortID = shortID[:12]
+	}
+	if shortID == "" {
+		shortID = strconv.FormatInt(time.Now().UnixNano(), 36)
+	}
+	return "mcharbor/move-" + name + ":" + shortID + "-" + strconv.FormatInt(time.Now().Unix(), 36)
+}
+
+func firstPositive(values ...int64) int64 {
+	for _, value := range values {
+		if value > 0 {
+			return value
 		}
 	}
 	return 0

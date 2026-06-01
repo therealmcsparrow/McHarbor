@@ -30,7 +30,7 @@ type pendingReq struct {
 }
 
 const agentRequestChunkSize = 32 * 1024
-const agentRequestStreamingMinVersion = "1.3.1"
+const agentRequestStreamingMinVersion = "1.3.2"
 
 // ExecSession tracks an active exec terminal session over the agent WebSocket.
 type ExecSession struct {

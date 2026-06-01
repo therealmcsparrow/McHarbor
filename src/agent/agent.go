@@ -27,6 +27,115 @@ type Agent struct {
 	proxy  *Proxy
 }
 
+type uploadBuffer struct {
+	ch     chan []byte
+	done   chan struct{}
+	buf    []byte
+	err    error
+	closed bool
+	mu     sync.Mutex
+}
+
+func newUploadBuffer() *uploadBuffer {
+	return &uploadBuffer{
+		ch:   make(chan []byte, 256),
+		done: make(chan struct{}),
+	}
+}
+
+func (b *uploadBuffer) Push(data []byte) error {
+	b.mu.Lock()
+	if b.closed {
+		err := b.err
+		if err == nil {
+			err = io.ErrClosedPipe
+		}
+		b.mu.Unlock()
+		return err
+	}
+	b.mu.Unlock()
+
+	chunk := make([]byte, len(data))
+	copy(chunk, data)
+	select {
+	case b.ch <- chunk:
+		return nil
+	case <-b.done:
+		b.mu.Lock()
+		err := b.err
+		b.mu.Unlock()
+		if err != nil {
+			return err
+		}
+		return io.ErrClosedPipe
+	}
+}
+
+func (b *uploadBuffer) Read(p []byte) (int, error) {
+	if len(b.buf) > 0 {
+		n := copy(p, b.buf)
+		b.buf = b.buf[n:]
+		return n, nil
+	}
+
+	select {
+	case chunk := <-b.ch:
+		n := copy(p, chunk)
+		if n < len(chunk) {
+			b.buf = chunk[n:]
+		}
+		return n, nil
+	default:
+	}
+
+	select {
+	case chunk := <-b.ch:
+		n := copy(p, chunk)
+		if n < len(chunk) {
+			b.buf = chunk[n:]
+		}
+		return n, nil
+	case <-b.done:
+		select {
+		case chunk := <-b.ch:
+			n := copy(p, chunk)
+			if n < len(chunk) {
+				b.buf = chunk[n:]
+			}
+			return n, nil
+		default:
+		}
+		b.mu.Lock()
+		err := b.err
+		b.mu.Unlock()
+		if err != nil {
+			return 0, err
+		}
+		return 0, io.EOF
+	}
+}
+
+func (b *uploadBuffer) Close() error {
+	b.closeWithError(nil)
+	return nil
+}
+
+func (b *uploadBuffer) CloseWithError(err error) error {
+	b.closeWithError(err)
+	return nil
+}
+
+func (b *uploadBuffer) closeWithError(err error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.closed {
+		return
+	}
+	b.closed = true
+	b.err = err
+	close(b.done)
+}
+
 // NewAgent creates a new agent instance.
 func NewAgent(cfg Config, logger *slog.Logger) *Agent {
 	return &Agent{
@@ -97,7 +206,7 @@ func (a *Agent) Connect(ctx context.Context) error {
 	// Track in-flight request cancellations
 	var cancelMu sync.Mutex
 	cancels := make(map[string]context.CancelFunc)
-	uploads := make(map[string]*io.PipeWriter)
+	uploads := make(map[string]*uploadBuffer)
 
 	// Message loop
 	for {
@@ -140,11 +249,11 @@ func (a *Agent) Connect(ctx context.Context) error {
 				continue
 			}
 			reqCtx, reqCancel := context.WithCancel(ctx)
-			bodyReader, bodyWriter := io.Pipe()
+			bodyReader := newUploadBuffer()
 
 			cancelMu.Lock()
 			cancels[msg.ID] = reqCancel
-			uploads[msg.ID] = bodyWriter
+			uploads[msg.ID] = bodyReader
 			cancelMu.Unlock()
 
 			go func(id string, req *WSHTTPRequest) {
@@ -164,21 +273,21 @@ func (a *Agent) Connect(ctx context.Context) error {
 				continue
 			}
 			cancelMu.Lock()
-			bodyWriter := uploads[msg.ID]
+			bodyReader := uploads[msg.ID]
 			cancelMu.Unlock()
-			if bodyWriter != nil {
-				if _, err := bodyWriter.Write(msg.StreamChunk.Data); err != nil {
+			if bodyReader != nil {
+				if err := bodyReader.Push(msg.StreamChunk.Data); err != nil {
 					a.logger.Warn("request body stream write failed", "id", msg.ID, "error", err)
 				}
 			}
 
 		case MsgHTTPRequestEnd:
 			cancelMu.Lock()
-			bodyWriter := uploads[msg.ID]
+			bodyReader := uploads[msg.ID]
 			delete(uploads, msg.ID)
 			cancelMu.Unlock()
-			if bodyWriter != nil {
-				bodyWriter.Close()
+			if bodyReader != nil {
+				bodyReader.Close()
 			}
 
 		case MsgHTTPCancel:
@@ -187,8 +296,8 @@ func (a *Agent) Connect(ctx context.Context) error {
 				cancel()
 				delete(cancels, msg.ID)
 			}
-			if bodyWriter := uploads[msg.ID]; bodyWriter != nil {
-				bodyWriter.CloseWithError(context.Canceled)
+			if bodyReader := uploads[msg.ID]; bodyReader != nil {
+				bodyReader.CloseWithError(context.Canceled)
 				delete(uploads, msg.ID)
 			}
 			cancelMu.Unlock()

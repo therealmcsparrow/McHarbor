@@ -8,12 +8,16 @@ All notable changes to McHarbor are documented in this file.
 
 - Bumped the patch application version to `1.3.2` across canonical runtime metadata, agent metadata, frontend package metadata, and lockfile root metadata.
 - Extended the bounded container move operation window so remote agent image and volume moves can finish on slower Docker hosts.
+- Changed container moves to snapshot and transfer the source container filesystem layer, preserving data written inside containers even when they do not use Docker volumes.
 - Switched container image loading during moves away from quiet Docker load mode so target Docker can stream load progress/results back through the agent path instead of waiting until unpacking completes.
+- Raised the target-agent requirement for container snapshot/image data moves to `mcharbor-agent` `1.3.2` so older agents fail fast instead of hanging during upload.
 
 ### Fixed
 
 - Fixed moved containers missing Docker volume attachments when the original container used image-declared or otherwise implicit named/anonymous volumes.
+- Fixed moved containers without volumes being recreated from the original image without their writable-layer data.
 - Fixed container moves timing out while the target Docker daemon was still loading the transferred image archive.
+- Fixed the remote agent streamed request-body reader used by Docker image loads so large snapshot archives do not stall after the first chunk.
 
 ## [1.3.1] - 2026-05-31
 ### Added
