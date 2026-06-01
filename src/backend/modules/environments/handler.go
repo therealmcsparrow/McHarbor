@@ -25,7 +25,7 @@ type Handler struct {
 
 // NewHandler creates a new environment handler.
 func NewHandler(app *router.AppDeps) *Handler {
-	svc := NewService(app.DB, app.DockerPool, app.KubernetesPool, app.Encryption)
+	svc := NewService(app.DB, app.DockerPool, app.KubernetesPool, app.AgentPool, app.Encryption)
 	return &Handler{app: app, service: svc}
 }
 

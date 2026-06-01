@@ -140,6 +140,7 @@ func (s *Service) ListAgents() ([]AgentInfo, error) {
 		if lastSeen.Valid {
 			a.LastSeen = lastSeen.String
 		}
+		s.applyLiveAgentMetadata(&a)
 		agents = append(agents, a)
 	}
 	if agents == nil {
@@ -192,7 +193,24 @@ func (s *Service) AgentStatus(envID string) (*AgentInfo, error) {
 	if lastSeen.Valid {
 		a.LastSeen = lastSeen.String
 	}
+	s.applyLiveAgentMetadata(&a)
 	return &a, nil
+}
+
+func (s *Service) applyLiveAgentMetadata(a *AgentInfo) {
+	if a == nil || s.agentPool == nil {
+		return
+	}
+	conn, ok := s.agentPool.Get(a.EnvID)
+	if !ok {
+		return
+	}
+	a.Status = "connected"
+	a.Hostname = conn.Hostname
+	a.OS = conn.OS
+	a.Arch = conn.Arch
+	a.AgentVersion = conn.Version
+	a.DockerVersion = conn.DockerVer
 }
 
 // RegenerateToken creates a new token for an agent environment.

@@ -219,6 +219,16 @@ func (a *Agent) StartTransferServer(ctx context.Context) error {
 	return a.transfer.Start(ctx)
 }
 
+func (a *Agent) RetireContainer(ctx context.Context, containerID string) {
+	retireCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+	if err := a.proxy.RemoveContainer(retireCtx, containerID); err != nil {
+		a.logger.Warn("retired agent container removal failed", "container", containerID, "error", err)
+		return
+	}
+	a.logger.Info("retired agent container removed", "container", containerID)
+}
+
 // Connect establishes a WebSocket connection and runs the message loop.
 // Returns an error when the connection is lost.
 func (a *Agent) Connect(ctx context.Context) error {

@@ -23,6 +23,7 @@ type Config struct {
 	Insecure             bool   `env:"MCHARBOR_INSECURE" envDefault:"false"`
 	TransferListen       string `env:"MCHARBOR_TRANSFER_LISTEN"`
 	TransferAdvertiseURL string `env:"MCHARBOR_TRANSFER_ADVERTISE_URL"`
+	RetireContainerID    string `env:"MCHARBOR_RETIRE_CONTAINER_ID"`
 }
 
 func main() {
@@ -65,6 +66,9 @@ func main() {
 	agent := NewAgent(cfg, logger)
 	if err := agent.StartTransferServer(ctx); err != nil {
 		logger.Warn("direct transfer receiver disabled", "error", err)
+	}
+	if cfg.RetireContainerID != "" {
+		go agent.RetireContainer(ctx, cfg.RetireContainerID)
 	}
 	RunWithReconnect(ctx, agent, logger)
 

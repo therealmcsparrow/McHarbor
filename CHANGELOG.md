@@ -13,6 +13,7 @@ All notable changes to McHarbor are documented in this file.
 - Raised the direct-transfer agent requirement to `mcharbor-agent` `1.3.5`; moves automatically fall back to the existing McHarbor relay path when direct transfer is unavailable.
 
 ### Fixed
+- Fixed connected remote-agent container updates leaving the old agent container running by passing the retired container ID to the replacement agent so it can remove the old container from the host Docker socket after startup.
 - Fixed remote-agent image load hangs by streaming Docker `/images/load` request bodies through the agent even when the Docker SDK reports a zero content length.
 - Added move cancellation UI handling and de-duplicated repeated image-load progress messages.
 - Added editable move volume mapping for both named volumes and bind mounts, including target host path and target container path.

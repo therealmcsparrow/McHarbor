@@ -114,6 +114,33 @@ func (p *Proxy) LoadImage(ctx context.Context, body io.Reader) error {
 	return nil
 }
 
+func (p *Proxy) RemoveContainer(ctx context.Context, containerID string) error {
+	containerID = strings.TrimSpace(containerID)
+	if containerID == "" {
+		return fmt.Errorf("container id is required")
+	}
+	values := url.Values{}
+	values.Set("force", "1")
+	values.Set("v", "0")
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, "http://docker/containers/"+url.PathEscape(containerID)+"?"+values.Encode(), nil)
+	if err != nil {
+		return fmt.Errorf("building container remove request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("removing container %s: %w", containerID, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNoContent || resp.StatusCode == http.StatusNotFound {
+		if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+			return fmt.Errorf("reading container remove response: %w", err)
+		}
+		return nil
+	}
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	return fmt.Errorf("removing container %s returned status %d: %s", containerID, resp.StatusCode, strings.TrimSpace(string(body)))
+}
+
 // HandleRequest processes a proxied Docker API request and sends the response back.
 func (p *Proxy) HandleRequest(ctx context.Context, conn *websocket.Conn, id string, wsReq *WSHTTPRequest) {
 	var bodyReader io.Reader

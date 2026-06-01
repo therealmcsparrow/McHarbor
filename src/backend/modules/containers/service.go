@@ -661,6 +661,7 @@ func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *clie
 		cli.ContainerRename(ctx, info.ID, originalName)
 		return container.CreateResponse{}, err
 	}
+	cfg.Env = agentRetireContainerEnv(cfg.Env, info.ID)
 
 	newResp, err := cli.ContainerCreate(ctx, cfg, hc, netConfig, nil, originalName)
 	if err != nil {
@@ -686,11 +687,25 @@ func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *clie
 func retireConnectedAgentContainer(cli *client.Client, oldID string) {
 	time.Sleep(500 * time.Millisecond)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	if err := cli.ContainerRemove(ctx, oldID, container.RemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
 		slog.Warn("containers: old agent container retirement did not return cleanly", "error", err, "container", oldID)
 	}
+}
+
+func agentRetireContainerEnv(env []string, oldID string) []string {
+	result := make([]string, 0, len(env)+1)
+	for _, entry := range env {
+		if strings.HasPrefix(entry, "MCHARBOR_RETIRE_CONTAINER_ID=") {
+			continue
+		}
+		result = append(result, entry)
+	}
+	if strings.TrimSpace(oldID) != "" {
+		result = append(result, "MCHARBOR_RETIRE_CONTAINER_ID="+oldID)
+	}
+	return result
 }
 
 func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, imgName string) (*container.Config, *container.HostConfig, *networkTypes.NetworkingConfig, error) {

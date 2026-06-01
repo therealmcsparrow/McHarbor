@@ -14,6 +14,7 @@ import (
 
 	"github.com/rs/xid"
 
+	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
@@ -25,12 +26,13 @@ type Service struct {
 	db         *sql.DB
 	dockerPool *docker.ClientPool
 	k8sPool    *kubernetes.ClientPool
+	agentPool  *coreagent.AgentPool
 	enc        *encryption.Service
 }
 
 // NewService creates a new environment service.
-func NewService(db *sql.DB, dockerPool *docker.ClientPool, k8sPool *kubernetes.ClientPool, enc *encryption.Service) *Service {
-	return &Service{db: db, dockerPool: dockerPool, k8sPool: k8sPool, enc: enc}
+func NewService(db *sql.DB, dockerPool *docker.ClientPool, k8sPool *kubernetes.ClientPool, agentPool *coreagent.AgentPool, enc *encryption.Service) *Service {
+	return &Service{db: db, dockerPool: dockerPool, k8sPool: k8sPool, agentPool: agentPool, enc: enc}
 }
 
 // List returns all environments from the database.
@@ -61,6 +63,7 @@ func (s *Service) List() ([]Environment, error) {
 		if err != nil {
 			return nil, err
 		}
+		s.applyLiveAgentMetadata(&env)
 		s.redactSecrets(&env)
 		envs = append(envs, env)
 	}
@@ -93,8 +96,26 @@ func (s *Service) ByID(id string) (*Environment, error) {
 	if err != nil {
 		return nil, fmt.Errorf("querying environment %s: %w", id, err)
 	}
+	s.applyLiveAgentMetadata(env)
 	s.redactSecrets(env)
 	return env, nil
+}
+
+func (s *Service) applyLiveAgentMetadata(env *Environment) {
+	if env == nil || env.ConnectionType != "agent" || s.agentPool == nil {
+		return
+	}
+	conn, ok := s.agentPool.Get(env.ID)
+	if !ok {
+		return
+	}
+	connected := "connected"
+	env.AgentStatus = &connected
+	env.AgentVersion = stringPtr(conn.Version)
+	env.AgentHostname = stringPtr(conn.Hostname)
+	env.AgentOS = stringPtr(conn.OS)
+	env.AgentArch = stringPtr(conn.Arch)
+	env.DockerVersion = stringPtr(conn.DockerVer)
 }
 
 // Create inserts a new environment into the database.
@@ -710,6 +731,13 @@ func nullStringPtr(ns sql.NullString) *string {
 		return &ns.String
 	}
 	return nil
+}
+
+func stringPtr(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
 }
 
 func nullIntPtr(ni sql.NullInt64) *int {
