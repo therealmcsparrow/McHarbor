@@ -41,6 +41,13 @@ const moveAgentDirectTransferMinVersion = "1.3.5"
 
 type moveProgressEmitter func(MoveContainerEvent)
 
+type moveTransferRoute string
+
+const (
+	moveTransferRouteDefault        moveTransferRoute = ""
+	moveTransferRouteAgentHostAgent moveTransferRoute = "agent-host-agent"
+)
+
 // MovePlan returns a preview of the Docker resources needed to move a container.
 func (s *Service) MovePlan(ctx context.Context, envID, id string, req MoveContainerPlanRequest) (MoveContainerPlan, error) {
 	if strings.TrimSpace(req.TargetEnvID) == "" {
@@ -492,8 +499,14 @@ func (s *Service) transferImage(ctx context.Context, sourceEnvID, targetEnvID st
 	if directStarted || err != nil {
 		return err
 	}
-	emitMoveProgress(emit, 4, "image", "Direct agent transfer unavailable; using McHarbor relay.", "progress")
-	return transferImage(ctx, sourceCli, targetCli, ref, imageSize, emit)
+	route := moveTransferRouteDefault
+	if s.pool.IsAgentEnv(sourceEnvID) && s.pool.IsAgentEnv(targetEnvID) {
+		route = moveTransferRouteAgentHostAgent
+		emitMoveProgress(emit, 4, "image", "Direct agent-to-agent transfer unavailable; using McHarbor host relay (agent-host-agent route).", "progress")
+	} else {
+		emitMoveProgress(emit, 4, "image", "Using McHarbor relay for snapshot transfer.", "progress")
+	}
+	return transferImage(ctx, sourceCli, targetCli, ref, imageSize, emit, route)
 }
 
 func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, targetEnvID, ref string, imageSize int64, emit moveProgressEmitter) (bool, error) {
@@ -525,7 +538,7 @@ func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, 
 		return false, fmt.Errorf("creating direct transfer id: %w", err)
 	}
 
-	emitMoveProgress(emit, 4, "image", "Direct agent transfer available; preparing target receiver.", "progress")
+	emitMoveProgress(emit, 4, "image", "Direct agent-to-agent transfer available; preparing target receiver (agent-to-agent route).", "progress")
 	prepareCtx, prepareCancel := context.WithTimeout(ctx, 30*time.Second)
 	uploadURL, err := targetConn.Transport.PrepareTransfer(prepareCtx, transferID, token)
 	prepareCancel()
@@ -544,7 +557,7 @@ func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, 
 	}()
 
 	var lastBytes atomic.Int64
-	emitMoveProgress(emit, 4, "image", "Sending snapshot directly from source agent to target agent.", "progress")
+	emitMoveProgress(emit, 4, "image", "Sending snapshot directly from source agent to target agent (agent-to-agent route).", "progress")
 	err = sourceConn.Transport.StartImageTransfer(ctx, transferID, ref, uploadURL, token, func(transferred int64) {
 		if transferred <= 0 {
 			return
@@ -563,7 +576,7 @@ func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, 
 		displayTotal := moveProgressTotalBytes(transferred, imageSize)
 		emitMoveProgressBytes(emit, 4, "image", formatMoveDirectTransferProgress(transferred, displayTotal), "progress", transferred, displayTotal)
 	}
-	emitMoveProgress(emit, 4, "image", "Direct agent image transfer finished.", "progress")
+	emitMoveProgress(emit, 4, "image", "Direct agent-to-agent image transfer finished.", "progress")
 	return started, nil
 }
 
@@ -835,8 +848,8 @@ func (r *moveProgressReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref string, imageSize int64, emit moveProgressEmitter) error {
-	emitMoveProgress(emit, 4, "image", "Opening source image archive.", "progress")
+func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref string, imageSize int64, emit moveProgressEmitter, route moveTransferRoute) error {
+	emitMoveProgress(emit, 4, "image", moveRelayOpeningMessage(route), "progress")
 	reader, err := sourceCli.ImageSave(ctx, []string{ref})
 	if err != nil {
 		return fmt.Errorf("exporting image %s: %w", ref, err)
@@ -861,16 +874,16 @@ func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref
 		reader:    reader,
 		emit:      emit,
 		total:     imageSize,
-		formatter: formatMoveTransferProgress,
+		formatter: moveRelaySourceProgressFormatter(route),
 	}
 	if _, err := io.Copy(archiveFile, sourceProgress); err != nil {
 		return fmt.Errorf("saving image archive %s: %w", ref, err)
 	}
 	archiveSize := sourceProgress.bytes.Load()
 	if archiveSize > 0 {
-		emitMoveProgressBytes(emit, 4, "image", formatMoveTransferProgress(archiveSize, archiveSize), "progress", archiveSize, archiveSize)
+		emitMoveProgressBytes(emit, 4, "image", moveRelaySourceProgressFormatter(route)(archiveSize, archiveSize), "progress", archiveSize, archiveSize)
 	}
-	emitMoveProgress(emit, 4, "image", "Source image archive transfer finished; loading target image.", "progress")
+	emitMoveProgress(emit, 4, "image", moveRelayLoadStartMessage(route), "progress")
 
 	loadDone := make(chan struct{})
 	defer close(loadDone)
@@ -881,9 +894,9 @@ func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref
 		reader:    archiveFile,
 		emit:      emit,
 		total:     archiveSize,
-		formatter: formatMoveTargetLoadProgress,
+		formatter: moveRelayTargetProgressFormatter(route),
 	}
-	go emitImageLoadHeartbeat(ctx, loadDone, targetProgress, archiveSize, emit)
+	go emitImageLoadHeartbeat(ctx, loadDone, targetProgress, archiveSize, emit, route)
 
 	loadCtx, loadCancel := context.WithTimeout(ctx, moveImageLoadTimeout)
 	defer loadCancel()
@@ -899,17 +912,17 @@ func transferImage(ctx context.Context, sourceCli, targetCli *client.Client, ref
 	transferred := targetProgress.bytes.Load()
 	if transferred > 0 {
 		displayTotal := moveProgressTotalBytes(transferred, archiveSize)
-		emitMoveProgressBytes(emit, 4, "image", formatMoveTargetLoadProgress(transferred, displayTotal), "progress", transferred, displayTotal)
+		emitMoveProgressBytes(emit, 4, "image", moveRelayTargetProgressFormatter(route)(transferred, displayTotal), "progress", transferred, displayTotal)
 	}
-	emitMoveProgress(emit, 4, "image", "Target Docker accepted the image archive; reading load result.", "progress")
+	emitMoveProgress(emit, 4, "image", moveRelayAcceptedMessage(route), "progress")
 	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
 		return fmt.Errorf("reading image load response: %w", err)
 	}
-	emitMoveProgress(emit, 4, "image", "Image transfer finished.", "progress")
+	emitMoveProgress(emit, 4, "image", moveRelayFinishedMessage(route), "progress")
 	return nil
 }
 
-func emitImageLoadHeartbeat(ctx context.Context, done <-chan struct{}, progressReader *moveProgressReader, imageSize int64, emit moveProgressEmitter) {
+func emitImageLoadHeartbeat(ctx context.Context, done <-chan struct{}, progressReader *moveProgressReader, imageSize int64, emit moveProgressEmitter, route moveTransferRoute) {
 	if emit == nil {
 		return
 	}
@@ -928,12 +941,22 @@ func emitImageLoadHeartbeat(ctx context.Context, done <-chan struct{}, progressR
 				continue
 			}
 			displayTotal := moveProgressTotalBytes(transferred, imageSize)
-			emitMoveProgressBytes(emit, 4, "image", moveImageLoadHeartbeatMessage(transferred, displayTotal), "progress", transferred, displayTotal)
+			emitMoveProgressBytes(emit, 4, "image", moveImageLoadHeartbeatMessage(transferred, displayTotal, route), "progress", transferred, displayTotal)
 		}
 	}
 }
 
-func moveImageLoadHeartbeatMessage(transferred, total int64) string {
+func moveImageLoadHeartbeatMessage(transferred, total int64, routes ...moveTransferRoute) string {
+	route := moveTransferRouteDefault
+	if len(routes) > 0 {
+		route = routes[0]
+	}
+	if route == moveTransferRouteAgentHostAgent {
+		if total > 0 && transferred >= total {
+			return "Target Docker is loading the image archive through the McHarbor host relay (agent-host-agent route)."
+		}
+		return "Target Docker is receiving the staged image archive through the McHarbor host relay (agent-host-agent route)."
+	}
 	if total > 0 && transferred >= total {
 		return "Target Docker is loading the image archive. This can take several minutes for large images."
 	}
@@ -962,6 +985,55 @@ func formatMoveTransferProgress(transferred, total int64) string {
 	return "Transferred " + formatMoveBytes(transferred) + " from source image archive."
 }
 
+func moveRelayOpeningMessage(route moveTransferRoute) string {
+	if route == moveTransferRouteAgentHostAgent {
+		return "Opening source image archive through the McHarbor host relay (agent-host-agent route)."
+	}
+	return "Opening source image archive."
+}
+
+func moveRelayLoadStartMessage(route moveTransferRoute) string {
+	if route == moveTransferRouteAgentHostAgent {
+		return "Source image archive reached McHarbor host; loading target image through target agent (agent-host-agent route)."
+	}
+	return "Source image archive transfer finished; loading target image."
+}
+
+func moveRelayAcceptedMessage(route moveTransferRoute) string {
+	if route == moveTransferRouteAgentHostAgent {
+		return "Target Docker accepted the image archive through the McHarbor host relay (agent-host-agent route); reading load result."
+	}
+	return "Target Docker accepted the image archive; reading load result."
+}
+
+func moveRelayFinishedMessage(route moveTransferRoute) string {
+	if route == moveTransferRouteAgentHostAgent {
+		return "Image transfer finished through the McHarbor host relay (agent-host-agent route)."
+	}
+	return "Image transfer finished."
+}
+
+func moveRelaySourceProgressFormatter(route moveTransferRoute) func(transferred, total int64) string {
+	if route == moveTransferRouteAgentHostAgent {
+		return formatMoveAgentHostAgentSourceProgress
+	}
+	return formatMoveTransferProgress
+}
+
+func moveRelayTargetProgressFormatter(route moveTransferRoute) func(transferred, total int64) string {
+	if route == moveTransferRouteAgentHostAgent {
+		return formatMoveAgentHostAgentTargetProgress
+	}
+	return formatMoveTargetLoadProgress
+}
+
+func formatMoveAgentHostAgentSourceProgress(transferred, total int64) string {
+	if total > 0 {
+		return "Transferred " + formatMoveBytes(transferred) + " of " + formatMoveBytes(total) + " from source agent to McHarbor host (agent-host-agent route)."
+	}
+	return "Transferred " + formatMoveBytes(transferred) + " from source agent to McHarbor host (agent-host-agent route)."
+}
+
 func formatMoveTargetLoadProgress(transferred, total int64) string {
 	if total > 0 {
 		return "Sent " + formatMoveBytes(transferred) + " of " + formatMoveBytes(total) + " to target Docker."
@@ -969,11 +1041,18 @@ func formatMoveTargetLoadProgress(transferred, total int64) string {
 	return "Sent " + formatMoveBytes(transferred) + " to target Docker."
 }
 
+func formatMoveAgentHostAgentTargetProgress(transferred, total int64) string {
+	if total > 0 {
+		return "Sent " + formatMoveBytes(transferred) + " of " + formatMoveBytes(total) + " from McHarbor host to target agent/Docker (agent-host-agent route)."
+	}
+	return "Sent " + formatMoveBytes(transferred) + " from McHarbor host to target agent/Docker (agent-host-agent route)."
+}
+
 func formatMoveDirectTransferProgress(transferred, total int64) string {
 	if total > 0 {
-		return "Sent " + formatMoveBytes(transferred) + " of " + formatMoveBytes(total) + " directly between agents."
+		return "Sent " + formatMoveBytes(transferred) + " of " + formatMoveBytes(total) + " directly between agents (agent-to-agent route)."
 	}
-	return "Sent " + formatMoveBytes(transferred) + " directly between agents."
+	return "Sent " + formatMoveBytes(transferred) + " directly between agents (agent-to-agent route)."
 }
 
 func moveProgressTotalBytes(transferred, total int64) int64 {

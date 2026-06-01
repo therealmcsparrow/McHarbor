@@ -19,6 +19,9 @@ These routes target Docker environments and generally expect `?env=<environmentI
 | GET | `/api/containers/{id}` | Inspects a container. |
 | DELETE | `/api/containers/{id}` | Removes a container with the basic delete flow. |
 | POST | `/api/containers/{id}/remove` | Extended removal with extra options. |
+| POST | `/api/containers/{id}/move/plan` | Previews the resources and settings needed to move a container to another environment. |
+| POST | `/api/containers/{id}/move` | Moves a container to another Docker environment and returns the final result. |
+| POST | `/api/containers/{id}/move/stream` | Moves a container and streams progress events with Server-Sent Events. |
 | POST | `/api/containers/{id}/start` | Starts a container. |
 | POST | `/api/containers/{id}/stop` | Stops a container. |
 | POST | `/api/containers/{id}/restart` | Restarts a container. |
@@ -58,6 +61,95 @@ Representative container create body:
   },
   "tty": false,
   "openStdin": false
+}
+```
+
+### Container Move Payloads
+
+Move planning and execution use the source environment from `?env=` and the
+target environment from the request body.
+
+Representative plan body:
+
+```json
+{
+  "targetEnvId": "env_target",
+  "targetName": "nginx-moved",
+  "networkMode": "bridge",
+  "networks": [
+    {
+      "sourceName": "frontend",
+      "targetName": "frontend-target",
+      "driver": "bridge",
+      "aliases": [
+        "nginx"
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "sourceName": "nginx-data",
+      "sourceDestination": "/usr/share/nginx/html",
+      "targetName": "nginx-data-target",
+      "targetDestination": "/usr/share/nginx/html"
+    },
+    {
+      "sourceDestination": "/config",
+      "targetSource": "/srv/nginx/config",
+      "targetDestination": "/config"
+    }
+  ]
+}
+```
+
+Representative move body:
+
+```json
+{
+  "targetEnvId": "env_target",
+  "targetName": "nginx-moved",
+  "transferImage": true,
+  "createMissingNetworks": true,
+  "createMissingVolumes": true,
+  "copyNamedVolumes": true,
+  "startTarget": true,
+  "stopSource": false,
+  "removeSource": false,
+  "networks": [],
+  "volumes": []
+}
+```
+
+Move behavior:
+
+- the source and target environments must be different
+- the source container filesystem is committed to a temporary snapshot image
+- the snapshot is transferred to the target before creating the replacement container
+- named volumes can be created and copied to the target
+- named volume target names and target container paths can be edited
+- bind mount target host paths and target container paths can be edited
+- network names, network mode, aliases, target IP/MAC, driver, IPAM, labels, and options can be edited
+- Compose stack labels are preserved on the created target container, but managed stack records are not moved
+- cancellation aborts the active operation and can leave partial target-side artifacts
+
+Remote-agent transfer behavior:
+
+- target agent image loading requires `mcharbor-agent` `1.3.3+`
+- direct agent-to-agent transfer requires source and target agents to be `1.3.5+`
+- direct transfer also requires the target agent to advertise a transfer listener
+- when direct transfer is unavailable, McHarbor falls back to the server relay path
+
+The streaming endpoint emits events shaped like:
+
+```json
+{
+  "step": 4,
+  "total": 10,
+  "message": "Sent 55.0 MB of 148.8 MB directly between agents.",
+  "status": "progress",
+  "phase": "image",
+  "bytesTransferred": 57671680,
+  "bytesTotal": 156028108
 }
 ```
 

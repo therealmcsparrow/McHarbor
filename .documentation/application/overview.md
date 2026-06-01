@@ -36,6 +36,7 @@ dashboarding, notifications, and governance into a single application.
 - Runs separately on remote hosts
 - Opens an outbound WebSocket connection to McHarbor
 - Enables Docker management behind NAT or firewalls without exposing the Docker daemon directly
+- Can optionally expose a short-lived direct-transfer receiver for agent-to-agent container moves
 
 ### Database
 
@@ -51,6 +52,7 @@ dashboarding, notifications, and governance into a single application.
 4. Users authenticate with a session cookie or API key.
 5. Runtime operations are directed at selected environments, usually through `?env=<environmentId>`.
 6. Optional agents connect back to the server through `/api/agent/ws`.
+7. Container moves between agent environments can use a direct agent-to-agent image transfer when both agents support and advertise it; otherwise the server relay path is used.
 
 ## Main Subsystems
 
