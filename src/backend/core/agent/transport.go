@@ -640,6 +640,7 @@ func (t *AgentTransport) ReadLoop() error {
 			if msg.Transfer == nil {
 				continue
 			}
+			diagnosticOnly := msg.Type == MsgTransferResult && msg.Transfer.Diagnostic != nil
 			t.mu.Lock()
 			if msg.Transfer.Diagnostic != nil {
 				t.transferDiagnostics[msg.Transfer.TransferID] = msg.Transfer.Diagnostic
@@ -649,6 +650,9 @@ func (t *AgentTransport) ReadLoop() error {
 			}
 			ch := t.transferWaiters[msg.Transfer.TransferID]
 			t.mu.Unlock()
+			if diagnosticOnly {
+				continue
+			}
 			if ch != nil {
 				select {
 				case ch <- &msg:
