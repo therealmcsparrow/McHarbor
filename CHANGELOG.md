@@ -2,6 +2,15 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.3.7] - 2026-06-02
+
+### Added
+- Added token-safe target receiver diagnostics to the Settings > Agent direct transfer test popup, including whether the receiver existed, expired, matched the expected kind, received a bearer header, and matched the one-time token.
+
+### Changed
+- Bumped the patch application version to `1.3.7` across runtime metadata, agent metadata, frontend package metadata, generated agent install image references, README examples, and agent documentation.
+- Raised the Settings direct-transfer diagnostic requirement to `mcharbor-agent` `1.3.7`; container moves still require `mcharbor-agent` `1.3.5+` for direct image transfer.
+
 ## [1.3.6] - 2026-06-02
 
 ### Added

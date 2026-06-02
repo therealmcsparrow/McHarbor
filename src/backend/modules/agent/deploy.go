@@ -251,7 +251,7 @@ func runSSHCommand(client *ssh.Client, cmd string) (string, error) {
 // buildDockerDeployCmd generates the shell command to deploy the agent via Docker.
 func buildDockerDeployCmd(serverURL, token, agentImage string) string {
 	if agentImage == "" {
-		agentImage = "ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6"
+		agentImage = "ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7"
 	}
 
 	// Stop and remove existing agent container if any, then run new one

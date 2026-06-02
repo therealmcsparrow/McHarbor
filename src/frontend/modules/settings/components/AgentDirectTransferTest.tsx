@@ -9,32 +9,12 @@ import { Button } from '@resources/components/ui/Button';
 import { Label } from '@resources/components/ui/Label';
 import { Select } from '@resources/components/ui/Select';
 import { Spinner } from '@resources/components/ui/Spinner';
-import { cn } from '@resources/utils/cn';
 import { useAgents, useDirectTransferTest } from '../hooks/useAgentSettings';
 import type { AgentInfo, DirectTransferTestResult } from '../types';
+import { AgentDirectTransferTestDialog } from './AgentDirectTransferTestDialog';
 
 function agentLabel(agent: AgentInfo) {
   return agent.hostname ? `${agent.envName} (${agent.hostname})` : agent.envName;
-}
-
-function ResultRow({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value?: string | number | boolean;
-  mono?: boolean;
-}) {
-  if (value === undefined || value === '') return null;
-  return (
-    <div className="grid gap-1 rounded-lg border border-border/60 bg-background/40 px-3 py-2 sm:grid-cols-[10rem_1fr]">
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <span className={cn('break-all text-sm text-foreground', mono && 'font-mono text-xs')}>
-        {String(value)}
-      </span>
-    </div>
-  );
 }
 
 export function AgentDirectTransferTest() {
@@ -44,6 +24,8 @@ export function AgentDirectTransferTest() {
   const [sourceEnvId, setSourceEnvId] = useState('');
   const [targetEnvId, setTargetEnvId] = useState('');
   const [result, setResult] = useState<DirectTransferTestResult | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [requestError, setRequestError] = useState('');
 
   const connectedAgents = useMemo(
     () => agents.filter((agent) => agent.status === 'connected'),
@@ -85,16 +67,19 @@ export function AgentDirectTransferTest() {
 
   const handleRun = () => {
     if (!canRun) return;
+    setDialogOpen(true);
+    setResult(null);
+    setRequestError('');
     transferTest.mutate(
       { sourceEnvId, targetEnvId },
       {
         onSuccess: setResult,
+        onError: (error) => {
+          setRequestError(error instanceof Error ? error.message : t('agent.directTransferTest.requestFailed'));
+        },
       }
     );
   };
-
-  const phaseLabel =
-    result?.phase && t(`agent.directTransferTest.phases.${result.phase}`, result.phase);
 
   return (
     <div className="space-y-4 rounded-lg border border-border p-4">
@@ -169,50 +154,13 @@ export function AgentDirectTransferTest() {
         </>
       )}
 
-      {result && (
-        <div className="space-y-3 rounded-lg border border-border/70 bg-muted/20 p-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={result.success ? 'success' : 'destructive'}>
-              {result.success
-                ? t('agent.directTransferTest.success')
-                : t('agent.directTransferTest.failed')}
-            </Badge>
-            {phaseLabel && <Badge variant="outline">{phaseLabel}</Badge>}
-          </div>
-
-          <div className="grid gap-2">
-            <ResultRow label={t('agent.directTransferTest.source')} value={result.sourceName} />
-            <ResultRow
-              label={t('agent.directTransferTest.sourceVersion')}
-              value={result.sourceVersion}
-            />
-            <ResultRow label={t('agent.directTransferTest.target')} value={result.targetName} />
-            <ResultRow
-              label={t('agent.directTransferTest.targetVersion')}
-              value={result.targetVersion}
-            />
-            <ResultRow
-              label={t('agent.directTransferTest.statusCode')}
-              value={result.statusCode}
-            />
-            <ResultRow
-              label={t('agent.directTransferTest.duration')}
-              value={t('agent.directTransferTest.durationValue', { duration: result.durationMs })}
-            />
-            <ResultRow
-              label={t('agent.directTransferTest.targetTransferUrl')}
-              value={result.targetTransferUrl}
-              mono
-            />
-            <ResultRow
-              label={t('agent.directTransferTest.probeUrl')}
-              value={result.probeUrl}
-              mono
-            />
-            <ResultRow label={t('agent.directTransferTest.error')} value={result.error} />
-          </div>
-        </div>
-      )}
+      <AgentDirectTransferTestDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        pending={transferTest.isPending}
+        result={result}
+        requestError={requestError}
+      />
     </div>
   );
 }

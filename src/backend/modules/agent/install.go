@@ -139,7 +139,7 @@ set -e
 
 MCHARBOR_URL=%s
 MCHARBOR_AGENT_TOKEN=%s
-AGENT_IMAGE="ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6"
+AGENT_IMAGE="ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7"
 
 echo "=== McHarbor Agent Installer ==="
 echo ""

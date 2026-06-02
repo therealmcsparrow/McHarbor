@@ -196,7 +196,7 @@ http://<your-server-ip>:8705
 To install the optional remote agent on another machine:
 
 ```bash
-docker pull ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6
+docker pull ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
 docker rm -f mcharbor-agent 2>/dev/null || true
 docker run -d \
   --name mcharbor-agent \
@@ -205,7 +205,7 @@ docker run -d \
   -e MCHARBOR_AGENT_TOKEN=your_agent_token \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6
+  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
 ```
 
 ## AI

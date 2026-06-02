@@ -97,6 +97,17 @@ export type DirectTransferTestResult = {
   statusCode?: number;
   durationMs: number;
   error?: string;
+  diagnostic?: DirectTransferDiagnostic;
+};
+
+export type DirectTransferDiagnostic = {
+  receiverExists: boolean;
+  receiverExpired: boolean;
+  receiverKind?: string;
+  kindMatched: boolean;
+  bearerPresent: boolean;
+  tokenMatched: boolean;
+  remoteAddr?: string;
 };
 
 export type RetentionSettingsData = {

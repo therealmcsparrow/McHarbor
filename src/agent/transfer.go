@@ -28,6 +28,18 @@ type transferReceiver struct {
 	expiresAt time.Time
 }
 
+type transferReceiverAuthCheck struct {
+	allowed       bool
+	existed       bool
+	expired       bool
+	kindMatched   bool
+	bearerPresent bool
+	tokenMatched  bool
+	receiverKind  string
+}
+
+type transferReporter func(WSMessage)
+
 // TransferServer receives one-use direct uploads from peer agents.
 type TransferServer struct {
 	listen       string
@@ -36,7 +48,9 @@ type TransferServer struct {
 	logger       *slog.Logger
 	server       *http.Server
 	receivers    map[string]transferReceiver
+	reporter     transferReporter
 	mu           sync.Mutex
+	reporterMu   sync.Mutex
 }
 
 func NewTransferServer(listen, advertiseURL string, proxy *Proxy, logger *slog.Logger) *TransferServer {
@@ -93,6 +107,15 @@ func (s *TransferServer) AdvertiseURL() string {
 	return s.advertiseURL
 }
 
+func (s *TransferServer) SetReporter(reporter transferReporter) {
+	if s == nil {
+		return
+	}
+	s.reporterMu.Lock()
+	s.reporter = reporter
+	s.reporterMu.Unlock()
+}
+
 func (s *TransferServer) Prepare(transferID, token string) (string, error) {
 	return s.prepareReceiver(transferID, token, transferKindImage, "/api/transfer/image/")
 }
@@ -125,7 +148,9 @@ func (s *TransferServer) prepareReceiver(transferID, token, kind, pathPrefix str
 	}
 	s.mu.Unlock()
 
-	return s.advertiseURL + pathPrefix + transferID, nil
+	receiverURL := s.advertiseURL + pathPrefix + transferID
+	s.logger.Debug("direct transfer receiver prepared", "transferId", transferID, "kind", kind, "url", receiverURL)
+	return receiverURL, nil
 }
 
 func (s *TransferServer) Cancel(transferID string) {
@@ -135,6 +160,7 @@ func (s *TransferServer) Cancel(transferID string) {
 	s.mu.Lock()
 	delete(s.receivers, transferID)
 	s.mu.Unlock()
+	s.logger.Debug("direct transfer receiver cancelled", "transferId", transferID)
 }
 
 func (s *TransferServer) handleImageUpload(w http.ResponseWriter, r *http.Request) {
@@ -149,13 +175,16 @@ func (s *TransferServer) handleImageUpload(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !s.consumeReceiver(transferID, transferKindImage, r.Header.Get("Authorization")) {
+	check := s.consumeReceiver(transferID, transferKindImage, r.Header.Get("Authorization"))
+	if !check.allowed {
+		s.logReceiverAuthFailure(transferID, transferKindImage, r.RemoteAddr, check)
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		if r.Body != nil {
 			io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
 		}
 		return
 	}
+	s.logger.Debug("direct transfer receiver authorized", "transferId", transferID, "kind", transferKindImage, "remote", r.RemoteAddr)
 
 	if err := s.proxy.LoadImage(r.Context(), r.Body); err != nil {
 		s.logger.Warn("direct transfer image load failed", "transferId", transferID, "error", err)
@@ -178,26 +207,35 @@ func (s *TransferServer) handleProbeUpload(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !s.consumeReceiver(transferID, transferKindProbe, r.Header.Get("Authorization")) {
+	check := s.consumeReceiver(transferID, transferKindProbe, r.Header.Get("Authorization"))
+	if !check.allowed {
+		s.logReceiverAuthFailure(transferID, transferKindProbe, r.RemoteAddr, check)
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		if r.Body != nil {
 			io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
 		}
 		return
 	}
+	s.logger.Debug("direct transfer receiver authorized", "transferId", transferID, "kind", transferKindProbe, "remote", r.RemoteAddr)
 	if r.Body != nil {
 		io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (s *TransferServer) consumeReceiver(transferID, kind, authHeader string) bool {
+func (s *TransferServer) consumeReceiver(transferID, kind, authHeader string) transferReceiverAuthCheck {
+	check := transferReceiverAuthCheck{
+		bearerPresent: strings.HasPrefix(authHeader, "Bearer ") && strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer ")) != "",
+	}
 	token := strings.TrimPrefix(authHeader, "Bearer ")
 
 	s.mu.Lock()
 	receiver, ok := s.receivers[transferID]
+	check.existed = ok
+	check.receiverKind = receiver.kind
 	if ok && time.Now().After(receiver.expiresAt) {
 		delete(s.receivers, transferID)
+		check.expired = true
 		ok = false
 	}
 	if ok {
@@ -205,8 +243,57 @@ func (s *TransferServer) consumeReceiver(transferID, kind, authHeader string) bo
 	}
 	s.mu.Unlock()
 
-	if !ok || receiver.kind != kind {
-		return false
+	if !ok {
+		return check
 	}
-	return subtle.ConstantTimeCompare([]byte(token), []byte(receiver.token)) == 1
+	check.kindMatched = receiver.kind == kind
+	if !check.kindMatched {
+		return check
+	}
+	check.tokenMatched = subtle.ConstantTimeCompare([]byte(token), []byte(receiver.token)) == 1
+	check.allowed = check.tokenMatched
+	return check
+}
+
+func (s *TransferServer) logReceiverAuthFailure(transferID, kind, remote string, check transferReceiverAuthCheck) {
+	s.logger.Debug("direct transfer receiver authorization failed",
+		"transferId", transferID,
+		"kind", kind,
+		"remote", remote,
+		"receiverExists", check.existed,
+		"receiverExpired", check.expired,
+		"receiverKind", check.receiverKind,
+		"kindMatched", check.kindMatched,
+		"bearerPresent", check.bearerPresent,
+		"tokenMatched", check.tokenMatched,
+	)
+	s.reportReceiverAuthFailure(transferID, kind, remote, check)
+}
+
+func (s *TransferServer) reportReceiverAuthFailure(transferID, kind, remote string, check transferReceiverAuthCheck) {
+	s.reporterMu.Lock()
+	reporter := s.reporter
+	s.reporterMu.Unlock()
+	if reporter == nil {
+		return
+	}
+	reporter(WSMessage{
+		Type: MsgTransferResult,
+		Transfer: &TransferPayload{
+			TransferID: transferID,
+			Kind:       kind,
+			StatusCode: http.StatusUnauthorized,
+			Success:    false,
+			Error:      "direct transfer receiver authorization failed",
+			Diagnostic: &TransferAuthDiagnostic{
+				ReceiverExists:  check.existed,
+				ReceiverExpired: check.expired,
+				ReceiverKind:    check.receiverKind,
+				KindMatched:     check.kindMatched,
+				BearerPresent:   check.bearerPresent,
+				TokenMatched:    check.tokenMatched,
+				RemoteAddr:      remote,
+			},
+		},
+	})
 }

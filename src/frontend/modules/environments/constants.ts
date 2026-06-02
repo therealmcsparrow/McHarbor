@@ -1,4 +1,4 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-export const AgentDockerImage = 'ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6';
+export const AgentDockerImage = 'ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7';

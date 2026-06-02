@@ -18,7 +18,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 )
 
-const agentDirectTransferProbeMinVersion = "1.3.6"
+const agentDirectTransferProbeMinVersion = "1.3.7"
 
 // Service handles agent-related business logic.
 type Service struct {
@@ -351,6 +351,17 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 	statusCode, err := sourceConn.Transport.StartTransferProbe(testCtx, transferID, probeURL, token)
 	result.StatusCode = statusCode
 	if err != nil {
+		if diagnostic := targetConn.Transport.WaitTransferDiagnostic(testCtx, transferID, 2*time.Second); diagnostic != nil {
+			result.Diagnostic = &DirectTransferDiagnostic{
+				ReceiverExists:  diagnostic.ReceiverExists,
+				ReceiverExpired: diagnostic.ReceiverExpired,
+				ReceiverKind:    diagnostic.ReceiverKind,
+				KindMatched:     diagnostic.KindMatched,
+				BearerPresent:   diagnostic.BearerPresent,
+				TokenMatched:    diagnostic.TokenMatched,
+				RemoteAddr:      diagnostic.RemoteAddr,
+			}
+		}
 		result.Error = err.Error()
 		return result, nil
 	}

@@ -57,7 +57,7 @@ Agent bootstrap and deploy flows pin the generated Docker image reference to the
 current agent release, for example:
 
 ```text
-ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6
+ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
 ```
 
 The WebSocket auth payload includes hostname, OS, architecture, agent version,
@@ -68,6 +68,6 @@ Docker API version, and optionally a direct-transfer advertise URL.
 - Environment-scoped runtime routes usually require `?env=<environmentId>`.
 - Agent transport is used for Docker hosts that cannot expose a daemon socket directly.
 - Direct agent-to-agent container move transfers require `mcharbor-agent` `1.3.5+` on both agents.
-- The direct transfer connection test requires `mcharbor-agent` `1.3.6+` on both agents.
+- The direct transfer connection test requires `mcharbor-agent` `1.3.7+` on both agents.
 - Direct transfer is advertised only when the target agent has `MCHARBOR_TRANSFER_LISTEN` and `MCHARBOR_TRANSFER_ADVERTISE_URL` configured.
 - If direct transfer is not advertised or either agent is too old, container moves use the McHarbor relay path.

@@ -31,14 +31,14 @@ TCP access is not acceptable.
 
 The agent currently reports:
 
-- `1.3.6`
+- `1.3.7`
 
 This matters because backend behavior checks agent capabilities by version:
 
 - `1.1.0+`: interactive exec protocol support
 - `1.3.3+`: streamed and staged Docker image-load request support for remote moves
 - `1.3.5+`: optional direct agent-to-agent image transfer for container moves
-- `1.3.6+`: Settings > Agent direct transfer reachability test
+- `1.3.7+`: Settings > Agent direct transfer reachability test
 
 ## Auth Handshake
 
@@ -115,7 +115,7 @@ docker run -d \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
   -e MCHARBOR_TRANSFER_LISTEN=0.0.0.0:8788 \
   -e MCHARBOR_TRANSFER_ADVERTISE_URL=http://target-host:8788 \
-  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6
+  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
 ```
 
 Security notes:
@@ -145,7 +145,7 @@ agent environments:
 
 - target image loading requires `mcharbor-agent` `1.3.3+`
 - direct image transfer requires both source and target agents to be `1.3.5+`
-- the Settings direct-transfer test requires both source and target agents to be `1.3.6+`
+- the Settings direct-transfer test requires both source and target agents to be `1.3.7+`
 - direct transfer also requires the target transfer listener configuration above
 - if direct transfer is unavailable, the move uses the McHarbor relay path
 - cancellation aborts the active move but is not a transactional rollback

@@ -42,26 +42,28 @@ type ExecSession struct {
 // AgentTransport implements http.RoundTripper by proxying HTTP requests
 // over a WebSocket connection to a remote agent.
 type AgentTransport struct {
-	conn            *AgentConnection
-	db              *sql.DB
-	pending         map[string]*pendingReq
-	execSessions    map[string]*ExecSession
-	transferWaiters map[string]chan *WSMessage
-	mu              sync.Mutex
-	logger          *slog.Logger
-	done            chan struct{}
+	conn                *AgentConnection
+	db                  *sql.DB
+	pending             map[string]*pendingReq
+	execSessions        map[string]*ExecSession
+	transferWaiters     map[string]chan *WSMessage
+	transferDiagnostics map[string]*TransferAuthDiagnostic
+	mu                  sync.Mutex
+	logger              *slog.Logger
+	done                chan struct{}
 }
 
 // NewAgentTransport creates a new transport for the given agent connection.
 func NewAgentTransport(conn *AgentConnection, db *sql.DB, logger *slog.Logger) *AgentTransport {
 	return &AgentTransport{
-		conn:            conn,
-		db:              db,
-		pending:         make(map[string]*pendingReq),
-		execSessions:    make(map[string]*ExecSession),
-		transferWaiters: make(map[string]chan *WSMessage),
-		logger:          logger,
-		done:            make(chan struct{}),
+		conn:                conn,
+		db:                  db,
+		pending:             make(map[string]*pendingReq),
+		execSessions:        make(map[string]*ExecSession),
+		transferWaiters:     make(map[string]chan *WSMessage),
+		transferDiagnostics: make(map[string]*TransferAuthDiagnostic),
+		logger:              logger,
+		done:                make(chan struct{}),
 	}
 }
 
@@ -220,6 +222,39 @@ func (t *AgentTransport) StartTransferProbe(ctx context.Context, transferID, upl
 
 func (t *AgentTransport) CancelTransfer(transferID string) {
 	t.cancelTransfer(transferID)
+}
+
+// WaitTransferDiagnostic waits briefly for token-safe receiver diagnostics from an agent.
+func (t *AgentTransport) WaitTransferDiagnostic(ctx context.Context, transferID string, timeout time.Duration) *TransferAuthDiagnostic {
+	if strings.TrimSpace(transferID) == "" {
+		return nil
+	}
+	deadline := time.NewTimer(timeout)
+	defer deadline.Stop()
+	ticker := time.NewTicker(50 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		t.mu.Lock()
+		diagnostic := t.transferDiagnostics[transferID]
+		if diagnostic != nil {
+			delete(t.transferDiagnostics, transferID)
+		}
+		t.mu.Unlock()
+		if diagnostic != nil {
+			return diagnostic
+		}
+
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-deadline.C:
+			return nil
+		case <-ticker.C:
+		case <-t.done:
+			return nil
+		}
+	}
 }
 
 func (t *AgentTransport) cancelTransfer(transferID string) {
@@ -602,6 +637,9 @@ func (t *AgentTransport) ReadLoop() error {
 				continue
 			}
 			t.mu.Lock()
+			if msg.Transfer.Diagnostic != nil {
+				t.transferDiagnostics[msg.Transfer.TransferID] = msg.Transfer.Diagnostic
+			}
 			ch := t.transferWaiters[msg.Transfer.TransferID]
 			t.mu.Unlock()
 			if ch != nil {

@@ -21,7 +21,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.3.6"
+const agentVersion = "1.3.7"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -287,6 +287,16 @@ func (a *Agent) Connect(ctx context.Context) error {
 	}
 
 	a.logger.Info("authenticated", "envId", result.AuthResult.EnvID)
+	if a.transfer != nil {
+		a.transfer.SetReporter(func(msg WSMessage) {
+			writeMu.Lock()
+			defer writeMu.Unlock()
+			if err := conn.WriteJSON(msg); err != nil {
+				a.logger.Warn("direct transfer diagnostic report failed", "type", msg.Type, "error", err)
+			}
+		})
+		defer a.transfer.SetReporter(nil)
+	}
 
 	// Track in-flight request cancellations
 	var cancelMu sync.Mutex

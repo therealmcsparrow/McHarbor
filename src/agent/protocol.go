@@ -66,15 +66,27 @@ type WSMessage struct {
 
 // TransferPayload carries direct agent-to-agent transfer control metadata.
 type TransferPayload struct {
-	TransferID string `json:"transferId"`
-	Kind       string `json:"kind,omitempty"`
-	Token      string `json:"token,omitempty"`
-	URL        string `json:"url,omitempty"`
-	ImageRef   string `json:"imageRef,omitempty"`
-	Bytes      int64  `json:"bytes,omitempty"`
-	StatusCode int    `json:"statusCode,omitempty"`
-	Success    bool   `json:"success,omitempty"`
-	Error      string `json:"error,omitempty"`
+	TransferID string                  `json:"transferId"`
+	Kind       string                  `json:"kind,omitempty"`
+	Token      string                  `json:"token,omitempty"`
+	URL        string                  `json:"url,omitempty"`
+	ImageRef   string                  `json:"imageRef,omitempty"`
+	Bytes      int64                   `json:"bytes,omitempty"`
+	StatusCode int                     `json:"statusCode,omitempty"`
+	Success    bool                    `json:"success,omitempty"`
+	Error      string                  `json:"error,omitempty"`
+	Diagnostic *TransferAuthDiagnostic `json:"diagnostic,omitempty"`
+}
+
+// TransferAuthDiagnostic carries token-safe transfer receiver auth diagnostics.
+type TransferAuthDiagnostic struct {
+	ReceiverExists  bool   `json:"receiverExists"`
+	ReceiverExpired bool   `json:"receiverExpired"`
+	ReceiverKind    string `json:"receiverKind,omitempty"`
+	KindMatched     bool   `json:"kindMatched"`
+	BearerPresent   bool   `json:"bearerPresent"`
+	TokenMatched    bool   `json:"tokenMatched"`
+	RemoteAddr      string `json:"remoteAddr,omitempty"`
 }
 
 // ExecStartPayload is sent by the server to start an exec attach on the agent.

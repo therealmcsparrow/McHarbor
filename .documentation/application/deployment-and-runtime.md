@@ -55,7 +55,7 @@ The remote agent can run as a container or a binary on a Docker host. Generated
 install and deploy flows pin the agent image to the current release:
 
 ```text
-ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6
+ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
 ```
 
 Minimum versions for selected capabilities:
@@ -65,7 +65,7 @@ Minimum versions for selected capabilities:
 | Interactive terminal exec through the agent protocol | `1.1.0` |
 | Staged Docker image-load support for remote container moves | `1.3.3` |
 | Direct agent-to-agent image transfer for container moves | `1.3.5` |
-| Settings direct-transfer reachability test | `1.3.6` |
+| Settings direct-transfer reachability test | `1.3.7` |
 
 Direct transfer is optional and must be configured on the target agent:
 
@@ -87,7 +87,7 @@ docker run -d \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
   -e MCHARBOR_TRANSFER_LISTEN=0.0.0.0:8788 \
   -e MCHARBOR_TRANSFER_ADVERTISE_URL=http://target-host:8788 \
-  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6
+  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
 ```
 
 When direct transfer is not configured or the source agent cannot reach the

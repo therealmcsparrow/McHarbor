@@ -24,19 +24,31 @@ type DirectTransferTestRequest struct {
 
 // DirectTransferTestResult reports the outcome of an agent-to-agent probe.
 type DirectTransferTestResult struct {
-	Success           bool   `json:"success"`
-	Phase             string `json:"phase"`
-	SourceEnvID       string `json:"sourceEnvId"`
-	SourceName        string `json:"sourceName,omitempty"`
-	SourceVersion     string `json:"sourceVersion,omitempty"`
-	SourceConnected   bool   `json:"sourceConnected"`
-	TargetEnvID       string `json:"targetEnvId"`
-	TargetName        string `json:"targetName,omitempty"`
-	TargetVersion     string `json:"targetVersion,omitempty"`
-	TargetConnected   bool   `json:"targetConnected"`
-	TargetTransferURL string `json:"targetTransferUrl,omitempty"`
-	ProbeURL          string `json:"probeUrl,omitempty"`
-	StatusCode        int    `json:"statusCode,omitempty"`
-	DurationMs        int64  `json:"durationMs"`
-	Error             string `json:"error,omitempty"`
+	Success           bool                      `json:"success"`
+	Phase             string                    `json:"phase"`
+	SourceEnvID       string                    `json:"sourceEnvId"`
+	SourceName        string                    `json:"sourceName,omitempty"`
+	SourceVersion     string                    `json:"sourceVersion,omitempty"`
+	SourceConnected   bool                      `json:"sourceConnected"`
+	TargetEnvID       string                    `json:"targetEnvId"`
+	TargetName        string                    `json:"targetName,omitempty"`
+	TargetVersion     string                    `json:"targetVersion,omitempty"`
+	TargetConnected   bool                      `json:"targetConnected"`
+	TargetTransferURL string                    `json:"targetTransferUrl,omitempty"`
+	ProbeURL          string                    `json:"probeUrl,omitempty"`
+	StatusCode        int                       `json:"statusCode,omitempty"`
+	DurationMs        int64                     `json:"durationMs"`
+	Error             string                    `json:"error,omitempty"`
+	Diagnostic        *DirectTransferDiagnostic `json:"diagnostic,omitempty"`
+}
+
+// DirectTransferDiagnostic carries token-safe target receiver auth details.
+type DirectTransferDiagnostic struct {
+	ReceiverExists  bool   `json:"receiverExists"`
+	ReceiverExpired bool   `json:"receiverExpired"`
+	ReceiverKind    string `json:"receiverKind,omitempty"`
+	KindMatched     bool   `json:"kindMatched"`
+	BearerPresent   bool   `json:"bearerPresent"`
+	TokenMatched    bool   `json:"tokenMatched"`
+	RemoteAddr      string `json:"remoteAddr,omitempty"`
 }
