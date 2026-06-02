@@ -11,6 +11,7 @@ import { Label } from '@resources/components/ui/Label';
 import { Switch } from '@resources/components/ui/Switch';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { useAgentSettings, useSaveAgentSettings } from '../hooks/useAgentSettings';
+import { AgentDirectTransferTest } from './AgentDirectTransferTest';
 
 export function AgentTab() {
   const { t } = useTranslation('settings');
@@ -56,6 +57,8 @@ export function AgentTab() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">{t('agent.description')}</p>
+
+      <AgentDirectTransferTest />
 
       {/* Event Collection Mode */}
       <div>

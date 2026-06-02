@@ -80,6 +80,36 @@
     "metricsEnabledDescription": "Schakel het verzamelen van host-metrics in voor agent-omgevingen. Eenmalige statistieken duren ~2s per container via het agent-transport.",
     "requestTimeout": "Verzoek-timeout (seconden)",
     "requestTimeoutDescription": "Maximale wachttijd op een reactie van de agent voordat er een timeout optreedt.",
+    "directTransferTest": {
+      "title": "Agent-naar-agent overdrachttest",
+      "description": "Controleer of een verbonden agent de directe overdrachtslistener van een andere agent kan bereiken.",
+      "connectedCount": "{{count}} verbonden",
+      "notEnoughAgents": "Verbind minimaal twee agents om deze test uit te voeren.",
+      "sourceAgent": "Bronagent",
+      "targetAgent": "Doelagent",
+      "selectSourceAgent": "Selecteer bronagent",
+      "selectTargetAgent": "Selecteer doelagent",
+      "run": "Test uitvoeren",
+      "testing": "Testen...",
+      "success": "Bereikbaar",
+      "failed": "Mislukt",
+      "source": "Bron",
+      "sourceVersion": "Bronversie",
+      "target": "Doel",
+      "targetVersion": "Doelversie",
+      "statusCode": "HTTP-status",
+      "duration": "Duur",
+      "durationValue": "{{duration}} ms",
+      "targetTransferUrl": "Geadverteerde URL",
+      "probeUrl": "Probe-URL",
+      "error": "Fout",
+      "phases": {
+        "validate": "Valideren",
+        "prepare": "Doel voorbereiden",
+        "probe": "Route testen",
+        "complete": "Voltooid"
+      }
+    },
     "saving": "Opslaan..."
   },
   "webhooks": {

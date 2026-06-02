@@ -80,6 +80,36 @@
     "metricsEnabledDescription": "Aktivieren Sie die Host-Metrik-Erfassung für Agent-Umgebungen. Einmalige Statistiken dauern ~2s pro Container über den Agent-Transport.",
     "requestTimeout": "Anfrage-Timeout (Sekunden)",
     "requestTimeoutDescription": "Maximale Wartezeit auf eine Antwort vom Agent, bevor ein Timeout eintritt.",
+    "directTransferTest": {
+      "title": "Agent-zu-Agent-Transfertest",
+      "description": "Pruefen Sie, ob ein verbundener Agent den direkten Transfer-Listener eines anderen Agents erreichen kann.",
+      "connectedCount": "{{count}} verbunden",
+      "notEnoughAgents": "Verbinden Sie mindestens zwei Agents, um diesen Test auszufuehren.",
+      "sourceAgent": "Quell-Agent",
+      "targetAgent": "Ziel-Agent",
+      "selectSourceAgent": "Quell-Agent auswaehlen",
+      "selectTargetAgent": "Ziel-Agent auswaehlen",
+      "run": "Test ausfuehren",
+      "testing": "Wird getestet...",
+      "success": "Erreichbar",
+      "failed": "Fehlgeschlagen",
+      "source": "Quelle",
+      "sourceVersion": "Quellversion",
+      "target": "Ziel",
+      "targetVersion": "Zielversion",
+      "statusCode": "HTTP-Status",
+      "duration": "Dauer",
+      "durationValue": "{{duration}} ms",
+      "targetTransferUrl": "Angekuendigte URL",
+      "probeUrl": "Probe-URL",
+      "error": "Fehler",
+      "phases": {
+        "validate": "Validieren",
+        "prepare": "Ziel vorbereiten",
+        "probe": "Route pruefen",
+        "complete": "Abgeschlossen"
+      }
+    },
     "saving": "Speichern..."
   },
   "webhooks": {

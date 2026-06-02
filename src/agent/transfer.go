@@ -17,9 +17,14 @@ import (
 )
 
 const transferReceiverTTL = 30 * time.Minute
+const (
+	transferKindImage = "image"
+	transferKindProbe = "probe"
+)
 
 type transferReceiver struct {
 	token     string
+	kind      string
 	expiresAt time.Time
 }
 
@@ -55,6 +60,7 @@ func (s *TransferServer) Start(ctx context.Context) error {
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/transfer/image/", s.handleImageUpload)
+	mux.HandleFunc("/api/transfer/probe/", s.handleProbeUpload)
 	s.server = &http.Server{
 		Handler:           mux,
 		ReadHeaderTimeout: 15 * time.Second,
@@ -88,6 +94,14 @@ func (s *TransferServer) AdvertiseURL() string {
 }
 
 func (s *TransferServer) Prepare(transferID, token string) (string, error) {
+	return s.prepareReceiver(transferID, token, transferKindImage, "/api/transfer/image/")
+}
+
+func (s *TransferServer) PrepareProbe(transferID, token string) (string, error) {
+	return s.prepareReceiver(transferID, token, transferKindProbe, "/api/transfer/probe/")
+}
+
+func (s *TransferServer) prepareReceiver(transferID, token, kind, pathPrefix string) (string, error) {
 	if s == nil {
 		return "", fmt.Errorf("direct transfer receiver is not configured")
 	}
@@ -106,11 +120,12 @@ func (s *TransferServer) Prepare(transferID, token string) (string, error) {
 	}
 	s.receivers[transferID] = transferReceiver{
 		token:     token,
+		kind:      kind,
 		expiresAt: now.Add(transferReceiverTTL),
 	}
 	s.mu.Unlock()
 
-	return s.advertiseURL + "/api/transfer/image/" + transferID, nil
+	return s.advertiseURL + pathPrefix + transferID, nil
 }
 
 func (s *TransferServer) Cancel(transferID string) {
@@ -134,21 +149,7 @@ func (s *TransferServer) handleImageUpload(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	authHeader := r.Header.Get("Authorization")
-	token := strings.TrimPrefix(authHeader, "Bearer ")
-
-	s.mu.Lock()
-	receiver, ok := s.receivers[transferID]
-	if ok && time.Now().After(receiver.expiresAt) {
-		delete(s.receivers, transferID)
-		ok = false
-	}
-	if ok {
-		delete(s.receivers, transferID)
-	}
-	s.mu.Unlock()
-
-	if !ok || subtle.ConstantTimeCompare([]byte(token), []byte(receiver.token)) != 1 {
+	if !s.consumeReceiver(transferID, transferKindImage, r.Header.Get("Authorization")) {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 		if r.Body != nil {
 			io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
@@ -163,4 +164,49 @@ func (s *TransferServer) handleImageUpload(w http.ResponseWriter, r *http.Reques
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *TransferServer) handleProbeUpload(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	transferID := strings.TrimPrefix(r.URL.Path, "/api/transfer/probe/")
+	if transferID == "" || strings.Contains(transferID, "/") {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	if !s.consumeReceiver(transferID, transferKindProbe, r.Header.Get("Authorization")) {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		if r.Body != nil {
+			io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
+		}
+		return
+	}
+	if r.Body != nil {
+		io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *TransferServer) consumeReceiver(transferID, kind, authHeader string) bool {
+	token := strings.TrimPrefix(authHeader, "Bearer ")
+
+	s.mu.Lock()
+	receiver, ok := s.receivers[transferID]
+	if ok && time.Now().After(receiver.expiresAt) {
+		delete(s.receivers, transferID)
+		ok = false
+	}
+	if ok {
+		delete(s.receivers, transferID)
+	}
+	s.mu.Unlock()
+
+	if !ok || receiver.kind != kind {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(token), []byte(receiver.token)) == 1
 }

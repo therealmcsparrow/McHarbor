@@ -23,6 +23,7 @@ func Mount(app *router.AppDeps) {
 	app.RegisterProtectedRoutes(func(r chi.Router) {
 		r.Route("/agents", func(r chi.Router) {
 			r.Get("/", h.HandleListAgents)
+			r.Post("/direct-transfer-test", h.HandleDirectTransferTest)
 			r.Route("/{envId}", func(r chi.Router) {
 				r.Get("/status", h.HandleStatus)
 				r.Post("/regenerate-token", h.HandleRegenerateToken)

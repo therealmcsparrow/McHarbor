@@ -4,16 +4,21 @@
 package agent
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/subtle"
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 )
+
+const agentDirectTransferProbeMinVersion = "1.3.6"
 
 // Service handles agent-related business logic.
 type Service struct {
@@ -239,6 +244,157 @@ func (s *Service) RegenerateToken(envID string) (string, error) {
 	}
 
 	return token, nil
+}
+
+// DirectTransferTest verifies that one source agent can reach one target agent's
+// direct transfer listener without loading a Docker image.
+func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTestRequest) (result DirectTransferTestResult, err error) {
+	started := time.Now()
+	result = DirectTransferTestResult{
+		Phase:       "validate",
+		SourceEnvID: strings.TrimSpace(req.SourceEnvID),
+		TargetEnvID: strings.TrimSpace(req.TargetEnvID),
+	}
+	defer func() {
+		result.DurationMs = time.Since(started).Milliseconds()
+	}()
+
+	source, err := s.AgentStatus(result.SourceEnvID)
+	if err != nil {
+		return result, err
+	}
+	target, err := s.AgentStatus(result.TargetEnvID)
+	if err != nil {
+		return result, err
+	}
+	if source != nil {
+		result.SourceName = source.EnvName
+		result.SourceVersion = source.AgentVersion
+		result.SourceConnected = source.Status == "connected"
+	}
+	if target != nil {
+		result.TargetName = target.EnvName
+		result.TargetVersion = target.AgentVersion
+		result.TargetConnected = target.Status == "connected"
+	}
+	if result.SourceEnvID == "" || result.TargetEnvID == "" {
+		result.Error = "Select a source and target agent."
+		return result, nil
+	}
+	if result.SourceEnvID == result.TargetEnvID {
+		result.Error = "Select two different agents."
+		return result, nil
+	}
+	if source == nil {
+		result.Error = "Source agent environment was not found."
+		return result, nil
+	}
+	if target == nil {
+		result.Error = "Target agent environment was not found."
+		return result, nil
+	}
+
+	sourceConn, ok := s.agentPool.Get(result.SourceEnvID)
+	if !ok || sourceConn.Transport == nil {
+		result.SourceConnected = false
+		result.Error = "Source agent is not connected."
+		return result, nil
+	}
+	targetConn, ok := s.agentPool.Get(result.TargetEnvID)
+	if !ok || targetConn.Transport == nil {
+		result.TargetConnected = false
+		result.Error = "Target agent is not connected."
+		return result, nil
+	}
+	result.SourceConnected = true
+	result.TargetConnected = true
+	result.SourceVersion = sourceConn.Version
+	result.TargetVersion = targetConn.Version
+	result.TargetTransferURL = targetConn.TransferURL
+
+	if !agentVersionAtLeast(sourceConn.Version, agentDirectTransferProbeMinVersion) {
+		result.Error = fmt.Sprintf("Source agent must be updated to mcharbor-agent %s or newer.", agentDirectTransferProbeMinVersion)
+		return result, nil
+	}
+	if !agentVersionAtLeast(targetConn.Version, agentDirectTransferProbeMinVersion) {
+		result.Error = fmt.Sprintf("Target agent must be updated to mcharbor-agent %s or newer.", agentDirectTransferProbeMinVersion)
+		return result, nil
+	}
+	if strings.TrimSpace(targetConn.TransferURL) == "" {
+		result.Error = "Target agent is connected but does not advertise a direct transfer URL."
+		return result, nil
+	}
+
+	transferID, err := randomTransferValue(16)
+	if err != nil {
+		return result, err
+	}
+	token, err := randomTransferValue(32)
+	if err != nil {
+		return result, err
+	}
+
+	testCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	defer sourceConn.Transport.CancelTransfer(transferID)
+	defer targetConn.Transport.CancelTransfer(transferID)
+
+	result.Phase = "prepare"
+	probeURL, err := targetConn.Transport.PrepareProbe(testCtx, transferID, token)
+	if err != nil {
+		result.Error = err.Error()
+		return result, nil
+	}
+	result.ProbeURL = probeURL
+
+	result.Phase = "probe"
+	statusCode, err := sourceConn.Transport.StartTransferProbe(testCtx, transferID, probeURL, token)
+	result.StatusCode = statusCode
+	if err != nil {
+		result.Error = err.Error()
+		return result, nil
+	}
+
+	result.Phase = "complete"
+	result.Success = true
+	return result, nil
+}
+
+func randomTransferValue(length int) (string, error) {
+	b := make([]byte, length)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("generating transfer token: %w", err)
+	}
+	return hex.EncodeToString(b), nil
+}
+
+func agentVersionAtLeast(version, minimum string) bool {
+	version = strings.TrimPrefix(strings.TrimSpace(version), "v")
+	minimum = strings.TrimPrefix(strings.TrimSpace(minimum), "v")
+	versionParts := strings.Split(version, ".")
+	minimumParts := strings.Split(minimum, ".")
+	for i := 0; i < 3; i++ {
+		versionPart := agentVersionPart(versionParts, i)
+		minimumPart := agentVersionPart(minimumParts, i)
+		if versionPart > minimumPart {
+			return true
+		}
+		if versionPart < minimumPart {
+			return false
+		}
+	}
+	return true
+}
+
+func agentVersionPart(parts []string, index int) int {
+	if index >= len(parts) {
+		return 0
+	}
+	value, err := strconv.Atoi(parts[index])
+	if err != nil {
+		return 0
+	}
+	return value
 }
 
 func (s *Service) validateLegacyAgentToken(token, tokenHash string) (string, error) {

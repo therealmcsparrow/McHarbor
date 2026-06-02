@@ -42,6 +42,7 @@ const (
 	MsgTransferPrepare  = "transfer_prepare"  // Server→Target agent: prepare upload receiver
 	MsgTransferReady    = "transfer_ready"    // Target agent→Server: receiver status
 	MsgTransferImage    = "transfer_image"    // Server→Source agent: stream Docker image to target
+	MsgTransferProbe    = "transfer_probe"    // Server→Source agent: test direct reachability to target
 	MsgTransferProgress = "transfer_progress" // Source agent→Server: bytes sent directly
 	MsgTransferResult   = "transfer_result"   // Agent→Server: direct transfer result
 	MsgTransferCancel   = "transfer_cancel"   // Server→Agent: cancel direct transfer
@@ -66,10 +67,12 @@ type WSMessage struct {
 // TransferPayload carries direct agent-to-agent transfer control metadata.
 type TransferPayload struct {
 	TransferID string `json:"transferId"`
+	Kind       string `json:"kind,omitempty"`
 	Token      string `json:"token,omitempty"`
 	URL        string `json:"url,omitempty"`
 	ImageRef   string `json:"imageRef,omitempty"`
 	Bytes      int64  `json:"bytes,omitempty"`
+	StatusCode int    `json:"statusCode,omitempty"`
 	Success    bool   `json:"success,omitempty"`
 	Error      string `json:"error,omitempty"`
 }

@@ -25,18 +25,20 @@ TCP access is not acceptable.
 - handle exec session traffic for terminal access
 - optionally receive direct image uploads from peer agents for container moves
 - optionally stream Docker image archives directly to another agent
+- optionally run a lightweight direct-transfer reachability probe
 
 ## Current Embedded Version
 
 The agent currently reports:
 
-- `1.3.5`
+- `1.3.6`
 
 This matters because backend behavior checks agent capabilities by version:
 
 - `1.1.0+`: interactive exec protocol support
 - `1.3.3+`: streamed and staged Docker image-load request support for remote moves
 - `1.3.5+`: optional direct agent-to-agent image transfer for container moves
+- `1.3.6+`: Settings > Agent direct transfer reachability test
 
 ## Auth Handshake
 
@@ -65,6 +67,7 @@ The agent processes message types such as:
 - exec end
 - transfer prepare
 - transfer image
+- transfer probe
 - transfer progress
 - transfer result
 - transfer cancel
@@ -112,7 +115,7 @@ docker run -d \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
   -e MCHARBOR_TRANSFER_LISTEN=0.0.0.0:8788 \
   -e MCHARBOR_TRANSFER_ADVERTISE_URL=http://target-host:8788 \
-  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.5
+  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6
 ```
 
 Security notes:
@@ -129,6 +132,11 @@ Network notes:
 - NAT, firewall, and DNS rules must be configured outside McHarbor
 - use HTTPS or a trusted private network if the transfer crosses untrusted links
 
+You can test this route from the McHarbor UI at Settings > Agent. The test
+prepares a one-use probe receiver on the target agent and asks the source agent
+to POST directly to it. It validates reachability and bearer-token handling
+without loading a Docker image.
+
 ## Container Move Behavior
 
 Container moves always create a temporary snapshot image from the source
@@ -137,6 +145,7 @@ agent environments:
 
 - target image loading requires `mcharbor-agent` `1.3.3+`
 - direct image transfer requires both source and target agents to be `1.3.5+`
+- the Settings direct-transfer test requires both source and target agents to be `1.3.6+`
 - direct transfer also requires the target transfer listener configuration above
 - if direct transfer is unavailable, the move uses the McHarbor relay path
 - cancellation aborts the active move but is not a transactional rollback

@@ -5,7 +5,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
-import type { AgentSettingsData } from '../types';
+import type {
+  AgentInfo,
+  AgentSettingsData,
+  DirectTransferTestRequest,
+  DirectTransferTestResult,
+} from '../types';
 
 export function useAgentSettings() {
   return useQuery({
@@ -24,5 +29,20 @@ export function useSaveAgentSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings', 'agent'] });
     },
+  });
+}
+
+export function useAgents() {
+  return useQuery({
+    queryKey: ['agents'],
+    queryFn: () => api.get<AgentInfo[]>('/agents').then((r) => r.data ?? []),
+    refetchInterval: 10_000,
+  });
+}
+
+export function useDirectTransferTest() {
+  return useMutation({
+    mutationFn: (data: DirectTransferTestRequest) =>
+      api.post<DirectTransferTestResult>('/agents/direct-transfer-test', data).then(assertSuccess),
   });
 }

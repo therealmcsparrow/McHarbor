@@ -31,6 +31,7 @@ type pendingReq struct {
 
 const agentRequestChunkSize = 32 * 1024
 const agentRequestStreamingMinVersion = "1.3.3"
+const TransferKindProbe = "probe"
 
 // ExecSession tracks an active exec terminal session over the agent WebSocket.
 type ExecSession struct {
@@ -79,6 +80,15 @@ func (t *AgentTransport) registerTransferWaiter(transferID string) (chan *WSMess
 
 // PrepareTransfer asks a target agent to open a one-use direct upload receiver.
 func (t *AgentTransport) PrepareTransfer(ctx context.Context, transferID, token string) (string, error) {
+	return t.prepareTransfer(ctx, transferID, token, "")
+}
+
+// PrepareProbe asks a target agent to open a one-use direct transfer probe receiver.
+func (t *AgentTransport) PrepareProbe(ctx context.Context, transferID, token string) (string, error) {
+	return t.prepareTransfer(ctx, transferID, token, TransferKindProbe)
+}
+
+func (t *AgentTransport) prepareTransfer(ctx context.Context, transferID, token, kind string) (string, error) {
 	ch, cleanup := t.registerTransferWaiter(transferID)
 	defer cleanup()
 
@@ -86,6 +96,7 @@ func (t *AgentTransport) PrepareTransfer(ctx context.Context, transferID, token 
 		Type: MsgTransferPrepare,
 		Transfer: &TransferPayload{
 			TransferID: transferID,
+			Kind:       kind,
 			Token:      token,
 		},
 	}
@@ -164,6 +175,45 @@ func (t *AgentTransport) StartImageTransfer(ctx context.Context, transferID, ima
 			}
 		case <-t.done:
 			return fmt.Errorf("agent transport closed")
+		}
+	}
+}
+
+// StartTransferProbe asks a source agent to POST a lightweight probe to a target agent URL.
+func (t *AgentTransport) StartTransferProbe(ctx context.Context, transferID, uploadURL, token string) (int, error) {
+	ch, cleanup := t.registerTransferWaiter(transferID)
+	defer cleanup()
+
+	msg := WSMessage{
+		Type: MsgTransferProbe,
+		Transfer: &TransferPayload{
+			TransferID: transferID,
+			URL:        uploadURL,
+			Token:      token,
+		},
+	}
+	if err := t.conn.WriteJSON(msg); err != nil {
+		return 0, fmt.Errorf("sending direct transfer probe command: %w", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			t.cancelTransfer(transferID)
+			return 0, ctx.Err()
+		case msg := <-ch:
+			if msg == nil || msg.Transfer == nil || msg.Type != MsgTransferResult {
+				continue
+			}
+			if msg.Transfer.Success {
+				return msg.Transfer.StatusCode, nil
+			}
+			if msg.Transfer.Error != "" {
+				return msg.Transfer.StatusCode, fmt.Errorf("direct transfer probe failed: %s", msg.Transfer.Error)
+			}
+			return msg.Transfer.StatusCode, fmt.Errorf("direct transfer probe failed")
+		case <-t.done:
+			return 0, fmt.Errorf("agent transport closed")
 		}
 	}
 }

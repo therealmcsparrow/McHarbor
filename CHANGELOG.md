@@ -2,6 +2,16 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.3.6] - 2026-06-02
+
+### Added
+- Added an agent-to-agent direct transfer connectivity test to Settings > Agent. The test prepares a one-use probe receiver on the target agent and asks the source agent to POST directly to it, reporting the phase, HTTP status, advertised URL, probe URL, duration, versions, and failure reason.
+- Added a lightweight direct transfer probe endpoint to the remote agent so reachability and bearer-token validation can be tested without loading Docker images or changing containers.
+
+### Changed
+- Bumped the patch application version to `1.3.6` across canonical runtime metadata, agent metadata, frontend package metadata, lockfile root metadata, generated agent install image references, and README agent image examples.
+- Generated agent install and deploy commands now use `ghcr.io/therealmcsparrow/mcharbor-agent:1.3.6`.
+
 ## [1.3.5] - 2026-06-01
 
 ### Added

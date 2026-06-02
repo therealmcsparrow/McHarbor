@@ -21,7 +21,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.3.5"
+const agentVersion = "1.3.6"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -494,6 +494,24 @@ func (a *Agent) Connect(ctx context.Context) error {
 				a.runImageTransfer(transferCtx, conn, payload)
 			}(*msg.Transfer)
 
+		case MsgTransferProbe:
+			if msg.Transfer == nil {
+				continue
+			}
+			transferCtx, transferCancel := context.WithCancel(ctx)
+			cancelMu.Lock()
+			transferCancels[msg.Transfer.TransferID] = transferCancel
+			cancelMu.Unlock()
+			go func(payload TransferPayload) {
+				defer func() {
+					cancelMu.Lock()
+					delete(transferCancels, payload.TransferID)
+					cancelMu.Unlock()
+					transferCancel()
+				}()
+				a.runTransferProbe(transferCtx, conn, payload)
+			}(*msg.Transfer)
+
 		case MsgTransferCancel:
 			if msg.Transfer == nil {
 				continue
@@ -519,23 +537,29 @@ func (a *Agent) transferAdvertiseURL() string {
 }
 
 func (a *Agent) handleTransferPrepare(conn *websocket.Conn, payload *TransferPayload) {
-	uploadURL, err := a.transfer.Prepare(payload.TransferID, payload.Token)
+	var uploadURL string
+	var err error
+	if payload.Kind == transferKindProbe {
+		uploadURL, err = a.transfer.PrepareProbe(payload.TransferID, payload.Token)
+	} else {
+		uploadURL, err = a.transfer.Prepare(payload.TransferID, payload.Token)
+	}
 	if err != nil {
-		a.sendTransferResult(conn, MsgTransferReady, payload.TransferID, false, 0, "", err)
+		a.sendTransferResult(conn, MsgTransferReady, payload.TransferID, false, 0, "", 0, err)
 		return
 	}
-	a.sendTransferResult(conn, MsgTransferReady, payload.TransferID, true, 0, uploadURL, nil)
+	a.sendTransferResult(conn, MsgTransferReady, payload.TransferID, true, 0, uploadURL, 0, nil)
 }
 
 func (a *Agent) runImageTransfer(ctx context.Context, conn *websocket.Conn, payload TransferPayload) {
 	if strings.TrimSpace(payload.TransferID) == "" || strings.TrimSpace(payload.ImageRef) == "" || strings.TrimSpace(payload.URL) == "" || strings.TrimSpace(payload.Token) == "" {
-		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", fmt.Errorf("invalid direct image transfer request"))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("invalid direct image transfer request"))
 		return
 	}
 
 	reader, err := a.proxy.SaveImage(ctx, payload.ImageRef)
 	if err != nil {
-		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", err)
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, err)
 		return
 	}
 	defer reader.Close()
@@ -548,7 +572,7 @@ func (a *Agent) runImageTransfer(ctx context.Context, conn *websocket.Conn, payl
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, payload.URL, progressReader)
 	if err != nil {
-		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", fmt.Errorf("building direct transfer upload request: %w", err))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("building direct transfer upload request: %w", err))
 		return
 	}
 	req.Header.Set("Authorization", "Bearer "+payload.Token)
@@ -556,21 +580,54 @@ func (a *Agent) runImageTransfer(ctx context.Context, conn *websocket.Conn, payl
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", fmt.Errorf("uploading direct image transfer: %w", err))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", 0, fmt.Errorf("uploading direct image transfer: %w", err))
 		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", fmt.Errorf("target direct upload returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", resp.StatusCode, fmt.Errorf("target direct upload returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
 		return
 	}
 	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
-		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", fmt.Errorf("reading direct upload response: %w", err))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", resp.StatusCode, fmt.Errorf("reading direct upload response: %w", err))
 		return
 	}
 
-	a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, true, progressReader.bytes.Load(), "", nil)
+	a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, true, progressReader.bytes.Load(), "", resp.StatusCode, nil)
+}
+
+func (a *Agent) runTransferProbe(ctx context.Context, conn *websocket.Conn, payload TransferPayload) {
+	if strings.TrimSpace(payload.TransferID) == "" || strings.TrimSpace(payload.URL) == "" || strings.TrimSpace(payload.Token) == "" {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("invalid direct transfer probe request"))
+		return
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, payload.URL, strings.NewReader("mcharbor-agent-direct-transfer-probe"))
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("building direct transfer probe request: %w", err))
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+payload.Token)
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("running direct transfer probe: %w", err))
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, fmt.Errorf("target direct probe returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
+		return
+	}
+	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, fmt.Errorf("reading direct probe response: %w", err))
+		return
+	}
+
+	a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, true, 0, "", resp.StatusCode, nil)
 }
 
 func (r *transferProgressReader) Read(p []byte) (int, error) {
@@ -593,12 +650,13 @@ func (r *transferProgressReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func (a *Agent) sendTransferResult(conn *websocket.Conn, msgType, transferID string, success bool, bytes int64, uploadURL string, err error) {
+func (a *Agent) sendTransferResult(conn *websocket.Conn, msgType, transferID string, success bool, bytes int64, uploadURL string, statusCode int, err error) {
 	payload := &TransferPayload{
 		TransferID: transferID,
 		Success:    success,
 		Bytes:      bytes,
 		URL:        uploadURL,
+		StatusCode: statusCode,
 	}
 	if err != nil {
 		payload.Error = err.Error()

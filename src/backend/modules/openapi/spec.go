@@ -587,6 +587,21 @@ func buildPaths() map[string]any {
 				},
 			}),
 		),
+		"/agents/direct-transfer-test": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Test direct agent-to-agent transfer reachability",
+				Description: "Prepares a one-use probe receiver on the target agent and asks the source agent to POST directly to it.",
+				OperationID: "agentsDirectTransferTest",
+				Tags:        []string{"agents"},
+				RequestBody: jsonRequest("Direct transfer test request", schemaRef("AgentDirectTransferTestRequest"), true),
+				Responses: map[string]any{
+					"200": okResponse("Direct transfer test result", schemaRef("AgentDirectTransferTestResult")),
+					"400": errorResponse("Invalid request body"),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+		),
 		"/agents/{envId}/status": path(
 			op(operationSpec{
 				Method:      "GET",
@@ -2075,6 +2090,34 @@ func buildSchemas() map[string]any {
 				"connected":     map[string]any{"type": "boolean"},
 				"version":       map[string]any{"type": "string"},
 				"lastSeenAt":    map[string]any{"type": []string{"string", "null"}, "format": "date-time"},
+			},
+		},
+		"AgentDirectTransferTestRequest": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"sourceEnvId": map[string]any{"type": "string"},
+				"targetEnvId": map[string]any{"type": "string"},
+			},
+			"required": []string{"sourceEnvId", "targetEnvId"},
+		},
+		"AgentDirectTransferTestResult": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"success":           map[string]any{"type": "boolean"},
+				"phase":             map[string]any{"type": "string"},
+				"sourceEnvId":       map[string]any{"type": "string"},
+				"sourceName":        map[string]any{"type": "string"},
+				"sourceVersion":     map[string]any{"type": "string"},
+				"sourceConnected":   map[string]any{"type": "boolean"},
+				"targetEnvId":       map[string]any{"type": "string"},
+				"targetName":        map[string]any{"type": "string"},
+				"targetVersion":     map[string]any{"type": "string"},
+				"targetConnected":   map[string]any{"type": "boolean"},
+				"targetTransferUrl": map[string]any{"type": "string"},
+				"probeUrl":          map[string]any{"type": "string"},
+				"statusCode":        map[string]any{"type": "integer"},
+				"durationMs":        map[string]any{"type": "integer"},
+				"error":             map[string]any{"type": "string"},
 			},
 		},
 		"DockerInfoSummary": map[string]any{

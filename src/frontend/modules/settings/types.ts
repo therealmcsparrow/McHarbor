@@ -64,6 +64,41 @@ export type AgentSettingsData = {
   requestTimeout: number;
 };
 
+export type AgentInfo = {
+  envId: string;
+  envName: string;
+  status: string;
+  hostname?: string;
+  os?: string;
+  arch?: string;
+  agentVersion?: string;
+  dockerVersion?: string;
+  lastSeen?: string;
+};
+
+export type DirectTransferTestRequest = {
+  sourceEnvId: string;
+  targetEnvId: string;
+};
+
+export type DirectTransferTestResult = {
+  success: boolean;
+  phase: string;
+  sourceEnvId: string;
+  sourceName?: string;
+  sourceVersion?: string;
+  sourceConnected: boolean;
+  targetEnvId: string;
+  targetName?: string;
+  targetVersion?: string;
+  targetConnected: boolean;
+  targetTransferUrl?: string;
+  probeUrl?: string;
+  statusCode?: number;
+  durationMs: number;
+  error?: string;
+};
+
 export type RetentionSettingsData = {
   auditRetentionDays: number;
   activityRetentionDays: number;

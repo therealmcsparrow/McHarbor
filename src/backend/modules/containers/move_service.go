@@ -242,6 +242,12 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 		}
 		result.VolumesCreated = append(result.VolumesCreated, volumePlan.TargetName)
 	}
+	if bindSources := moveBindMountSources(plan.Volumes); len(bindSources) > 0 {
+		emitMoveProgress(emit, 6, "volumes", "Preparing target bind mount paths.", "progress")
+		if err := docker.EnsureBindMountPaths(opCtx, targetCli, bindSources); err != nil {
+			return MoveContainerResult{}, fmt.Errorf("preparing target bind mount paths: %w", err)
+		}
+	}
 
 	cfg, hc, netConfig, err := replacementContainerSpec(info, RecreateRequest{}, snapshotRef)
 	if err != nil {
@@ -362,8 +368,10 @@ func (s *Service) buildMovePlan(ctx context.Context, sourceEnvID, targetEnvID, t
 		if vol.Type == "volume" && (vol.TargetName != "" && vol.TargetName != vol.Name || vol.TargetDestination != "" && vol.TargetDestination != vol.Destination) {
 			plan.RequiredChanges = append(plan.RequiredChanges, "Mount source volume "+vol.Name+" as "+vol.TargetName+" at "+vol.TargetDestination+".")
 		}
-		if vol.Manual {
-			plan.RequiredChanges = append(plan.RequiredChanges, "Verify bind mount "+firstNonEmpty(vol.TargetSource, vol.Source)+" exists on the target host.")
+		if vol.Type == "bind" {
+			plan.RequiredChanges = append(plan.RequiredChanges, "Create target bind mount path "+firstNonEmpty(vol.TargetSource, vol.Source)+" if it is missing.")
+		} else if vol.Manual {
+			plan.RequiredChanges = append(plan.RequiredChanges, "Verify mount "+firstNonEmpty(vol.TargetSource, vol.Source)+" exists on the target host.")
 		}
 	}
 	for _, net := range plan.Networks {
@@ -600,12 +608,13 @@ func moveVolumePlans(ctx context.Context, targetCli *client.Client, info types.C
 	configBySource := moveVolumeConfigBySource(configs)
 	plans := make([]MoveVolumePlan, 0, len(info.Mounts))
 	for _, mount := range info.Mounts {
+		mountType := moveMountType(mount)
 		cfg := configBySource[moveVolumeConfigKey(mount.Name, mount.Destination)]
-		targetName := strings.TrimSpace(firstNonEmpty(cfg.TargetName, mount.Name))
+		targetName := strings.TrimSpace(firstNonEmpty(cfg.TargetName, mount.Name, dockerVolumeNameFromPath(mount.Source)))
 		targetSource := strings.TrimSpace(firstNonEmpty(cfg.TargetSource, mount.Source))
 		targetDestination := cleanContainerPath(firstNonEmpty(cfg.TargetDestination, mount.Destination))
 		plan := MoveVolumePlan{
-			Type:              string(mount.Type),
+			Type:              mountType,
 			Name:              mount.Name,
 			TargetName:        targetName,
 			Source:            mount.Source,
@@ -614,7 +623,7 @@ func moveVolumePlans(ctx context.Context, targetCli *client.Client, info types.C
 			TargetDestination: targetDestination,
 			Mode:              mount.Mode,
 		}
-		switch string(mount.Type) {
+		switch mountType {
 		case "volume":
 			plan.Exists = targetVolumeExists(ctx, targetCli, targetName)
 			plan.WillCreate = !plan.Exists
@@ -630,6 +639,29 @@ func moveVolumePlans(ctx context.Context, targetCli *client.Client, info types.C
 		return plans[i].Destination < plans[j].Destination
 	})
 	return plans
+}
+
+func moveMountType(mountPoint types.MountPoint) string {
+	if mountPoint.Type == mount.TypeVolume || strings.TrimSpace(mountPoint.Name) != "" {
+		return "volume"
+	}
+	if mountPoint.Type == mount.TypeBind {
+		return "bind"
+	}
+	if name := dockerVolumeNameFromPath(mountPoint.Source); name != "" {
+		return "volume"
+	}
+	return string(mountPoint.Type)
+}
+
+func dockerVolumeNameFromPath(source string) string {
+	parts := strings.Split(path.Clean(strings.TrimSpace(source)), "/")
+	for i := 0; i < len(parts)-3; i++ {
+		if parts[i] == "docker" && parts[i+1] == "volumes" && parts[i+3] == "_data" && parts[i+2] != "" {
+			return parts[i+2]
+		}
+	}
+	return ""
 }
 
 func moveVolumeConfigBySource(configs []MoveVolumeConfig) map[string]MoveVolumeConfig {
@@ -654,6 +686,17 @@ func moveVolumeConfigKey(name, destination string) string {
 		return "destination:" + path.Clean(destination)
 	}
 	return ""
+}
+
+func moveBindMountSources(plans []MoveVolumePlan) []string {
+	sources := make([]string, 0, len(plans))
+	for _, plan := range plans {
+		if plan.Type != "bind" || strings.TrimSpace(plan.TargetSource) == "" {
+			continue
+		}
+		sources = append(sources, plan.TargetSource)
+	}
+	return sources
 }
 
 func cleanContainerPath(value string) string {
@@ -1147,42 +1190,16 @@ func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig,
 			continue
 		}
 		binds = append(binds, bind)
+		if destination != "" {
+			covered[path.Clean(destination)] = struct{}{}
+		}
 	}
 	hc.Binds = binds
 
 	mounts := hc.Mounts[:0]
 	for _, existingMount := range hc.Mounts {
-		if plan, ok := volumePlansByDestination[path.Clean(existingMount.Target)]; ok {
-			targetDestination := cleanContainerPath(plan.TargetDestination)
-			if targetDestination == "" {
-				continue
-			}
-			switch existingMount.Type {
-			case mount.TypeVolume:
-				if plan.Type != "volume" {
-					break
-				}
-				existingMount.Source = plan.TargetName
-				existingMount.Target = targetDestination
-				if !existingMount.ReadOnly {
-					existingMount.ReadOnly = !moveVolumeReadWrite(info, plan)
-				}
-				mounts = append(mounts, existingMount)
-				covered[path.Clean(targetDestination)] = struct{}{}
-				continue
-			case mount.TypeBind:
-				if plan.Type != "bind" {
-					break
-				}
-				existingMount.Source = plan.TargetSource
-				existingMount.Target = targetDestination
-				if !existingMount.ReadOnly {
-					existingMount.ReadOnly = !moveMountReadWrite(info, plan)
-				}
-				mounts = append(mounts, existingMount)
-				covered[path.Clean(targetDestination)] = struct{}{}
-				continue
-			}
+		if _, ok := volumePlansByDestination[path.Clean(existingMount.Target)]; ok {
+			continue
 		}
 		mounts = append(mounts, existingMount)
 		if existingMount.Target != "" {
@@ -1190,11 +1207,6 @@ func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig,
 		}
 	}
 	hc.Mounts = mounts
-	for _, bind := range hc.Binds {
-		if destination := bindMountDestination(bind); destination != "" {
-			covered[path.Clean(destination)] = struct{}{}
-		}
-	}
 	for destination := range hc.Tmpfs {
 		if destination != "" {
 			covered[path.Clean(destination)] = struct{}{}
@@ -1202,37 +1214,47 @@ func applyMoveVolumeSettings(info types.ContainerJSON, hc *container.HostConfig,
 	}
 
 	for _, volumePlan := range volumePlans {
-		if volumePlan.TargetDestination == "" {
+		targetMount, ok := moveTargetMount(info, volumePlan)
+		if !ok {
 			continue
 		}
-		destination := path.Clean(volumePlan.TargetDestination)
-		if _, ok := covered[destination]; ok {
+		destination := path.Clean(targetMount.Target)
+		if _, exists := covered[destination]; exists {
 			continue
 		}
-		switch volumePlan.Type {
-		case "volume":
-			if volumePlan.TargetName == "" {
-				continue
-			}
-			hc.Mounts = append(hc.Mounts, mount.Mount{
-				Type:     mount.TypeVolume,
-				Source:   volumePlan.TargetName,
-				Target:   volumePlan.TargetDestination,
-				ReadOnly: !moveVolumeReadWrite(info, volumePlan),
-			})
-			covered[destination] = struct{}{}
-		case "bind":
-			if volumePlan.TargetSource == "" {
-				continue
-			}
-			hc.Mounts = append(hc.Mounts, mount.Mount{
-				Type:     mount.TypeBind,
-				Source:   volumePlan.TargetSource,
-				Target:   volumePlan.TargetDestination,
-				ReadOnly: !moveMountReadWrite(info, volumePlan),
-			})
-			covered[destination] = struct{}{}
+		hc.Mounts = append(hc.Mounts, targetMount)
+		covered[destination] = struct{}{}
+	}
+}
+
+func moveTargetMount(info types.ContainerJSON, volumePlan MoveVolumePlan) (mount.Mount, bool) {
+	targetDestination := cleanContainerPath(volumePlan.TargetDestination)
+	if targetDestination == "" {
+		return mount.Mount{}, false
+	}
+	switch volumePlan.Type {
+	case "volume":
+		if volumePlan.TargetName == "" {
+			return mount.Mount{}, false
 		}
+		return mount.Mount{
+			Type:     mount.TypeVolume,
+			Source:   volumePlan.TargetName,
+			Target:   targetDestination,
+			ReadOnly: !moveVolumeReadWrite(info, volumePlan),
+		}, true
+	case "bind":
+		if volumePlan.TargetSource == "" {
+			return mount.Mount{}, false
+		}
+		return mount.Mount{
+			Type:     mount.TypeBind,
+			Source:   volumePlan.TargetSource,
+			Target:   targetDestination,
+			ReadOnly: !moveMountReadWrite(info, volumePlan),
+		}, true
+	default:
+		return mount.Mount{}, false
 	}
 }
 

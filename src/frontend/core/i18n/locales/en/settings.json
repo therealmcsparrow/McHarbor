@@ -80,6 +80,36 @@
     "metricsEnabledDescription": "Enable host metrics collection for agent environments. One-shot stats take ~2s per container through the agent transport.",
     "requestTimeout": "Request Timeout (seconds)",
     "requestTimeoutDescription": "Maximum time to wait for a response from the agent before timing out.",
+    "directTransferTest": {
+      "title": "Agent-to-agent transfer test",
+      "description": "Verify that one connected agent can reach another agent's direct transfer listener.",
+      "connectedCount": "{{count}} connected",
+      "notEnoughAgents": "Connect at least two agents to run this test.",
+      "sourceAgent": "Source agent",
+      "targetAgent": "Target agent",
+      "selectSourceAgent": "Select source agent",
+      "selectTargetAgent": "Select target agent",
+      "run": "Run test",
+      "testing": "Testing...",
+      "success": "Reachable",
+      "failed": "Failed",
+      "source": "Source",
+      "sourceVersion": "Source version",
+      "target": "Target",
+      "targetVersion": "Target version",
+      "statusCode": "HTTP status",
+      "duration": "Duration",
+      "durationValue": "{{duration}} ms",
+      "targetTransferUrl": "Advertised URL",
+      "probeUrl": "Probe URL",
+      "error": "Error",
+      "phases": {
+        "validate": "Validating",
+        "prepare": "Preparing target",
+        "probe": "Probing route",
+        "complete": "Complete"
+      }
+    },
     "saving": "Saving..."
   },
   "webhooks": {

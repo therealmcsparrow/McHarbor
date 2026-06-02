@@ -203,6 +203,38 @@ func (h *Handler) HandleRegenerateToken(w http.ResponseWriter, r *http.Request) 
 	response.OK(w, map[string]string{"token": token})
 }
 
+// HandleDirectTransferTest runs a lightweight agent-to-agent connectivity probe.
+func (h *Handler) HandleDirectTransferTest(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	var req DirectTransferTestRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	result, err := h.service.DirectTransferTest(r.Context(), req)
+	if err != nil {
+		h.app.Logger.Error("agent direct transfer test failed", "sourceEnv", req.SourceEnvID, "targetEnv", req.TargetEnvID, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+
+	h.app.Logger.Info("agent direct transfer test completed",
+		"user", user.Username,
+		"sourceEnv", result.SourceEnvID,
+		"targetEnv", result.TargetEnvID,
+		"success", result.Success,
+		"phase", result.Phase,
+		"status", result.StatusCode,
+	)
+	response.OK(w, result)
+}
+
 // HandleDeploy deploys the agent to a remote host via SSH.
 func (h *Handler) HandleDeploy(w http.ResponseWriter, r *http.Request) {
 	user := auth.RequireAuth(r)
