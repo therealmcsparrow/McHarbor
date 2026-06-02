@@ -25,6 +25,7 @@
   },
   "waitingForAgent": "Wachten op agent...",
   "testConnection": "Verbinding testen",
+  "installAgent": "Agent-installatie",
   "connectionTypes": {
     "socket": "Unix Socket",
     "tcp": "TCP",
@@ -179,6 +180,8 @@
   "agentToken": {
     "title": "Agent-token aangemaakt",
     "description": "Sla dit token nu op — het wordt niet opnieuw getoond.",
+    "installInfoTitle": "Agent-installatie",
+    "installInfoDescription": "Gebruik deze opdrachten om de agent op de externe host te installeren of opnieuw te installeren. Het token is gevoelig.",
     "tokenLabel": "Token",
     "copyToken": "Token kopiëren",
     "runWithDocker": "Uitvoeren met Docker",

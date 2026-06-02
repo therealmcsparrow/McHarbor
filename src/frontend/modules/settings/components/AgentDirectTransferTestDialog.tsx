@@ -46,6 +46,27 @@ function ResultRow({
   );
 }
 
+function receiverDiagnosticKey(result: DirectTransferTestResult) {
+  const expectedMarker = result.receiver?.agentMarker;
+  const responderMarker = result.responderMarker || result.diagnostic?.responderMarker;
+  if (expectedMarker && responderMarker && expectedMarker !== responderMarker) {
+    return 'agent.directTransferTest.interpretation.wrongResponder';
+  }
+  if (!result.diagnostic) {
+    return 'agent.directTransferTest.interpretation.noDiagnostic';
+  }
+  if (!result.diagnostic.receiverExists) {
+    return 'agent.directTransferTest.interpretation.receiverMissing';
+  }
+  if (!result.diagnostic.bearerPresent) {
+    return 'agent.directTransferTest.interpretation.bearerMissing';
+  }
+  if (!result.diagnostic.tokenMatched) {
+    return 'agent.directTransferTest.interpretation.tokenMismatch';
+  }
+  return 'agent.directTransferTest.interpretation.genericFailure';
+}
+
 export function AgentDirectTransferTestDialog({
   open,
   onOpenChange,
@@ -118,8 +139,56 @@ export function AgentDirectTransferTestDialog({
                   value={result.probeUrl}
                   mono
                 />
+                <ResultRow
+                  label={t('agent.directTransferTest.responderMarker')}
+                  value={result.responderMarker}
+                  mono
+                />
                 <ResultRow label={t('agent.directTransferTest.error')} value={result.error} />
               </div>
+
+              {!result.success && (
+                <div className="rounded-lg border border-border bg-background/40 p-3">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t('agent.directTransferTest.interpretationTitle')}
+                  </p>
+                  <p className="mt-1 text-sm text-foreground">{t(receiverDiagnosticKey(result))}</p>
+                </div>
+              )}
+
+              {result.receiver && (
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-sm font-medium text-foreground">
+                    {t('agent.directTransferTest.receiverTitle')}
+                  </h4>
+                  <div className="grid gap-2">
+                    <ResultRow
+                      label={t('agent.directTransferTest.receiverTransferId')}
+                      value={result.receiver.transferId}
+                      mono
+                    />
+                    <ResultRow
+                      label={t('agent.directTransferTest.receiverKind')}
+                      value={result.receiver.kind}
+                    />
+                    <ResultRow
+                      label={t('agent.directTransferTest.receiverExpiresAt')}
+                      value={result.receiver.expiresAt}
+                      mono
+                    />
+                    <ResultRow
+                      label={t('agent.directTransferTest.tokenFingerprint')}
+                      value={result.receiver.tokenFingerprint}
+                      mono
+                    />
+                    <ResultRow
+                      label={t('agent.directTransferTest.receiverAgentMarker')}
+                      value={result.receiver.agentMarker}
+                      mono
+                    />
+                  </div>
+                </div>
+              )}
 
               {result.diagnostic && (
                 <div className="space-y-2 pt-2">
@@ -154,6 +223,11 @@ export function AgentDirectTransferTestDialog({
                     <ResultRow
                       label={t('agent.directTransferTest.remoteAddr')}
                       value={result.diagnostic.remoteAddr}
+                      mono
+                    />
+                    <ResultRow
+                      label={t('agent.directTransferTest.responderMarker')}
+                      value={result.diagnostic.responderMarker}
                       mono
                     />
                   </div>

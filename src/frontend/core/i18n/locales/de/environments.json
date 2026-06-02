@@ -25,6 +25,7 @@
   },
   "waitingForAgent": "Warte auf Agent...",
   "testConnection": "Verbindung testen",
+  "installAgent": "Agent-Installation",
   "connectionTypes": {
     "socket": "Unix Socket",
     "tcp": "TCP",
@@ -179,6 +180,8 @@
   "agentToken": {
     "title": "Agent-Token erstellt",
     "description": "Speichern Sie dieses Token jetzt — es wird nicht erneut angezeigt.",
+    "installInfoTitle": "Agent-Installation",
+    "installInfoDescription": "Verwenden Sie diese Befehle, um den Agent auf dem Remote-Host zu installieren oder erneut zu installieren. Das Token ist sensibel.",
     "tokenLabel": "Token",
     "copyToken": "Token kopieren",
     "runWithDocker": "Mit Docker ausführen",

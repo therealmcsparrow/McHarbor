@@ -10,6 +10,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
@@ -333,6 +334,14 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 	if err != nil {
 		return result, err
 	}
+	slog.Info("agent direct transfer probe lifecycle started",
+		"transferId", transferID,
+		"sourceEnv", result.SourceEnvID,
+		"sourceVersion", result.SourceVersion,
+		"targetEnv", result.TargetEnvID,
+		"targetVersion", result.TargetVersion,
+		"targetTransferUrl", result.TargetTransferURL,
+	)
 
 	testCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -340,16 +349,44 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 	defer targetConn.Transport.CancelTransfer(transferID)
 
 	result.Phase = "prepare"
-	probeURL, err := targetConn.Transport.PrepareProbe(testCtx, transferID, token)
+	probeURL, receiver, err := targetConn.Transport.PrepareProbe(testCtx, transferID, token)
 	if err != nil {
+		slog.Warn("agent direct transfer probe prepare failed",
+			"transferId", transferID,
+			"sourceEnv", result.SourceEnvID,
+			"targetEnv", result.TargetEnvID,
+			"targetTransferUrl", result.TargetTransferURL,
+			"error", err,
+		)
 		result.Error = err.Error()
 		return result, nil
 	}
 	result.ProbeURL = probeURL
+	if receiver != nil {
+		result.Receiver = &DirectTransferReceiver{
+			TransferID:       receiver.TransferID,
+			Kind:             receiver.Kind,
+			ExpiresAt:        receiver.ExpiresAt,
+			TokenFingerprint: receiver.TokenFingerprint,
+			AgentMarker:      receiver.AgentMarker,
+		}
+	}
+	slog.Info("agent direct transfer probe receiver prepared",
+		"transferId", transferID,
+		"sourceEnv", result.SourceEnvID,
+		"sourceVersion", result.SourceVersion,
+		"targetEnv", result.TargetEnvID,
+		"targetVersion", result.TargetVersion,
+		"targetTransferUrl", result.TargetTransferURL,
+		"probeUrl", result.ProbeURL,
+		"receiverAgentMarker", receiverAgentMarker(receiver),
+		"receiverTokenFingerprint", receiverTokenFingerprint(receiver),
+	)
 
 	result.Phase = "probe"
-	statusCode, err := sourceConn.Transport.StartTransferProbe(testCtx, transferID, probeURL, token)
+	statusCode, responderMarker, err := sourceConn.Transport.StartTransferProbe(testCtx, transferID, probeURL, token)
 	result.StatusCode = statusCode
+	result.ResponderMarker = responderMarker
 	if err != nil {
 		if diagnostic := targetConn.Transport.WaitTransferDiagnostic(testCtx, transferID, 2*time.Second); diagnostic != nil {
 			result.Diagnostic = &DirectTransferDiagnostic{
@@ -360,15 +397,56 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 				BearerPresent:   diagnostic.BearerPresent,
 				TokenMatched:    diagnostic.TokenMatched,
 				RemoteAddr:      diagnostic.RemoteAddr,
+				ResponderMarker: diagnostic.ResponderAgentMarker,
 			}
 		}
+		slog.Warn("agent direct transfer probe failed",
+			"transferId", transferID,
+			"sourceEnv", result.SourceEnvID,
+			"sourceVersion", result.SourceVersion,
+			"targetEnv", result.TargetEnvID,
+			"targetVersion", result.TargetVersion,
+			"targetTransferUrl", result.TargetTransferURL,
+			"probeUrl", result.ProbeURL,
+			"statusCode", result.StatusCode,
+			"receiverAgentMarker", receiverAgentMarker(receiver),
+			"responderMarker", result.ResponderMarker,
+			"targetReportedDiagnostics", result.Diagnostic != nil,
+			"error", err,
+		)
 		result.Error = err.Error()
 		return result, nil
 	}
 
 	result.Phase = "complete"
 	result.Success = true
+	slog.Info("agent direct transfer probe completed",
+		"transferId", transferID,
+		"sourceEnv", result.SourceEnvID,
+		"sourceVersion", result.SourceVersion,
+		"targetEnv", result.TargetEnvID,
+		"targetVersion", result.TargetVersion,
+		"targetTransferUrl", result.TargetTransferURL,
+		"probeUrl", result.ProbeURL,
+		"statusCode", result.StatusCode,
+		"receiverAgentMarker", receiverAgentMarker(receiver),
+		"responderMarker", result.ResponderMarker,
+	)
 	return result, nil
+}
+
+func receiverAgentMarker(receiver *coreagent.TransferReceiverMarker) string {
+	if receiver == nil {
+		return ""
+	}
+	return receiver.AgentMarker
+}
+
+func receiverTokenFingerprint(receiver *coreagent.TransferReceiverMarker) string {
+	if receiver == nil {
+		return ""
+	}
+	return receiver.TokenFingerprint
 }
 
 func randomTransferValue(length int) (string, error) {

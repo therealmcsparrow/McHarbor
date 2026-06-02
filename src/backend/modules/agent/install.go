@@ -26,9 +26,14 @@ type InstallToken struct {
 
 // CreateInstallTokenResponse is returned when a new install token is created.
 type CreateInstallTokenResponse struct {
-	Token     string `json:"token"`
-	ExpiresAt string `json:"expiresAt"`
-	Script    string `json:"script"`
+	Token                string `json:"token"`
+	AgentToken           string `json:"agentToken,omitempty"`
+	ExpiresAt            string `json:"expiresAt"`
+	Script               string `json:"script"`
+	ServerURL            string `json:"serverUrl"`
+	AgentImage           string `json:"agentImage"`
+	TransferListen       string `json:"transferListen"`
+	TransferAdvertiseURL string `json:"transferAdvertiseUrl,omitempty"`
 }
 
 // CreateInstallToken generates a one-time install token for an agent environment.
@@ -45,6 +50,11 @@ func (s *Service) CreateInstallToken(envID, serverURL string) (*CreateInstallTok
 	}
 	if connType != "agent" {
 		return nil, fmt.Errorf("environment is not an agent connection type")
+	}
+
+	agentToken, err := s.agentTokenPlaintext(envID)
+	if err != nil {
+		return nil, fmt.Errorf("getting agent token: %w", err)
 	}
 
 	// Generate random token
@@ -73,9 +83,13 @@ func (s *Service) CreateInstallToken(envID, serverURL string) (*CreateInstallTok
 	script := fmt.Sprintf("curl -sSL %s/api/agent/install/%s | bash", serverURL, token)
 
 	return &CreateInstallTokenResponse{
-		Token:     token,
-		ExpiresAt: expiresAt.Format(time.RFC3339),
-		Script:    script,
+		Token:          token,
+		AgentToken:     agentToken,
+		ExpiresAt:      expiresAt.Format(time.RFC3339),
+		Script:         script,
+		ServerURL:      serverURL,
+		AgentImage:     "ghcr.io/therealmcsparrow/mcharbor-agent:latest",
+		TransferListen: "0.0.0.0:8788",
 	}, nil
 }
 
@@ -139,7 +153,8 @@ set -e
 
 MCHARBOR_URL=%s
 MCHARBOR_AGENT_TOKEN=%s
-AGENT_IMAGE="ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7"
+AGENT_IMAGE="${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent:latest}"
+MCHARBOR_TRANSFER_LISTEN="${MCHARBOR_TRANSFER_LISTEN:-0.0.0.0:8788}"
 
 echo "=== McHarbor Agent Installer ==="
 echo ""
@@ -156,17 +171,51 @@ esac
 
 echo "Detected: $OS/$ARCH"
 
+detect_advertise_url() {
+  if [ -n "${MCHARBOR_TRANSFER_ADVERTISE_URL:-}" ]; then
+    echo "$MCHARBOR_TRANSFER_ADVERTISE_URL"
+    return
+  fi
+
+  HOST_IP=""
+  if command -v ip >/dev/null 2>&1; then
+    HOST_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i=="src") {print $(i+1); exit}}')
+  fi
+  if [ -z "$HOST_IP" ] && command -v hostname >/dev/null 2>&1; then
+    HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+  fi
+
+  if [ -n "$HOST_IP" ]; then
+    echo "http://$HOST_IP:8788"
+  fi
+}
+
+MCHARBOR_TRANSFER_ADVERTISE_URL="$(detect_advertise_url)"
+if [ -n "$MCHARBOR_TRANSFER_ADVERTISE_URL" ]; then
+  echo "Direct transfer advertise URL: $MCHARBOR_TRANSFER_ADVERTISE_URL"
+else
+  echo "Direct transfer advertise URL not auto-detected. Set MCHARBOR_TRANSFER_ADVERTISE_URL before running this installer if agent-to-agent transfers are needed."
+fi
+
 # Check if Docker is available
 if command -v docker &>/dev/null && docker info &>/dev/null 2>&1; then
   echo "Docker detected — installing as container..."
   docker pull "$AGENT_IMAGE"
+  docker ps -a --filter "name=^/mcharbor-agent-old-" --filter "status=exited" --filter "status=created" --format "{{.ID}}" | xargs -r docker rm -f
   docker rm -f mcharbor-agent 2>/dev/null || true
+  TRANSFER_ARGS="-e MCHARBOR_TRANSFER_LISTEN=$MCHARBOR_TRANSFER_LISTEN -p 8788:8788"
+  if [ -n "$MCHARBOR_TRANSFER_ADVERTISE_URL" ]; then
+    TRANSFER_ARGS="$TRANSFER_ARGS -e MCHARBOR_TRANSFER_ADVERTISE_URL=$MCHARBOR_TRANSFER_ADVERTISE_URL"
+  fi
   docker run -d \
     --name mcharbor-agent \
     --restart unless-stopped \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -e MCHARBOR_URL="$MCHARBOR_URL" \
     -e MCHARBOR_AGENT_TOKEN="$MCHARBOR_AGENT_TOKEN" \
+    -e DOCKER_HOST=unix:///var/run/docker.sock \
+    -e LOG_LEVEL="${LOG_LEVEL:-info}" \
+    $TRANSFER_ARGS \
     "$AGENT_IMAGE"
   echo ""
   echo "Agent container started successfully."
@@ -200,6 +249,9 @@ ExecStart=/usr/local/bin/mcharbor-agent
 Environment=MCHARBOR_URL=${MCHARBOR_URL}
 Environment=MCHARBOR_AGENT_TOKEN=${MCHARBOR_AGENT_TOKEN}
 Environment=DOCKER_HOST=unix:///var/run/docker.sock
+Environment=LOG_LEVEL=info
+Environment=MCHARBOR_TRANSFER_LISTEN=${MCHARBOR_TRANSFER_LISTEN}
+Environment=MCHARBOR_TRANSFER_ADVERTISE_URL=${MCHARBOR_TRANSFER_ADVERTISE_URL}
 Restart=always
 RestartSec=5
 
@@ -210,6 +262,8 @@ SERVICEEOF
     # Fix environment variable expansion in service file
     sed -i "s|\${MCHARBOR_URL}|$MCHARBOR_URL|g" /etc/systemd/system/mcharbor-agent.service
     sed -i "s|\${MCHARBOR_AGENT_TOKEN}|$MCHARBOR_AGENT_TOKEN|g" /etc/systemd/system/mcharbor-agent.service
+    sed -i "s|\${MCHARBOR_TRANSFER_LISTEN}|$MCHARBOR_TRANSFER_LISTEN|g" /etc/systemd/system/mcharbor-agent.service
+    sed -i "s|\${MCHARBOR_TRANSFER_ADVERTISE_URL}|$MCHARBOR_TRANSFER_ADVERTISE_URL|g" /etc/systemd/system/mcharbor-agent.service
 
     systemctl daemon-reload
     systemctl enable mcharbor-agent

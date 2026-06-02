@@ -102,9 +102,37 @@ Suggested steps:
 3. Add environment timezone selection where schedule forms currently assume browser time.
 4. Evaluate whether a `Temporal` polyfill is worth adopting for frontend-only time calculations.
 
+## 5. Agent metrics and graph support
+
+Why:
+- Agent environments currently skip the background metrics collector to avoid congesting the single agent WebSocket transport.
+- Docker stats through an agent can be slow, especially across multiple containers, so graphs and metric history are limited or blank for remote-agent environments.
+
+Goals:
+- Provide useful metrics and graphs for agent environments without blocking normal Docker operations.
+- Make agent metric limitations visible in the UI instead of showing empty graphs without context.
+- Keep polling lightweight, bounded, and safe for slower remote hosts.
+
+Suggested targets:
+- `src/backend/modules/metrics`
+- `src/backend/modules/dashboard`
+- `src/frontend/modules/environments/components/EnvironmentCard.tsx`
+- `src/frontend/modules/dashboard`
+
+Suggested steps:
+1. Add an agent-specific metrics collection path with concurrent, bounded Docker stats polling.
+2. Cache agent metric snapshots briefly to avoid repeated expensive calls from dashboard and environment cards.
+3. Add per-environment controls for enabling/disabling agent metrics and tuning poll frequency.
+4. Show a clear limited-metrics state when an agent is connected but metrics are disabled or unavailable.
+5. Verify that metrics polling does not block container list, inspect, logs, moves, or direct-transfer operations.
+
+Risk:
+- Overly aggressive polling can saturate the agent transport and degrade normal management actions.
+
 ## Suggested order
 
 1. Typed i18n migration for shared surfaces
 2. Search and filtering overhaul
 3. Deeper bundle splitting for editor/chart/code paths
 4. Rich timezone and schedule tooling follow-up
+5. Agent metrics and graph support

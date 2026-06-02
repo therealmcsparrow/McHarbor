@@ -4,7 +4,7 @@
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import type { ColumnDef } from '@tanstack/react-table';
-import { IconTrash, IconRefresh } from '@tabler/icons-react';
+import { IconDownload, IconTrash, IconRefresh } from '@tabler/icons-react';
 import { StatusBadge, ENVIRONMENT_STATUS } from '@resources/components/ui/StatusBadge';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
@@ -13,10 +13,11 @@ import { deriveEnvironmentStatus } from '../hooks/useEnvironmentActions';
 
 interface UseEnvironmentColumnsOptions {
   onTest: (id: string) => void;
+  onInstall: (id: string) => void;
   onRemove: (id: string) => void;
 }
 
-export function useEnvironmentColumns({ onTest, onRemove }: UseEnvironmentColumnsOptions) {
+export function useEnvironmentColumns({ onTest, onInstall, onRemove }: UseEnvironmentColumnsOptions) {
   const { t } = useTranslation('environments');
   const { t: tc } = useTranslation('common');
 
@@ -100,6 +101,20 @@ export function useEnvironmentColumns({ onTest, onRemove }: UseEnvironmentColumn
           >
             <IconRefresh className="h-4 w-4" />
           </Button>
+          {row.original.connectionType === 'agent' && (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t('installAgent')}
+              title={t('installAgent')}
+              onClick={(event) => {
+                event.stopPropagation();
+                onInstall(row.original.id);
+              }}
+            >
+              <IconDownload className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"

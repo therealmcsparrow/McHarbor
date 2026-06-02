@@ -48,6 +48,7 @@ type AgentTransport struct {
 	execSessions        map[string]*ExecSession
 	transferWaiters     map[string]chan *WSMessage
 	transferDiagnostics map[string]*TransferAuthDiagnostic
+	transferReceivers   map[string]*TransferReceiverMarker
 	mu                  sync.Mutex
 	logger              *slog.Logger
 	done                chan struct{}
@@ -62,6 +63,7 @@ func NewAgentTransport(conn *AgentConnection, db *sql.DB, logger *slog.Logger) *
 		execSessions:        make(map[string]*ExecSession),
 		transferWaiters:     make(map[string]chan *WSMessage),
 		transferDiagnostics: make(map[string]*TransferAuthDiagnostic),
+		transferReceivers:   make(map[string]*TransferReceiverMarker),
 		logger:              logger,
 		done:                make(chan struct{}),
 	}
@@ -82,15 +84,16 @@ func (t *AgentTransport) registerTransferWaiter(transferID string) (chan *WSMess
 
 // PrepareTransfer asks a target agent to open a one-use direct upload receiver.
 func (t *AgentTransport) PrepareTransfer(ctx context.Context, transferID, token string) (string, error) {
-	return t.prepareTransfer(ctx, transferID, token, "")
+	url, _, err := t.prepareTransfer(ctx, transferID, token, "")
+	return url, err
 }
 
 // PrepareProbe asks a target agent to open a one-use direct transfer probe receiver.
-func (t *AgentTransport) PrepareProbe(ctx context.Context, transferID, token string) (string, error) {
+func (t *AgentTransport) PrepareProbe(ctx context.Context, transferID, token string) (string, *TransferReceiverMarker, error) {
 	return t.prepareTransfer(ctx, transferID, token, TransferKindProbe)
 }
 
-func (t *AgentTransport) prepareTransfer(ctx context.Context, transferID, token, kind string) (string, error) {
+func (t *AgentTransport) prepareTransfer(ctx context.Context, transferID, token, kind string) (string, *TransferReceiverMarker, error) {
 	ch, cleanup := t.registerTransferWaiter(transferID)
 	defer cleanup()
 
@@ -103,14 +106,14 @@ func (t *AgentTransport) prepareTransfer(ctx context.Context, transferID, token,
 		},
 	}
 	if err := t.conn.WriteJSON(msg); err != nil {
-		return "", fmt.Errorf("sending direct transfer prepare: %w", err)
+		return "", nil, fmt.Errorf("sending direct transfer prepare: %w", err)
 	}
 
 	for {
 		select {
 		case <-ctx.Done():
 			t.cancelTransfer(transferID)
-			return "", ctx.Err()
+			return "", nil, ctx.Err()
 		case msg := <-ch:
 			if msg == nil || msg.Transfer == nil {
 				continue
@@ -120,16 +123,16 @@ func (t *AgentTransport) prepareTransfer(ctx context.Context, transferID, token,
 			}
 			if !msg.Transfer.Success {
 				if msg.Transfer.Error != "" {
-					return "", fmt.Errorf("direct transfer prepare failed: %s", msg.Transfer.Error)
+					return "", nil, fmt.Errorf("direct transfer prepare failed: %s", msg.Transfer.Error)
 				}
-				return "", fmt.Errorf("direct transfer prepare failed")
+				return "", nil, fmt.Errorf("direct transfer prepare failed")
 			}
 			if strings.TrimSpace(msg.Transfer.URL) == "" {
-				return "", fmt.Errorf("direct transfer prepare returned no upload URL")
+				return "", nil, fmt.Errorf("direct transfer prepare returned no upload URL")
 			}
-			return msg.Transfer.URL, nil
+			return msg.Transfer.URL, msg.Transfer.Receiver, nil
 		case <-t.done:
-			return "", fmt.Errorf("agent transport closed")
+			return "", nil, fmt.Errorf("agent transport closed")
 		}
 	}
 }
@@ -182,7 +185,7 @@ func (t *AgentTransport) StartImageTransfer(ctx context.Context, transferID, ima
 }
 
 // StartTransferProbe asks a source agent to POST a lightweight probe to a target agent URL.
-func (t *AgentTransport) StartTransferProbe(ctx context.Context, transferID, uploadURL, token string) (int, error) {
+func (t *AgentTransport) StartTransferProbe(ctx context.Context, transferID, uploadURL, token string) (int, string, error) {
 	ch, cleanup := t.registerTransferWaiter(transferID)
 	defer cleanup()
 
@@ -195,27 +198,28 @@ func (t *AgentTransport) StartTransferProbe(ctx context.Context, transferID, upl
 		},
 	}
 	if err := t.conn.WriteJSON(msg); err != nil {
-		return 0, fmt.Errorf("sending direct transfer probe command: %w", err)
+		return 0, "", fmt.Errorf("sending direct transfer probe command: %w", err)
 	}
 
 	for {
 		select {
 		case <-ctx.Done():
 			t.cancelTransfer(transferID)
-			return 0, ctx.Err()
+			return 0, "", ctx.Err()
 		case msg := <-ch:
 			if msg == nil || msg.Transfer == nil || msg.Type != MsgTransferResult {
 				continue
 			}
+			responderAgentMarker := strings.TrimSpace(msg.Transfer.ResponderAgentMarker)
 			if msg.Transfer.Success {
-				return msg.Transfer.StatusCode, nil
+				return msg.Transfer.StatusCode, responderAgentMarker, nil
 			}
 			if msg.Transfer.Error != "" {
-				return msg.Transfer.StatusCode, fmt.Errorf("direct transfer probe failed: %s", msg.Transfer.Error)
+				return msg.Transfer.StatusCode, responderAgentMarker, fmt.Errorf("direct transfer probe failed: %s", msg.Transfer.Error)
 			}
-			return msg.Transfer.StatusCode, fmt.Errorf("direct transfer probe failed")
+			return msg.Transfer.StatusCode, responderAgentMarker, fmt.Errorf("direct transfer probe failed")
 		case <-t.done:
-			return 0, fmt.Errorf("agent transport closed")
+			return 0, "", fmt.Errorf("agent transport closed")
 		}
 	}
 }
@@ -639,6 +643,9 @@ func (t *AgentTransport) ReadLoop() error {
 			t.mu.Lock()
 			if msg.Transfer.Diagnostic != nil {
 				t.transferDiagnostics[msg.Transfer.TransferID] = msg.Transfer.Diagnostic
+			}
+			if msg.Transfer.Receiver != nil {
+				t.transferReceivers[msg.Transfer.TransferID] = msg.Transfer.Receiver
 			}
 			ch := t.transferWaiters[msg.Transfer.TransferID]
 			t.mu.Unlock()

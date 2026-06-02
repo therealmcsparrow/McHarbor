@@ -12,6 +12,7 @@ type EnvironmentCardGridProps = {
   environments: EnvironmentListItem[];
   isLoading: boolean;
   onTest: (id: string) => void;
+  onInstall: (id: string) => void;
   onRemove: (id: string) => void;
 };
 
@@ -38,6 +39,7 @@ export function EnvironmentCardGrid({
   environments,
   isLoading,
   onTest,
+  onInstall,
   onRemove,
 }: EnvironmentCardGridProps) {
   const { t } = useTranslation('environments');
@@ -82,6 +84,7 @@ export function EnvironmentCardGrid({
               environment={environment}
               metricsEnabled
               onTest={onTest}
+              onInstall={onInstall}
               onRemove={onRemove}
             />
           ))}

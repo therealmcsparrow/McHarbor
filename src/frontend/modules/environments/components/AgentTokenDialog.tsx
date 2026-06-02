@@ -38,11 +38,23 @@ type AgentTokenDialogProps = {
   token: string;
   serverUrl: string;
   installScript?: InstallTokenResponse | null;
+  mode?: 'created' | 'installInfo';
 };
 
-export function AgentTokenDialog({ open, onOpenChange, token, serverUrl, installScript }: AgentTokenDialogProps) {
+export function AgentTokenDialog({
+  open,
+  onOpenChange,
+  token,
+  serverUrl,
+  installScript,
+  mode = 'created',
+}: AgentTokenDialogProps) {
   const { t } = useTranslation('environments');
   const [copied, setCopied] = useState<string | null>(null);
+  const agentImage = installScript?.agentImage || AgentDockerImage;
+  const effectiveServerUrl = installScript?.serverUrl || serverUrl;
+  const transferListen = installScript?.transferListen || '0.0.0.0:8788';
+  const transferAdvertiseUrl = installScript?.transferAdvertiseUrl || 'http://agent-host-or-ip:8788';
 
   const copyToClipboard = async (text: string, key: string) => {
     const copied = await copyAgentText(text);
@@ -56,27 +68,36 @@ export function AgentTokenDialog({ open, onOpenChange, token, serverUrl, install
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const dockerCmd = `docker pull ${AgentDockerImage}
+  const dockerCmd = `docker pull ${agentImage}
 docker rm -f mcharbor-agent 2>/dev/null || true
 docker run -d \\
   --name mcharbor-agent \\
   --restart unless-stopped \\
+  -p 8788:8788 \\
   -v /var/run/docker.sock:/var/run/docker.sock \\
-  -e MCHARBOR_URL=${serverUrl} \\
+  -e MCHARBOR_URL=${effectiveServerUrl} \\
   -e MCHARBOR_AGENT_TOKEN=${token} \\
-  ${AgentDockerImage}`;
+  -e DOCKER_HOST=unix:///var/run/docker.sock \\
+  -e LOG_LEVEL=info \\
+  -e MCHARBOR_TRANSFER_LISTEN=${transferListen} \\
+  -e MCHARBOR_TRANSFER_ADVERTISE_URL=${transferAdvertiseUrl} \\
+  ${agentImage}`;
 
-  const binaryCmd = `MCHARBOR_URL=${serverUrl} \\
+  const binaryCmd = `MCHARBOR_URL=${effectiveServerUrl} \\
 MCHARBOR_AGENT_TOKEN=${token} \\
+DOCKER_HOST=unix:///var/run/docker.sock \\
+LOG_LEVEL=info \\
+MCHARBOR_TRANSFER_LISTEN=${transferListen} \\
+MCHARBOR_TRANSFER_ADVERTISE_URL=${transferAdvertiseUrl} \\
 mcharbor-agent`;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t('agentToken.title')}</DialogTitle>
+          <DialogTitle>{t(mode === 'installInfo' ? 'agentToken.installInfoTitle' : 'agentToken.title')}</DialogTitle>
           <DialogDescription>
-            {t('agentToken.description')}
+            {t(mode === 'installInfo' ? 'agentToken.installInfoDescription' : 'agentToken.description')}
           </DialogDescription>
         </DialogHeader>
 

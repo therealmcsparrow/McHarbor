@@ -23,6 +23,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/api/types/mount"
 	networkTypes "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -39,6 +40,8 @@ type Service struct {
 }
 
 var containerNamePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`)
+
+const agentRecreateHelperImage = "docker:27-cli"
 
 // NewService creates a new container service.
 func NewService(pool *docker.ClientPool, db *sql.DB, dataDir string) *Service {
@@ -652,60 +655,158 @@ func (s *Service) recreateConnectedAgentContainer(ctx context.Context, cli *clie
 	}
 
 	oldName := originalName + "-old-" + fmt.Sprintf("%d", time.Now().Unix())
+	if err := ensureAgentRecreateHelperImage(ctx, cli); err != nil {
+		return container.CreateResponse{}, err
+	}
 	if err := cli.ContainerRename(ctx, info.ID, oldName); err != nil {
 		return container.CreateResponse{}, fmt.Errorf("renaming running agent container for recreate: %w", err)
 	}
 
 	cfg, hc, netConfig, err := replacementContainerSpec(info, req, imgName)
 	if err != nil {
-		cli.ContainerRename(ctx, info.ID, originalName)
+		restoreRunningAgentContainer(cli, info.ID, originalName)
 		return container.CreateResponse{}, err
 	}
-	cfg.Env = agentRetireContainerEnv(cfg.Env, info.ID)
 
 	newResp, err := cli.ContainerCreate(ctx, cfg, hc, netConfig, nil, originalName)
 	if err != nil {
-		cli.ContainerRename(ctx, info.ID, originalName)
+		restoreRunningAgentContainer(cli, info.ID, originalName)
 		return container.CreateResponse{}, fmt.Errorf("creating replacement agent container: %w", err)
 	}
 
-	if err := cli.ContainerStart(ctx, newResp.ID, container.StartOptions{}); err != nil {
-		if rmErr := cli.ContainerRemove(ctx, newResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
-			slog.Warn("containers: failed to clean up new agent container after start failure", "error", rmErr, "container", newResp.ID)
-		}
-		if rnErr := cli.ContainerRename(ctx, info.ID, originalName); rnErr != nil {
-			slog.Warn("containers: failed to rename old agent container back after start failure", "error", rnErr, "container", info.ID)
-		}
-		return container.CreateResponse{}, fmt.Errorf("starting replacement agent container: %w", err)
+	if err := scheduleAgentRecreateHelper(ctx, cli, info, newResp.ID, originalName); err != nil {
+		removeReplacementAgentContainer(cli, newResp.ID)
+		restoreRunningAgentContainer(cli, info.ID, originalName)
+		return container.CreateResponse{}, err
 	}
-
-	go retireConnectedAgentContainer(cli, info.ID)
 
 	return newResp, nil
 }
 
-func retireConnectedAgentContainer(cli *client.Client, oldID string) {
-	time.Sleep(500 * time.Millisecond)
+func ensureAgentRecreateHelperImage(ctx context.Context, cli *client.Client) error {
+	if _, _, err := cli.ImageInspectWithRaw(ctx, agentRecreateHelperImage); err == nil {
+		return nil
+	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	pullResp, err := cli.ImagePull(ctx, agentRecreateHelperImage, image.PullOptions{})
+	if err != nil {
+		return fmt.Errorf("pulling agent recreate helper image: %w", err)
+	}
+	if _, copyErr := io.Copy(io.Discard, pullResp); copyErr != nil {
+		slog.Warn("containers: agent recreate helper image pull stream drain failed", "error", copyErr, "image", agentRecreateHelperImage)
+	}
+	if closeErr := pullResp.Close(); closeErr != nil {
+		slog.Warn("containers: agent recreate helper image pull stream close failed", "error", closeErr, "image", agentRecreateHelperImage)
+	}
+	return nil
+}
+
+func scheduleAgentRecreateHelper(ctx context.Context, cli *client.Client, info types.ContainerJSON, newID, originalName string) error {
+	socketMount, err := agentDockerSocketMount(info)
+	if err != nil {
+		return err
+	}
+
+	helperName := "mcharbor-agent-recreate-helper-" + strconv.FormatInt(time.Now().UnixNano(), 10)
+	helperResp, err := cli.ContainerCreate(ctx, &container.Config{
+		Image: agentRecreateHelperImage,
+		Cmd:   []string{"sh", "-lc", agentRecreateHelperScript()},
+		Env: []string{
+			"OLD_ID=" + info.ID,
+			"NEW_ID=" + newID,
+			"ORIGINAL_NAME=" + originalName,
+		},
+		Labels: map[string]string{
+			"com.mcharbor.helper": "agent-recreate",
+		},
+	}, &container.HostConfig{
+		AutoRemove: true,
+		Mounts:     []mount.Mount{socketMount},
+	}, nil, nil, helperName)
+	if err != nil {
+		return fmt.Errorf("creating agent recreate helper container: %w", err)
+	}
+
+	if err := cli.ContainerStart(ctx, helperResp.ID, container.StartOptions{}); err != nil {
+		if rmErr := cli.ContainerRemove(ctx, helperResp.ID, container.RemoveOptions{Force: true}); rmErr != nil {
+			slog.Warn("containers: failed to clean up agent recreate helper after start failure", "error", rmErr, "container", helperResp.ID)
+		}
+		return fmt.Errorf("starting agent recreate helper container: %w", err)
+	}
+
+	return nil
+}
+
+func agentDockerSocketMount(info types.ContainerJSON) (mount.Mount, error) {
+	for _, mp := range info.Mounts {
+		if path.Clean(mp.Destination) != "/var/run/docker.sock" {
+			continue
+		}
+
+		source := mp.Source
+		if mp.Type == mount.TypeVolume {
+			source = mp.Name
+		}
+		if source == "" {
+			break
+		}
+
+		return mount.Mount{
+			Type:     mount.Type(mp.Type),
+			Source:   source,
+			Target:   mp.Destination,
+			ReadOnly: !mp.RW,
+		}, nil
+	}
+
+	return mount.Mount{}, fmt.Errorf("agent recreate requires a /var/run/docker.sock mount")
+}
+
+func agentRecreateHelperScript() string {
+	return `set -eu
+log() { printf '%s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
+log "stopping old agent container ${OLD_ID}"
+docker stop -t 10 "$OLD_ID" || true
+log "starting replacement agent container ${NEW_ID}"
+if docker start "$NEW_ID"; then
+  stable=0
+  for i in 1 2 3 4 5; do
+    sleep 1
+    running="$(docker inspect -f '{{.State.Running}}' "$NEW_ID" 2>/dev/null || true)"
+    if [ "$running" = "true" ]; then
+      stable=$((stable + 1))
+      continue
+    fi
+    stable=0
+    break
+  done
+  if [ "$stable" -ge 3 ]; then
+    log "replacement agent is running; removing old agent container"
+    docker rm -f "$OLD_ID" || true
+    exit 0
+  fi
+fi
+log "replacement agent failed to stay running; rolling back old agent container"
+docker rm -f "$NEW_ID" || true
+docker rename "$OLD_ID" "$ORIGINAL_NAME" 2>/dev/null || true
+docker start "$OLD_ID"
+exit 1`
+}
+
+func removeReplacementAgentContainer(cli *client.Client, id string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	if err := cli.ContainerRemove(ctx, oldID, container.RemoveOptions{Force: true, RemoveVolumes: false}); err != nil {
-		slog.Warn("containers: old agent container retirement did not return cleanly", "error", err, "container", oldID)
+	if err := cli.ContainerRemove(ctx, id, container.RemoveOptions{Force: true}); err != nil {
+		slog.Warn("containers: failed to clean up new agent container after helper scheduling failure", "error", err, "container", id)
 	}
 }
 
-func agentRetireContainerEnv(env []string, oldID string) []string {
-	result := make([]string, 0, len(env)+1)
-	for _, entry := range env {
-		if strings.HasPrefix(entry, "MCHARBOR_RETIRE_CONTAINER_ID=") {
-			continue
-		}
-		result = append(result, entry)
+func restoreRunningAgentContainer(cli *client.Client, id, originalName string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := cli.ContainerRename(ctx, id, originalName); err != nil {
+		slog.Warn("containers: failed to rename old agent container back", "error", err, "container", id)
 	}
-	if strings.TrimSpace(oldID) != "" {
-		result = append(result, "MCHARBOR_RETIRE_CONTAINER_ID="+oldID)
-	}
-	return result
 }
 
 func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, imgName string) (*container.Config, *container.HostConfig, *networkTypes.NetworkingConfig, error) {

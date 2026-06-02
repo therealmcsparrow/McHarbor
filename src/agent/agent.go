@@ -208,7 +208,7 @@ func NewAgent(cfg Config, logger *slog.Logger) *Agent {
 		cfg:      cfg,
 		logger:   logger,
 		proxy:    proxy,
-		transfer: NewTransferServer(cfg.TransferListen, cfg.TransferAdvertiseURL, proxy, logger),
+		transfer: NewTransferServer(cfg.TransferListen, cfg.TransferAdvertiseURL, cfg.AgentToken, proxy, logger),
 	}
 }
 
@@ -548,17 +548,28 @@ func (a *Agent) transferAdvertiseURL() string {
 
 func (a *Agent) handleTransferPrepare(conn *websocket.Conn, payload *TransferPayload) {
 	var uploadURL string
+	var receiver *TransferReceiverMarker
 	var err error
 	if payload.Kind == transferKindProbe {
-		uploadURL, err = a.transfer.PrepareProbe(payload.TransferID, payload.Token)
+		uploadURL, receiver, err = a.transfer.PrepareProbe(payload.TransferID, payload.Token)
 	} else {
-		uploadURL, err = a.transfer.Prepare(payload.TransferID, payload.Token)
+		uploadURL, receiver, err = a.transfer.Prepare(payload.TransferID, payload.Token)
 	}
 	if err != nil {
 		a.sendTransferResult(conn, MsgTransferReady, payload.TransferID, false, 0, "", 0, err)
 		return
 	}
-	a.sendTransferResult(conn, MsgTransferReady, payload.TransferID, true, 0, uploadURL, 0, nil)
+	response := &TransferPayload{
+		TransferID: payload.TransferID,
+		Success:    true,
+		URL:        uploadURL,
+		Receiver:   receiver,
+	}
+	writeMu.Lock()
+	if writeErr := conn.WriteJSON(WSMessage{Type: MsgTransferReady, Transfer: response}); writeErr != nil {
+		a.logger.Warn("direct transfer ready write failed", "transferId", payload.TransferID, "error", writeErr)
+	}
+	writeMu.Unlock()
 }
 
 func (a *Agent) runImageTransfer(ctx context.Context, conn *websocket.Conn, payload TransferPayload) {
@@ -627,17 +638,18 @@ func (a *Agent) runTransferProbe(ctx context.Context, conn *websocket.Conn, payl
 		return
 	}
 	defer resp.Body.Close()
+	responderAgentMarker := strings.TrimSpace(resp.Header.Get("X-McHarbor-Agent-Marker"))
 	if resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, fmt.Errorf("target direct probe returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
+		a.sendTransferResultWithResponder(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, responderAgentMarker, fmt.Errorf("target direct probe returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
 		return
 	}
 	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
-		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, fmt.Errorf("reading direct probe response: %w", err))
+		a.sendTransferResultWithResponder(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, responderAgentMarker, fmt.Errorf("reading direct probe response: %w", err))
 		return
 	}
 
-	a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, true, 0, "", resp.StatusCode, nil)
+	a.sendTransferResultWithResponder(conn, MsgTransferResult, payload.TransferID, true, 0, "", resp.StatusCode, responderAgentMarker, nil)
 }
 
 func (r *transferProgressReader) Read(p []byte) (int, error) {
@@ -661,12 +673,17 @@ func (r *transferProgressReader) Read(p []byte) (int, error) {
 }
 
 func (a *Agent) sendTransferResult(conn *websocket.Conn, msgType, transferID string, success bool, bytes int64, uploadURL string, statusCode int, err error) {
+	a.sendTransferResultWithResponder(conn, msgType, transferID, success, bytes, uploadURL, statusCode, "", err)
+}
+
+func (a *Agent) sendTransferResultWithResponder(conn *websocket.Conn, msgType, transferID string, success bool, bytes int64, uploadURL string, statusCode int, responderAgentMarker string, err error) {
 	payload := &TransferPayload{
-		TransferID: transferID,
-		Success:    success,
-		Bytes:      bytes,
-		URL:        uploadURL,
-		StatusCode: statusCode,
+		TransferID:           transferID,
+		Success:              success,
+		Bytes:                bytes,
+		URL:                  uploadURL,
+		StatusCode:           statusCode,
+		ResponderAgentMarker: strings.TrimSpace(responderAgentMarker),
 	}
 	if err != nil {
 		payload.Error = err.Error()

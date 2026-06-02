@@ -16,6 +16,7 @@ import {
   useEnvironmentList,
   useTestEnvironment,
   useRemoveEnvironment,
+  useCreateInstallToken,
 } from '../hooks/useEnvironmentActions';
 import type { InstallTokenResponse } from '../hooks/useEnvironmentActions';
 import { useEnvironmentsViewStore } from '../stores/environments-view';
@@ -23,6 +24,7 @@ import { useEnvironmentsViewStore } from '../stores/environments-view';
 type AgentTokenData = {
   token: string;
   installScript?: InstallTokenResponse | null;
+  mode?: 'created' | 'installInfo';
 };
 
 export default function EnvironmentsPage() {
@@ -30,6 +32,7 @@ export default function EnvironmentsPage() {
   const { data: environments = [], isLoading } = useEnvironmentList();
   const testEnv = useTestEnvironment();
   const removeEnv = useRemoveEnvironment();
+  const createInstallToken = useCreateInstallToken();
   const { viewMode, setViewMode } = useEnvironmentsViewStore();
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -38,8 +41,27 @@ export default function EnvironmentsPage() {
 
   const columns = useEnvironmentColumns({
     onTest: (id) => testEnv.mutate(id),
+    onInstall: (id) => {
+      createInstallToken.mutate(id, {
+        onSuccess: (data) => {
+          if (data.agentToken) {
+            setAgentTokenData({ token: data.agentToken, installScript: data, mode: 'installInfo' });
+          }
+        },
+      });
+    },
     onRemove: (id) => setConfirmTarget(id),
   });
+
+  const handleShowInstallInfo = (id: string) => {
+    createInstallToken.mutate(id, {
+      onSuccess: (data) => {
+        if (data.agentToken) {
+          setAgentTokenData({ token: data.agentToken, installScript: data, mode: 'installInfo' });
+        }
+      },
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -88,6 +110,7 @@ export default function EnvironmentsPage() {
           environments={environments}
           isLoading={isLoading}
           onTest={(id) => testEnv.mutate(id)}
+          onInstall={handleShowInstallInfo}
           onRemove={setConfirmTarget}
         />
       )}
@@ -118,6 +141,7 @@ export default function EnvironmentsPage() {
           token={agentTokenData.token}
           serverUrl={window.location.origin}
           installScript={agentTokenData.installScript}
+          mode={agentTokenData.mode}
         />
       )}
     </div>

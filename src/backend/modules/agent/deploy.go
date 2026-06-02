@@ -251,16 +251,34 @@ func runSSHCommand(client *ssh.Client, cmd string) (string, error) {
 // buildDockerDeployCmd generates the shell command to deploy the agent via Docker.
 func buildDockerDeployCmd(serverURL, token, agentImage string) string {
 	if agentImage == "" {
-		agentImage = "ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7"
+		agentImage = "ghcr.io/therealmcsparrow/mcharbor-agent:latest"
 	}
 
 	// Stop and remove existing agent container if any, then run new one
 	return fmt.Sprintf(`
 set -e
+MCHARBOR_TRANSFER_LISTEN="${MCHARBOR_TRANSFER_LISTEN:-0.0.0.0:8788}"
+if [ -z "${MCHARBOR_TRANSFER_ADVERTISE_URL:-}" ]; then
+  HOST_IP=""
+  if command -v ip >/dev/null 2>&1; then
+    HOST_IP=$(ip route get 1.1.1.1 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i=="src") {print $(i+1); exit}}')
+  fi
+  if [ -z "$HOST_IP" ] && command -v hostname >/dev/null 2>&1; then
+    HOST_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+  fi
+  if [ -n "$HOST_IP" ]; then
+    MCHARBOR_TRANSFER_ADVERTISE_URL="http://$HOST_IP:8788"
+  fi
+fi
 # Pull the requested agent image so a stale local latest tag is not reused.
 docker pull %s
+docker ps -a --filter "name=^/mcharbor-agent-old-" --filter "status=exited" --filter "status=created" --format "{{.ID}}" | xargs -r docker rm -f
 # Remove existing agent container if present
 docker rm -f mcharbor-agent 2>/dev/null || true
+TRANSFER_ARGS="-e MCHARBOR_TRANSFER_LISTEN=$MCHARBOR_TRANSFER_LISTEN -p 8788:8788"
+if [ -n "${MCHARBOR_TRANSFER_ADVERTISE_URL:-}" ]; then
+  TRANSFER_ARGS="$TRANSFER_ARGS -e MCHARBOR_TRANSFER_ADVERTISE_URL=$MCHARBOR_TRANSFER_ADVERTISE_URL"
+fi
 # Pull and run the agent
 docker run -d \
   --name mcharbor-agent \
@@ -268,6 +286,9 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -e MCHARBOR_URL=%s \
   -e MCHARBOR_AGENT_TOKEN=%s \
+  -e DOCKER_HOST=unix:///var/run/docker.sock \
+  -e LOG_LEVEL="${LOG_LEVEL:-info}" \
+  $TRANSFER_ARGS \
   %s
 echo "Agent container started successfully"
 `, shellEscape(agentImage), shellEscape(serverURL), shellEscape(token), shellEscape(agentImage))
@@ -301,6 +322,9 @@ ExecStart=/usr/local/bin/mcharbor-agent
 Environment=MCHARBOR_URL=%s
 Environment=MCHARBOR_AGENT_TOKEN=%s
 Environment=DOCKER_HOST=unix:///var/run/docker.sock
+Environment=LOG_LEVEL=info
+Environment=MCHARBOR_TRANSFER_LISTEN=0.0.0.0:8788
+Environment=MCHARBOR_TRANSFER_ADVERTISE_URL=
 Restart=always
 RestartSec=5
 

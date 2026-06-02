@@ -163,8 +163,13 @@ export function useDeployAgent() {
 
 export type InstallTokenResponse = {
   token: string;
+  agentToken?: string;
   expiresAt: string;
   script: string;
+  serverUrl?: string;
+  agentImage?: string;
+  transferListen?: string;
+  transferAdvertiseUrl?: string;
 };
 
 export function useCreateInstallToken() {

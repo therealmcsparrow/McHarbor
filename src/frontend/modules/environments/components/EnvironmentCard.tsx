@@ -8,6 +8,7 @@ import {
   IconCpu,
   IconCpu2,
   IconExternalLink,
+  IconDownload,
   IconPackage,
   IconRefresh,
   IconTrash,
@@ -28,6 +29,7 @@ type EnvironmentCardProps = {
   environment: EnvironmentListItem;
   metricsEnabled: boolean;
   onTest: (id: string) => void;
+  onInstall: (id: string) => void;
   onRemove: (id: string) => void;
 };
 
@@ -101,6 +103,7 @@ export function EnvironmentCard({
   environment,
   metricsEnabled,
   onTest,
+  onInstall,
   onRemove,
 }: EnvironmentCardProps) {
   const { t } = useTranslation('environments');
@@ -232,6 +235,17 @@ export function EnvironmentCard({
         >
           <IconRefresh className="h-4 w-4" />
         </Button>
+        {environment.connectionType === 'agent' && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={t('installAgent')}
+            title={t('installAgent')}
+            onClick={() => onInstall(environment.id)}
+          >
+            <IconDownload className="h-4 w-4" />
+          </Button>
+        )}
         <div className="flex-1" />
         <Button
           variant="ghost"

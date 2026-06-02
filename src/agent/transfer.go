@@ -5,7 +5,9 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"log/slog"
@@ -44,6 +46,7 @@ type transferReporter func(WSMessage)
 type TransferServer struct {
 	listen       string
 	advertiseURL string
+	agentMarker  string
 	proxy        *Proxy
 	logger       *slog.Logger
 	server       *http.Server
@@ -53,7 +56,7 @@ type TransferServer struct {
 	reporterMu   sync.Mutex
 }
 
-func NewTransferServer(listen, advertiseURL string, proxy *Proxy, logger *slog.Logger) *TransferServer {
+func NewTransferServer(listen, advertiseURL, agentToken string, proxy *Proxy, logger *slog.Logger) *TransferServer {
 	listen = strings.TrimSpace(listen)
 	advertiseURL = strings.TrimRight(strings.TrimSpace(advertiseURL), "/")
 	if listen == "" || advertiseURL == "" {
@@ -62,6 +65,7 @@ func NewTransferServer(listen, advertiseURL string, proxy *Proxy, logger *slog.L
 	return &TransferServer{
 		listen:       listen,
 		advertiseURL: advertiseURL,
+		agentMarker:  shortTokenFingerprint(agentToken),
 		proxy:        proxy,
 		logger:       logger,
 		receivers:    make(map[string]transferReceiver),
@@ -116,25 +120,26 @@ func (s *TransferServer) SetReporter(reporter transferReporter) {
 	s.reporterMu.Unlock()
 }
 
-func (s *TransferServer) Prepare(transferID, token string) (string, error) {
+func (s *TransferServer) Prepare(transferID, token string) (string, *TransferReceiverMarker, error) {
 	return s.prepareReceiver(transferID, token, transferKindImage, "/api/transfer/image/")
 }
 
-func (s *TransferServer) PrepareProbe(transferID, token string) (string, error) {
+func (s *TransferServer) PrepareProbe(transferID, token string) (string, *TransferReceiverMarker, error) {
 	return s.prepareReceiver(transferID, token, transferKindProbe, "/api/transfer/probe/")
 }
 
-func (s *TransferServer) prepareReceiver(transferID, token, kind, pathPrefix string) (string, error) {
+func (s *TransferServer) prepareReceiver(transferID, token, kind, pathPrefix string) (string, *TransferReceiverMarker, error) {
 	if s == nil {
-		return "", fmt.Errorf("direct transfer receiver is not configured")
+		return "", nil, fmt.Errorf("direct transfer receiver is not configured")
 	}
 	transferID = strings.TrimSpace(transferID)
 	token = strings.TrimSpace(token)
 	if transferID == "" || token == "" {
-		return "", fmt.Errorf("invalid direct transfer receiver request")
+		return "", nil, fmt.Errorf("invalid direct transfer receiver request")
 	}
 
 	now := time.Now()
+	expiresAt := now.Add(transferReceiverTTL)
 	s.mu.Lock()
 	for id, receiver := range s.receivers {
 		if now.After(receiver.expiresAt) {
@@ -144,13 +149,20 @@ func (s *TransferServer) prepareReceiver(transferID, token, kind, pathPrefix str
 	s.receivers[transferID] = transferReceiver{
 		token:     token,
 		kind:      kind,
-		expiresAt: now.Add(transferReceiverTTL),
+		expiresAt: expiresAt,
 	}
 	s.mu.Unlock()
 
 	receiverURL := s.advertiseURL + pathPrefix + transferID
-	s.logger.Debug("direct transfer receiver prepared", "transferId", transferID, "kind", kind, "url", receiverURL)
-	return receiverURL, nil
+	marker := &TransferReceiverMarker{
+		TransferID:       transferID,
+		Kind:             kind,
+		ExpiresAt:        expiresAt.UTC().Format(time.RFC3339),
+		TokenFingerprint: shortTokenFingerprint(token),
+		AgentMarker:      s.agentMarker,
+	}
+	s.logger.Debug("direct transfer receiver prepared", "transferId", transferID, "kind", kind, "url", receiverURL, "tokenFingerprint", marker.TokenFingerprint, "agentMarker", marker.AgentMarker)
+	return receiverURL, marker, nil
 }
 
 func (s *TransferServer) Cancel(transferID string) {
@@ -164,6 +176,7 @@ func (s *TransferServer) Cancel(transferID string) {
 }
 
 func (s *TransferServer) handleImageUpload(w http.ResponseWriter, r *http.Request) {
+	s.writeReceiverHeaders(w)
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -196,6 +209,7 @@ func (s *TransferServer) handleImageUpload(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *TransferServer) handleProbeUpload(w http.ResponseWriter, r *http.Request) {
+	s.writeReceiverHeaders(w)
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -266,6 +280,7 @@ func (s *TransferServer) logReceiverAuthFailure(transferID, kind, remote string,
 		"kindMatched", check.kindMatched,
 		"bearerPresent", check.bearerPresent,
 		"tokenMatched", check.tokenMatched,
+		"agentMarker", s.agentMarker,
 	)
 	s.reportReceiverAuthFailure(transferID, kind, remote, check)
 }
@@ -286,14 +301,31 @@ func (s *TransferServer) reportReceiverAuthFailure(transferID, kind, remote stri
 			Success:    false,
 			Error:      "direct transfer receiver authorization failed",
 			Diagnostic: &TransferAuthDiagnostic{
-				ReceiverExists:  check.existed,
-				ReceiverExpired: check.expired,
-				ReceiverKind:    check.receiverKind,
-				KindMatched:     check.kindMatched,
-				BearerPresent:   check.bearerPresent,
-				TokenMatched:    check.tokenMatched,
-				RemoteAddr:      remote,
+				ReceiverExists:       check.existed,
+				ReceiverExpired:      check.expired,
+				ReceiverKind:         check.receiverKind,
+				KindMatched:          check.kindMatched,
+				BearerPresent:        check.bearerPresent,
+				TokenMatched:         check.tokenMatched,
+				RemoteAddr:           remote,
+				ResponderAgentMarker: s.agentMarker,
 			},
 		},
 	})
+}
+
+func (s *TransferServer) writeReceiverHeaders(w http.ResponseWriter) {
+	if strings.TrimSpace(s.agentMarker) != "" {
+		w.Header().Set("X-McHarbor-Agent-Marker", s.agentMarker)
+	}
+	w.Header().Set("X-McHarbor-Transfer-Receiver", "mcharbor-agent")
+}
+
+func shortTokenFingerprint(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+	sum := sha256.Sum256([]byte(value))
+	return hex.EncodeToString(sum[:])[:16]
 }

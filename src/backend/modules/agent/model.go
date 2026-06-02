@@ -39,7 +39,18 @@ type DirectTransferTestResult struct {
 	StatusCode        int                       `json:"statusCode,omitempty"`
 	DurationMs        int64                     `json:"durationMs"`
 	Error             string                    `json:"error,omitempty"`
+	Receiver          *DirectTransferReceiver   `json:"receiver,omitempty"`
+	ResponderMarker   string                    `json:"responderMarker,omitempty"`
 	Diagnostic        *DirectTransferDiagnostic `json:"diagnostic,omitempty"`
+}
+
+// DirectTransferReceiver carries token-safe prepared receiver metadata.
+type DirectTransferReceiver struct {
+	TransferID       string `json:"transferId"`
+	Kind             string `json:"kind"`
+	ExpiresAt        string `json:"expiresAt"`
+	TokenFingerprint string `json:"tokenFingerprint"`
+	AgentMarker      string `json:"agentMarker,omitempty"`
 }
 
 // DirectTransferDiagnostic carries token-safe target receiver auth details.
@@ -51,4 +62,5 @@ type DirectTransferDiagnostic struct {
 	BearerPresent   bool   `json:"bearerPresent"`
 	TokenMatched    bool   `json:"tokenMatched"`
 	RemoteAddr      string `json:"remoteAddr,omitempty"`
+	ResponderMarker string `json:"responderMarker,omitempty"`
 }
