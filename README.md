@@ -117,7 +117,7 @@ McHarbor has grown from the initial public release into a broader operations pla
 - **Self-Update Watchdog**: McHarbor starts a watchdog before destructive self-update steps so replacement containers can be started if Docker creates them but leaves them stopped.
 - **Improved Self-Detection**: McHarbor recognizes its own container through Docker labels, compose metadata, image references, stored compose data, conventional names, and Docker inspect fallbacks.
 - **Release Version Metadata**: Runtime health/about metadata, update checks, startup logging, OpenAPI metadata, frontend package metadata, Docker image labels, and publishing workflows now use the canonical root `VERSION` file.
-- **Pinned Agent Install Commands**: Generated agent Docker install commands pin the current agent version and pull before restart so stale local `latest` images are not reused.
+- **Agent Install Commands**: Generated agent Docker install commands use the latest agent image by default, pull before restart, and mount a stable Compose workspace for agent-side stack deploys.
 
 ## Built For
 
@@ -196,16 +196,19 @@ http://<your-server-ip>:8705
 To install the optional remote agent on another machine:
 
 ```bash
-docker pull ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
+docker pull ghcr.io/therealmcsparrow/mcharbor-agent:latest
 docker rm -f mcharbor-agent 2>/dev/null || true
+mkdir -p /var/lib/mcharbor-agent/compose
 docker run -d \
   --name mcharbor-agent \
   --restart unless-stopped \
   -e MCHARBOR_URL=wss://your-mcharbor-domain:8705 \
   -e MCHARBOR_AGENT_TOKEN=your_agent_token \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
+  -e MCHARBOR_COMPOSE_DIR=/var/lib/mcharbor-agent/compose \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
+  -v /var/lib/mcharbor-agent/compose:/var/lib/mcharbor-agent/compose \
+  ghcr.io/therealmcsparrow/mcharbor-agent:latest
 ```
 
 ## AI

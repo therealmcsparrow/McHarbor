@@ -53,11 +53,10 @@ Representative Kubernetes environment body:
 | POST | `/api/agents/{envId}/deploy` | Starts deployment-oriented agent setup flow. |
 | POST | `/api/agents/{envId}/install-token` | Creates an install token for scripted bootstrap. |
 
-Agent bootstrap and deploy flows pin the generated Docker image reference to the
-current agent release, for example:
+Agent bootstrap and deploy flows use the latest agent image by default:
 
 ```text
-ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
+ghcr.io/therealmcsparrow/mcharbor-agent:latest
 ```
 
 The WebSocket auth payload includes hostname, OS, architecture, agent version,
@@ -69,5 +68,6 @@ Docker API version, and optionally a direct-transfer advertise URL.
 - Agent transport is used for Docker hosts that cannot expose a daemon socket directly.
 - Direct agent-to-agent container move transfers require `mcharbor-agent` `1.3.5+` on both agents.
 - The direct transfer connection test requires `mcharbor-agent` `1.3.7+` on both agents.
+- Agent-side Docker Compose stack execution requires `mcharbor-agent` `1.4.0+` on the target agent.
 - Direct transfer is advertised only when the target agent has `MCHARBOR_TRANSFER_LISTEN` and `MCHARBOR_TRANSFER_ADVERTISE_URL` configured.
 - If direct transfer is not advertised or either agent is too old, container moves use the McHarbor relay path.

@@ -2,6 +2,16 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.4.0] - 2026-06-03
+
+### Added
+- Added agent-side Docker Compose execution for remote agent environments, allowing managed stacks and App Store installs to run full `docker compose` operations on the target agent host.
+- Added `MCHARBOR_COMPOSE_DIR` to the agent runtime so Compose project files are staged on a stable host-mounted workspace.
+
+### Changed
+- Bumped the minor application version to `1.4.0` across runtime metadata, agent metadata, and frontend package metadata.
+- Updated Docker-based agent images to include Docker CLI and Compose support.
+
 ## [1.3.7] - 2026-06-02
 
 ### Added

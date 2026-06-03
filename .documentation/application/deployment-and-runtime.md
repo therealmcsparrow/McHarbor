@@ -52,10 +52,10 @@ Default end-user URL:
 ## Remote Agent Runtime
 
 The remote agent can run as a container or a binary on a Docker host. Generated
-install and deploy flows pin the agent image to the current release:
+install and deploy flows use the latest agent image by default:
 
 ```text
-ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
+ghcr.io/therealmcsparrow/mcharbor-agent:latest
 ```
 
 Minimum versions for selected capabilities:
@@ -66,6 +66,7 @@ Minimum versions for selected capabilities:
 | Staged Docker image-load support for remote container moves | `1.3.3` |
 | Direct agent-to-agent image transfer for container moves | `1.3.5` |
 | Settings direct-transfer reachability test | `1.3.7` |
+| Agent-side Docker Compose stack execution | `1.4.0` |
 
 Direct transfer is optional and must be configured on the target agent:
 
@@ -81,13 +82,15 @@ docker run -d \
   --name mcharbor-agent \
   --restart unless-stopped \
   -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/lib/mcharbor-agent/compose:/var/lib/mcharbor-agent/compose \
   -p 8788:8788 \
   -e MCHARBOR_URL=http://mcharbor.example:8705 \
   -e MCHARBOR_AGENT_TOKEN=agt_xxx \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
+  -e MCHARBOR_COMPOSE_DIR=/var/lib/mcharbor-agent/compose \
   -e MCHARBOR_TRANSFER_LISTEN=0.0.0.0:8788 \
   -e MCHARBOR_TRANSFER_ADVERTISE_URL=http://target-host:8788 \
-  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
+  ghcr.io/therealmcsparrow/mcharbor-agent:latest
 ```
 
 When direct transfer is not configured or the source agent cannot reach the

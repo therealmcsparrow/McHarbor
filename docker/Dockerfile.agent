@@ -7,7 +7,7 @@ COPY src/agent/ .
 RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o /mcharbor-agent .
 
 FROM alpine:3.20
-RUN apk add --no-cache tini ca-certificates
+RUN apk add --no-cache tini ca-certificates docker-cli docker-cli-compose
 COPY --from=builder /mcharbor-agent /usr/local/bin/mcharbor-agent
 ENTRYPOINT ["tini", "--"]
 CMD ["mcharbor-agent"]

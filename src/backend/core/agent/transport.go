@@ -39,6 +39,44 @@ type ExecSession struct {
 	DoneCh   chan struct{}
 }
 
+// RunCompose sends a compose command to the agent and waits for completion.
+func (t *AgentTransport) RunCompose(ctx context.Context, payload ComposePayload) (*ComposePayload, error) {
+	reqID := xid.New().String()
+	ch := make(chan *WSMessage, 1)
+
+	t.mu.Lock()
+	t.composeWaiters[reqID] = ch
+	t.mu.Unlock()
+	defer func() {
+		t.mu.Lock()
+		delete(t.composeWaiters, reqID)
+		t.mu.Unlock()
+	}()
+
+	if err := t.conn.WriteJSON(WSMessage{
+		Type:    MsgComposeRun,
+		ID:      reqID,
+		Compose: &payload,
+	}); err != nil {
+		return nil, fmt.Errorf("sending compose command to agent: %w", err)
+	}
+
+	select {
+	case <-ctx.Done():
+		if err := t.conn.WriteJSON(WSMessage{Type: MsgComposeCancel, ID: reqID}); err != nil {
+			t.logger.Debug("agent compose cancel failed", "id", reqID, "error", err)
+		}
+		return nil, ctx.Err()
+	case msg := <-ch:
+		if msg == nil || msg.Compose == nil {
+			return nil, fmt.Errorf("empty compose response from agent")
+		}
+		return msg.Compose, nil
+	case <-t.done:
+		return nil, fmt.Errorf("agent transport closed")
+	}
+}
+
 // AgentTransport implements http.RoundTripper by proxying HTTP requests
 // over a WebSocket connection to a remote agent.
 type AgentTransport struct {
@@ -46,6 +84,7 @@ type AgentTransport struct {
 	db                  *sql.DB
 	pending             map[string]*pendingReq
 	execSessions        map[string]*ExecSession
+	composeWaiters      map[string]chan *WSMessage
 	transferWaiters     map[string]chan *WSMessage
 	transferDiagnostics map[string]*TransferAuthDiagnostic
 	transferReceivers   map[string]*TransferReceiverMarker
@@ -61,6 +100,7 @@ func NewAgentTransport(conn *AgentConnection, db *sql.DB, logger *slog.Logger) *
 		db:                  db,
 		pending:             make(map[string]*pendingReq),
 		execSessions:        make(map[string]*ExecSession),
+		composeWaiters:      make(map[string]chan *WSMessage),
 		transferWaiters:     make(map[string]chan *WSMessage),
 		transferDiagnostics: make(map[string]*TransferAuthDiagnostic),
 		transferReceivers:   make(map[string]*TransferReceiverMarker),
@@ -633,6 +673,18 @@ func (t *AgentTransport) ReadLoop() error {
 				case <-s.DoneCh:
 				default:
 					close(s.DoneCh)
+				}
+			}
+
+		case MsgComposeResult:
+			t.mu.Lock()
+			ch := t.composeWaiters[msg.ID]
+			t.mu.Unlock()
+			if ch != nil {
+				select {
+				case ch <- &msg:
+				default:
+					t.logger.Warn("agent compose result dropped", "id", msg.ID)
 				}
 			}
 

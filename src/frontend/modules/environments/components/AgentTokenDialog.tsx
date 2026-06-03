@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconCopy, IconCheck } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -16,6 +15,8 @@ import {
 import { Button } from '@resources/components/ui/Button';
 import type { InstallTokenResponse } from '../hooks/useEnvironmentActions';
 import { AgentDockerImage } from '../constants';
+import { AgentCopyBlock } from './AgentCopyBlock';
+import { AgentTokenValue } from './AgentTokenValue';
 
 export { AgentDockerImage } from '../constants';
 
@@ -102,103 +103,43 @@ mcharbor-agent`;
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">{t('agentToken.tokenLabel')}</label>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 rounded border border-border bg-muted px-3 py-2 font-mono text-xs break-all">
-                {token}
-              </code>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => copyToClipboard(token, 'token')}
-                aria-label={t('agentToken.copyToken')}
-              >
-                {copied === 'token' ? (
-                  <IconCheck className="h-4 w-4 text-green-500" />
-                ) : (
-                  <IconCopy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
+          <AgentTokenValue
+            label={t('agentToken.tokenLabel')}
+            token={token}
+            copiedKey={copied}
+            ariaLabel={t('agentToken.copyToken')}
+            onCopy={copyToClipboard}
+          />
 
           {installScript && (
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                {t('agentToken.installScript')}
-              </label>
-              <div className="relative">
-                <pre className="rounded border border-border bg-muted p-3 font-mono text-xs overflow-x-auto whitespace-pre">
-                  {installScript.script}
-                </pre>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1"
-                  onClick={() => copyToClipboard(installScript.script, 'script')}
-                  aria-label={t('agentToken.copyScript')}
-                >
-                  {copied === 'script' ? (
-                    <IconCheck className="h-3.5 w-3.5 text-green-500" />
-                  ) : (
-                    <IconCopy className="h-3.5 w-3.5" />
-                  )}
-                </Button>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t('agentToken.scriptExpiry')}
-              </p>
-            </div>
+            <AgentCopyBlock
+              label={t('agentToken.installScript')}
+              value={installScript.script}
+              copyKey="script"
+              copiedKey={copied}
+              ariaLabel={t('agentToken.copyScript')}
+              onCopy={copyToClipboard}
+              note={t('agentToken.scriptExpiry')}
+            />
           )}
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              {t('agentToken.runWithDocker')}
-            </label>
-            <div className="relative">
-              <pre className="rounded border border-border bg-muted p-3 font-mono text-xs overflow-x-auto whitespace-pre">
-                {dockerCmd}
-              </pre>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-1 top-1"
-                onClick={() => copyToClipboard(dockerCmd, 'docker')}
-                aria-label={t('agentToken.copyDockerCommand')}
-              >
-                {copied === 'docker' ? (
-                  <IconCheck className="h-3.5 w-3.5 text-green-500" />
-                ) : (
-                  <IconCopy className="h-3.5 w-3.5" />
-                )}
-              </Button>
-            </div>
-          </div>
+          <AgentCopyBlock
+            label={t('agentToken.runWithDocker')}
+            value={dockerCmd}
+            copyKey="docker"
+            copiedKey={copied}
+            ariaLabel={t('agentToken.copyDockerCommand')}
+            onCopy={copyToClipboard}
+          />
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">
-              {t('agentToken.runAsBinary')}
-            </label>
-            <div className="relative">
-              <pre className="rounded border border-border bg-muted p-3 font-mono text-xs overflow-x-auto whitespace-pre">
-                {binaryCmd}
-              </pre>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-1 top-1"
-                onClick={() => copyToClipboard(binaryCmd, 'binary')}
-                aria-label={t('agentToken.copyBinaryCommand')}
-              >
-                {copied === 'binary' ? (
-                  <IconCheck className="h-3.5 w-3.5 text-green-500" />
-                ) : (
-                  <IconCopy className="h-3.5 w-3.5" />
-                )}
-              </Button>
-            </div>
-          </div>
+          <AgentCopyBlock
+            label={t('agentToken.runAsBinary')}
+            value={binaryCmd}
+            copyKey="binary"
+            copiedKey={copied}
+            ariaLabel={t('agentToken.copyBinaryCommand')}
+            onCopy={copyToClipboard}
+          />
         </div>
 
         <DialogFooter>

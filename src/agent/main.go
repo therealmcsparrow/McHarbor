@@ -24,6 +24,7 @@ type Config struct {
 	TransferListen       string `env:"MCHARBOR_TRANSFER_LISTEN"`
 	TransferAdvertiseURL string `env:"MCHARBOR_TRANSFER_ADVERTISE_URL"`
 	RetireContainerID    string `env:"MCHARBOR_RETIRE_CONTAINER_ID"`
+	ComposeDir           string `env:"MCHARBOR_COMPOSE_DIR" envDefault:"/var/lib/mcharbor-agent/compose"`
 }
 
 func main() {

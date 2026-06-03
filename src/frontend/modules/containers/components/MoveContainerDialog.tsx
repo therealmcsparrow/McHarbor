@@ -2,24 +2,20 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useTranslation, Trans } from 'react-i18next';
-import { IconArrowsExchange } from '@tabler/icons-react';
+import { useTranslation } from 'react-i18next';
 import { api } from '@core/api/client';
 import type { NetworkInfo } from '@core/types/docker';
 import { useEnvironmentStore } from '@resources/stores/environment';
-import { Button } from '@resources/components/ui/Button';
 import {
   Dialog,
   DialogBody,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
 } from '@resources/components/ui/Dialog';
 import { useEnvironmentList } from '@resources/hooks/useEnvironmentList';
 import type { MoveNetworkConfig, MoveVolumeConfig } from '../hooks/useContainers';
 import { useMoveContainerPlan, useMoveContainerStream } from '../hooks/useContainers';
+import { MoveContainerDialogFooter } from './MoveContainerDialogFooter';
+import { MoveContainerDialogHeader } from './MoveContainerDialogHeader';
 import { moveNetworkConfigsFromPlan } from './MoveNetworkSettings';
 import { moveVolumeConfigsFromPlan } from './MoveVolumeSettings';
 import { MoveContainerSetup } from './MoveContainerSetup';
@@ -159,20 +155,7 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <IconArrowsExchange className="size-4 text-primary" />
-            {t('moveDialog.title')}
-          </DialogTitle>
-          <DialogDescription>
-            <Trans
-              i18nKey="moveDialog.description"
-              ns="containers"
-              values={{ name: container.name }}
-              components={{ bold: <span className="font-medium text-foreground" /> }}
-            />
-          </DialogDescription>
-        </DialogHeader>
+        <MoveContainerDialogHeader containerName={container.name} />
         <DialogBody className="space-y-4">
           {showProgress ? (
             <MoveProgress
@@ -204,14 +187,12 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
           )}
         </DialogBody>
         {!showProgress && (
-          <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              {t('actions.cancel', { ns: 'common' })}
-            </Button>
-            <Button onClick={handleMove} disabled={!targetEnvId || targetOptions.length === 0}>
-              {t('moveDialog.move')}
-            </Button>
-          </DialogFooter>
+          <MoveContainerDialogFooter
+            disabled={!targetEnvId || targetOptions.length === 0}
+            onCancel={() => onOpenChange(false)}
+            onMove={handleMove}
+            t={t}
+          />
         )}
       </DialogContent>
     </Dialog>

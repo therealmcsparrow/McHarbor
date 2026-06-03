@@ -137,6 +137,7 @@ Remote-agent transfer behavior:
 - target agent image loading requires `mcharbor-agent` `1.3.3+`
 - direct agent-to-agent transfer requires source and target agents to be `1.3.5+`
 - the Settings direct-transfer test requires source and target agents to be `1.3.7+`
+- Docker Compose stack deploys on agent environments require the target agent to be `1.4.0+`
 - direct transfer also requires the target agent to advertise a transfer listener
 - when direct transfer is unavailable, McHarbor falls back to the server relay path
 

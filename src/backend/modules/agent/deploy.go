@@ -258,6 +258,7 @@ func buildDockerDeployCmd(serverURL, token, agentImage string) string {
 	return fmt.Sprintf(`
 set -e
 MCHARBOR_TRANSFER_LISTEN="${MCHARBOR_TRANSFER_LISTEN:-0.0.0.0:8788}"
+MCHARBOR_COMPOSE_DIR="${MCHARBOR_COMPOSE_DIR:-/var/lib/mcharbor-agent/compose}"
 if [ -z "${MCHARBOR_TRANSFER_ADVERTISE_URL:-}" ]; then
   HOST_IP=""
   if command -v ip >/dev/null 2>&1; then
@@ -270,6 +271,7 @@ if [ -z "${MCHARBOR_TRANSFER_ADVERTISE_URL:-}" ]; then
     MCHARBOR_TRANSFER_ADVERTISE_URL="http://$HOST_IP:8788"
   fi
 fi
+mkdir -p "$MCHARBOR_COMPOSE_DIR"
 # Pull the requested agent image so a stale local latest tag is not reused.
 docker pull %s
 docker ps -a --filter "name=^/mcharbor-agent-old-" --filter "status=exited" --filter "status=created" --format "{{.ID}}" | xargs -r docker rm -f
@@ -284,10 +286,12 @@ docker run -d \
   --name mcharbor-agent \
   --restart unless-stopped \
   -v /var/run/docker.sock:/var/run/docker.sock \
+  -v "$MCHARBOR_COMPOSE_DIR":"$MCHARBOR_COMPOSE_DIR" \
   -e MCHARBOR_URL=%s \
   -e MCHARBOR_AGENT_TOKEN=%s \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
   -e LOG_LEVEL="${LOG_LEVEL:-info}" \
+  -e MCHARBOR_COMPOSE_DIR="$MCHARBOR_COMPOSE_DIR" \
   $TRANSFER_ARGS \
   %s
 echo "Agent container started successfully"
@@ -308,6 +312,7 @@ set -e
 # Download agent binary
 curl -fsSL -o /usr/local/bin/mcharbor-agent %s
 chmod +x /usr/local/bin/mcharbor-agent
+mkdir -p /var/lib/mcharbor-agent/compose
 
 # Create systemd service
 cat > /etc/systemd/system/mcharbor-agent.service << 'SERVICEEOF'
@@ -325,6 +330,7 @@ Environment=DOCKER_HOST=unix:///var/run/docker.sock
 Environment=LOG_LEVEL=info
 Environment=MCHARBOR_TRANSFER_LISTEN=0.0.0.0:8788
 Environment=MCHARBOR_TRANSFER_ADVERTISE_URL=
+Environment=MCHARBOR_COMPOSE_DIR=/var/lib/mcharbor-agent/compose
 Restart=always
 RestartSec=5
 

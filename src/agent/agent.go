@@ -21,7 +21,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.3.7"
+const agentVersion = "1.4.0"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -301,6 +301,7 @@ func (a *Agent) Connect(ctx context.Context) error {
 	// Track in-flight request cancellations
 	var cancelMu sync.Mutex
 	cancels := make(map[string]context.CancelFunc)
+	composeCancels := make(map[string]context.CancelFunc)
 	transferCancels := make(map[string]context.CancelFunc)
 	uploads := make(map[string]*uploadBuffer)
 	spooledUploads := make(map[string]*spooledUpload)
@@ -308,6 +309,9 @@ func (a *Agent) Connect(ctx context.Context) error {
 		cancelMu.Lock()
 		defer cancelMu.Unlock()
 		for _, cancel := range cancels {
+			cancel()
+		}
+		for _, cancel := range composeCancels {
 			cancel()
 		}
 		for _, cancel := range transferCancels {
@@ -479,6 +483,32 @@ func (a *Agent) Connect(ctx context.Context) error {
 
 		case MsgExecEnd:
 			a.proxy.CloseExec(msg.ID)
+
+		case MsgComposeRun:
+			if msg.Compose == nil {
+				continue
+			}
+			composeCtx, composeCancel := context.WithCancel(ctx)
+			cancelMu.Lock()
+			composeCancels[msg.ID] = composeCancel
+			cancelMu.Unlock()
+			go func(id string, payload ComposePayload) {
+				defer func() {
+					cancelMu.Lock()
+					delete(composeCancels, id)
+					cancelMu.Unlock()
+					composeCancel()
+				}()
+				a.runCompose(composeCtx, conn, id, payload)
+			}(msg.ID, *msg.Compose)
+
+		case MsgComposeCancel:
+			cancelMu.Lock()
+			if cancel, ok := composeCancels[msg.ID]; ok {
+				cancel()
+				delete(composeCancels, msg.ID)
+			}
+			cancelMu.Unlock()
 
 		case MsgTransferPrepare:
 			if msg.Transfer == nil {

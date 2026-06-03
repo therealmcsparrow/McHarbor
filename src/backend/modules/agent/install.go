@@ -155,6 +155,7 @@ MCHARBOR_URL=%s
 MCHARBOR_AGENT_TOKEN=%s
 AGENT_IMAGE="${MCHARBOR_AGENT_IMAGE:-ghcr.io/therealmcsparrow/mcharbor-agent:latest}"
 MCHARBOR_TRANSFER_LISTEN="${MCHARBOR_TRANSFER_LISTEN:-0.0.0.0:8788}"
+MCHARBOR_COMPOSE_DIR="${MCHARBOR_COMPOSE_DIR:-/var/lib/mcharbor-agent/compose}"
 
 echo "=== McHarbor Agent Installer ==="
 echo ""
@@ -200,6 +201,7 @@ fi
 # Check if Docker is available
 if command -v docker &>/dev/null && docker info &>/dev/null 2>&1; then
   echo "Docker detected — installing as container..."
+  mkdir -p "$MCHARBOR_COMPOSE_DIR"
   docker pull "$AGENT_IMAGE"
   docker ps -a --filter "name=^/mcharbor-agent-old-" --filter "status=exited" --filter "status=created" --format "{{.ID}}" | xargs -r docker rm -f
   docker rm -f mcharbor-agent 2>/dev/null || true
@@ -211,10 +213,12 @@ if command -v docker &>/dev/null && docker info &>/dev/null 2>&1; then
     --name mcharbor-agent \
     --restart unless-stopped \
     -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "$MCHARBOR_COMPOSE_DIR":"$MCHARBOR_COMPOSE_DIR" \
     -e MCHARBOR_URL="$MCHARBOR_URL" \
     -e MCHARBOR_AGENT_TOKEN="$MCHARBOR_AGENT_TOKEN" \
     -e DOCKER_HOST=unix:///var/run/docker.sock \
     -e LOG_LEVEL="${LOG_LEVEL:-info}" \
+    -e MCHARBOR_COMPOSE_DIR="$MCHARBOR_COMPOSE_DIR" \
     $TRANSFER_ARGS \
     "$AGENT_IMAGE"
   echo ""
@@ -234,6 +238,7 @@ else
   fi
 
   chmod +x /usr/local/bin/mcharbor-agent
+  mkdir -p "$MCHARBOR_COMPOSE_DIR"
 
   # Create systemd service if available
   if command -v systemctl &>/dev/null; then
@@ -252,6 +257,7 @@ Environment=DOCKER_HOST=unix:///var/run/docker.sock
 Environment=LOG_LEVEL=info
 Environment=MCHARBOR_TRANSFER_LISTEN=${MCHARBOR_TRANSFER_LISTEN}
 Environment=MCHARBOR_TRANSFER_ADVERTISE_URL=${MCHARBOR_TRANSFER_ADVERTISE_URL}
+Environment=MCHARBOR_COMPOSE_DIR=${MCHARBOR_COMPOSE_DIR}
 Restart=always
 RestartSec=5
 
@@ -264,6 +270,7 @@ SERVICEEOF
     sed -i "s|\${MCHARBOR_AGENT_TOKEN}|$MCHARBOR_AGENT_TOKEN|g" /etc/systemd/system/mcharbor-agent.service
     sed -i "s|\${MCHARBOR_TRANSFER_LISTEN}|$MCHARBOR_TRANSFER_LISTEN|g" /etc/systemd/system/mcharbor-agent.service
     sed -i "s|\${MCHARBOR_TRANSFER_ADVERTISE_URL}|$MCHARBOR_TRANSFER_ADVERTISE_URL|g" /etc/systemd/system/mcharbor-agent.service
+    sed -i "s|\${MCHARBOR_COMPOSE_DIR}|$MCHARBOR_COMPOSE_DIR|g" /etc/systemd/system/mcharbor-agent.service
 
     systemctl daemon-reload
     systemctl enable mcharbor-agent

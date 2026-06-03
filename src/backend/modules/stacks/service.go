@@ -33,6 +33,7 @@ import (
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/rs/xid"
 
+	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	mdb "github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 )
@@ -45,7 +46,10 @@ var (
 	ErrWebhookNotFound     = fmt.Errorf("webhook not found")
 )
 
-const composeCommandTimeout = 2 * time.Minute
+const (
+	composeCommandTimeout        = 10 * time.Minute
+	agentComposeRunnerMinVersion = "1.4.0"
+)
 
 // Service handles Compose stack operations.
 type Service struct {
@@ -1307,12 +1311,8 @@ func mergeEnvVars(base []string, overrides map[string]string) []string {
 // runDockerCompose executes a docker compose command in the project directory.
 // It resolves DOCKER_HOST for the given environment so the command targets the correct daemon.
 func (s *Service) runDockerCompose(ctx context.Context, args []string, projectPath string, envVars map[string]string, envID string) *ComposeResult {
-	// Agent environments can't use docker compose CLI — there's no reachable daemon.
 	if envID != "" && s.dockerPool.IsAgentEnv(envID) {
-		return &ComposeResult{
-			Success: false,
-			Error:   "docker compose is not supported for agent environments; use the Docker SDK operations instead",
-		}
+		return s.runAgentDockerCompose(ctx, args, projectPath, envVars, envID)
 	}
 
 	cmdArgs := append([]string{"compose", "-f", "docker-compose.yml"}, args...)
@@ -1367,6 +1367,78 @@ func (s *Service) runDockerCompose(ctx context.Context, args []string, projectPa
 	return &ComposeResult{
 		Success: true,
 		Output:  stdout.String(),
+	}
+}
+
+func (s *Service) runAgentDockerCompose(ctx context.Context, args []string, projectPath string, envVars map[string]string, envID string) *ComposeResult {
+	if !s.dockerPool.AgentAtLeast(envID, agentComposeRunnerMinVersion) {
+		version, _ := s.dockerPool.AgentVersion(envID)
+		if version == "" {
+			version = "not connected"
+		}
+		return &ComposeResult{
+			Success: false,
+			Error:   fmt.Sprintf("agent-side docker compose requires mcharbor-agent %s or newer; connected agent is %s", agentComposeRunnerMinVersion, version),
+		}
+	}
+
+	conn, ok := s.dockerPool.AgentConnection(envID)
+	if !ok || conn == nil || conn.Transport == nil {
+		return &ComposeResult{
+			Success: false,
+			Error:   "agent is not connected",
+		}
+	}
+
+	composeContent, err := os.ReadFile(filepath.Join(projectPath, "docker-compose.yml"))
+	if err != nil {
+		return &ComposeResult{
+			Success: false,
+			Error:   fmt.Sprintf("reading compose file: %v", err),
+		}
+	}
+
+	files := map[string]string{
+		"docker-compose.yml": string(composeContent),
+	}
+	if len(envVars) > 0 {
+		files[".env"] = renderEnvFile(envVars)
+	} else if envContent, err := os.ReadFile(filepath.Join(projectPath, ".env")); err == nil {
+		files[".env"] = string(envContent)
+	}
+
+	cmdCtx, cancel := context.WithTimeout(ctx, composeCommandTimeout)
+	defer cancel()
+
+	result, err := conn.Transport.RunCompose(cmdCtx, coreagent.ComposePayload{
+		ProjectName: filepath.Base(projectPath),
+		Files:       files,
+		Env:         envVars,
+		Args:        args,
+	})
+	if err != nil {
+		if cmdCtx.Err() != nil {
+			return &ComposeResult{
+				Success: false,
+				Error:   "stack operation timed out",
+			}
+		}
+		return &ComposeResult{
+			Success: false,
+			Error:   fmt.Sprintf("agent compose command failed: %v", err),
+		}
+	}
+	if result == nil {
+		return &ComposeResult{
+			Success: false,
+			Error:   "agent compose command returned no result",
+		}
+	}
+
+	return &ComposeResult{
+		Success: result.Success,
+		Output:  result.Output,
+		Error:   result.Error,
 	}
 }
 
@@ -1456,12 +1528,16 @@ func sanitizeName(name string) string {
 
 // writeEnvFile writes a .env file in the project directory.
 func (s *Service) writeEnvFile(projectPath string, envVars map[string]string) error {
+	envPath := filepath.Join(projectPath, ".env")
+	return os.WriteFile(envPath, []byte(renderEnvFile(envVars)), 0o644)
+}
+
+func renderEnvFile(envVars map[string]string) string {
 	var lines []string
 	for k, v := range envVars {
 		lines = append(lines, fmt.Sprintf("%s=%s", k, v))
 	}
-	envPath := filepath.Join(projectPath, ".env")
-	return os.WriteFile(envPath, []byte(strings.Join(lines, "\n")+"\n"), 0o644)
+	return strings.Join(lines, "\n") + "\n"
 }
 
 // saveEnvVars persists environment variables in the stack_environment_variables table.

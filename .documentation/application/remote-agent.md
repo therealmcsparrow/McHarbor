@@ -23,6 +23,7 @@ TCP access is not acceptable.
 - report host metadata such as hostname, OS, architecture, and versions
 - proxy Docker HTTP traffic through the server transport
 - handle exec session traffic for terminal access
+- run Docker Compose stack commands from a staged project workspace
 - optionally receive direct image uploads from peer agents for container moves
 - optionally stream Docker image archives directly to another agent
 - optionally run a lightweight direct-transfer reachability probe
@@ -31,7 +32,7 @@ TCP access is not acceptable.
 
 The agent currently reports:
 
-- `1.3.7`
+- `1.4.0`
 
 This matters because backend behavior checks agent capabilities by version:
 
@@ -39,6 +40,7 @@ This matters because backend behavior checks agent capabilities by version:
 - `1.3.3+`: streamed and staged Docker image-load request support for remote moves
 - `1.3.5+`: optional direct agent-to-agent image transfer for container moves
 - `1.3.7+`: Settings > Agent direct transfer reachability test
+- `1.4.0+`: agent-side Docker Compose stack execution
 
 ## Auth Handshake
 
@@ -65,6 +67,9 @@ The agent processes message types such as:
 - exec input
 - exec resize
 - exec end
+- compose run
+- compose result
+- compose cancel
 - transfer prepare
 - transfer image
 - transfer probe
@@ -109,13 +114,15 @@ docker run -d \
   --name mcharbor-agent \
   --restart unless-stopped \
   -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/lib/mcharbor-agent/compose:/var/lib/mcharbor-agent/compose \
   -p 8788:8788 \
   -e MCHARBOR_URL=http://mcharbor.example:8705 \
   -e MCHARBOR_AGENT_TOKEN=agt_xxx \
   -e DOCKER_HOST=unix:///var/run/docker.sock \
+  -e MCHARBOR_COMPOSE_DIR=/var/lib/mcharbor-agent/compose \
   -e MCHARBOR_TRANSFER_LISTEN=0.0.0.0:8788 \
   -e MCHARBOR_TRANSFER_ADVERTISE_URL=http://target-host:8788 \
-  ghcr.io/therealmcsparrow/mcharbor-agent:1.3.7
+  ghcr.io/therealmcsparrow/mcharbor-agent:latest
 ```
 
 Security notes:
@@ -146,9 +153,27 @@ agent environments:
 - target image loading requires `mcharbor-agent` `1.3.3+`
 - direct image transfer requires both source and target agents to be `1.3.5+`
 - the Settings direct-transfer test requires both source and target agents to be `1.3.7+`
+- stack deploys with Docker Compose on agent environments require the target agent to be `1.4.0+`
 - direct transfer also requires the target transfer listener configuration above
 - if direct transfer is unavailable, the move uses the McHarbor relay path
 - cancellation aborts the active move but is not a transactional rollback
+
+## Agent-Side Compose
+
+For agent environments, McHarbor sends the managed stack's Compose file and
+environment variables to the connected target agent. The agent stages those files
+under `MCHARBOR_COMPOSE_DIR/<project>` and runs `docker compose --project-name
+<project>` on the agent host.
+
+Containerized agents should mount the compose directory at the same absolute path
+on the host and inside the agent container:
+
+```bash
+-v /var/lib/mcharbor-agent/compose:/var/lib/mcharbor-agent/compose
+```
+
+This is required so relative bind paths in Compose files resolve to a real host
+path visible to the Docker daemon.
 
 ## Why the Agent Exists
 

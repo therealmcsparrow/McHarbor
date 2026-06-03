@@ -38,6 +38,11 @@ const (
 	MsgExecResize = "exec_resize" // Server->Agent: terminal resize
 	MsgExecEnd    = "exec_end"    // Bidirectional: exec session ended
 
+	// Compose stack commands
+	MsgComposeRun    = "compose_run"    // Server->Agent: run docker compose in a staged project
+	MsgComposeResult = "compose_result" // Agent->Server: compose command result
+	MsgComposeCancel = "compose_cancel" // Server->Agent: cancel compose command
+
 	// Direct agent-to-agent transfers
 	MsgTransferPrepare  = "transfer_prepare"  // Server->Target agent: prepare upload receiver
 	MsgTransferReady    = "transfer_ready"    // Target agent->Server: receiver status
@@ -61,7 +66,19 @@ type WSMessage struct {
 	StreamChunk  *WSStreamChunk     `json:"streamChunk,omitempty"`
 	ExecStart    *ExecStartPayload  `json:"execStart,omitempty"`
 	ExecResize   *ExecResizePayload `json:"execResize,omitempty"`
+	Compose      *ComposePayload    `json:"compose,omitempty"`
 	Transfer     *TransferPayload   `json:"transfer,omitempty"`
+}
+
+// ComposePayload carries an agent-side docker compose command.
+type ComposePayload struct {
+	ProjectName string            `json:"projectName,omitempty"`
+	Files       map[string]string `json:"files,omitempty"`
+	Env         map[string]string `json:"env,omitempty"`
+	Args        []string          `json:"args,omitempty"`
+	Success     bool              `json:"success,omitempty"`
+	Output      string            `json:"output,omitempty"`
+	Error       string            `json:"error,omitempty"`
 }
 
 // TransferPayload carries direct agent-to-agent transfer control metadata.
