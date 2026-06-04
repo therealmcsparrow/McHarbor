@@ -2,16 +2,18 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { IconLink, IconPlus, IconTrash, IconUnlink } from '@tabler/icons-react';
+import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { InfoRow } from '@resources/components/ui/InfoRow';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { ContainerInspect, NetworkInfo } from '@core/types/docker';
 import type { EditFormData } from '../../types/edit-form';
+import type { NetworkConnectPayload } from './NetworkTab';
+import { NetworkTabNetworksSection } from './NetworkTabNetworksSection';
 
 type NetworkTabConfigSectionProps = {
-  connectMutation: UseMutationResult<unknown, Error, string, unknown>;
+  connectMutation: UseMutationResult<unknown, Error, NetworkConnectPayload, unknown>;
   container: ContainerInspect;
   disconnectMutation: UseMutationResult<unknown, Error, string, unknown>;
   dns: string[];
@@ -169,71 +171,16 @@ export function NetworkTabConfigSection({
         )}
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-6 lg:col-span-2">
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('networkTab.networks')}</h3>
-
-        {!editing && joinableNetworks.length > 0 && (
-          <div className="mb-4 flex items-center gap-2">
-            <select
-              value={selectedNetwork}
-              onChange={(event) => setSelectedNetwork(event.target.value)}
-              className="flex-1 rounded-md border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
-            >
-              <option value="">{t('networkTab.selectNetwork')}</option>
-              {joinableNetworks.map((network) => (
-                <option key={network.Id} value={network.Name}>{network.Name}</option>
-              ))}
-            </select>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => selectedNetwork && connectMutation.mutate(selectedNetwork)}
-              disabled={!selectedNetwork || connectMutation.isPending}
-            >
-              <IconLink className="mr-1 size-3.5" />
-              {t('actions.connect')}
-            </Button>
-          </div>
-        )}
-
-        {networks.length > 0 ? (
-          <div className="space-y-4">
-            {networks.map(([networkName, network]) => (
-              <div key={networkName} className="rounded-md border border-border p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <Badge variant="secondary">{networkName}</Badge>
-                  {!editing && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => disconnectMutation.mutate(networkName)}
-                      disabled={disconnectMutation.isPending}
-                      className="text-red-500 hover:text-red-600"
-                    >
-                      <IconUnlink className="mr-1 size-3.5" />
-                      {t('actions.disconnect')}
-                    </Button>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-                  <InfoRow label={t('networkTab.ipAddress')}>{network?.IPAddress || '-'}</InfoRow>
-                  <InfoRow label={t('networkTab.gateway')}>{network?.Gateway || '-'}</InfoRow>
-                  <InfoRow label={t('networkTab.macAddress')}>{network?.MacAddress || '-'}</InfoRow>
-                  <InfoRow label={t('networkTab.prefixLength')}>{network?.IPPrefixLen ?? '-'}</InfoRow>
-                  {network?.GlobalIPv6Address && (
-                    <>
-                      <InfoRow label={t('networkTab.ipv6Address')}>{network.GlobalIPv6Address}</InfoRow>
-                      <InfoRow label={t('networkTab.ipv6Gateway')}>{network.IPv6Gateway || '-'}</InfoRow>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">{t('networkTab.noConnectedNetworks')}</p>
-        )}
-      </div>
+      <NetworkTabNetworksSection
+        connectMutation={connectMutation}
+        disconnectMutation={disconnectMutation}
+        editing={editing}
+        joinableNetworks={joinableNetworks}
+        networks={networks}
+        selectedNetwork={selectedNetwork}
+        setSelectedNetwork={setSelectedNetwork}
+        t={t}
+      />
     </>
   );
 }

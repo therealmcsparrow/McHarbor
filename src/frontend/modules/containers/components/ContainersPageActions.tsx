@@ -9,6 +9,7 @@ type ContainersPageActionsProps = {
   viewMode: 'table' | 'card';
   checkingUpdates: boolean;
   batchRunning: boolean;
+  uploadActive: boolean;
   updatesAvailable: number;
   totalContainers: number;
   onCheckUpdates: () => void;
@@ -24,6 +25,7 @@ export function ContainersPageActions({
   viewMode,
   checkingUpdates,
   batchRunning,
+  uploadActive,
   updatesAvailable,
   totalContainers,
   onCheckUpdates,
@@ -36,23 +38,23 @@ export function ContainersPageActions({
 }: ContainersPageActionsProps) {
   return (
     <>
-      <Button variant="outline" onClick={onCheckUpdates} disabled={checkingUpdates || batchRunning}>
+      <Button variant="outline" onClick={onCheckUpdates} disabled={checkingUpdates || batchRunning || uploadActive}>
         {checkingUpdates ? <Spinner size="sm" /> : <IconRefresh className="h-4 w-4" />}
         {t('updates.searchForUpdates')}
       </Button>
       {updatesAvailable > 0 && (
-        <Button variant="outline" onClick={onUpdateAll} disabled={batchRunning}>
+        <Button variant="outline" onClick={onUpdateAll} disabled={batchRunning || uploadActive}>
           {batchRunning ? <Spinner size="sm" /> : <IconArrowUp className="h-4 w-4" />}
           {t('updates.updateAll', { count: updatesAvailable })}
         </Button>
       )}
       {totalContainers > 0 && (
-        <Button variant="outline" onClick={onReinstallAll} disabled={batchRunning}>
+        <Button variant="outline" onClick={onReinstallAll} disabled={batchRunning || uploadActive}>
           {batchRunning ? <Spinner size="sm" /> : <IconRotate className="h-4 w-4" />}
           {t('updates.reinstallAll', { count: totalContainers })}
         </Button>
       )}
-      <Button variant="outline" onClick={onPruneUnused} disabled={batchRunning}>
+      <Button variant="outline" onClick={onPruneUnused} disabled={batchRunning || uploadActive}>
         <IconFilterOff className="h-4 w-4" />
         {t('pruneUnused')}
       </Button>

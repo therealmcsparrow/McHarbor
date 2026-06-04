@@ -933,6 +933,9 @@ func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, img
 	if req.PidsLimit != nil {
 		hc.PidsLimit = req.PidsLimit
 	}
+	if req.Devices != nil {
+		hc.Devices = *req.Devices
+	}
 	if req.DeviceRequests != nil {
 		hc.DeviceRequests = *req.DeviceRequests
 	}
@@ -982,8 +985,8 @@ func replacementNetworkingConfig(info types.ContainerJSON) *networkTypes.Network
 	}
 }
 
-// NetworkConnect connects a container to a Docker network.
-func (s *Service) NetworkConnect(ctx context.Context, envID, id, network string) error {
+// NetworkConnect connects or reconnects a container to a Docker network.
+func (s *Service) NetworkConnect(ctx context.Context, envID, id string, req NetworkConnectRequest) error {
 	cli, err := s.getClient(envID)
 	if err != nil {
 		return err
@@ -993,7 +996,91 @@ func (s *Service) NetworkConnect(ctx context.Context, envID, id, network string)
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
-	return cli.NetworkConnect(ctx, network, id, nil)
+
+	settings := endpointSettingsFromConnectRequest(req)
+	if req.Reconnect {
+		previous, hasPrevious, err := currentNetworkEndpointSettings(ctx, cli, id, req.Network)
+		if err != nil {
+			return err
+		}
+		if err := cli.NetworkDisconnect(ctx, req.Network, id, true); err != nil {
+			return fmt.Errorf("disconnecting container %s from network %s: %w", id, req.Network, err)
+		}
+		if err := cli.NetworkConnect(ctx, req.Network, id, settings); err != nil {
+			if hasPrevious {
+				if restoreErr := cli.NetworkConnect(ctx, req.Network, id, previous); restoreErr != nil {
+					return fmt.Errorf("connecting container %s to network %s: %w; restoring previous endpoint settings: %v", id, req.Network, err, restoreErr)
+				}
+			}
+			return fmt.Errorf("connecting container %s to network %s: %w", id, req.Network, err)
+		}
+		return nil
+	}
+
+	if err := cli.NetworkConnect(ctx, req.Network, id, settings); err != nil {
+		return fmt.Errorf("connecting container %s to network %s: %w", id, req.Network, err)
+	}
+	return nil
+}
+
+func endpointSettingsFromConnectRequest(req NetworkConnectRequest) *networkTypes.EndpointSettings {
+	settings := &networkTypes.EndpointSettings{
+		Aliases:    cleanStringSlice(req.Aliases),
+		MacAddress: strings.TrimSpace(req.MacAddress),
+	}
+
+	ipv4 := strings.TrimSpace(req.IPv4Address)
+	ipv6 := strings.TrimSpace(req.IPv6Address)
+	if ipv4 != "" || ipv6 != "" {
+		settings.IPAMConfig = &networkTypes.EndpointIPAMConfig{
+			IPv4Address: ipv4,
+			IPv6Address: ipv6,
+		}
+	}
+
+	return settings
+}
+
+func currentNetworkEndpointSettings(ctx context.Context, cli *client.Client, id, networkName string) (*networkTypes.EndpointSettings, bool, error) {
+	info, err := cli.ContainerInspect(ctx, id)
+	if err != nil {
+		return nil, false, fmt.Errorf("inspecting container network settings: %w", err)
+	}
+	if info.NetworkSettings == nil {
+		return nil, false, nil
+	}
+	endpoint, ok := info.NetworkSettings.Networks[networkName]
+	if !ok || endpoint == nil {
+		for _, candidate := range info.NetworkSettings.Networks {
+			if candidate != nil && candidate.NetworkID == networkName {
+				endpoint = candidate
+				ok = true
+				break
+			}
+		}
+	}
+	if !ok || endpoint == nil {
+		return nil, false, nil
+	}
+	return &networkTypes.EndpointSettings{
+		IPAMConfig: endpoint.IPAMConfig,
+		Links:      endpoint.Links,
+		Aliases:    endpoint.Aliases,
+		MacAddress: endpoint.MacAddress,
+		DriverOpts: endpoint.DriverOpts,
+		GwPriority: endpoint.GwPriority,
+	}, true, nil
+}
+
+func cleanStringSlice(values []string) []string {
+	cleaned := make([]string, 0, len(values))
+	for _, value := range values {
+		trimmed := strings.TrimSpace(value)
+		if trimmed != "" {
+			cleaned = append(cleaned, trimmed)
+		}
+	}
+	return cleaned
 }
 
 // NetworkDisconnect disconnects a container from a Docker network.
@@ -2064,37 +2151,148 @@ func (s *Service) SaveFileContent(ctx context.Context, envID, id, filePath strin
 
 // UploadFile uploads a file from a reader into a container directory.
 func (s *Service) UploadFile(ctx context.Context, envID, id, destDir, fileName string, reader io.Reader, size int64) error {
+	return s.UploadFiles(ctx, envID, id, destDir, []UploadFileItem{{
+		RelativePath: fileName,
+		Reader:       reader,
+		Size:         size,
+	}}, nil)
+}
+
+// UploadFileItem describes one file to copy into a container directory.
+type UploadFileItem struct {
+	RelativePath string
+	Reader       io.Reader
+	Size         int64
+}
+
+// UploadFiles uploads a set of files and directories into a container directory.
+func (s *Service) UploadFiles(ctx context.Context, envID, id, destDir string, files []UploadFileItem, directories []string) error {
 	cli, err := s.getClient(envID)
 	if err != nil {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	// Large directory uploads can spend most of their time streaming the tar into Docker.
+	ctx, cancel := context.WithTimeout(ctx, 15*time.Minute)
 	defer cancel()
 
 	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
 		return err
 	}
 
-	var buf bytes.Buffer
-	tw := tar.NewWriter(&buf)
+	reader, writer := io.Pipe()
+	writeDone := make(chan error, 1)
+	go func() {
+		writeDone <- writeUploadTar(writer, files, directories)
+	}()
 
+	copyErr := cli.CopyToContainer(ctx, id, destDir, reader, container.CopyToContainerOptions{})
+	if copyErr != nil {
+		if err := reader.CloseWithError(copyErr); err != nil {
+			slog.Warn("containers: close upload pipe reader failed", "error", err)
+		}
+	} else if err := reader.Close(); err != nil {
+		slog.Warn("containers: close upload pipe reader failed", "error", err)
+	}
+
+	writeErr := <-writeDone
+	if copyErr != nil {
+		return fmt.Errorf("copying upload to container: %w", copyErr)
+	}
+	return writeErr
+}
+
+func writeUploadTar(pipeWriter *io.PipeWriter, files []UploadFileItem, directories []string) error {
+	tw := tar.NewWriter(pipeWriter)
+	err := writeUploadTarEntries(tw, files, directories)
+	if closeErr := tw.Close(); err == nil && closeErr != nil {
+		err = fmt.Errorf("closing tar: %w", closeErr)
+	}
+	if err != nil {
+		if closeErr := pipeWriter.CloseWithError(err); closeErr != nil {
+			slog.Warn("containers: close upload pipe writer with error failed", "error", closeErr)
+		}
+		return err
+	}
+	return pipeWriter.Close()
+}
+
+func writeUploadTarEntries(tw *tar.Writer, files []UploadFileItem, directories []string) error {
+	writtenDirs := make(map[string]bool)
+	for _, dir := range directories {
+		cleanDir, err := cleanUploadRelativePath(dir)
+		if err != nil {
+			return err
+		}
+		if err := writeUploadDirectory(tw, cleanDir, writtenDirs); err != nil {
+			return err
+		}
+	}
+
+	for _, file := range files {
+		cleanPath, err := cleanUploadRelativePath(file.RelativePath)
+		if err != nil {
+			return err
+		}
+		if dir := path.Dir(cleanPath); dir != "." {
+			if err := writeUploadDirectory(tw, dir, writtenDirs); err != nil {
+				return err
+			}
+		}
+		if err := writeUploadFile(tw, cleanPath, file); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func writeUploadFile(tw *tar.Writer, cleanPath string, file UploadFileItem) error {
 	hdr := &tar.Header{
-		Name: fileName,
+		Name: cleanPath,
 		Mode: 0644,
-		Size: size,
+		Size: file.Size,
 	}
 	if err := tw.WriteHeader(hdr); err != nil {
 		return fmt.Errorf("writing tar header: %w", err)
 	}
-	if _, err := io.Copy(tw, reader); err != nil {
+	if _, err := io.Copy(tw, file.Reader); err != nil {
 		return fmt.Errorf("writing tar body: %w", err)
 	}
-	if err := tw.Close(); err != nil {
-		return fmt.Errorf("closing tar: %w", err)
-	}
+	return nil
+}
 
-	return cli.CopyToContainer(ctx, id, destDir, &buf, container.CopyToContainerOptions{})
+func cleanUploadRelativePath(rawPath string) (string, error) {
+	cleanPath := path.Clean(strings.ReplaceAll(rawPath, "\\", "/"))
+	cleanPath = strings.TrimPrefix(cleanPath, "./")
+	if cleanPath == "." || cleanPath == "" {
+		return "", fmt.Errorf("upload path is empty")
+	}
+	if strings.HasPrefix(cleanPath, "/") || cleanPath == ".." || strings.HasPrefix(cleanPath, "../") {
+		return "", fmt.Errorf("invalid upload path %q", rawPath)
+	}
+	return cleanPath, nil
+}
+
+func writeUploadDirectory(tw *tar.Writer, dir string, written map[string]bool) error {
+	if dir == "." || dir == "" {
+		return nil
+	}
+	parts := strings.Split(dir, "/")
+	for i := range parts {
+		current := strings.Join(parts[:i+1], "/")
+		if written[current] {
+			continue
+		}
+		if err := tw.WriteHeader(&tar.Header{
+			Name:     current + "/",
+			Typeflag: tar.TypeDir,
+			Mode:     0755,
+		}); err != nil {
+			return fmt.Errorf("writing tar directory header: %w", err)
+		}
+		written[current] = true
+	}
+	return nil
 }
 
 // CreateDirectory creates a directory (including parents) inside a container.

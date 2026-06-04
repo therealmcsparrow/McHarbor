@@ -10,6 +10,8 @@ import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { PageHeader } from '@resources/layout/PageHeader';
 import { useBatchProgressOperation } from '@resources/hooks/useBatchProgressOperation';
 import { useCurrentEnvironmentActivitySettings } from '@resources/hooks/useCurrentEnvironmentActivitySettings';
+import { useEnvironmentStore } from '@resources/stores/environment';
+import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 import { canRunContainerUpdateOperation, isProtectedContainer } from '@core/utils/protection';
 import { ContainerCardGrid } from '../components/ContainerCardGrid';
 import { ContainerUtilityDialogs } from '../components/ContainerUtilityDialogs';
@@ -31,6 +33,8 @@ import { useContainersViewStore } from '../stores/containers-view';
 export default function ContainersPage() {
   const navigate = useNavigate();
   const { t } = useTranslation('containers');
+  const envId = useEnvironmentStore((state) => state.currentId);
+  const uploadActive = useEnvironmentUploadActive(envId);
   const { data: containers = [], isLoading } = useContainers();
   const { data: statsMap } = useContainersBulkStats();
   const { highlightContainerChangesEnabled } = useCurrentEnvironmentActivitySettings();
@@ -128,6 +132,7 @@ export default function ContainersPage() {
             viewMode={viewMode}
             checkingUpdates={checkUpdates.isPending}
             batchRunning={batchProgress.isRunning}
+            uploadActive={uploadActive}
             updatesAvailable={updateTargets.length}
             totalContainers={allTargets.length}
             onCheckUpdates={() => checkUpdates.mutate(undefined)}

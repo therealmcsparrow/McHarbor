@@ -66,7 +66,12 @@ type HealthcheckSpec struct {
 
 // NetworkConnectRequest is the JSON body for POST /containers/{id}/network/connect.
 type NetworkConnectRequest struct {
-	Network string `json:"network"`
+	Network     string   `json:"network"`
+	Aliases     []string `json:"aliases,omitempty"`
+	IPv4Address string   `json:"ipv4Address,omitempty"`
+	IPv6Address string   `json:"ipv6Address,omitempty"`
+	MacAddress  string   `json:"macAddress,omitempty"`
+	Reconnect   bool     `json:"reconnect,omitempty"`
 }
 
 // NetworkDisconnectRequest is the JSON body for POST /containers/{id}/network/disconnect.
@@ -108,6 +113,7 @@ type RecreateRequest struct {
 	AutoRemove     *bool                        `json:"autoRemove,omitempty"`
 	OomKillDisable *bool                        `json:"oomKillDisable,omitempty"`
 	PidsLimit      *int64                       `json:"pidsLimit,omitempty"`
+	Devices        *[]container.DeviceMapping   `json:"devices,omitempty"`
 	DeviceRequests *[]container.DeviceRequest   `json:"deviceRequests,omitempty"`
 	Memory         *int64                       `json:"memory,omitempty"`
 	NanoCPUs       *int64                       `json:"nanoCPUs,omitempty"`

@@ -12,6 +12,7 @@ import {
   RestartPolicySection,
   RuntimeOptionsSection,
 } from "./ResourcesSections";
+import { DevicesSection } from "./DevicesSection";
 
 type ResourcesTabProps = {
   container: ContainerInspect;
@@ -91,6 +92,13 @@ export function ResourcesTab({
         editing={editing}
         editData={editData}
         gpuRequests={gpuRequests}
+        onFieldChange={onFieldChange}
+      />
+      <DevicesSection
+        t={t}
+        hc={hc}
+        editing={editing}
+        editData={editData}
         onFieldChange={onFieldChange}
       />
     </div>

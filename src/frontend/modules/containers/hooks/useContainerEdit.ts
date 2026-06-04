@@ -33,6 +33,7 @@ export function useContainerEdit(container: ContainerInspect | undefined) {
       ...form,
       env: [...form.env],
       labels: { ...form.labels },
+      devices: form.devices.map((device) => ({ ...device })),
       gpuDeviceIds: [...form.gpuDeviceIds],
       gpuCapabilities: [...form.gpuCapabilities],
     });

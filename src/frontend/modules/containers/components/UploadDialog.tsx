@@ -1,19 +1,29 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useRef, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconFile, IconFolder, IconUpload } from '@tabler/icons-react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
-import { IconUpload, IconFile } from '@tabler/icons-react';
 import { formatBytes } from '@resources/utils/format';
 import { useUploadFile } from '../hooks/useContainerFiles';
+import { UploadProgress } from './UploadProgress';
+import { UploadSelectionList } from './UploadSelectionList';
+import {
+  mergeUploadSelections,
+  selectionFromDataTransfer,
+  selectionFromFileList,
+  totalUploadSize,
+  type UploadSelection,
+} from './upload-dialog-utils';
 
 type UploadDialogProps = {
   open: boolean;
@@ -22,6 +32,8 @@ type UploadDialogProps = {
   currentPath: string;
 };
 
+const emptySelection: UploadSelection = { files: [], directories: [] };
+
 export function UploadDialog({
   open,
   onOpenChange,
@@ -29,60 +41,72 @@ export function UploadDialog({
   currentPath,
 }: UploadDialogProps) {
   const { t } = useTranslation('containers');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selection, setSelection] = useState<UploadSelection>(emptySelection);
   const [isDragging, setIsDragging] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useUploadFile(containerId);
+  const uploadSize = totalUploadSize(selection);
+  const hasSelection = selection.files.length > 0 || selection.directories.length > 0;
 
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file);
-  };
+  const setFolderInput = useCallback((node: HTMLInputElement | null) => {
+    folderInputRef.current = node;
+    node?.setAttribute('webkitdirectory', '');
+    node?.setAttribute('directory', '');
+  }, []);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
+  const clearSelection = () => setSelection({ files: [], directories: [] });
+
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
     setIsDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
+  const handleDrop = useCallback(async (event: React.DragEvent) => {
+    event.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFileSelect(file);
+    const droppedSelection = await selectionFromDataTransfer(event.dataTransfer);
+    setSelection((current) => mergeUploadSelections(current, droppedSelection));
   }, []);
 
   const handleUpload = () => {
-    if (!selectedFile) return;
+    if (!hasSelection) return;
     uploadMutation.mutate(
-      { path: currentPath, file: selectedFile },
+      { path: currentPath, files: selection.files, directories: selection.directories },
       {
         onSuccess: () => {
-          setSelectedFile(null);
+          clearSelection();
+          uploadMutation.resetProgress();
           onOpenChange(false);
         },
-      }
+      },
     );
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) setSelectedFile(null);
+    if (!nextOpen) {
+      clearSelection();
+      uploadMutation.resetProgress();
+    }
     onOpenChange(nextOpen);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{t('files.upload')}</DialogTitle>
+          <DialogDescription className="sr-only">{t('files.uploadDescription')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-3 p-4">
-          <div className="text-xs text-muted-foreground font-mono">{currentPath}</div>
+          <div className="font-mono text-xs text-muted-foreground">{currentPath}</div>
           <div
-            className={`flex min-h-[120px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
+            className={`flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 text-center transition-colors ${
               isDragging
                 ? 'border-primary bg-primary/5'
                 : 'border-border hover:border-muted-foreground'
@@ -90,31 +114,72 @@ export function UploadDialog({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
+            onClick={() => fileInputRef.current?.click()}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => e.key === 'Enter' && inputRef.current?.click()}
+            onKeyDown={(event) => event.key === 'Enter' && fileInputRef.current?.click()}
           >
-            {selectedFile ? (
-              <div className="flex items-center gap-2 text-sm text-foreground">
-                <IconFile className="h-5 w-5 text-muted-foreground" />
-                <span>{selectedFile.name}</span>
-                <span className="text-muted-foreground">({formatBytes(selectedFile.size)})</span>
+            {hasSelection ? (
+              <div className="flex flex-col items-center gap-1.5 text-sm text-foreground">
+                <div className="flex items-center gap-2">
+                  <IconFile className="size-5 text-muted-foreground" />
+                  <span>{t('files.uploadSelection', { count: selection.files.length })}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {formatBytes(uploadSize)}
+                  {selection.directories.length > 0
+                    ? ` - ${t('files.uploadFolders', { count: selection.directories.length })}`
+                    : ''}
+                </span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
-                <IconUpload className="h-6 w-6" />
+                <IconUpload className="size-6" />
                 <span className="text-sm">{t('files.dropOrClick')}</span>
               </div>
             )}
           </div>
+
+          <UploadSelectionList selection={selection} />
+
+          {uploadMutation.isPending && <UploadProgress progress={uploadMutation.progress} />}
+
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+              <IconFile className="mr-1.5 size-4" />
+              {hasSelection ? t('files.addFiles') : t('files.chooseFiles')}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => folderInputRef.current?.click()}>
+              <IconFolder className="mr-1.5 size-4" />
+              {hasSelection ? t('files.addFolder') : t('files.chooseFolder')}
+            </Button>
+            {hasSelection && (
+              <Button variant="ghost" size="sm" onClick={clearSelection}>
+                {t('files.clearSelection')}
+              </Button>
+            )}
+          </div>
+
           <input
-            ref={inputRef}
+            ref={fileInputRef}
             type="file"
+            multiple
             className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileSelect(file);
+            onChange={(event) => {
+              const nextSelection = selectionFromFileList(event.target.files);
+              setSelection((current) => mergeUploadSelections(current, nextSelection));
+              event.target.value = '';
+            }}
+          />
+          <input
+            ref={setFolderInput}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(event) => {
+              const nextSelection = selectionFromFileList(event.target.files);
+              setSelection((current) => mergeUploadSelections(current, nextSelection));
+              event.target.value = '';
             }}
           />
         </div>
@@ -122,7 +187,10 @@ export function UploadDialog({
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             {t('edit.cancelChanges')}
           </Button>
-          <Button onClick={handleUpload} disabled={!selectedFile || uploadMutation.isPending}>
+          <Button
+            onClick={handleUpload}
+            disabled={!hasSelection || uploadMutation.isPending}
+          >
             {uploadMutation.isPending ? t('files.uploading') : t('files.upload')}
           </Button>
         </DialogFooter>

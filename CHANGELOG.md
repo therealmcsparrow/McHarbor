@@ -2,6 +2,21 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.4.1] - 2026-06-04
+
+### Added
+- Added editable Linux device mappings to the container Resources tab, allowing host devices such as `/dev/ttyUSB0` to be mapped into recreated containers with Docker `r/w/m` permissions.
+- Added multi-file and folder upload support in the container file browser, including progress reporting and clearer upload failure messages.
+
+### Changed
+- Bumped the patch application version to `1.4.1` across canonical runtime metadata, agent metadata, frontend package metadata, and lockfile root metadata.
+- Paused high-volume agent polling while container file uploads are active so large uploads do not compete with container lists, stats, host metrics, Docker info, update checks, or Docker event streams over the same agent connection.
+
+### Fixed
+- Fixed large folder uploads failing with plain `400` responses by streaming multipart upload parts to temporary files instead of parsing the full multipart form in memory.
+- Fixed container upload archive creation to stream tar data to Docker instead of buffering the archive in memory.
+- Fixed the upload dialog accessibility warning by providing the required dialog description.
+
 ## [1.4.0] - 2026-06-03
 
 ### Added

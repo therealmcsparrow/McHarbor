@@ -12,6 +12,15 @@ import type { EditFormData, PortMappingEntry } from '../../types/edit-form';
 import { NetworkTabConfigSection } from './NetworkTabConfigSection';
 import { NetworkTabPortsSection } from './NetworkTabPortsSection';
 
+export type NetworkConnectPayload = {
+  network: string;
+  aliases?: string[];
+  ipv4Address?: string;
+  ipv6Address?: string;
+  macAddress?: string;
+  reconnect?: boolean;
+};
+
 type NetworkTabProps = {
   container: ContainerInspect;
   editing?: boolean;
@@ -34,8 +43,8 @@ export function NetworkTab({ container, editing = false, editData, onFieldChange
   });
 
   const connectMutation = useMutation({
-    mutationFn: (network: string) =>
-      api.post(`/containers/${container.Id}/network/connect${envQuery}`, { network }).then(assertSuccess),
+    mutationFn: (payload: NetworkConnectPayload) =>
+      api.post(`/containers/${container.Id}/network/connect${envQuery}`, payload).then(assertSuccess),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['container'] });
       setSelectedNetwork('');

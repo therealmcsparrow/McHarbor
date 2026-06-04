@@ -4,6 +4,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEnvironmentStore } from '@resources/stores/environment';
+import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 import { useCurrentEnvironmentActivitySettings } from './useCurrentEnvironmentActivitySettings';
 
 type DockerEvent = {
@@ -23,6 +24,7 @@ export function useDockerEvents() {
   const queryClient = useQueryClient();
   const envId = useEnvironmentStore((s) => s.currentId);
   const { currentEnvironment, trackContainerEventsEnabled } = useCurrentEnvironmentActivitySettings();
+  const uploadActive = useEnvironmentUploadActive(envId);
   const sourceRef = useRef<EventSource | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -56,7 +58,7 @@ export function useDockerEvents() {
       clearTimeout(reconnectTimer.current);
       reconnectTimer.current = null;
     }
-    if (currentEnvironment && !trackContainerEventsEnabled) {
+    if (uploadActive || (currentEnvironment && !trackContainerEventsEnabled)) {
       return;
     }
 
@@ -87,7 +89,7 @@ export function useDockerEvents() {
       // Reconnect after 5 seconds
       reconnectTimer.current = setTimeout(connect, 5000);
     };
-  }, [currentEnvironment, envId, invalidate, trackContainerEventsEnabled]);
+  }, [currentEnvironment, envId, invalidate, trackContainerEventsEnabled, uploadActive]);
 
   useEffect(() => {
     connect();

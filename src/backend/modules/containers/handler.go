@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"mime"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -820,7 +821,7 @@ func (h *Handler) HandleNetworkConnect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.NetworkConnect(r.Context(), envID, id, req.Network); err != nil {
+	if err := h.svc.NetworkConnect(r.Context(), envID, id, req); err != nil {
 		if writeProtectedError(w, r, err) {
 			return
 		}
@@ -1197,31 +1198,160 @@ func (h *Handler) HandleUploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const maxUpload = 100 * 1024 * 1024 // 100MB
+	const maxUpload = 4 << 30 // 4GB
 	r.Body = http.MaxBytesReader(w, r.Body, maxUpload)
-	if err := r.ParseMultipartForm(maxUpload); err != nil {
-		response.BadRequestCode(w, r, i18n.ErrContainerFileTooLarge)
-		return
-	}
 
-	file, header, err := r.FormFile("file")
-	if err != nil {
+	files, dirs, closeFiles, err := uploadFilesFromMultipartRequest(r)
+	if err != nil || (len(files) == 0 && len(dirs) == 0) {
+		if err != nil {
+			h.app.Logger.Warn("parse upload multipart form failed", "env", envID, "id", id, "dest", destDir, "content_length", r.ContentLength, "error", err)
+		}
 		response.BadRequestCode(w, r, i18n.ErrContainerFileNameRequired)
 		return
 	}
-	defer file.Close()
+	defer closeFiles()
 
-	if err := h.svc.UploadFile(r.Context(), envID, id, destDir, header.Filename, file, header.Size); err != nil {
+	if err := h.svc.UploadFiles(r.Context(), envID, id, destDir, files, dirs); err != nil {
 		if writeProtectedError(w, r, err) {
 			return
 		}
-		h.app.Logger.Error("upload file failed", "env", envID, "id", id, "dest", destDir, "file", header.Filename, "error", err)
+		h.app.Logger.Error("upload file failed", "env", envID, "id", id, "dest", destDir, "count", len(files), "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrContainerFileUploadFailed)
 		return
 	}
 
-	h.logContainerAudit(r, envID, "file_upload", id, "file="+header.Filename+" dest="+destDir)
-	response.OK(w, map[string]string{"file": header.Filename, "path": destDir})
+	h.logContainerAudit(r, envID, "file_upload", id, fmt.Sprintf("count=%d dest=%s", len(files), destDir))
+	response.OK(w, map[string]any{"count": len(files), "path": destDir})
+}
+
+func uploadFilesFromMultipartRequest(r *http.Request) ([]UploadFileItem, []string, func(), error) {
+	reader, err := r.MultipartReader()
+	if err != nil {
+		return nil, nil, func() {}, fmt.Errorf("creating multipart reader: %w", err)
+	}
+
+	var files []UploadFileItem
+	var dirs []string
+	var opened []*os.File
+	var tempPaths []string
+	pendingPath := ""
+	lastFileNeedsPath := -1
+	cleanup := func() {
+		for _, file := range opened {
+			if err := file.Close(); err != nil {
+				continue
+			}
+		}
+		for _, tempPath := range tempPaths {
+			if err := os.Remove(tempPath); err != nil {
+				continue
+			}
+		}
+	}
+
+	for {
+		part, err := reader.NextPart()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			cleanup()
+			return nil, nil, func() {}, fmt.Errorf("reading upload part: %w", err)
+		}
+		switch part.FormName() {
+		case "dirs":
+			dir, err := readUploadTextPart(part)
+			if err != nil {
+				cleanup()
+				return nil, nil, func() {}, err
+			}
+			dirs = append(dirs, dir)
+		case "paths":
+			relativePath, err := readUploadTextPart(part)
+			if err != nil {
+				cleanup()
+				return nil, nil, func() {}, err
+			}
+			if lastFileNeedsPath >= 0 {
+				files[lastFileNeedsPath].RelativePath = relativePath
+				lastFileNeedsPath = -1
+			} else {
+				pendingPath = relativePath
+			}
+		case "files", "file":
+			file, tempPath, size, err := uploadTempFileFromPart(part)
+			if err != nil {
+				cleanup()
+				return nil, nil, func() {}, err
+			}
+			opened = append(opened, file)
+			tempPaths = append(tempPaths, tempPath)
+			relativePath := part.FileName()
+			if pendingPath != "" {
+				relativePath = pendingPath
+				pendingPath = ""
+			} else {
+				lastFileNeedsPath = len(files)
+			}
+			files = append(files, UploadFileItem{
+				RelativePath: relativePath,
+				Reader:       file,
+				Size:         size,
+			})
+		default:
+			if _, err := io.Copy(io.Discard, part); err != nil {
+				cleanup()
+				return nil, nil, func() {}, fmt.Errorf("discarding upload part: %w", err)
+			}
+		}
+		if err := part.Close(); err != nil {
+			cleanup()
+			return nil, nil, func() {}, fmt.Errorf("closing upload part: %w", err)
+		}
+	}
+
+	return files, dirs, cleanup, nil
+}
+
+func readUploadTextPart(part *multipart.Part) (string, error) {
+	const maxTextPart = 1 << 20
+	data, err := io.ReadAll(io.LimitReader(part, maxTextPart+1))
+	if err != nil {
+		return "", fmt.Errorf("reading upload form value: %w", err)
+	}
+	if len(data) > maxTextPart {
+		return "", fmt.Errorf("upload form value is too large")
+	}
+	return string(data), nil
+}
+
+func uploadTempFileFromPart(part *multipart.Part) (*os.File, string, int64, error) {
+	file, err := os.CreateTemp("", "mcharbor-upload-*")
+	if err != nil {
+		return nil, "", 0, fmt.Errorf("creating upload temp file: %w", err)
+	}
+	size, copyErr := io.Copy(file, part)
+	if copyErr != nil {
+		name := file.Name()
+		if closeErr := file.Close(); closeErr != nil {
+			return nil, "", 0, fmt.Errorf("copying upload temp file: %w; closing temp file: %v", copyErr, closeErr)
+		}
+		if removeErr := os.Remove(name); removeErr != nil {
+			return nil, "", 0, fmt.Errorf("copying upload temp file: %w; removing temp file: %v", copyErr, removeErr)
+		}
+		return nil, "", 0, fmt.Errorf("copying upload temp file: %w", copyErr)
+	}
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		name := file.Name()
+		if closeErr := file.Close(); closeErr != nil {
+			return nil, "", 0, fmt.Errorf("seeking upload temp file: %w; closing temp file: %v", err, closeErr)
+		}
+		if removeErr := os.Remove(name); removeErr != nil {
+			return nil, "", 0, fmt.Errorf("seeking upload temp file: %w; removing temp file: %v", err, removeErr)
+		}
+		return nil, "", 0, fmt.Errorf("seeking upload temp file: %w", err)
+	}
+	return file, file.Name(), size, nil
 }
 
 // HandleCreateDir creates a directory inside a container.

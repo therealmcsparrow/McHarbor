@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 import type { ContainerMetric } from '@core/types/docker';
 import { useEnvironmentStore } from '@resources/stores/environment';
+import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 import { useCurrentEnvironmentActivitySettings } from './useCurrentEnvironmentActivitySettings';
 
 export type BulkContainerMetric = ContainerMetric;
@@ -12,6 +13,7 @@ export type BulkContainerMetric = ContainerMetric;
 export function useContainersBulkStats() {
   const envId = useEnvironmentStore((state) => state.currentId);
   const { collectContainerMetricsEnabled } = useCurrentEnvironmentActivitySettings();
+  const uploadActive = useEnvironmentUploadActive(envId);
 
   return useQuery({
     queryKey: ['containers-bulk-stats', envId],
@@ -25,7 +27,7 @@ export function useContainersBulkStats() {
           }
           return map;
         }),
-    refetchInterval: collectContainerMetricsEnabled ? 5_000 : false,
-    enabled: collectContainerMetricsEnabled,
+    refetchInterval: collectContainerMetricsEnabled && !uploadActive ? 5_000 : false,
+    enabled: collectContainerMetricsEnabled && !uploadActive,
   });
 }

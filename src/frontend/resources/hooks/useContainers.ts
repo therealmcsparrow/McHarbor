@@ -5,9 +5,11 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 import type { ContainerInfo } from '@core/types/docker';
 import { useEnvironmentStore } from '@resources/stores/environment';
+import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 
 export function useContainers(all = true) {
   const envId = useEnvironmentStore((state) => state.currentId);
+  const uploadActive = useEnvironmentUploadActive(envId);
 
   return useQuery({
     queryKey: ['containers', envId, all],
@@ -18,6 +20,7 @@ export function useContainers(all = true) {
           ...(envId ? { env: envId } : {}),
         })
         .then((response) => response.data ?? []),
-    refetchInterval: 10_000,
+    refetchInterval: uploadActive ? false : 10_000,
+    enabled: !uploadActive,
   });
 }

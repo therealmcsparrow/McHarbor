@@ -5,9 +5,11 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 import type { HostMetrics } from '@core/types/docker';
 import { useEnvironmentStore } from '@resources/stores/environment';
+import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 
 export function useHostMetrics() {
   const envId = useEnvironmentStore((state) => state.currentId);
+  const uploadActive = useEnvironmentUploadActive(envId);
 
   return useQuery({
     queryKey: ['host-metrics', envId],
@@ -15,6 +17,7 @@ export function useHostMetrics() {
       api
         .get<HostMetrics>('/metrics/host', envId ? { env: envId } : {})
         .then((response) => response.data),
-    refetchInterval: 30_000,
+    refetchInterval: uploadActive ? false : 30_000,
+    enabled: !uploadActive,
   });
 }

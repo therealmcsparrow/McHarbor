@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@core/api/client';
 import type { HostMetrics } from '@core/types/docker';
 import { assertSuccess } from '@resources/utils/api-mutation';
+import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 
 type EnvironmentInfo = {
   id: string;
@@ -79,16 +80,18 @@ export function useEnvironment(id: string) {
 }
 
 export function useEnvironmentMetrics(envId: string, enabled = true) {
+  const uploadActive = useEnvironmentUploadActive(envId);
   return useQuery({
     queryKey: ['dashboard-stats', envId],
     queryFn: () =>
       api.get<DashboardStats>('/dashboard/stats', { env: envId }).then((r) => r.data),
-    refetchInterval: enabled ? 15_000 : false,
-    enabled: enabled && !!envId,
+    refetchInterval: enabled && !uploadActive ? 15_000 : false,
+    enabled: enabled && !!envId && !uploadActive,
   });
 }
 
 export function useEnvironmentUpdateSummary(envId: string, enabled = true) {
+  const uploadActive = useEnvironmentUploadActive(envId);
   return useQuery({
     queryKey: ['environment-update-summary', envId],
     queryFn: async (): Promise<EnvironmentUpdateSummary> => {
@@ -105,7 +108,7 @@ export function useEnvironmentUpdateSummary(envId: string, enabled = true) {
         errors: results.filter((result) => !!result.error).length,
       };
     },
-    enabled: enabled && !!envId,
+    enabled: enabled && !!envId && !uploadActive,
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
@@ -114,12 +117,13 @@ export function useEnvironmentUpdateSummary(envId: string, enabled = true) {
 }
 
 export function useEnvironmentHostMetrics(envId: string) {
+  const uploadActive = useEnvironmentUploadActive(envId);
   return useQuery({
     queryKey: ['host-metrics', envId],
     queryFn: () =>
       api.get<HostMetrics>('/metrics/host', { env: envId }).then((r) => r.data),
-    refetchInterval: 30_000,
-    enabled: !!envId,
+    refetchInterval: uploadActive ? false : 30_000,
+    enabled: !!envId && !uploadActive,
   });
 }
 

@@ -10,6 +10,12 @@ export type PortMappingEntry = {
   protocol: string;
 };
 
+export type DeviceMappingEntry = {
+  pathOnHost: string;
+  pathInContainer: string;
+  cgroupPermissions: string;
+};
+
 export type HealthcheckConfig = {
   enabled: boolean;
   command: string;
@@ -79,6 +85,7 @@ export type EditFormData = {
   autoRemove: boolean;
   oomKillDisable: boolean;
   pidsLimit: number;
+  devices: DeviceMappingEntry[];
   gpuEnabled: boolean;
   gpuDriver: string;
   gpuCount: number;
@@ -187,6 +194,11 @@ export function containerToEditForm(c: ContainerInspect): EditFormData {
     autoRemove: hc?.AutoRemove ?? false,
     oomKillDisable: hc?.OomKillDisable ?? false,
     pidsLimit: typeof hc?.PidsLimit === 'number' ? hc.PidsLimit : 0,
+    devices: (hc?.Devices ?? []).map((device) => ({
+      pathOnHost: device.PathOnHost ?? '',
+      pathInContainer: device.PathInContainer ?? device.PathOnHost ?? '',
+      cgroupPermissions: device.CgroupPermissions ?? 'rwm',
+    })),
     gpuEnabled: !!gpuRequest,
     gpuDriver: gpuRequest?.Driver ?? 'nvidia',
     gpuCount,
@@ -284,6 +296,20 @@ function buildDeviceRequestsPayload(data: EditFormData): DeviceRequestPayload[] 
   ];
 }
 
+function buildDevicesPayload(data: EditFormData): Array<{
+  PathOnHost: string;
+  PathInContainer: string;
+  CgroupPermissions: string;
+}> {
+  return data.devices
+    .map((device) => ({
+      PathOnHost: device.pathOnHost.trim(),
+      PathInContainer: (device.pathInContainer.trim() || device.pathOnHost.trim()),
+      CgroupPermissions: device.cgroupPermissions.trim() || 'rwm',
+    }))
+    .filter((device) => device.PathOnHost && device.PathInContainer);
+}
+
 export function buildRecreatePayload(
   data: EditFormData,
   changes: ChangeClassification,
@@ -344,6 +370,7 @@ export function buildRecreatePayload(
   if (fields.has('autoRemove')) payload.autoRemove = data.autoRemove;
   if (fields.has('oomKillDisable')) payload.oomKillDisable = data.oomKillDisable;
   if (fields.has('pidsLimit')) payload.pidsLimit = data.pidsLimit;
+  if (fields.has('devices')) payload.devices = buildDevicesPayload(data);
   if (
     fields.has('gpuEnabled') ||
     fields.has('gpuDriver') ||
