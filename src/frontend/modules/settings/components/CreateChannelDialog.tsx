@@ -12,6 +12,9 @@ import {
   IconBrandTelegram,
   IconMessageCircle,
   IconBrandWhatsapp,
+  IconMail,
+  IconBrandWindows,
+  IconBrandGoogle,
 } from '@tabler/icons-react';
 import {
   Dialog,
@@ -23,6 +26,7 @@ import {
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
 import { useCreateChannel, type ChannelType } from '../hooks/useNotificationChannels';
+import { useCreateEmailServer } from '../hooks/useEmailServers';
 import { SlackForm, type SlackFormData } from './SlackForm';
 import { DiscordForm, type DiscordFormData } from './DiscordForm';
 import { TeamsForm, type TeamsFormData } from './TeamsForm';
@@ -31,23 +35,41 @@ import { NtfyForm, type NtfyFormData } from './NtfyForm';
 import { TelegramForm, type TelegramFormData } from './TelegramForm';
 import { SignalForm, type SignalFormData } from './SignalForm';
 import { WhatsAppForm, type WhatsAppFormData } from './WhatsAppForm';
+import { SMTPForm, type SMTPFormData } from './SMTPForm';
+import { ExchangeForm, type ExchangeFormData } from './ExchangeForm';
+import { GmailForm, type GmailFormData } from './GmailForm';
 
 type CreateChannelDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-const CHANNEL_TYPES: { type: ChannelType; icon: typeof IconBrandSlack; color: string }[] = [
-  { type: 'slack', icon: IconBrandSlack, color: 'text-[#4A154B]' },
-  { type: 'discord', icon: IconBrandDiscord, color: 'text-[#5865F2]' },
-  { type: 'teams', icon: IconBrandTeams, color: 'text-[#6264A7]' },
-  { type: 'gotify', icon: IconBell, color: 'text-primary' },
-  { type: 'ntfy', icon: IconSend2, color: 'text-orange-400' },
-  { type: 'telegram', icon: IconBrandTelegram, color: 'text-[#26A5E4]' },
-  { type: 'signal', icon: IconMessageCircle, color: 'text-[#3A76F0]' },
-  { type: 'whatsapp', icon: IconBrandWhatsapp, color: 'text-[#25D366]' },
+type EmailCreateType = 'email_smtp' | 'email_exchange' | 'email_google';
+type CommunicationCreateType = ChannelType | EmailCreateType;
+
+const COMMUNICATION_TYPES: {
+  type: CommunicationCreateType;
+  icon: typeof IconBrandSlack;
+  color: string;
+  labelKey: string;
+  descriptionKey: string;
+}[] = [
+  { type: 'email_smtp', icon: IconMail, color: 'text-primary', labelKey: 'communications.typeSmtp', descriptionKey: 'communications.typeSmtpDescription' },
+  { type: 'email_exchange', icon: IconBrandWindows, color: 'text-[#0078D4]', labelKey: 'communications.typeExchange', descriptionKey: 'communications.typeExchangeDescription' },
+  { type: 'email_google', icon: IconBrandGoogle, color: 'text-[#4285F4]', labelKey: 'communications.typeGoogle', descriptionKey: 'communications.typeGoogleDescription' },
+  { type: 'slack', icon: IconBrandSlack, color: 'text-[#4A154B]', labelKey: 'communications.typeSlack', descriptionKey: 'communications.typeSlackDescription' },
+  { type: 'discord', icon: IconBrandDiscord, color: 'text-[#5865F2]', labelKey: 'communications.typeDiscord', descriptionKey: 'communications.typeDiscordDescription' },
+  { type: 'teams', icon: IconBrandTeams, color: 'text-[#6264A7]', labelKey: 'communications.typeTeams', descriptionKey: 'communications.typeTeamsDescription' },
+  { type: 'gotify', icon: IconBell, color: 'text-primary', labelKey: 'communications.typeGotify', descriptionKey: 'communications.typeGotifyDescription' },
+  { type: 'ntfy', icon: IconSend2, color: 'text-orange-400', labelKey: 'communications.typeNtfy', descriptionKey: 'communications.typeNtfyDescription' },
+  { type: 'telegram', icon: IconBrandTelegram, color: 'text-[#26A5E4]', labelKey: 'communications.typeTelegram', descriptionKey: 'communications.typeTelegramDescription' },
+  { type: 'signal', icon: IconMessageCircle, color: 'text-[#3A76F0]', labelKey: 'communications.typeSignal', descriptionKey: 'communications.typeSignalDescription' },
+  { type: 'whatsapp', icon: IconBrandWhatsapp, color: 'text-[#25D366]', labelKey: 'communications.typeWhatsapp', descriptionKey: 'communications.typeWhatsappDescription' },
 ];
 
+const DEFAULT_SMTP: SMTPFormData = { name: '', host: '', port: 587, encryption: 'starttls', authMethod: 'plain', username: '', password: '', fromAddress: '', fromName: '' };
+const DEFAULT_EXCHANGE: ExchangeFormData = { name: '', clientId: '', clientSecret: '', tenantId: '', fromAddress: '', fromName: '' };
+const DEFAULT_GMAIL: GmailFormData = { name: '', clientId: '', clientSecret: '', fromAddress: '', fromName: '' };
 const DEFAULT_SLACK: SlackFormData = { name: '', webhookUrl: '' };
 const DEFAULT_DISCORD: DiscordFormData = { name: '', webhookUrl: '' };
 const DEFAULT_TEAMS: TeamsFormData = { name: '', webhookUrl: '' };
@@ -60,7 +82,10 @@ const DEFAULT_WHATSAPP: WhatsAppFormData = { name: '', method: 'cloud_api', serv
 export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogProps) {
   const { t } = useTranslation('settings');
   const [step, setStep] = useState<'type' | 'config'>('type');
-  const [channelType, setChannelType] = useState<ChannelType | null>(null);
+  const [communicationType, setCommunicationType] = useState<CommunicationCreateType | null>(null);
+  const [smtpData, setSmtpData] = useState(DEFAULT_SMTP);
+  const [exchangeData, setExchangeData] = useState(DEFAULT_EXCHANGE);
+  const [gmailData, setGmailData] = useState(DEFAULT_GMAIL);
   const [slackData, setSlackData] = useState(DEFAULT_SLACK);
   const [discordData, setDiscordData] = useState(DEFAULT_DISCORD);
   const [teamsData, setTeamsData] = useState(DEFAULT_TEAMS);
@@ -70,10 +95,14 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
   const [signalData, setSignalData] = useState(DEFAULT_SIGNAL);
   const [whatsappData, setWhatsappData] = useState(DEFAULT_WHATSAPP);
   const createChannel = useCreateChannel();
+  const createEmailServer = useCreateEmailServer();
 
   function reset() {
     setStep('type');
-    setChannelType(null);
+    setCommunicationType(null);
+    setSmtpData(DEFAULT_SMTP);
+    setExchangeData(DEFAULT_EXCHANGE);
+    setGmailData(DEFAULT_GMAIL);
     setSlackData(DEFAULT_SLACK);
     setDiscordData(DEFAULT_DISCORD);
     setTeamsData(DEFAULT_TEAMS);
@@ -89,14 +118,56 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
     onOpenChange(value);
   }
 
-  function handleSelectType(type: ChannelType) {
-    setChannelType(type);
+  function handleSelectType(type: CommunicationCreateType) {
+    setCommunicationType(type);
     setStep('config');
   }
 
   function handleCreate() {
-    if (!channelType) return;
+    if (!communicationType) return;
 
+    if (communicationType === 'email_smtp') {
+      createEmailServer.mutate({
+        name: smtpData.name,
+        serverType: 'smtp',
+        host: smtpData.host,
+        port: smtpData.port,
+        encryption: smtpData.encryption,
+        authMethod: smtpData.authMethod,
+        username: smtpData.username,
+        password: smtpData.password,
+        fromAddress: smtpData.fromAddress,
+        fromName: smtpData.fromName,
+      }, { onSuccess: () => handleOpenChange(false) });
+      return;
+    }
+
+    if (communicationType === 'email_exchange') {
+      createEmailServer.mutate({
+        name: exchangeData.name,
+        serverType: 'exchange',
+        clientId: exchangeData.clientId,
+        clientSecret: exchangeData.clientSecret,
+        tenantId: exchangeData.tenantId,
+        fromAddress: exchangeData.fromAddress,
+        fromName: exchangeData.fromName,
+      }, { onSuccess: () => handleOpenChange(false) });
+      return;
+    }
+
+    if (communicationType === 'email_google') {
+      createEmailServer.mutate({
+        name: gmailData.name,
+        serverType: 'gmail',
+        clientId: gmailData.clientId,
+        clientSecret: gmailData.clientSecret,
+        fromAddress: gmailData.fromAddress,
+        fromName: gmailData.fromName,
+      }, { onSuccess: () => handleOpenChange(false) });
+      return;
+    }
+
+    const channelType = communicationType;
     const base = { channelType };
 
     const inputMap: Record<ChannelType, Record<string, unknown>> = {
@@ -116,10 +187,15 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
     );
   }
 
-  const isValid = channelType ? getIsValid(channelType) : false;
+  const selectedOption = COMMUNICATION_TYPES.find((type) => type.type === communicationType);
+  const isValid = communicationType ? getIsValid(communicationType) : false;
+  const isPending = createChannel.isPending || createEmailServer.isPending;
 
-  function getIsValid(type: ChannelType): boolean {
+  function getIsValid(type: CommunicationCreateType): boolean {
     switch (type) {
+      case 'email_smtp': return !!(smtpData.name && smtpData.host && smtpData.port && smtpData.fromAddress);
+      case 'email_exchange': return !!(exchangeData.name && exchangeData.clientId && exchangeData.clientSecret && exchangeData.tenantId && exchangeData.fromAddress);
+      case 'email_google': return !!(gmailData.name && gmailData.clientId && gmailData.clientSecret && gmailData.fromAddress);
       case 'slack': return !!(slackData.name && slackData.webhookUrl);
       case 'discord': return !!(discordData.name && discordData.webhookUrl);
       case 'teams': return !!(teamsData.name && teamsData.webhookUrl);
@@ -151,16 +227,16 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
           <DialogDescription>
             {step === 'type'
               ? t('communications.selectTypeDescription')
-              : channelType
-                ? t(`communications.type${channelType.charAt(0).toUpperCase() + channelType.slice(1)}`)
+              : selectedOption
+                ? t(selectedOption.descriptionKey)
                 : ''}
           </DialogDescription>
         </DialogHeader>
 
         <div>
           {step === 'type' && (
-            <div className="grid grid-cols-4 gap-3">
-              {CHANNEL_TYPES.map(({ type, icon: Icon, color }) => (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {COMMUNICATION_TYPES.map(({ type, icon: Icon, color, labelKey }) => (
                 <Button
                   key={type}
                   variant="outline"
@@ -169,21 +245,24 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
                 >
                   <Icon className={`size-8 ${color}`} />
                   <span className="text-xs font-medium text-foreground">
-                    {t(`communications.type${type.charAt(0).toUpperCase() + type.slice(1)}`)}
+                    {t(labelKey)}
                   </span>
                 </Button>
               ))}
             </div>
           )}
 
-          {step === 'config' && channelType === 'slack' && <SlackForm data={slackData} onChange={setSlackData} />}
-          {step === 'config' && channelType === 'discord' && <DiscordForm data={discordData} onChange={setDiscordData} />}
-          {step === 'config' && channelType === 'teams' && <TeamsForm data={teamsData} onChange={setTeamsData} />}
-          {step === 'config' && channelType === 'gotify' && <GotifyForm data={gotifyData} onChange={setGotifyData} />}
-          {step === 'config' && channelType === 'ntfy' && <NtfyForm data={ntfyData} onChange={setNtfyData} />}
-          {step === 'config' && channelType === 'telegram' && <TelegramForm data={telegramData} onChange={setTelegramData} />}
-          {step === 'config' && channelType === 'signal' && <SignalForm data={signalData} onChange={setSignalData} />}
-          {step === 'config' && channelType === 'whatsapp' && <WhatsAppForm data={whatsappData} onChange={setWhatsappData} />}
+          {step === 'config' && communicationType === 'email_smtp' && <SMTPForm data={smtpData} onChange={setSmtpData} />}
+          {step === 'config' && communicationType === 'email_exchange' && <ExchangeForm data={exchangeData} onChange={setExchangeData} />}
+          {step === 'config' && communicationType === 'email_google' && <GmailForm data={gmailData} onChange={setGmailData} />}
+          {step === 'config' && communicationType === 'slack' && <SlackForm data={slackData} onChange={setSlackData} />}
+          {step === 'config' && communicationType === 'discord' && <DiscordForm data={discordData} onChange={setDiscordData} />}
+          {step === 'config' && communicationType === 'teams' && <TeamsForm data={teamsData} onChange={setTeamsData} />}
+          {step === 'config' && communicationType === 'gotify' && <GotifyForm data={gotifyData} onChange={setGotifyData} />}
+          {step === 'config' && communicationType === 'ntfy' && <NtfyForm data={ntfyData} onChange={setNtfyData} />}
+          {step === 'config' && communicationType === 'telegram' && <TelegramForm data={telegramData} onChange={setTelegramData} />}
+          {step === 'config' && communicationType === 'signal' && <SignalForm data={signalData} onChange={setSignalData} />}
+          {step === 'config' && communicationType === 'whatsapp' && <WhatsAppForm data={whatsappData} onChange={setWhatsappData} />}
         </div>
 
         {step === 'config' && (
@@ -193,9 +272,9 @@ export function CreateChannelDialog({ open, onOpenChange }: CreateChannelDialogP
             </Button>
             <Button
               onClick={handleCreate}
-              disabled={!isValid || createChannel.isPending}
+              disabled={!isValid || isPending}
             >
-              {createChannel.isPending ? '...' : t('communications.addChannel')}
+              {isPending ? '...' : t('communications.addChannel')}
             </Button>
           </DialogFooter>
         )}

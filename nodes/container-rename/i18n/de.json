@@ -4,6 +4,7 @@
   "config": {
     "environment": "Umgebung",
     "container": "Container",
-    "new_name": "Neuer Name"
+    "new_name": "Neuer Name",
+    "unlock_protected": "Geschuetzten Container entsperren"
   }
 }

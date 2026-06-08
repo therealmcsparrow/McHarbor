@@ -1,0 +1,13 @@
+{
+  "label": "Container-back-up",
+  "description": "Voer een versleutelde back-up voor een container uit",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container",
+    "storage_location_id": "Opslaglocatie",
+    "include_logs": "Logs opnemen",
+    "include_filesystem": "Bestandssysteem opnemen",
+    "include_image": "Image opnemen",
+    "selected_mounts": "Geselecteerde mounts"
+  }
+}

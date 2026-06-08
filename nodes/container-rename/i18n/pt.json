@@ -4,6 +4,7 @@
   "config": {
     "environment": "Ambiente",
     "container": "Recipiente",
-    "new_name": "Novo nome"
+    "new_name": "Novo nome",
+    "unlock_protected": "Desbloquear contêiner protegido"
   }
 }

@@ -1,0 +1,7 @@
+{
+  "label": "Speicherorte auflisten",
+  "description": "Konfigurierte Speicherorte ohne geheime Werte zurueckgeben",
+  "config": {
+    "enabled_only": "Nur aktivierte"
+  }
+}

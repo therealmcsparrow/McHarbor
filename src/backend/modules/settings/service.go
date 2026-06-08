@@ -273,6 +273,12 @@ func (s *Service) UpdateRetentionSettings(ctx context.Context, input RetentionSe
 	if input.ActivityRetentionDays < 0 || input.ActivityRetentionDays > 3650 {
 		return fmt.Errorf("activity retention days must be between 0 and 3650")
 	}
+	if input.BackupRetentionCount < 0 || input.BackupRetentionCount > 1000 {
+		return fmt.Errorf("backup retention count must be between 0 and 1000")
+	}
+	if input.BackupRetentionDays < 0 || input.BackupRetentionDays > 3650 {
+		return fmt.Errorf("backup retention days must be between 0 and 3650")
+	}
 
 	now := time.Now().UTC().Format(time.RFC3339)
 
@@ -285,6 +291,8 @@ func (s *Service) UpdateRetentionSettings(ctx context.Context, input RetentionSe
 	kvs := map[string]string{
 		"retention_audit_days":    strconv.Itoa(input.AuditRetentionDays),
 		"retention_activity_days": strconv.Itoa(input.ActivityRetentionDays),
+		"retention_backup_count":  strconv.Itoa(input.BackupRetentionCount),
+		"retention_backup_days":   strconv.Itoa(input.BackupRetentionDays),
 	}
 
 	for key, value := range kvs {
@@ -331,14 +339,14 @@ func (s *Service) UpdateScannerSettings(ctx context.Context, input ScannerSettin
 	}
 
 	kvs := map[string]string{
-		"scanner_trivy_enabled":    boolStr(input.TrivyEnabled),
-		"scanner_grype_enabled":    boolStr(input.GrypeEnabled),
-		"scanner_clair_enabled":    boolStr(input.ClairEnabled),
-		"scanner_clair_url":        input.ClairURL,
-		"scanner_default":          input.DefaultScanner,
-		"scanner_timeout":          strconv.Itoa(input.ScanTimeout),
-		"scanner_scan_on_install":  boolStr(input.ScanOnInstall),
-		"scanner_scan_on_update":   boolStr(input.ScanOnUpdate),
+		"scanner_trivy_enabled":   boolStr(input.TrivyEnabled),
+		"scanner_grype_enabled":   boolStr(input.GrypeEnabled),
+		"scanner_clair_enabled":   boolStr(input.ClairEnabled),
+		"scanner_clair_url":       input.ClairURL,
+		"scanner_default":         input.DefaultScanner,
+		"scanner_timeout":         strconv.Itoa(input.ScanTimeout),
+		"scanner_scan_on_install": boolStr(input.ScanOnInstall),
+		"scanner_scan_on_update":  boolStr(input.ScanOnUpdate),
 	}
 
 	for key, value := range kvs {

@@ -8,6 +8,7 @@ import path from 'path';
 
 const repoRoot = path.resolve(__dirname, '../..');
 const frontendNodeModules = path.resolve(__dirname, 'node_modules');
+const compatShim = (name: string) => path.resolve(__dirname, `./core/vendor/es-toolkit-compat/${name}.js`);
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -21,6 +22,17 @@ export default defineConfig({
       '@nodes': path.resolve(repoRoot, 'nodes'),
       '@tabler/icons-react': path.resolve(frontendNodeModules, '@tabler/icons-react'),
       '@tanstack/react-query': path.resolve(frontendNodeModules, '@tanstack/react-query'),
+      'es-toolkit/compat/get': compatShim('get'),
+      'es-toolkit/compat/isPlainObject': compatShim('isPlainObject'),
+      'es-toolkit/compat/last': compatShim('last'),
+      'es-toolkit/compat/maxBy': compatShim('maxBy'),
+      'es-toolkit/compat/minBy': compatShim('minBy'),
+      'es-toolkit/compat/omit': compatShim('omit'),
+      'es-toolkit/compat/range': compatShim('range'),
+      'es-toolkit/compat/sortBy': compatShim('sortBy'),
+      'es-toolkit/compat/sumBy': compatShim('sumBy'),
+      'es-toolkit/compat/throttle': compatShim('throttle'),
+      'es-toolkit/compat/uniqBy': compatShim('uniqBy'),
       'react': path.resolve(frontendNodeModules, 'react'),
       'react/jsx-runtime': path.resolve(frontendNodeModules, 'react/jsx-runtime.js'),
       'react-dom': path.resolve(frontendNodeModules, 'react-dom'),
@@ -47,7 +59,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) {

@@ -12,6 +12,7 @@ import { useContainerEdit } from '../hooks/useContainerEdit';
 import { ContainerDetailDialogs } from '../components/ContainerDetailDialogs';
 import { ContainerDetailTabs, type DetailTabId } from '../components/ContainerDetailTabs';
 import type { EditFormData } from '../types/edit-form';
+import { BackupsTab } from '../components/tabs/BackupsTab';
 import { EnvironmentTab } from '../components/tabs/EnvironmentTab';
 import { FilesTab } from '../components/tabs/FilesTab';
 import { LabelsTab } from '../components/tabs/LabelsTab';
@@ -25,7 +26,7 @@ import { SecurityTab } from '../components/tabs/SecurityTab';
 import { TerminalTab } from '../components/tabs/TerminalTab';
 import { SaveBar } from '../components/SaveBar';
 import { ContainerDetailHeader, getInspectWebUrl } from './ContainerDetailHeader';
-import { isProtectedContainer } from '@core/utils/protection';
+import { isMcHarborContainer, isProtectedContainer } from '@core/utils/protection';
 import type { ScrollSnapshot } from './container-detail-types';
 export default function ContainerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +35,9 @@ export default function ContainerDetailPage() {
   const { data: container, isLoading } = useContainer(id ?? '');
   const { data: stackLink } = useContainerStackLink(id);
   const action = useContainerAction();
-  const edit = useContainerEdit(container);
+  const isMcHarborTarget = container ? isMcHarborContainer(container) : false;
+  const [editUnlocked, setEditUnlocked] = useState(false);
+  const edit = useContainerEdit(container, { unlockProtected: editUnlocked && isMcHarborTarget });
   const [confirmKill, setConfirmKill] = useState(false);
   const [recreateConfirmOpen, setRecreateConfirmOpen] = useState(false);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
@@ -51,6 +54,9 @@ export default function ContainerDetailPage() {
     setHeaderActive(true);
     return () => setHeaderActive(false);
   }, [setHeaderActive]);
+  useEffect(() => {
+    setEditUnlocked(false);
+  }, [container?.Id]);
   const handleSave = useCallback(() => {
     if (edit.changes.hasConfigChanges) {
       setRecreateConfirmOpen(true);
@@ -83,12 +89,22 @@ export default function ContainerDetailPage() {
   }, [edit.editing, edit.editData, restoreScroll]);
   const handleStartEditing = useCallback(() => {
     captureScroll();
+    if (container && isProtectedContainer(container) && isMcHarborContainer(container)) {
+      setActiveTab('resources');
+    }
     edit.startEditing();
-  }, [captureScroll, edit.startEditing]);
+  }, [captureScroll, container, edit.startEditing]);
   const handleCancelEditing = useCallback(() => {
     captureScroll();
     edit.cancelEditing();
   }, [captureScroll, edit.cancelEditing]);
+  const handleToggleEditLock = useCallback(() => {
+    if (editUnlocked) {
+      captureScroll();
+      edit.cancelEditing();
+    }
+    setEditUnlocked((current) => !current);
+  }, [captureScroll, edit, editUnlocked]);
   const handleEditFieldChange = useCallback(<K extends keyof EditFormData>(
     field: K,
     value: EditFormData[K],
@@ -108,7 +124,10 @@ export default function ContainerDetailPage() {
   const webURL = isRunning ? getInspectWebUrl(container.NetworkSettings?.Ports) : null;
   const linkedStackName = stackLink?.stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
   const isComposeManaged = !!container.Config?.Labels?.['com.docker.compose.project'];
-  const locked = isProtectedContainer(container);
+  const protectedContainer = isProtectedContainer(container);
+  const editLocked = protectedContainer && !(isMcHarborTarget && editUnlocked);
+  const runtimeEditing = edit.editing && !editLocked;
+  const configEditing = edit.editing && !protectedContainer;
   return (
     <div className="flex h-full flex-col gap-0">
       {document.getElementById('header-slot') &&
@@ -119,6 +138,9 @@ export default function ContainerDetailPage() {
             name={name}
             webUrl={webURL}
             editing={edit.editing}
+            editUnlocked={editUnlocked}
+            editUnlockable={isMcHarborTarget}
+            onToggleEditLock={handleToggleEditLock}
             onEdit={handleStartEditing}
             onRename={() => setRenameDialogOpen(true)}
             onSave={handleSave}
@@ -142,16 +164,17 @@ export default function ContainerDetailPage() {
         />
         <div ref={scrollContainerRef} className={`flex min-h-0 flex-1 flex-col p-5 ${activeTab === 'terminal' || activeTab === 'logs' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {activeTab === 'overview' && <OverviewTab container={container} />}
-          {activeTab === 'environment' && <EnvironmentTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
-          {activeTab === 'labels' && <LabelsTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
-          {activeTab === 'network' && <NetworkTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
+          {activeTab === 'environment' && <EnvironmentTab container={container} editing={configEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
+          {activeTab === 'labels' && <LabelsTab container={container} editing={configEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
+          {activeTab === 'network' && <NetworkTab container={container} editing={configEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
           {activeTab === 'mounts' && <MountsTab container={container} />}
-          {activeTab === 'resources' && <ResourcesTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
-          {activeTab === 'security' && <SecurityTab container={container} editing={edit.editing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
+          {activeTab === 'resources' && <ResourcesTab container={container} editing={runtimeEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
+          {activeTab === 'security' && <SecurityTab container={container} editing={configEditing} editData={edit.editData} onFieldChange={handleEditFieldChange} />}
           <div className={activeTab !== 'logs' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}><LogsTab containerId={container.Id} isRunning={isRunning} /></div>
           <div className={activeTab !== 'terminal' ? 'hidden' : 'flex min-h-0 flex-1 flex-col'}><TerminalTab containerId={container.Id} isRunning={isRunning} active={activeTab === 'terminal'} /></div>
           {activeTab === 'processes' && <ProcessesTab containerId={container.Id} isRunning={isRunning} />}
-          {activeTab === 'files' && <FilesTab containerId={container.Id} isRunning={isRunning} mounts={container.Mounts ?? []} readOnly={locked} />}
+          {activeTab === 'files' && <FilesTab containerId={container.Id} isRunning={isRunning} mounts={container.Mounts ?? []} readOnly={protectedContainer} />}
+          {activeTab === 'backups' && <BackupsTab containerId={container.Id} containerName={name} />}
         </div>
 
         {edit.editing && (
@@ -175,6 +198,7 @@ export default function ContainerDetailPage() {
         takeOverOpen={takeOverOpen}
         relinkOpen={relinkOpen}
         linkedStackName={linkedStackName}
+        unlockProtectedRename={editUnlocked && isMcHarborTarget}
         actionPending={action.isPending}
         editSaving={edit.isSaving}
         changedFields={edit.changes.changedConfigFields}

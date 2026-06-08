@@ -752,7 +752,7 @@ func (h *Handler) HandleRename(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.Rename(r.Context(), envID, id, name); err != nil {
+	if err := h.svc.Rename(r.Context(), envID, id, name, req.UnlockProtected); err != nil {
 		if writeProtectedError(w, r, err) {
 			return
 		}

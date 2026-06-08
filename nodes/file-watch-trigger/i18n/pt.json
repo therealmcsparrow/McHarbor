@@ -2,6 +2,7 @@
   "label": "Gatilho de observação de arquivo",
   "description": "Iniciar um fluxo de trabalho quando um caminho de arquivo monitorado for alterado",
   "config": {
+    "storage_location_id": "Local de armazenamento",
     "path": "Caminho",
     "event_types": "Tipos de eventos"
   }

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  IconLock,
   IconUsers,
   IconUsersGroup,
   IconShieldCheck,
@@ -20,8 +21,9 @@ import { RolesTab } from '../components/RolesTab';
 import { APIKeysTab } from '../components/APIKeysTab';
 import { IdentityTab } from '../components/IdentityTab';
 import { ScannersTab } from '../components/ScannersTab';
+import { HttpsTab } from '../components/HttpsTab';
 
-type Section = 'management' | 'identity' | 'scanning';
+type Section = 'https' | 'management' | 'identity' | 'scanning';
 
 const MANAGEMENT_TABS = [
   { id: 'users', icon: IconUsers },
@@ -41,7 +43,7 @@ const TAB_LABELS: Record<ManagementTabId, string> = {
 
 export default function SecurityPage() {
   const { t } = useTranslation('security');
-  const [section, setSection] = useState<Section>('management');
+  const [section, setSection] = useState<Section>('https');
   const [managementTab, setManagementTab] = useState<ManagementTabId>('users');
 
   return (
@@ -50,6 +52,20 @@ export default function SecurityPage() {
 
       {/* Section selector */}
       <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSection('https')}
+          className={cn(
+            'flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+            section === 'https'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <IconLock className="size-4" />
+          {t('sections.https')}
+        </Button>
         <Button
           variant="ghost"
           size="sm"
@@ -93,6 +109,9 @@ export default function SecurityPage() {
           {t('sections.scanning')}
         </Button>
       </div>
+
+      {/* HTTPS section */}
+      {section === 'https' && <HttpsTab />}
 
       {/* Management sub-tabs */}
       {section === 'management' && (

@@ -157,9 +157,34 @@
     "scans": "Verificações de vulnerabilidade"
   },
   "sections": {
+    "https": "HTTPS",
     "management": "Gerenciamento",
     "identity": "Identidade",
     "scanning": "Digitalizando"
+  },
+  "https": {
+    "title": "HTTPS",
+    "description": "Gerencie o certificado TLS e a imposição de HTTPS para o McHarbor.",
+    "certificate": "Certificado",
+    "noCertificate": "Nenhum certificado enviado.",
+    "subject": "Assunto:",
+    "issuer": "Emissor:",
+    "validFrom": "Válido a partir de:",
+    "validUntil": "Válido até:",
+    "serial": "Serial:",
+    "dnsNames": "Nomes DNS:",
+    "uploadTitle": "Enviar certificado",
+    "certLabel": "Certificado (PEM)",
+    "keyLabel": "Chave privada (PEM)",
+    "uploading": "Enviando...",
+    "uploadButton": "Enviar certificado",
+    "uploadError": "Falha ao enviar certificado",
+    "enableHttps": "Ativar HTTPS",
+    "enableHttpsDescription": "Servir tráfego via TLS usando o certificado enviado.",
+    "forceHttps": "Forçar HTTPS",
+    "forceHttpsDescription": "Redirecionar HTTP para HTTPS via X-Forwarded-Proto. Para configurações com proxy reverso.",
+    "restartRequired": "Reinício necessário",
+    "restartDescription": "As alterações de TLS entram em vigor após reiniciar o contêiner."
   },
   "scanning": {
     "title": "Scanners de vulnerabilidade",

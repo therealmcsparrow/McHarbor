@@ -1,0 +1,7 @@
+{
+  "label": "Opslaglocaties tonen",
+  "description": "Geef geconfigureerde opslaglocaties terug zonder geheime waarden",
+  "config": {
+    "enabled_only": "Alleen ingeschakeld"
+  }
+}

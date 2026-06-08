@@ -109,7 +109,12 @@ export function GeneralTab({ settings }: GeneralTabProps) {
         />
       </div>
       <Button
-        onClick={() => saveRetention.mutate({ auditRetentionDays: auditDays, activityRetentionDays: activityDays })}
+        onClick={() => saveRetention.mutate({
+          auditRetentionDays: auditDays,
+          activityRetentionDays: activityDays,
+          backupRetentionCount: retention?.backupRetentionCount ?? 0,
+          backupRetentionDays: retention?.backupRetentionDays ?? 0,
+        })}
         disabled={saveRetention.isPending}
       >
         {saveRetention.isPending ? t('general.saving') : tc('actions.save')}

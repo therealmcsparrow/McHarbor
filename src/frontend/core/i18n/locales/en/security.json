@@ -157,9 +157,34 @@
     "scans": "Vulnerability Scans"
   },
   "sections": {
+    "https": "HTTPS",
     "management": "Management",
     "identity": "Identity",
     "scanning": "Scanning"
+  },
+  "https": {
+    "title": "HTTPS",
+    "description": "Manage the TLS certificate and HTTPS enforcement for McHarbor.",
+    "certificate": "Certificate",
+    "noCertificate": "No certificate uploaded.",
+    "subject": "Subject:",
+    "issuer": "Issuer:",
+    "validFrom": "Valid from:",
+    "validUntil": "Valid until:",
+    "serial": "Serial:",
+    "dnsNames": "DNS Names:",
+    "uploadTitle": "Upload Certificate",
+    "certLabel": "Certificate (PEM)",
+    "keyLabel": "Private Key (PEM)",
+    "uploading": "Uploading...",
+    "uploadButton": "Upload Certificate",
+    "uploadError": "Failed to upload certificate",
+    "enableHttps": "Enable HTTPS",
+    "enableHttpsDescription": "Serve traffic over TLS using the uploaded certificate.",
+    "forceHttps": "Force HTTPS",
+    "forceHttpsDescription": "Redirect HTTP to HTTPS via X-Forwarded-Proto. For reverse proxy setups.",
+    "restartRequired": "Restart Required",
+    "restartDescription": "TLS changes take effect after container restart."
   },
   "scanning": {
     "title": "Vulnerability Scanners",

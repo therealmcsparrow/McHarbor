@@ -4,6 +4,7 @@
   "config": {
     "environment": "Environment",
     "container": "Container",
-    "new_name": "New Name"
+    "new_name": "New Name",
+    "unlock_protected": "Unlock Protected Container"
   }
 }

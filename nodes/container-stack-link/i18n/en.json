@@ -1,0 +1,10 @@
+{
+  "label": "Link Container To Stack",
+  "description": "Create or replace the manual stack link for a container",
+  "config": {
+    "environment": "Environment",
+    "container": "Container",
+    "stack_name": "Stack Name",
+    "service_name": "Service Name"
+  }
+}

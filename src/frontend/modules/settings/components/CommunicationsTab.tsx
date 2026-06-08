@@ -7,25 +7,51 @@ import { IconPlus, IconMessageCircle } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { useNotificationChannels, type CommunicationChannel } from '../hooks/useNotificationChannels';
+import { useEmailServers, type EmailServer } from '../hooks/useEmailServers';
 import { ChannelCard } from './ChannelCard';
 import { CreateChannelDialog } from './CreateChannelDialog';
 import { EditChannelDialog } from './EditChannelDialog';
 import { TestChannelDialog } from './TestChannelDialog';
+import { EmailServerCard } from './EmailServerCard';
+import { EditEmailServerDialog } from './EditEmailServerDialog';
+import { TestEmailDialog } from './TestEmailDialog';
+
+type CommunicationListItem =
+  | { kind: 'email'; id: string; createdAt: string; server: EmailServer }
+  | { kind: 'channel'; id: string; createdAt: string; channel: CommunicationChannel };
 
 export function CommunicationsTab() {
   const { t } = useTranslation('settings');
-  const { data: channels, isLoading } = useNotificationChannels();
+  const { data: channels, isLoading: channelsLoading } = useNotificationChannels();
+  const { data: servers, isLoading: serversLoading } = useEmailServers();
   const [createOpen, setCreateOpen] = useState(false);
   const [editChannel, setEditChannel] = useState<CommunicationChannel | null>(null);
   const [testChannel, setTestChannel] = useState<CommunicationChannel | null>(null);
+  const [editServer, setEditServer] = useState<EmailServer | null>(null);
+  const [testServer, setTestServer] = useState<EmailServer | null>(null);
 
-  if (isLoading) {
+  if (channelsLoading || serversLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Spinner />
       </div>
     );
   }
+
+  const items: CommunicationListItem[] = [
+    ...(servers ?? []).map((server) => ({
+      kind: 'email' as const,
+      id: server.id,
+      createdAt: server.createdAt,
+      server,
+    })),
+    ...(channels ?? []).map((channel) => ({
+      kind: 'channel' as const,
+      id: channel.id,
+      createdAt: channel.createdAt,
+      channel,
+    })),
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   return (
     <div className="space-y-4">
@@ -37,19 +63,32 @@ export function CommunicationsTab() {
         </Button>
       </div>
 
-      {channels && channels.length > 0 ? (
+      {items.length > 0 ? (
         <div className="space-y-3">
-          {channels.map((channel) => (
-            <ChannelCard
-              key={channel.id}
-              channel={channel}
-              onEdit={setEditChannel}
-              onTest={setTestChannel}
-            />
-          ))}
+          {items.map((item) => {
+            if (item.kind === 'email') {
+              return (
+                <EmailServerCard
+                  key={`email-${item.id}`}
+                  server={item.server}
+                  onEdit={setEditServer}
+                  onTest={setTestServer}
+                />
+              );
+            }
+
+            return (
+              <ChannelCard
+                key={`channel-${item.id}`}
+                channel={item.channel}
+                onEdit={setEditChannel}
+                onTest={setTestChannel}
+              />
+            );
+          })}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-12">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-10">
           <IconMessageCircle className="size-10 text-muted-foreground" />
           <p className="mt-3 text-sm text-muted-foreground">{t('communications.noChannels')}</p>
         </div>
@@ -71,6 +110,23 @@ export function CommunicationsTab() {
           onOpenChange={(open) => { if (!open) setTestChannel(null); }}
           channelId={testChannel.id}
           channelName={testChannel.name}
+        />
+      )}
+
+      {editServer && (
+        <EditEmailServerDialog
+          open={!!editServer}
+          onOpenChange={(open) => { if (!open) setEditServer(null); }}
+          server={editServer}
+        />
+      )}
+
+      {testServer && (
+        <TestEmailDialog
+          open={!!testServer}
+          onOpenChange={(open) => { if (!open) setTestServer(null); }}
+          serverId={testServer.id}
+          serverName={testServer.name}
         />
       )}
     </div>

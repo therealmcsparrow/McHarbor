@@ -157,9 +157,34 @@
     "scans": "Schwachstellenscans"
   },
   "sections": {
+    "https": "HTTPS",
     "management": "Verwaltung",
     "identity": "Identität",
     "scanning": "Scannen"
+  },
+  "https": {
+    "title": "HTTPS",
+    "description": "TLS-Zertifikat und HTTPS-Erzwingung fuer McHarbor verwalten.",
+    "certificate": "Zertifikat",
+    "noCertificate": "Kein Zertifikat hochgeladen.",
+    "subject": "Subjekt:",
+    "issuer": "Aussteller:",
+    "validFrom": "Gueltig ab:",
+    "validUntil": "Gueltig bis:",
+    "serial": "Seriennummer:",
+    "dnsNames": "DNS-Namen:",
+    "uploadTitle": "Zertifikat hochladen",
+    "certLabel": "Zertifikat (PEM)",
+    "keyLabel": "Privater Schluessel (PEM)",
+    "uploading": "Wird hochgeladen...",
+    "uploadButton": "Zertifikat hochladen",
+    "uploadError": "Zertifikat konnte nicht hochgeladen werden",
+    "enableHttps": "HTTPS aktivieren",
+    "enableHttpsDescription": "Datenverkehr mit dem hochgeladenen Zertifikat ueber TLS bereitstellen.",
+    "forceHttps": "HTTPS erzwingen",
+    "forceHttpsDescription": "HTTP ueber X-Forwarded-Proto zu HTTPS umleiten. Fuer Reverse-Proxy-Setups.",
+    "restartRequired": "Neustart erforderlich",
+    "restartDescription": "TLS-Aenderungen werden nach einem Container-Neustart aktiv."
   },
   "scanning": {
     "title": "Schwachstellenscanner",

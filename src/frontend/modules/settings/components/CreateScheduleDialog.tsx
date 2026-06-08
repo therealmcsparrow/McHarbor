@@ -10,7 +10,7 @@ import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { Select } from '@resources/components/ui/Select';
 import { Label } from '@resources/components/ui/Label';
-import { CronSchedulePreview } from '@resources/components/CronSchedulePreview';
+import { ReadableScheduleField } from '@resources/components/ReadableScheduleField';
 import {
   Dialog,
   DialogContent,
@@ -38,7 +38,7 @@ export function CreateScheduleDialog({ open, onOpenChange }: CreateScheduleDialo
   });
 
   const [schName, setSchName] = useState('');
-  const [schCron, setSchCron] = useState('');
+  const [schCron, setSchCron] = useState('0 3 * * *');
   const [schAction, setSchAction] = useState('restart');
   const [schTarget, setSchTarget] = useState('');
 
@@ -55,7 +55,7 @@ export function CreateScheduleDialog({ open, onOpenChange }: CreateScheduleDialo
         onSuccess: () => {
           onOpenChange(false);
           setSchName('');
-          setSchCron('');
+          setSchCron('0 3 * * *');
           setSchAction('restart');
           setSchTarget('');
         },
@@ -80,19 +80,12 @@ export function CreateScheduleDialog({ open, onOpenChange }: CreateScheduleDialo
               placeholder={t('schedules.namePlaceholder')}
             />
           </div>
-          <div>
-            <Label className="mb-2">{t('schedules.cronLabel')}</Label>
-            <Input
-              type="text"
-              value={schCron}
-              onChange={(e) => setSchCron(e.target.value)}
-              placeholder={t('schedules.cronPlaceholder')}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              {t('schedules.cronHint')}
-            </p>
-            <CronSchedulePreview expression={schCron} />
-          </div>
+          <ReadableScheduleField
+            value={schCron}
+            onChange={setSchCron}
+            label={t('schedules.cronLabel')}
+            hint={t('schedules.cronHint')}
+          />
           <div>
             <Label className="mb-2">{t('schedules.actionLabel')}</Label>
             <Select

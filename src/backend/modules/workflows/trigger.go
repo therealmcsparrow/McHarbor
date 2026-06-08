@@ -5,12 +5,14 @@ package workflows
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -43,6 +45,13 @@ type fileWatchState struct {
 	ModTime time.Time
 }
 
+type fileWatchStorageLocation struct {
+	ID           string
+	Name         string
+	LocationType string
+	BasePath     string
+}
+
 // SetCustomExecutor propagates the custom node executor to all workflow service instances.
 func (ts *TriggerService) SetCustomExecutor(executor interface {
 	ExecuteCustom(ctx context.Context, nodeKey string, config, msg map[string]interface{}, timeout float64) (string, map[string]interface{}, error)
@@ -64,7 +73,7 @@ func (ts *TriggerService) SetImageScanner(scanner ImageScanner) {
 
 // NewTriggerService creates a new background trigger service.
 func NewTriggerService(app *router.AppDeps, hub *Hub) *TriggerService {
-	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption))
+	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption), app.Config.DataDir, app.BackupCrypto)
 	return &TriggerService{
 		app:     app,
 		hub:     hub,
@@ -831,9 +840,11 @@ func (ts *TriggerService) checkFileWatchTriggers(ctx context.Context) {
 				continue
 			}
 
-			fullPath := resolveWorkflowPath(rawPath)
+			storageLocationID, _ := node.Config["storage_location_id"].(string)
+			storageLocation := ts.fileWatchStorageLocation(ctx, storageLocationID)
+			fullPath := resolveFileWatchPath(rawPath, storageLocation)
 			current := readFileWatchState(fullPath)
-			stateKey := aw.ID + ":" + node.ID + ":" + fullPath
+			stateKey := aw.ID + ":" + node.ID + ":" + strings.TrimSpace(storageLocationID) + ":" + fullPath
 
 			previousRaw, loaded := ts.fileStates.Load(stateKey)
 			ts.fileStates.Store(stateKey, current)
@@ -848,12 +859,13 @@ func (ts *TriggerService) checkFileWatchTriggers(ctx context.Context) {
 			}
 
 			triggerMsg := NewMsg(map[string]interface{}{
-				"trigger":       "file-watch",
-				"path":          rawPath,
-				"resolvedPath":  fullPath,
-				"event":         eventType,
-				"timestamp":     time.Now().UTC().Format(time.RFC3339),
-				"autoTriggered": true,
+				"trigger":         "file-watch",
+				"path":            rawPath,
+				"resolvedPath":    fullPath,
+				"storageLocation": fileWatchStorageLocationPayload(storageLocation),
+				"event":           eventType,
+				"timestamp":       time.Now().UTC().Format(time.RFC3339),
+				"autoTriggered":   true,
 			})
 			triggerMsg["topic"] = "file-watch"
 
@@ -913,6 +925,51 @@ func readFileWatchState(path string) fileWatchState {
 		Exists:  true,
 		Size:    info.Size(),
 		ModTime: info.ModTime().UTC(),
+	}
+}
+
+func (ts *TriggerService) fileWatchStorageLocation(ctx context.Context, id string) *fileWatchStorageLocation {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil
+	}
+
+	var location fileWatchStorageLocation
+	err := ts.app.DB.QueryRowContext(ctx, `
+		SELECT id, name, location_type, COALESCE(base_path, '')
+		FROM storage_locations
+		WHERE id = ? AND enabled = 1
+		LIMIT 1`, id,
+	).Scan(&location.ID, &location.Name, &location.LocationType, &location.BasePath)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			ts.logger.Warn("file watcher: storage location lookup failed", "id", id, "error", err)
+		}
+		return nil
+	}
+	return &location
+}
+
+func resolveFileWatchPath(path string, location *fileWatchStorageLocation) string {
+	path = strings.TrimSpace(path)
+	if location == nil || strings.TrimSpace(location.BasePath) == "" {
+		return resolveWorkflowPath(path)
+	}
+	if filepath.IsAbs(path) {
+		return filepath.Clean(path)
+	}
+	return filepath.Join(location.BasePath, filepath.Clean(path))
+}
+
+func fileWatchStorageLocationPayload(location *fileWatchStorageLocation) map[string]interface{} {
+	if location == nil {
+		return nil
+	}
+	return map[string]interface{}{
+		"id":           location.ID,
+		"name":         location.Name,
+		"locationType": location.LocationType,
+		"basePath":     location.BasePath,
 	}
 }
 

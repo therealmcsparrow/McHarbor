@@ -20,7 +20,9 @@ import (
 
 // App holds all shared dependencies for the application.
 type App struct {
-	DB         interface{ QueryRow(query string, args ...interface{}) interface{} } // placeholder
+	DB interface {
+		QueryRow(query string, args ...interface{}) interface{}
+	} // placeholder
 	RawDB      interface{}
 	DockerPool interface{}
 	Auth       *auth.Service
@@ -48,15 +50,12 @@ func New(app *AppDeps) chi.Router {
 	}))
 	r.Use(i18n.Middleware)
 
-	// Health check (no auth)
-	r.Get("/api/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"success":true,"data":{"status":"ok"}}`))
-	})
-
 	// API routes (authenticated)
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.MaxJSONBodySize(8 << 20))
+
+		// Public endpoints (no auth middleware or auth rate limit)
+		app.MountPublicRoutes(r)
 
 		// Auth endpoints (rate-limited, no auth middleware)
 		r.Group(func(r chi.Router) {

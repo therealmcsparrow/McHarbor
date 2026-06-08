@@ -22,6 +22,7 @@ type ContainerDetailDialogsProps = {
   takeOverOpen: boolean;
   relinkOpen: boolean;
   linkedStackName: string | null;
+  unlockProtectedRename?: boolean;
   actionPending: boolean;
   editSaving: boolean;
   changedFields: string[];
@@ -48,6 +49,7 @@ export function ContainerDetailDialogs({
   takeOverOpen,
   relinkOpen,
   linkedStackName,
+  unlockProtectedRename = false,
   actionPending,
   editSaving,
   changedFields,
@@ -115,6 +117,7 @@ export function ContainerDetailDialogs({
         }}
         open={renameDialogOpen}
         onOpenChange={onRenameDialogChange}
+        unlockProtected={unlockProtectedRename}
       />
 
       <TakeOverDialog

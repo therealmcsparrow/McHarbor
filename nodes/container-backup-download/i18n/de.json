@@ -1,0 +1,7 @@
+{
+  "label": "Backup-Downloadinfo",
+  "description": "Einen abgeschlossenen Backup-Lauf validieren und Download-Metadaten zurueckgeben",
+  "config": {
+    "run_id": "Run-ID"
+  }
+}

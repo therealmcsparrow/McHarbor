@@ -29,7 +29,7 @@ type Handler struct {
 
 // NewHandler creates a new workflows handler.
 func NewHandler(app *router.AppDeps, hub *Hub) *Handler {
-	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption))
+	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption), app.Config.DataDir, app.BackupCrypto)
 	return &Handler{
 		app:         app,
 		hub:         hub,

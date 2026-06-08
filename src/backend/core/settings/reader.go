@@ -13,7 +13,7 @@ type AgentSettings struct {
 	EventMode         string `json:"eventMode"`         // "poll" or "stream"
 	EventPollInterval int    `json:"eventPollInterval"` // seconds (default 30)
 	PingInterval      int    `json:"pingInterval"`      // seconds (default 30)
-	MetricsEnabled    bool   `json:"metricsEnabled"`    // default false
+	MetricsEnabled    bool   `json:"metricsEnabled"`    // default true
 	RequestTimeout    int    `json:"requestTimeout"`    // seconds (default 30)
 }
 
@@ -23,7 +23,7 @@ func DefaultAgentSettings() AgentSettings {
 		EventMode:         "poll",
 		EventPollInterval: 30,
 		PingInterval:      30,
-		MetricsEnabled:    false,
+		MetricsEnabled:    true,
 		RequestTimeout:    30,
 	}
 }
@@ -98,6 +98,8 @@ func DefaultScannerSettings() ScannerSettings {
 type RetentionSettings struct {
 	AuditRetentionDays    int `json:"auditRetentionDays"`    // 0 = keep forever
 	ActivityRetentionDays int `json:"activityRetentionDays"` // 0 = keep forever
+	BackupRetentionCount  int `json:"backupRetentionCount"`  // 0 = keep forever
+	BackupRetentionDays   int `json:"backupRetentionDays"`   // 0 = keep forever
 }
 
 // DefaultRetentionSettings returns the default retention settings.
@@ -105,6 +107,8 @@ func DefaultRetentionSettings() RetentionSettings {
 	return RetentionSettings{
 		AuditRetentionDays:    90,
 		ActivityRetentionDays: 30,
+		BackupRetentionCount:  0,
+		BackupRetentionDays:   0,
 	}
 }
 
@@ -131,6 +135,14 @@ func ReadRetentionSettings(db *sql.DB) RetentionSettings {
 		case "retention_activity_days":
 			if v, err := strconv.Atoi(value); err == nil && v >= 0 && v <= 3650 {
 				s.ActivityRetentionDays = v
+			}
+		case "retention_backup_count":
+			if v, err := strconv.Atoi(value); err == nil && v >= 0 && v <= 1000 {
+				s.BackupRetentionCount = v
+			}
+		case "retention_backup_days":
+			if v, err := strconv.Atoi(value); err == nil && v >= 0 && v <= 3650 {
+				s.BackupRetentionDays = v
 			}
 		}
 	}

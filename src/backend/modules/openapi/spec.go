@@ -112,6 +112,8 @@ func buildTags() []map[string]any {
 		{"name": "custom-nodes", "description": "Sandboxed JavaScript workflow node definitions."},
 		{"name": "app-store", "description": "Bundled and synced app catalog, installs, and progress streaming."},
 		{"name": "widgets", "description": "Dashboard widget definition registry and installation."},
+		{"name": "settings", "description": "Instance settings, security-sensitive runtime configuration, and generated one-time setup material."},
+		{"name": "storage", "description": "External storage locations for backups, exports, and provider consent flows."},
 		{"name": "notifications", "description": "Notification rules, communication channels, and in-app notifications."},
 		{"name": "telemetry", "description": "Logs, events, metrics, and realtime transports."},
 	}
@@ -795,6 +797,167 @@ func buildPaths() map[string]any {
 				Responses: map[string]any{
 					"200": okResponse("Container stats", schemaRef("ContainerStats")),
 					"404": errorResponse("Container not found"),
+				},
+			}),
+		),
+		"/containers/{id}/backups/options": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "List container backup options",
+				Description: "Returns selectable backup items for the selected container, including config, logs, filesystem, image, and discovered mounts.",
+				OperationID: "containerBackupsOptions",
+				Tags:        []string{"containers"},
+				Parameters:  []any{paramRef("EnvID"), pathParam("id", "Container identifier")},
+				Responses: map[string]any{
+					"200": okResponse("Container backup options", schemaRef("ContainerBackupOptions")),
+					"400": errorResponse("Missing environment"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Container not found"),
+				},
+			}),
+		),
+		"/containers/{id}/backups/run": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Run an ad-hoc container backup",
+				Description: "Creates an encrypted one-off backup run for the selected container. The resulting archive is stored as backups/containers/<runId>/mcharbor.tar under the data directory and requires the configured backup Docker secret.",
+				OperationID: "containerBackupsRunAdhoc",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{paramRef("EnvID"), pathParam("id", "Container identifier")},
+				RequestBody: jsonRequest("Ad-hoc backup selection", schemaRef("ContainerBackupRunRequest"), true),
+				Responses: map[string]any{
+					"200": okResponse("Backup run", schemaRef("ContainerBackupRun")),
+					"400": errorResponse("Missing environment or malformed backup request"),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+		),
+		"/container-backups/": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "List container backup plans",
+				Description: "Returns saved container backup plans for the selected environment. Pass containerId to filter to one container.",
+				OperationID: "containerBackupPlansList",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{paramRef("EnvID"), queryParam("containerId", "Optional container identifier filter", false)},
+				Responses: map[string]any{
+					"200": okResponse("Container backup plans", arrayOf(schemaRef("ContainerBackupPlan"))),
+					"400": errorResponse("Missing environment"),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Create a container backup plan",
+				Description: "Creates a saved manual or scheduled encrypted backup plan for one container.",
+				OperationID: "containerBackupPlansCreate",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{paramRef("EnvID")},
+				RequestBody: jsonRequest("Container backup plan", schemaRef("ContainerBackupPlanWrite"), true),
+				Responses: map[string]any{
+					"201": createdResponse("Container backup plan", schemaRef("ContainerBackupPlan")),
+					"400": errorResponse("Malformed backup plan"),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+		),
+		"/container-backups/runs": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "List container backup runs",
+				Description: "Returns recent encrypted backup runs for the selected environment. Pass containerId to filter to one container.",
+				OperationID: "containerBackupRunsList",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{paramRef("EnvID"), queryParam("containerId", "Optional container identifier filter", false)},
+				Responses: map[string]any{
+					"200": okResponse("Container backup runs", arrayOf(schemaRef("ContainerBackupRun"))),
+					"400": errorResponse("Missing environment"),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+		),
+		"/container-backups/runs/{runId}/download": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "Download a container backup archive",
+				Description: "Streams the encrypted mcharbor.tar archive for a completed backup run with a slugged download name in the form container-environment-date-time.mcharbor.tar. The run must have succeeded and the archive must still exist under McHarbor's container backup directory.",
+				OperationID: "containerBackupRunsDownload",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{pathParam("runId", "Container backup run identifier")},
+				Responses: map[string]any{
+					"200": map[string]any{
+						"description": "Encrypted mcharbor.tar archive",
+						"content": map[string]any{
+							"application/x-tar": map[string]any{
+								"schema": map[string]any{"type": "string", "format": "binary"},
+							},
+						},
+					},
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Backup archive not found"),
+				},
+			}),
+		),
+		"/container-backups/runs/{runId}/restore": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Restore a container backup archive",
+				Description: "Restores image, filesystem, and selected mount entries from a completed backup run to the original container. If the archive key does not match the current backup key, provide the original backup secret key in the request body.",
+				OperationID: "containerBackupRunsRestore",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{pathParam("runId", "Container backup run identifier")},
+				RequestBody: jsonRequest("Backup restore secret", schemaRef("ContainerBackupRestoreRequest"), false),
+				Responses: map[string]any{
+					"200": okResponse("Backup restore result", schemaRef("ContainerBackupRestoreResult")),
+					"400": errorResponse("Backup restore secret is missing or invalid"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Backup archive or container not found"),
+				},
+			}),
+		),
+		"/container-backups/{planId}": path(
+			op(operationSpec{
+				Method:      "PUT",
+				Summary:     "Update a container backup plan",
+				Description: "Updates an existing backup plan. Omitted fields keep their current value.",
+				OperationID: "containerBackupPlansUpdate",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{pathParam("planId", "Container backup plan identifier")},
+				RequestBody: jsonRequest("Container backup plan patch", schemaRef("ContainerBackupPlanPatch"), true),
+				Responses: map[string]any{
+					"200": okResponse("Container backup plan", schemaRef("ContainerBackupPlan")),
+					"400": errorResponse("Malformed backup plan update"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Backup plan not found"),
+				},
+			}),
+			op(operationSpec{
+				Method:      "DELETE",
+				Summary:     "Delete a container backup plan",
+				Description: "Deletes a saved container backup plan without deleting existing backup run archives.",
+				OperationID: "containerBackupPlansDelete",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{pathParam("planId", "Container backup plan identifier")},
+				Responses: map[string]any{
+					"204": noContentResponse("Backup plan deleted"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Backup plan not found"),
+				},
+			}),
+		),
+		"/container-backups/{planId}/run": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Run a container backup plan",
+				Description: "Runs a saved backup plan immediately and writes the encrypted archive as backups/containers/<runId>/mcharbor.tar.",
+				OperationID: "containerBackupPlansRun",
+				Tags:        []string{"containers", "storage"},
+				Parameters:  []any{pathParam("planId", "Container backup plan identifier")},
+				Responses: map[string]any{
+					"200": okResponse("Backup run", schemaRef("ContainerBackupRun")),
+					"400": errorResponse("Backup encryption secret missing or runtime request failed"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Backup plan not found"),
 				},
 			}),
 		),
@@ -1630,6 +1793,153 @@ func buildPaths() map[string]any {
 				},
 			}),
 		),
+		"/settings/backup-key/generate": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Generate a backup encryption key",
+				Description: "Generates a 32-byte random backup encryption key for one-time copy. McHarbor returns the base64 value once with a PowerShell setup command and can also install the key automatically through the install endpoint. The key is not stored by McHarbor.",
+				OperationID: "settingsBackupKeyGenerate",
+				Tags:        []string{"settings", "storage"},
+				Responses: map[string]any{
+					"200": okResponse("One-time backup encryption key", schemaRef("BackupEncryptionKey")),
+					"401": errorResponse("Authentication required"),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+		),
+		"/settings/backup-key/status": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "Read backup encryption key status",
+				Description: "Reports whether the configured runtime backup encryption key file exists and can be parsed. The secret key material is never returned.",
+				OperationID: "settingsBackupKeyStatus",
+				Tags:        []string{"settings", "storage"},
+				Responses: map[string]any{
+					"200": okResponse("Backup encryption key status", schemaRef("BackupEncryptionKeyStatus")),
+					"401": errorResponse("Authentication required"),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+		),
+		"/settings/backup-key/install": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Install a backup encryption key",
+				Description: "Installs a generated or user-provided base64 backup encryption key into the host-side Compose secret file and schedules McHarbor to restart with docker-compose.secrets.yml. The request key is not stored in the database or returned in the response.",
+				OperationID: "settingsBackupKeyInstall",
+				Tags:        []string{"settings", "storage"},
+				RequestBody: jsonRequest("Backup encryption key", schemaRef("BackupEncryptionKeyInstallRequest"), true),
+				Responses: map[string]any{
+					"200": okResponse("Backup encryption key install scheduled", schemaRef("BackupEncryptionKeyInstall")),
+					"400": errorResponse("Invalid key or unsupported deployment layout"),
+					"401": errorResponse("Authentication required"),
+					"403": errorResponse("Permission denied"),
+					"500": errorResponse("Backup key installation failed"),
+				},
+			}),
+		),
+		"/storage-locations/": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "List storage locations",
+				Description: "Returns reusable external storage locations for backups, exports, and storage workflows. Secret fields are never returned.",
+				OperationID: "storageLocationsList",
+				Tags:        []string{"storage"},
+				Responses: map[string]any{
+					"200": okResponse("Storage locations", arrayOf(schemaRef("StorageLocation"))),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Create a storage location",
+				Description: "Creates an external storage location. Credential material such as passwords, SSH keys, FTPS certificates, client secrets, and tokens is encrypted at rest.",
+				OperationID: "storageLocationsCreate",
+				Tags:        []string{"storage"},
+				RequestBody: jsonRequest("Storage location definition", schemaRef("StorageLocationWrite"), true),
+				Responses: map[string]any{
+					"201": createdResponse("Storage location created", schemaRef("StorageLocation")),
+					"400": errorResponse("Malformed storage location payload"),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+		),
+		"/storage-locations/oauth/callback": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "Finish storage provider consent",
+				Description: "Completes delegated OAuth consent for Google Drive, OneDrive, or SharePoint storage locations, stores returned tokens encrypted, and redirects back to the storage settings page.",
+				OperationID: "storageLocationsOAuthCallback",
+				Tags:        []string{"storage"},
+				Parameters: []any{
+					queryParam("state", "Short-lived OAuth state generated by McHarbor.", true),
+					queryParam("code", "Authorization code returned by the provider.", true),
+				},
+				Responses: map[string]any{
+					"302": redirectResponse("Redirect back to the storage settings page"),
+					"400": errorResponse("Invalid callback parameters"),
+				},
+			}),
+		),
+		"/storage-locations/{id}": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "Read one storage location",
+				Description: "Returns one storage location configuration. Secret fields are omitted from the response.",
+				OperationID: "storageLocationsRead",
+				Tags:        []string{"storage"},
+				Parameters:  []any{pathParam("id", "Storage location identifier")},
+				Responses: map[string]any{
+					"200": okResponse("Storage location", schemaRef("StorageLocation")),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Storage location not found"),
+				},
+			}),
+			op(operationSpec{
+				Method:      "PUT",
+				Summary:     "Update a storage location",
+				Description: "Updates a storage location. Empty secret values keep the existing encrypted value; provided secret values replace it.",
+				OperationID: "storageLocationsUpdate",
+				Tags:        []string{"storage"},
+				Parameters:  []any{pathParam("id", "Storage location identifier")},
+				RequestBody: jsonRequest("Storage location update", schemaRef("StorageLocationWrite"), true),
+				Responses: map[string]any{
+					"200": okResponse("Storage location updated", schemaRef("StorageLocation")),
+					"400": errorResponse("Malformed storage location payload"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Storage location not found"),
+				},
+			}),
+			op(operationSpec{
+				Method:      "DELETE",
+				Summary:     "Delete a storage location",
+				Description: "Removes a storage location configuration.",
+				OperationID: "storageLocationsDelete",
+				Tags:        []string{"storage"},
+				Parameters:  []any{pathParam("id", "Storage location identifier")},
+				Responses: map[string]any{
+					"204": noContentResponse("Storage location deleted"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Storage location not found"),
+				},
+			}),
+		),
+		"/storage-locations/{id}/oauth/authorize": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Start storage provider consent",
+				Description: "Creates a provider authorization URL for Google Drive, OneDrive, or SharePoint storage locations. The location must already contain the required client credentials.",
+				OperationID: "storageLocationsOAuthAuthorize",
+				Tags:        []string{"storage"},
+				Parameters:  []any{pathParam("id", "Storage location identifier")},
+				Responses: map[string]any{
+					"200": okResponse("Storage authorization URL", schemaRef("StorageOAuthAuthorizeResponse")),
+					"400": errorResponse("Storage location is not ready for consent"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Storage location not found"),
+				},
+			}),
+		),
 		"/communication-channels/capabilities": path(
 			op(operationSpec{
 				Method:      "GET",
@@ -2350,6 +2660,276 @@ func buildSchemas() map[string]any {
 				"version":  map[string]any{"type": "string"},
 			},
 		},
+		"BackupEncryptionKey": map[string]any{
+			"type":        "object",
+			"description": "One-time response for generating the Docker-secret-backed backup encryption key. The key is not persisted by McHarbor.",
+			"properties": map[string]any{
+				"key":       map[string]any{"type": "string", "description": "Base64-encoded 32-byte key. Copy once and store as the Docker secret value."},
+				"encoding":  map[string]any{"type": "string", "enum": []string{"base64"}},
+				"secret":    map[string]any{"type": "string", "example": "mcharbor_backup_key"},
+				"secretKey": map[string]any{"type": "string", "example": "BACKUP_ENCRYPTION_KEY_FILE"},
+				"secretPath": map[string]any{
+					"type":        "string",
+					"description": "Host-side Compose secret file path used by docker-compose.secrets.yml.",
+					"example":     "secrets/mcharbor_backup_key",
+				},
+				"setupShell": map[string]any{"type": "string", "enum": []string{"powershell"}},
+				"setupCommand": map[string]any{
+					"type":        "string",
+					"description": "PowerShell command block that writes the generated key to the Compose secret file and restarts McHarbor with the secrets override.",
+				},
+			},
+			"required": []string{"key", "encoding", "secret", "secretKey", "secretPath", "setupShell", "setupCommand"},
+		},
+		"BackupEncryptionKeyInstallRequest": map[string]any{
+			"type":        "object",
+			"description": "Request body for installing a generated or user-provided backup encryption key as the Docker Compose secret source file.",
+			"properties": map[string]any{
+				"key": map[string]any{
+					"type":        "string",
+					"description": "Base64-encoded 32-byte backup encryption key.",
+					"writeOnly":   true,
+				},
+			},
+			"required": []string{"key"},
+		},
+		"BackupEncryptionKeyStatus": map[string]any{
+			"type":        "object",
+			"description": "Runtime backup key status. Secret key material is never returned.",
+			"properties": map[string]any{
+				"configured": map[string]any{"type": "boolean", "description": "True when the configured key file path exists."},
+				"readable":   map[string]any{"type": "boolean", "description": "True when the key file can be parsed as a supported backup key."},
+				"keyId":      map[string]any{"type": "string", "description": "Non-secret key fingerprint."},
+				"path":       map[string]any{"type": "string", "description": "Configured key file path inside the McHarbor container."},
+			},
+			"required": []string{"configured", "readable", "path"},
+		},
+		"BackupEncryptionKeyInstall": map[string]any{
+			"type":        "object",
+			"description": "Backup secret installation result. The key value is intentionally omitted.",
+			"properties": map[string]any{
+				"secret":      map[string]any{"type": "string", "example": "mcharbor_backup_key"},
+				"secretPath":  map[string]any{"type": "string", "example": "secrets/mcharbor_backup_key"},
+				"projectPath": map[string]any{"type": "string", "description": "Detected host-side Docker Compose project directory."},
+				"output":      map[string]any{"type": "string"},
+			},
+			"required": []string{"secret", "secretPath", "projectPath", "output"},
+		},
+		"ContainerBackupOption": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"key":         map[string]any{"type": "string"},
+				"type":        map[string]any{"type": "string", "enum": []string{"config", "logs", "filesystem", "image", "mount"}},
+				"label":       map[string]any{"type": "string"},
+				"description": map[string]any{"type": "string"},
+				"default":     map[string]any{"type": "boolean"},
+				"required":    map[string]any{"type": "boolean"},
+			},
+			"required": []string{"key", "type", "label", "default", "required"},
+		},
+		"ContainerBackupOptions": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"containerId":   map[string]any{"type": "string"},
+				"containerName": map[string]any{"type": "string"},
+				"options":       arrayOf(schemaRef("ContainerBackupOption")),
+			},
+			"required": []string{"containerId", "containerName", "options"},
+		},
+		"ContainerBackupPlan": map[string]any{
+			"type":        "object",
+			"description": "Saved scheduled encrypted backup configuration for one container, including per-schedule retention.",
+			"properties": map[string]any{
+				"id":                 map[string]any{"type": "string"},
+				"name":               map[string]any{"type": "string"},
+				"environmentId":      map[string]any{"type": "string"},
+				"containerId":        map[string]any{"type": "string"},
+				"containerName":      map[string]any{"type": "string"},
+				"storageLocationId":  map[string]any{"type": "string"},
+				"storageLocationIds": arrayOf(map[string]any{"type": "string"}),
+				"includeConfig":      map[string]any{"type": "boolean"},
+				"includeLogs":        map[string]any{"type": "boolean"},
+				"includeFilesystem":  map[string]any{"type": "boolean"},
+				"includeImage":       map[string]any{"type": "boolean"},
+				"selectedMounts":     arrayOf(map[string]any{"type": "string"}),
+				"cron":               map[string]any{"type": "string"},
+				"enabled":            map[string]any{"type": "boolean"},
+				"retentionCount":     map[string]any{"type": "integer", "minimum": 0, "maximum": 1000, "description": "Maximum successful runs to keep for this schedule. 0 keeps all by count."},
+				"retentionDays":      map[string]any{"type": "integer", "minimum": 0, "maximum": 3650, "description": "Maximum age in days for successful runs from this schedule. 0 keeps all by age."},
+				"lastRunAt":          map[string]any{"type": "string", "format": "date-time"},
+				"nextRunAt":          map[string]any{"type": "string", "format": "date-time"},
+				"createdAt":          map[string]any{"type": "string", "format": "date-time"},
+				"updatedAt":          map[string]any{"type": "string", "format": "date-time"},
+			},
+			"required": []string{"id", "name", "environmentId", "containerId", "includeConfig", "includeLogs", "includeFilesystem", "includeImage", "selectedMounts", "enabled", "retentionCount", "retentionDays", "createdAt", "updatedAt"},
+		},
+		"ContainerBackupPlanWrite": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"name":               map[string]any{"type": "string"},
+				"containerId":        map[string]any{"type": "string"},
+				"storageLocationId":  map[string]any{"type": "string"},
+				"storageLocationIds": arrayOf(map[string]any{"type": "string"}),
+				"includeConfig":      map[string]any{"type": "boolean"},
+				"includeLogs":        map[string]any{"type": "boolean"},
+				"includeFilesystem":  map[string]any{"type": "boolean"},
+				"includeImage":       map[string]any{"type": "boolean"},
+				"selectedMounts":     arrayOf(map[string]any{"type": "string"}),
+				"cron":               map[string]any{"type": "string"},
+				"enabled":            map[string]any{"type": "boolean"},
+				"retentionCount":     map[string]any{"type": "integer", "minimum": 0, "maximum": 1000},
+				"retentionDays":      map[string]any{"type": "integer", "minimum": 0, "maximum": 3650},
+			},
+			"required": []string{"containerId"},
+		},
+		"ContainerBackupPlanPatch": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"name":               map[string]any{"type": "string"},
+				"storageLocationId":  map[string]any{"type": "string"},
+				"storageLocationIds": arrayOf(map[string]any{"type": "string"}),
+				"includeConfig":      map[string]any{"type": "boolean"},
+				"includeLogs":        map[string]any{"type": "boolean"},
+				"includeFilesystem":  map[string]any{"type": "boolean"},
+				"includeImage":       map[string]any{"type": "boolean"},
+				"selectedMounts":     arrayOf(map[string]any{"type": "string"}),
+				"cron":               map[string]any{"type": "string"},
+				"enabled":            map[string]any{"type": "boolean"},
+				"retentionCount":     map[string]any{"type": "integer", "minimum": 0, "maximum": 1000},
+				"retentionDays":      map[string]any{"type": "integer", "minimum": 0, "maximum": 3650},
+			},
+		},
+		"ContainerBackupRunRequest": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"name":               map[string]any{"type": "string"},
+				"storageLocationId":  map[string]any{"type": "string"},
+				"storageLocationIds": arrayOf(map[string]any{"type": "string"}),
+				"includeConfig":      map[string]any{"type": "boolean"},
+				"includeLogs":        map[string]any{"type": "boolean"},
+				"includeFilesystem":  map[string]any{"type": "boolean"},
+				"includeImage":       map[string]any{"type": "boolean"},
+				"selectedMounts":     arrayOf(map[string]any{"type": "string"}),
+			},
+		},
+		"ContainerBackupRun": map[string]any{
+			"type":        "object",
+			"description": "Execution record for an encrypted container backup. Successful archive paths end with backups/containers/<runId>/mcharbor.tar.",
+			"properties": map[string]any{
+				"id":                map[string]any{"type": "string"},
+				"planId":            map[string]any{"type": "string"},
+				"environmentId":     map[string]any{"type": "string"},
+				"containerId":       map[string]any{"type": "string"},
+				"status":            map[string]any{"type": "string", "enum": []string{"running", "success", "failure"}},
+				"archivePath":       map[string]any{"type": "string", "description": "Local path to the encrypted mcharbor.tar archive."},
+				"archiveSize":       map[string]any{"type": "integer", "format": "int64"},
+				"archiveEncryption": map[string]any{"type": "string", "example": "AES-256-GCM-CHUNKED"},
+				"archiveKeyId":      map[string]any{"type": "string", "description": "Non-secret key fingerprint for the Docker secret used to encrypt the archive."},
+				"requiresSecretKey": map[string]any{"type": "boolean", "description": "True when the archive was encrypted with a key other than the current backup key."},
+				"error":             map[string]any{"type": "string"},
+				"startedAt":         map[string]any{"type": "string", "format": "date-time"},
+				"completedAt":       map[string]any{"type": "string", "format": "date-time"},
+				"durationMs":        map[string]any{"type": "integer", "format": "int64"},
+				"createdAt":         map[string]any{"type": "string", "format": "date-time"},
+				"updatedAt":         map[string]any{"type": "string", "format": "date-time"},
+			},
+			"required": []string{"id", "environmentId", "containerId", "status", "archiveSize", "startedAt", "durationMs", "createdAt", "updatedAt"},
+		},
+		"ContainerBackupRestoreRequest": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"secretKey": map[string]any{
+					"type":        "string",
+					"description": "Original backup encryption secret key. Required only when requiresSecretKey is true.",
+					"writeOnly":   true,
+				},
+			},
+		},
+		"ContainerBackupRestoreResult": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"runId":    map[string]any{"type": "string"},
+				"restored": arrayOf(map[string]any{"type": "string"}),
+			},
+			"required": []string{"runId", "restored"},
+		},
+		"StorageLocation": map[string]any{
+			"type":        "object",
+			"description": "Reusable external storage location. Secret fields are encrypted at rest and never returned.",
+			"properties": map[string]any{
+				"id":           map[string]any{"type": "string"},
+				"name":         map[string]any{"type": "string"},
+				"locationType": storageLocationTypeSchema(),
+				"enabled":      map[string]any{"type": "boolean"},
+				"host":         map[string]any{"type": "string"},
+				"port":         map[string]any{"type": "integer"},
+				"basePath":     map[string]any{"type": "string"},
+				"region":       map[string]any{"type": "string"},
+				"bucket":       map[string]any{"type": "string"},
+				"endpoint":     map[string]any{"type": "string"},
+				"tenantId":     map[string]any{"type": "string"},
+				"siteUrl":      map[string]any{"type": "string"},
+				"driveId":      map[string]any{"type": "string"},
+				"shareName":    map[string]any{"type": "string"},
+				"domain":       map[string]any{"type": "string"},
+				"username":     map[string]any{"type": "string"},
+				"authMethod":   storageAuthMethodSchema(),
+				"tlsMode":      storageTLSModeSchema(),
+				"passiveMode":  map[string]any{"type": "boolean", "description": "FTP/FTPS passive mode flag. SFTP ignores this value."},
+				"createdAt":    map[string]any{"type": "string", "format": "date-time"},
+				"updatedAt":    map[string]any{"type": "string", "format": "date-time"},
+			},
+			"required": []string{"id", "name", "locationType", "enabled", "createdAt", "updatedAt"},
+		},
+		"StorageLocationWrite": map[string]any{
+			"type":        "object",
+			"description": "Create or update payload for a storage location. Secret fields are write-only and encrypted at rest.",
+			"properties": map[string]any{
+				"name":         map[string]any{"type": "string"},
+				"locationType": storageLocationTypeSchema(),
+				"enabled":      map[string]any{"type": "boolean"},
+				"host":         map[string]any{"type": "string"},
+				"port":         map[string]any{"type": "integer"},
+				"basePath":     map[string]any{"type": "string"},
+				"region":       map[string]any{"type": "string"},
+				"bucket":       map[string]any{"type": "string"},
+				"endpoint":     map[string]any{"type": "string"},
+				"tenantId":     map[string]any{"type": "string"},
+				"siteUrl":      map[string]any{"type": "string"},
+				"driveId":      map[string]any{"type": "string"},
+				"shareName":    map[string]any{"type": "string"},
+				"domain":       map[string]any{"type": "string"},
+				"username":     map[string]any{"type": "string"},
+				"authMethod":   storageAuthMethodSchema(),
+				"tlsMode":      storageTLSModeSchema(),
+				"passiveMode":  map[string]any{"type": "boolean"},
+				"password":     storageSecretSchema("Password for FTP, FTPS, SFTP password auth, Samba, or similar providers."),
+				"privateKey":   storageSecretSchema("OpenSSH private key for SFTP key authentication."),
+				"passphrase":   storageSecretSchema("Optional passphrase for the SFTP private key."),
+				"caCertificate": storageSecretSchema(
+					"Optional PEM CA certificate used to validate an FTPS server certificate.",
+				),
+				"clientCertificate": storageSecretSchema(
+					"Optional PEM client certificate for FTPS mutual TLS.",
+				),
+				"clientKey":       storageSecretSchema("Optional PEM private key for the FTPS client certificate."),
+				"accessKeyId":     storageSecretSchema("AWS or S3-compatible access key ID."),
+				"secretAccessKey": storageSecretSchema("AWS or S3-compatible secret access key."),
+				"clientId":        storageSecretSchema("OAuth client ID for Google Drive, OneDrive, or SharePoint consent."),
+				"clientSecret":    storageSecretSchema("OAuth client secret for Google Drive, OneDrive, or SharePoint consent."),
+				"refreshToken":    storageSecretSchema("Provider refresh token, normally written by the OAuth callback."),
+				"token":           storageSecretSchema("Provider access token, normally written by the OAuth callback."),
+			},
+			"required": []string{"name", "locationType"},
+		},
+		"StorageOAuthAuthorizeResponse": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"authorizationUrl": map[string]any{"type": "string", "format": "uri"},
+				"expiresAt":        map[string]any{"type": "string", "format": "date-time"},
+			},
+			"required": []string{"authorizationUrl", "expiresAt"},
+		},
 		"CommunicationChannel": map[string]any{
 			"type": "object",
 			"properties": map[string]any{
@@ -2529,6 +3109,40 @@ func arrayOf(schema any) map[string]any {
 	return map[string]any{
 		"type":  "array",
 		"items": schema,
+	}
+}
+
+func storageLocationTypeSchema() map[string]any {
+	return map[string]any{
+		"type": "string",
+		"enum": []string{
+			"ftp", "ftps", "sftp", "samba", "aws", "google_drive",
+			"onedrive_personal", "onedrive_business", "sharepoint",
+		},
+	}
+}
+
+func storageAuthMethodSchema() map[string]any {
+	return map[string]any{
+		"type":        "string",
+		"description": "SFTP authentication mode. FTP and FTPS normally use password authentication.",
+		"enum":        []string{"", "password", "private_key", "password_private_key"},
+	}
+}
+
+func storageTLSModeSchema() map[string]any {
+	return map[string]any{
+		"type":        "string",
+		"description": "FTPS TLS mode. Use explicit for TCP 21 or implicit for TCP 990.",
+		"enum":        []string{"", "explicit", "implicit"},
+	}
+}
+
+func storageSecretSchema(description string) map[string]any {
+	return map[string]any{
+		"type":        "string",
+		"description": description,
+		"writeOnly":   true,
 	}
 }
 

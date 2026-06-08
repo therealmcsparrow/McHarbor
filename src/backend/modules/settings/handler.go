@@ -4,17 +4,21 @@
 package settings
 
 import (
+	"crypto/rand"
 	"crypto/x509"
 	"database/sql"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
+	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
@@ -78,6 +82,8 @@ type ScannerSettingsInput struct {
 type RetentionSettingsInput struct {
 	AuditRetentionDays    int `json:"auditRetentionDays"`
 	ActivityRetentionDays int `json:"activityRetentionDays"`
+	BackupRetentionCount  int `json:"backupRetentionCount"`
+	BackupRetentionDays   int `json:"backupRetentionDays"`
 }
 
 // --- TLS types ---
@@ -106,6 +112,17 @@ type TLSUpdateRequest struct {
 	Key        *string `json:"key,omitempty"`
 	Enabled    *bool   `json:"enabled,omitempty"`
 	ForceHttps *bool   `json:"forceHttps,omitempty"`
+}
+
+// BackupKeyResponse is returned once after generating a backup encryption key.
+type BackupKeyResponse struct {
+	Key          string `json:"key"`
+	Encoding     string `json:"encoding"`
+	Secret       string `json:"secret"`
+	SecretKey    string `json:"secretKey"`
+	SecretPath   string `json:"secretPath"`
+	SetupShell   string `json:"setupShell"`
+	SetupCommand string `json:"setupCommand"`
 }
 
 // Handler holds dependencies for settings HTTP handlers.
@@ -301,7 +318,13 @@ func (h *Handler) HandleUpdateRetentionSettings(w http.ResponseWriter, r *http.R
 	h.app.AuditLog.Log(r, audit.Entry{
 		Action:     "update",
 		EntityType: "settings",
-		Details:    fmt.Sprintf("retention settings updated: audit=%dd, activity=%dd", input.AuditRetentionDays, input.ActivityRetentionDays),
+		Details: fmt.Sprintf(
+			"retention settings updated: audit=%dd, activity=%dd, backups=%d, backupDays=%d",
+			input.AuditRetentionDays,
+			input.ActivityRetentionDays,
+			input.BackupRetentionCount,
+			input.BackupRetentionDays,
+		),
 	})
 
 	response.OKMsg(w, r, i18n.MsgRetentionSettingsUpdated)
@@ -344,6 +367,88 @@ func (h *Handler) HandleUpdateTLS(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response.OK(w, status)
+}
+
+// HandleGetBackupKeyStatus reports whether the runtime backup encryption key is active.
+func (h *Handler) HandleGetBackupKeyStatus(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	response.OK(w, h.service.BackupKeyStatus(h.app.Config.BackupEncryptionKeyFile))
+}
+
+// HandleGenerateBackupKey generates a one-time backup encryption key for Docker secret storage.
+func (h *Handler) HandleGenerateBackupKey(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		h.app.Logger.Error("settings: backup key generation failed", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "generate",
+		EntityType: "settings",
+		EntityName: "backup_encryption_key",
+		Details:    "backup encryption key generated for one-time copy",
+	})
+
+	encodedKey := base64.StdEncoding.EncodeToString(key)
+	response.OK(w, BackupKeyResponse{
+		Key:        encodedKey,
+		Encoding:   "base64",
+		Secret:     "mcharbor_backup_key",
+		SecretKey:  "BACKUP_ENCRYPTION_KEY_FILE",
+		SecretPath: "secrets/mcharbor_backup_key",
+		SetupShell: "powershell",
+		SetupCommand: strings.Join([]string{
+			"New-Item -ItemType Directory -Force secrets",
+			fmt.Sprintf("Set-Content -NoNewline -Path secrets/mcharbor_backup_key -Value %q", encodedKey),
+			"docker compose -f docker-compose.yml -f docker-compose.secrets.yml up -d",
+		}, "\n"),
+	})
+}
+
+// HandleInstallBackupKey installs a one-time backup encryption key as a host-side Docker secret file.
+func (h *Handler) HandleInstallBackupKey(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	var req BackupKeyInstallRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	result, err := h.service.InstallBackupKey(r.Context(), req.Key)
+	if err != nil {
+		var validationErr *ErrValidation
+		if errors.As(err, &validationErr) {
+			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+			return
+		}
+		h.app.Logger.Error("settings: backup key install failed", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "install",
+		EntityType: "settings",
+		EntityName: "backup_encryption_key",
+		Details:    "backup encryption key installed as Docker secret and restart scheduled",
+	})
+
+	response.OK(w, result)
 }
 
 // parseCertInfo extracts metadata from a PEM-encoded certificate.

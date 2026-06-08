@@ -6,7 +6,9 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -19,6 +21,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
+	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	"github.com/therealmcsparrow/mcharbor/core/config"
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
@@ -34,6 +37,7 @@ import (
 	// Module imports
 	modAgent "github.com/therealmcsparrow/mcharbor/modules/agent"
 	modAuth "github.com/therealmcsparrow/mcharbor/modules/auth"
+	containerbackups "github.com/therealmcsparrow/mcharbor/modules/container_backups"
 	"github.com/therealmcsparrow/mcharbor/modules/containers"
 	"github.com/therealmcsparrow/mcharbor/modules/dashboard"
 	"github.com/therealmcsparrow/mcharbor/modules/environments"
@@ -86,6 +90,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/scans"
 	"github.com/therealmcsparrow/mcharbor/modules/schedules"
 	"github.com/therealmcsparrow/mcharbor/modules/settings"
+	storagelocations "github.com/therealmcsparrow/mcharbor/modules/storage_locations"
 	"github.com/therealmcsparrow/mcharbor/modules/updates"
 	"github.com/therealmcsparrow/mcharbor/modules/users"
 	"github.com/therealmcsparrow/mcharbor/modules/webhooks"
@@ -104,6 +109,13 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "self-start-watchdog" {
 		if err := stacks.RunSelfStartWatchdog(context.Background()); err != nil {
 			fmt.Fprintf(os.Stderr, "self-start watchdog failed: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+	if len(os.Args) > 1 && os.Args[1] == "backup-secret-helper" {
+		if err := settings.RunBackupSecretHelper(context.Background()); err != nil {
+			fmt.Fprintf(os.Stderr, "backup secret helper failed: %v\n", err)
 			os.Exit(1)
 		}
 		return
@@ -148,6 +160,21 @@ func main() {
 	if err != nil {
 		logger.Error("failed to init encryption", "error", err)
 		os.Exit(1)
+	}
+
+	var backupCrypto *backupcrypto.Service
+	if cfg.BackupEncryptionKeyFile != "" {
+		backupCrypto, err = backupcrypto.NewFromKeyFile(cfg.BackupEncryptionKeyFile)
+		if err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				logger.Warn("backup encryption key file not found; container backups require a Docker secret", "path", cfg.BackupEncryptionKeyFile)
+			} else {
+				logger.Error("failed to init backup encryption", "error", err)
+				os.Exit(1)
+			}
+		} else {
+			logger.Info("backup encryption enabled", "keyID", backupCrypto.KeyID())
+		}
 	}
 
 	// Init auth
@@ -195,7 +222,14 @@ func main() {
 	auditLog := audit.NewLogger(database)
 
 	// Build app dependencies
-	app := router.NewAppDeps(cfg, database, dockerPool, k8sPool, agentPool, authSvc, rbacSvc, auditLog, enc, logger)
+	app := router.NewAppDeps(cfg, database, dockerPool, k8sPool, agentPool, authSvc, rbacSvc, auditLog, enc, backupCrypto, logger)
+
+	// Start container backup scheduler.
+	containerBackupSvc := containerbackups.NewService(database, dockerPool, cfg.DataDir, backupCrypto, logger)
+	containerBackupScheduler := containerbackups.NewScheduler(containerBackupSvc, logger)
+	containerBackupCtx, containerBackupCancel := context.WithCancel(context.Background())
+	defer containerBackupCancel()
+	go containerBackupScheduler.Start(containerBackupCtx)
 
 	// Register module routes
 	modAgent.Mount(app)
@@ -210,6 +244,7 @@ func main() {
 
 	// Protected modules
 	containers.Mount(app)
+	containerbackups.Mount(app)
 	images.Mount(app)
 	volumes.Mount(app)
 	networks.Mount(app)
@@ -238,6 +273,7 @@ func main() {
 	notifications.Mount(app)
 	email.Mount(app)
 	communications.Mount(app)
+	storagelocations.Mount(app)
 	inappnotifications.Mount(app)
 	users.Mount(app)
 	appStoreSvc := bootstrap.NewAppStoreService(database, dockerPool, cfg.DataDir, logger)

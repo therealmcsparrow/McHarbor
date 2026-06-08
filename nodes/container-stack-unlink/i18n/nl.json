@@ -1,0 +1,8 @@
+{
+  "label": "Container loskoppelen van stack",
+  "description": "Verwijder de handmatige stackkoppeling voor een container",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container"
+  }
+}

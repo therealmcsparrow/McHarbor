@@ -19,6 +19,7 @@ import {
   IconCheck,
   IconX,
   IconLock,
+  IconLockOpen,
   IconTag,
 } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
@@ -108,6 +109,9 @@ type ContainerDetailHeaderProps = {
   name: string;
   webUrl: string | null;
   editing: boolean;
+  editUnlocked: boolean;
+  editUnlockable: boolean;
+  onToggleEditLock: () => void;
   onEdit: () => void;
   onRename: () => void;
   onSave: () => void;
@@ -128,6 +132,9 @@ export function ContainerDetailHeader({
   name,
   webUrl,
   editing,
+  editUnlocked,
+  editUnlockable,
+  onToggleEditLock,
   onEdit,
   onRename,
   onSave,
@@ -146,7 +153,8 @@ export function ContainerDetailHeader({
   const { t: tc } = useTranslation('common');
   const state = container.State?.Status ?? 'unknown';
   const resolvedStackName = stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
-  const locked = isProtectedContainer(container);
+  const actionLocked = isProtectedContainer(container);
+  const editLocked = actionLocked && !editUnlocked;
 
   return (
     <div className="flex flex-1 items-center justify-between">
@@ -171,10 +179,10 @@ export function ContainerDetailHeader({
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-semibold text-foreground">{name}</h1>
             <Badge variant={STATE_VARIANTS[state] ?? 'secondary'} className="text-[10px] px-1.5 py-0">{state}</Badge>
-            {locked && (
+            {actionLocked && (
               <Badge variant="secondary" className="gap-1 text-[10px] px-1.5 py-0">
-                <IconLock className="size-3" />
-                {tc('actions.locked')}
+                {editUnlocked ? <IconLockOpen className="size-3" /> : <IconLock className="size-3" />}
+                {editUnlocked ? t('actions.editingUnlocked') : tc('actions.locked')}
               </Badge>
             )}
             {resolvedStackName ? (
@@ -220,23 +228,31 @@ export function ContainerDetailHeader({
           </>
         ) : (
           <>
+            {actionLocked && editUnlockable && (
+              <HeaderActionButton
+                tooltip={editUnlocked ? t('actions.lockEditing') : t('actions.unlockEditing')}
+                onClick={onToggleEditLock}
+                variant={editUnlocked ? 'secondary' : 'outline'}
+                icon={editUnlocked ? <IconLock className="size-3.5" /> : <IconLockOpen className="size-3.5" />}
+              />
+            )}
             <HeaderActionButton
               tooltip={t('actions.edit')}
               onClick={onEdit}
-              disabled={locked}
+              disabled={editLocked}
               icon={<IconPencil className="size-3.5" />}
             />
             <HeaderActionButton
               tooltip={t('actions.rename')}
               onClick={onRename}
-              disabled={locked}
+              disabled={editLocked}
               icon={<IconTag className="size-3.5" />}
             />
             {isRunning ? (
               <HeaderActionButton
                 tooltip={t('actions.stop')}
                 onClick={() => onAction('stop')}
-                disabled={locked}
+                disabled={actionLocked}
                 icon={<IconPlayerStop className="size-3.5" />}
               />
             ) : (
@@ -244,20 +260,20 @@ export function ContainerDetailHeader({
                 tooltip={t('actions.start')}
                 onClick={() => onAction('start')}
                 variant="default"
-                disabled={locked}
+                disabled={actionLocked}
                 icon={<IconPlayerPlay className="size-3.5" />}
               />
             )}
             <HeaderActionButton
               tooltip={t('actions.restart')}
               onClick={() => onAction('restart')}
-              disabled={locked}
+              disabled={actionLocked}
               icon={<IconRotate className="size-3.5" />}
             />
             <HeaderActionButton
               tooltip={t('actions.pause')}
               onClick={() => onAction('pause')}
-              disabled={locked}
+              disabled={actionLocked}
               icon={<IconPlayerPause className="size-3.5" />}
             />
             {webUrl && (
@@ -272,14 +288,14 @@ export function ContainerDetailHeader({
               tooltip={t('actions.relinkStack')}
               onClick={onRelink}
               variant="secondary"
-              disabled={locked}
+              disabled={editLocked}
               icon={<IconLink className="size-3.5" />}
             />
             <HeaderActionButton
               tooltip={t('actions.move')}
               onClick={onMove}
               variant="secondary"
-              disabled={locked}
+              disabled={actionLocked}
               icon={<IconArrowsExchange className="size-3.5" />}
             />
             {!container.Config?.Labels?.['com.docker.compose.project'] && (
@@ -287,7 +303,7 @@ export function ContainerDetailHeader({
                 tooltip={t('actions.takeOver')}
                 onClick={onTakeOver}
                 variant="secondary"
-                disabled={locked}
+                disabled={actionLocked}
                 icon={<IconArrowsTransferUp className="size-3.5" />}
               />
             )}
@@ -296,14 +312,14 @@ export function ContainerDetailHeader({
               tooltip={t('actions.kill')}
               onClick={onKill}
               variant="destructive"
-              disabled={locked}
+              disabled={actionLocked}
               icon={<IconSkull className="size-3.5" />}
             />
             <HeaderActionButton
               tooltip={t('actions.remove')}
               onClick={onRemove}
               variant="destructive"
-              disabled={locked}
+              disabled={actionLocked}
               icon={<IconTrash className="size-3.5" />}
             />
           </>

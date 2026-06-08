@@ -2,6 +2,7 @@
   "label": "File Watch Trigger",
   "description": "Start a workflow when a watched file path changes",
   "config": {
+    "storage_location_id": "Speicherort",
     "path": "Pfad",
     "event_types": "Event Types"
   }

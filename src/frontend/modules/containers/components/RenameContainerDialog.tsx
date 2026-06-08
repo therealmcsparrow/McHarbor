@@ -25,12 +25,14 @@ type RenameContainerDialogProps = {
   container: RenameContainerTarget | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  unlockProtected?: boolean;
 };
 
 export function RenameContainerDialog({
   container,
   open,
   onOpenChange,
+  unlockProtected = false,
 }: RenameContainerDialogProps) {
   const { t } = useTranslation('containers');
   const { t: tc } = useTranslation('common');
@@ -52,7 +54,7 @@ export function RenameContainerDialog({
     }
 
     renameMutation.mutate(
-      { id: container.id, name: trimmedName },
+      { id: container.id, name: trimmedName, unlockProtected },
       { onSuccess: () => onOpenChange(false) },
     );
   }

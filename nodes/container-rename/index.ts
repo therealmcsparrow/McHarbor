@@ -27,6 +27,13 @@ export const containerRename: NodeDefinition = {
       "label": "New Name",
       "type": "text",
       "required": true
+    },
+    {
+      "key": "unlock_protected",
+      "label": "Unlock Protected Container",
+      "type": "toggle",
+      "required": false,
+      "default": false
     }
   ],
   "inputPorts": [

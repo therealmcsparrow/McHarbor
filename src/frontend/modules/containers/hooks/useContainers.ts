@@ -181,9 +181,9 @@ export function useRenameContainer() {
   const { t } = useTranslation('containers');
 
   return useMutation({
-    mutationFn: ({ id, name }: { id: string; name: string }) => {
+    mutationFn: ({ id, name, unlockProtected }: { id: string; name: string; unlockProtected?: boolean }) => {
       const envQuery = envId ? `?env=${envId}` : '';
-      return api.post(`/containers/${id}/rename${envQuery}`, { name }).then(assertSuccess);
+      return api.post(`/containers/${id}/rename${envQuery}`, { name, unlockProtected }).then(assertSuccess);
     },
     meta: { success: t('toast.renamed') },
     onSuccess: () => {

@@ -42,11 +42,13 @@ type UpdateRequest struct {
 	CpusetMems        string                   `json:"cpusetMems,omitempty"`
 	BlkioWeight       uint16                   `json:"blkioWeight,omitempty"`
 	RestartPolicy     *container.RestartPolicy `json:"restartPolicy,omitempty"`
+	UnlockProtected   bool                     `json:"unlockProtected,omitempty"`
 }
 
 // RenameRequest is the JSON body for POST /containers/{id}/rename.
 type RenameRequest struct {
-	Name string `json:"name"`
+	Name            string `json:"name"`
+	UnlockProtected bool   `json:"unlockProtected,omitempty"`
 }
 
 // PortBindingSpec describes a host binding for a container port.
@@ -82,45 +84,46 @@ type NetworkDisconnectRequest struct {
 
 // RecreateRequest is the JSON body for POST /containers/{id}/recreate.
 type RecreateRequest struct {
-	Image          string                       `json:"image,omitempty"`
-	PullImage      bool                         `json:"pullImage,omitempty"`
-	Env            []string                     `json:"env,omitempty"`
-	Labels         map[string]string            `json:"labels,omitempty"`
-	Cmd            []string                     `json:"cmd,omitempty"`
-	Entrypoint     []string                     `json:"entrypoint,omitempty"`
-	WorkingDir     *string                      `json:"workingDir,omitempty"`
-	Hostname       *string                      `json:"hostname,omitempty"`
-	Domainname     *string                      `json:"domainname,omitempty"`
-	User           *string                      `json:"user,omitempty"`
-	Tty            *bool                        `json:"tty,omitempty"`
-	OpenStdin      *bool                        `json:"openStdin,omitempty"`
-	StopSignal     *string                      `json:"stopSignal,omitempty"`
-	ExposedPorts   map[string]struct{}          `json:"exposedPorts,omitempty"`
-	PortBindings   map[string][]PortBindingSpec `json:"portBindings,omitempty"`
-	NetworkMode    *string                      `json:"networkMode,omitempty"`
-	Privileged     *bool                        `json:"privileged,omitempty"`
-	ReadonlyRootfs *bool                        `json:"readonlyRootfs,omitempty"`
-	Dns            []string                     `json:"dns,omitempty"`
-	DnsSearch      []string                     `json:"dnsSearch,omitempty"`
-	DnsOptions     []string                     `json:"dnsOptions,omitempty"`
-	ExtraHosts     []string                     `json:"extraHosts,omitempty"`
-	CapAdd         []string                     `json:"capAdd,omitempty"`
-	CapDrop        []string                     `json:"capDrop,omitempty"`
-	SecurityOpt    []string                     `json:"securityOpt,omitempty"`
-	ShmSize        *int64                       `json:"shmSize,omitempty"`
-	PidMode        *string                      `json:"pidMode,omitempty"`
-	Init           *bool                        `json:"init,omitempty"`
-	AutoRemove     *bool                        `json:"autoRemove,omitempty"`
-	OomKillDisable *bool                        `json:"oomKillDisable,omitempty"`
-	PidsLimit      *int64                       `json:"pidsLimit,omitempty"`
-	Devices        *[]container.DeviceMapping   `json:"devices,omitempty"`
-	DeviceRequests *[]container.DeviceRequest   `json:"deviceRequests,omitempty"`
-	Memory         *int64                       `json:"memory,omitempty"`
-	NanoCPUs       *int64                       `json:"nanoCPUs,omitempty"`
-	RestartPolicy  *container.RestartPolicy     `json:"restartPolicy,omitempty"`
-	LogDriver      *string                      `json:"logDriver,omitempty"`
-	LogOptions     map[string]string            `json:"logOptions,omitempty"`
-	Healthcheck    *HealthcheckSpec             `json:"healthcheck,omitempty"`
+	Image           string                       `json:"image,omitempty"`
+	PullImage       bool                         `json:"pullImage,omitempty"`
+	Env             []string                     `json:"env,omitempty"`
+	Labels          map[string]string            `json:"labels,omitempty"`
+	Cmd             []string                     `json:"cmd,omitempty"`
+	Entrypoint      []string                     `json:"entrypoint,omitempty"`
+	WorkingDir      *string                      `json:"workingDir,omitempty"`
+	Hostname        *string                      `json:"hostname,omitempty"`
+	Domainname      *string                      `json:"domainname,omitempty"`
+	User            *string                      `json:"user,omitempty"`
+	Tty             *bool                        `json:"tty,omitempty"`
+	OpenStdin       *bool                        `json:"openStdin,omitempty"`
+	StopSignal      *string                      `json:"stopSignal,omitempty"`
+	ExposedPorts    map[string]struct{}          `json:"exposedPorts,omitempty"`
+	PortBindings    map[string][]PortBindingSpec `json:"portBindings,omitempty"`
+	NetworkMode     *string                      `json:"networkMode,omitempty"`
+	Privileged      *bool                        `json:"privileged,omitempty"`
+	ReadonlyRootfs  *bool                        `json:"readonlyRootfs,omitempty"`
+	Dns             []string                     `json:"dns,omitempty"`
+	DnsSearch       []string                     `json:"dnsSearch,omitempty"`
+	DnsOptions      []string                     `json:"dnsOptions,omitempty"`
+	ExtraHosts      []string                     `json:"extraHosts,omitempty"`
+	CapAdd          []string                     `json:"capAdd,omitempty"`
+	CapDrop         []string                     `json:"capDrop,omitempty"`
+	SecurityOpt     []string                     `json:"securityOpt,omitempty"`
+	ShmSize         *int64                       `json:"shmSize,omitempty"`
+	PidMode         *string                      `json:"pidMode,omitempty"`
+	Init            *bool                        `json:"init,omitempty"`
+	AutoRemove      *bool                        `json:"autoRemove,omitempty"`
+	OomKillDisable  *bool                        `json:"oomKillDisable,omitempty"`
+	PidsLimit       *int64                       `json:"pidsLimit,omitempty"`
+	Devices         *[]container.DeviceMapping   `json:"devices,omitempty"`
+	DeviceRequests  *[]container.DeviceRequest   `json:"deviceRequests,omitempty"`
+	Memory          *int64                       `json:"memory,omitempty"`
+	NanoCPUs        *int64                       `json:"nanoCPUs,omitempty"`
+	RestartPolicy   *container.RestartPolicy     `json:"restartPolicy,omitempty"`
+	LogDriver       *string                      `json:"logDriver,omitempty"`
+	LogOptions      map[string]string            `json:"logOptions,omitempty"`
+	Healthcheck     *HealthcheckSpec             `json:"healthcheck,omitempty"`
+	UnlockProtected bool                         `json:"unlockProtected,omitempty"`
 }
 
 // LogsQuery holds parsed query params for GET /containers/{id}/logs.

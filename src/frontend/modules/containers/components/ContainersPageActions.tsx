@@ -6,6 +6,7 @@ import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
 
 type ContainersPageActionsProps = {
+  scope?: 'header' | 'toolbar';
   viewMode: 'table' | 'card';
   checkingUpdates: boolean;
   batchRunning: boolean;
@@ -22,6 +23,7 @@ type ContainersPageActionsProps = {
 };
 
 export function ContainersPageActions({
+  scope = 'header',
   viewMode,
   checkingUpdates,
   batchRunning,
@@ -36,28 +38,35 @@ export function ContainersPageActions({
   onViewModeChange,
   t,
 }: ContainersPageActionsProps) {
+  if (scope === 'toolbar') {
+    return (
+      <>
+        <Button variant="outline" size="sm" onClick={onCheckUpdates} disabled={checkingUpdates || batchRunning || uploadActive}>
+          {checkingUpdates ? <Spinner size="sm" /> : <IconRefresh className="h-4 w-4" />}
+          {t('updates.searchForUpdates')}
+        </Button>
+        {totalContainers > 0 && (
+          <Button variant="outline" size="sm" onClick={onReinstallAll} disabled={batchRunning || uploadActive}>
+            {batchRunning ? <Spinner size="sm" /> : <IconRotate className="h-4 w-4" />}
+            {t('updates.reinstallAll', { count: totalContainers })}
+          </Button>
+        )}
+        <Button variant="outline" size="sm" onClick={onPruneUnused} disabled={batchRunning || uploadActive}>
+          <IconFilterOff className="h-4 w-4" />
+          {t('pruneUnused')}
+        </Button>
+      </>
+    );
+  }
+
   return (
     <>
-      <Button variant="outline" onClick={onCheckUpdates} disabled={checkingUpdates || batchRunning || uploadActive}>
-        {checkingUpdates ? <Spinner size="sm" /> : <IconRefresh className="h-4 w-4" />}
-        {t('updates.searchForUpdates')}
-      </Button>
       {updatesAvailable > 0 && (
         <Button variant="outline" onClick={onUpdateAll} disabled={batchRunning || uploadActive}>
           {batchRunning ? <Spinner size="sm" /> : <IconArrowUp className="h-4 w-4" />}
           {t('updates.updateAll', { count: updatesAvailable })}
         </Button>
       )}
-      {totalContainers > 0 && (
-        <Button variant="outline" onClick={onReinstallAll} disabled={batchRunning || uploadActive}>
-          {batchRunning ? <Spinner size="sm" /> : <IconRotate className="h-4 w-4" />}
-          {t('updates.reinstallAll', { count: totalContainers })}
-        </Button>
-      )}
-      <Button variant="outline" onClick={onPruneUnused} disabled={batchRunning || uploadActive}>
-        <IconFilterOff className="h-4 w-4" />
-        {t('pruneUnused')}
-      </Button>
       <Button onClick={onCreate}>
         <IconPlus className="h-4 w-4" /> {t('createContainer')}
       </Button>

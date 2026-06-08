@@ -33,8 +33,9 @@ type Config struct {
 	ForceSecureCookies bool `env:"FORCE_SECURE_COOKIES" envDefault:"false"`
 
 	// Encryption
-	EncryptionKey string `env:"ENCRYPTION_KEY"`
-	DataDir       string `env:"DATA_DIR" envDefault:"./data"`
+	EncryptionKey           string `env:"ENCRYPTION_KEY"`
+	BackupEncryptionKeyFile string `env:"BACKUP_ENCRYPTION_KEY_FILE" envDefault:"/run/secrets/mcharbor_backup_key"`
+	DataDir                 string `env:"DATA_DIR" envDefault:"./data"`
 
 	// Logging
 	LogLevel string `env:"LOG_LEVEL" envDefault:"info"`

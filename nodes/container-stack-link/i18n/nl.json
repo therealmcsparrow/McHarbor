@@ -1,0 +1,10 @@
+{
+  "label": "Container aan stack koppelen",
+  "description": "Maak of vervang de handmatige stackkoppeling voor een container",
+  "config": {
+    "environment": "Omgeving",
+    "container": "Container",
+    "stack_name": "Stacknaam",
+    "service_name": "Servicenaam"
+  }
+}

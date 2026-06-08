@@ -12,6 +12,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
+	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	"github.com/therealmcsparrow/mcharbor/core/config"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
@@ -30,16 +31,18 @@ type AppDeps struct {
 	RBACService    *rbac.Service
 	AuditLog       *audit.Logger
 	Encryption     *encryption.Service
+	BackupCrypto   *backupcrypto.Service
 	Logger         *slog.Logger
 	StaticDir      string
 
 	// Module mount functions (set during initialization)
+	mountPublic    []func(chi.Router)
 	mountAuth      []func(chi.Router)
 	mountProtected []func(chi.Router)
 }
 
 // NewAppDeps creates a new AppDeps with all core services.
-func NewAppDeps(cfg *config.Config, db *sql.DB, dockerPool *docker.ClientPool, k8sPool *kubernetes.ClientPool, agentPool *agent.AgentPool, authSvc *auth.Service, rbacSvc *rbac.Service, auditLog *audit.Logger, enc *encryption.Service, logger *slog.Logger) *AppDeps {
+func NewAppDeps(cfg *config.Config, db *sql.DB, dockerPool *docker.ClientPool, k8sPool *kubernetes.ClientPool, agentPool *agent.AgentPool, authSvc *auth.Service, rbacSvc *rbac.Service, auditLog *audit.Logger, enc *encryption.Service, backupCrypto *backupcrypto.Service, logger *slog.Logger) *AppDeps {
 	return &AppDeps{
 		Config:         cfg,
 		DB:             db,
@@ -50,9 +53,15 @@ func NewAppDeps(cfg *config.Config, db *sql.DB, dockerPool *docker.ClientPool, k
 		RBACService:    rbacSvc,
 		AuditLog:       auditLog,
 		Encryption:     enc,
+		BackupCrypto:   backupCrypto,
 		Logger:         logger,
 		StaticDir:      "./static",
 	}
+}
+
+// RegisterPublicRoutes registers a module's public routes (no auth middleware or auth rate limit).
+func (a *AppDeps) RegisterPublicRoutes(mount func(chi.Router)) {
+	a.mountPublic = append(a.mountPublic, mount)
 }
 
 // RegisterAuthRoutes registers a module's auth routes (no auth middleware).
@@ -63,6 +72,13 @@ func (a *AppDeps) RegisterAuthRoutes(mount func(chi.Router)) {
 // RegisterProtectedRoutes registers a module's protected routes.
 func (a *AppDeps) RegisterProtectedRoutes(mount func(chi.Router)) {
 	a.mountProtected = append(a.mountProtected, mount)
+}
+
+// MountPublicRoutes mounts all registered public routes.
+func (a *AppDeps) MountPublicRoutes(r chi.Router) {
+	for _, mount := range a.mountPublic {
+		mount(r)
+	}
 }
 
 // MountAuthRoutes mounts all registered auth routes.

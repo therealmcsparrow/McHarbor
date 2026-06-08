@@ -56,6 +56,40 @@
     "signOut": "Se déconnecter",
     "locked": "Verrouille"
   },
+  "schedule": {
+    "readableMode": "Lisible",
+    "advancedMode": "Avance",
+    "every": "Tous les",
+    "unit": "Unite",
+    "startingAt": "A partir de",
+    "generatedCron": "Cron: {{value}}",
+    "units": {
+      "hour": "heure(s)",
+      "day": "jour(s)",
+      "week": "semaine(s)",
+      "month": "mois",
+      "year": "an"
+    },
+    "weekdays": {
+      "0": "dimanche",
+      "1": "lundi",
+      "2": "mardi",
+      "3": "mercredi",
+      "4": "jeudi",
+      "5": "vendredi",
+      "6": "samedi"
+    },
+    "readable": {
+      "everyMinute": "Chaque minute",
+      "everyHourAt": "Chaque heure a :{{minute}}",
+      "everyNHoursAt": "Toutes les {{count}} heures a :{{minute}}",
+      "everyDayAt": "Chaque jour a {{time}}",
+      "everyNDaysAt": "Tous les {{count}} jours a {{time}}",
+      "everyWeekdayAt": "Chaque {{weekday}} a {{time}}",
+      "everyMonthAt": "Chaque mois le jour {{day}} a {{time}}",
+      "everyYearAt": "Chaque annee le {{day}}/{{month}} a {{time}}"
+    }
+  },
   "status": {
     "running": "En cours d'exécution",
     "stopped": "Arrêté",

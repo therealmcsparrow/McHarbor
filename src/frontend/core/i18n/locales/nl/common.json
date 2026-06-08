@@ -56,6 +56,40 @@
     "signOut": "Uitloggen",
     "locked": "Vergrendeld"
   },
+  "schedule": {
+    "readableMode": "Leesbaar",
+    "advancedMode": "Geavanceerd",
+    "every": "Elke",
+    "unit": "Eenheid",
+    "startingAt": "Vanaf",
+    "generatedCron": "Cron: {{value}}",
+    "units": {
+      "hour": "uur",
+      "day": "dag(en)",
+      "week": "week/weken",
+      "month": "maand(en)",
+      "year": "jaar"
+    },
+    "weekdays": {
+      "0": "zondag",
+      "1": "maandag",
+      "2": "dinsdag",
+      "3": "woensdag",
+      "4": "donderdag",
+      "5": "vrijdag",
+      "6": "zaterdag"
+    },
+    "readable": {
+      "everyMinute": "Elke minuut",
+      "everyHourAt": "Elk uur om :{{minute}}",
+      "everyNHoursAt": "Elke {{count}} uur om :{{minute}}",
+      "everyDayAt": "Elke dag om {{time}}",
+      "everyNDaysAt": "Elke {{count}} dagen om {{time}}",
+      "everyWeekdayAt": "Elke {{weekday}} om {{time}}",
+      "everyMonthAt": "Elke maand op dag {{day}} om {{time}}",
+      "everyYearAt": "Elk jaar op {{day}}/{{month}} om {{time}}"
+    }
+  },
   "status": {
     "running": "Actief",
     "stopped": "Gestopt",

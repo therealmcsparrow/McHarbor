@@ -199,7 +199,7 @@ func (p *Proxy) handleRequestWithBody(ctx context.Context, conn *websocket.Conn,
 	defer resp.Body.Close()
 
 	// Check if this is a streaming response
-	if isStreamingResponse(resp) {
+	if isStreamingResponse(wsReq, resp) {
 		p.handleStreamingResponse(ctx, conn, id, resp)
 		return
 	}
@@ -351,8 +351,12 @@ func (p *Proxy) spoolRequestBody(bodyReader io.Reader) (io.Reader, func(), error
 }
 
 // isStreamingResponse checks if the response is a streaming/chunked response.
-func isStreamingResponse(resp *http.Response) bool {
+func isStreamingResponse(req *WSHTTPRequest, resp *http.Response) bool {
 	ct := resp.Header.Get("Content-Type")
+
+	if isOneShotStatsRequest(req) {
+		return false
+	}
 
 	// Go's http.Transport moves Transfer-Encoding from headers to
 	// resp.TransferEncoding field, so check that instead of the header.
@@ -376,6 +380,22 @@ func isStreamingResponse(resp *http.Response) bool {
 		return true
 	}
 	return false
+}
+
+func isOneShotStatsRequest(req *WSHTTPRequest) bool {
+	if req == nil {
+		return false
+	}
+	if req.Method != http.MethodGet || !strings.Contains(req.Path, "/containers/") || !strings.HasSuffix(req.Path, "/stats") {
+		return false
+	}
+
+	values, err := url.ParseQuery(req.Query)
+	if err != nil {
+		return false
+	}
+	stream := strings.ToLower(strings.TrimSpace(values.Get("stream")))
+	return stream == "0" || stream == "false"
 }
 
 // HandleExec starts an exec attach session and streams I/O over WebSocket.

@@ -11,6 +11,12 @@ export const fileWatchTrigger: NodeDefinition = {
   "icon": "IconFileAlert",
   "configSchema": [
     {
+      "key": "storage_location_id",
+      "label": "Storage Location",
+      "type": "storage-location-select",
+      "required": false
+    },
+    {
       "key": "path",
       "label": "Path",
       "type": "text",

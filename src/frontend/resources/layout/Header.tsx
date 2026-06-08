@@ -23,6 +23,7 @@ const HeaderNotifications = lazy(() => import('@resources/layout/HeaderNotificat
 
 const ENV_SELECTOR_ROUTES = new Set([
   '/',
+  '/dashboard',
   '/containers',
   '/images',
   '/volumes',

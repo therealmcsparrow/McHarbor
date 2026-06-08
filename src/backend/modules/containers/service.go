@@ -445,7 +445,7 @@ func (s *Service) Update(ctx context.Context, envID, id string, req UpdateReques
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+	if err := ensureContainerMutableForRuntimeEdit(ctx, cli, id, req.UnlockProtected); err != nil {
 		return container.ContainerUpdateOKBody{}, err
 	}
 
@@ -476,8 +476,33 @@ func (s *Service) Update(ctx context.Context, envID, id string, req UpdateReques
 	return resp, nil
 }
 
+func ensureContainerMutableForRuntimeEdit(ctx context.Context, cli *client.Client, id string, unlockProtected bool) error {
+	if !unlockProtected {
+		return docker.EnsureContainerMutable(ctx, cli, id)
+	}
+
+	info, err := cli.ContainerInspect(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	image := ""
+	labels := map[string]string{}
+	if info.Config != nil {
+		image = info.Config.Image
+		labels = info.Config.Labels
+	}
+	if docker.IsMcHarborContainer([]string{info.Name}, image, labels) {
+		return nil
+	}
+	if docker.IsProtectedContainer([]string{info.Name}, image, labels) {
+		return docker.ErrProtectedResource
+	}
+	return nil
+}
+
 // Rename changes the Docker container name.
-func (s *Service) Rename(ctx context.Context, envID, id, name string) error {
+func (s *Service) Rename(ctx context.Context, envID, id, name string, unlockProtected bool) error {
 	cli, err := s.getClient(envID)
 	if err != nil {
 		return err
@@ -486,7 +511,7 @@ func (s *Service) Rename(ctx context.Context, envID, id, name string) error {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	if err := docker.EnsureContainerMutable(ctx, cli, id); err != nil {
+	if err := ensureContainerMutableForRuntimeEdit(ctx, cli, id, unlockProtected); err != nil {
 		return err
 	}
 
@@ -520,6 +545,9 @@ func (s *Service) Recreate(ctx context.Context, envID, id string, req RecreateRe
 	}
 	if docker.IsProtectedContainer([]string{info.Name}, imageName, labels) {
 		if docker.IsMcHarborContainer([]string{info.Name}, imageName, labels) {
+			if req.UnlockProtected {
+				return container.CreateResponse{}, docker.ErrProtectedResource
+			}
 			return s.recreateSelfContainer(ctx, envID, cli, info, req)
 		}
 		return container.CreateResponse{}, docker.ErrProtectedResource

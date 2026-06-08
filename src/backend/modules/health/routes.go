@@ -51,9 +51,9 @@ type dependencyInfo struct {
 	Version string `json:"version"`
 }
 
-// Mount registers health check routes (no authentication required).
+// Mount registers public health and runtime metadata routes.
 func Mount(app *router.AppDeps) {
-	app.RegisterAuthRoutes(func(r chi.Router) {
+	app.RegisterPublicRoutes(func(r chi.Router) {
 		r.Get("/health", handleHealth)
 		r.Get("/about", handleAbout)
 	})

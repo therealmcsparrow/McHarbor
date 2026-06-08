@@ -124,4 +124,6 @@ export type DirectTransferDiagnostic = {
 export type RetentionSettingsData = {
   auditRetentionDays: number;
   activityRetentionDays: number;
+  backupRetentionCount: number;
+  backupRetentionDays: number;
 };

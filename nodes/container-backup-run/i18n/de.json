@@ -1,0 +1,13 @@
+{
+  "label": "Container-Backup",
+  "description": "Ein verschluesseltes Backup fuer einen Container ausfuehren",
+  "config": {
+    "environment": "Umgebung",
+    "container": "Container",
+    "storage_location_id": "Speicherort",
+    "include_logs": "Logs einschliessen",
+    "include_filesystem": "Dateisystem einschliessen",
+    "include_image": "Image einschliessen",
+    "selected_mounts": "Ausgewaehlte Mounts"
+  }
+}

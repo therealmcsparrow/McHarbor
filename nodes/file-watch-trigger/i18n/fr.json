@@ -2,6 +2,7 @@
   "label": "Déclencheur de surveillance de fichier",
   "description": "Démarrez un flux de travail lorsqu'un chemin de fichier surveillé change",
   "config": {
+    "storage_location_id": "Emplacement de stockage",
     "path": "Chemin",
     "event_types": "Types d'événements"
   }

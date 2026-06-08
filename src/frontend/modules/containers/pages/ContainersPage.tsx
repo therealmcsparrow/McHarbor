@@ -164,6 +164,24 @@ export default function ContainersPage() {
               ? 'bg-amber-500/10 shadow-[inset_4px_0_0_rgba(251,191,36,0.95),0_0_28px_rgba(251,191,36,0.12)]'
               : undefined
           }
+          toolbarActions={
+            <ContainersPageActions
+              scope="toolbar"
+              viewMode={viewMode}
+              checkingUpdates={checkUpdates.isPending}
+              batchRunning={batchProgress.isRunning}
+              uploadActive={uploadActive}
+              updatesAvailable={updateTargets.length}
+              totalContainers={allTargets.length}
+              onCheckUpdates={() => checkUpdates.mutate(undefined)}
+              onUpdateAll={() => runContainerOperation('update', updateTargets)}
+              onReinstallAll={() => setReinstallAllConfirmOpen(true)}
+              onPruneUnused={() => setPruneConfirmOpen(true)}
+              onCreate={() => navigate('/containers/create')}
+              onViewModeChange={setViewMode}
+              t={t}
+            />
+          }
         />
       ) : (
         <ContainerCardGrid

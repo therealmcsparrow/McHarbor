@@ -1,0 +1,7 @@
+{
+  "label": "Speicherort abrufen",
+  "description": "Einen konfigurierten Speicherort ohne geheime Werte lesen",
+  "config": {
+    "storage_location_id": "Speicherort"
+  }
+}

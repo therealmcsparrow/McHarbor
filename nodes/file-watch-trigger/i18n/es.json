@@ -2,6 +2,7 @@
   "label": "Activador de vigilancia de archivos",
   "description": "Iniciar un flujo de trabajo cuando cambia la ruta de un archivo observado",
   "config": {
+    "storage_location_id": "Ubicación de almacenamiento",
     "path": "Camino",
     "event_types": "Tipos de eventos"
   }

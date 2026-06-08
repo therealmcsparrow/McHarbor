@@ -49,6 +49,27 @@ Default end-user URL:
 
 - `http://localhost:8705`
 
+### Backup Encryption Secret
+
+Encrypted container backups require a 32-byte key mounted as a Docker secret.
+Generate the key from Settings > Storage, copy it once, and store the copied
+value in a secret file outside source control:
+
+```bash
+mkdir -p secrets
+printf '%s' '<copied-base64-key>' > secrets/mcharbor_backup_key
+```
+
+Run with the base Compose file plus the secret override:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.secrets.yml up -d
+```
+
+The override mounts the secret as `/run/secrets/mcharbor_backup_key` and sets
+`BACKUP_ENCRYPTION_KEY_FILE` accordingly. Use `MCHARBOR_BACKUP_KEY_FILE` to point
+Compose at a different host-side secret file.
+
 ## Remote Agent Runtime
 
 The remote agent can run as a container or a binary on a Docker host. Generated

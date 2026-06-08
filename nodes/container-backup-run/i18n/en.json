@@ -1,0 +1,13 @@
+{
+  "label": "Container Backup",
+  "description": "Run an encrypted backup for a container",
+  "config": {
+    "environment": "Environment",
+    "container": "Container",
+    "storage_location_id": "Storage Location",
+    "include_logs": "Include Logs",
+    "include_filesystem": "Include Filesystem",
+    "include_image": "Include Image",
+    "selected_mounts": "Selected Mounts"
+  }
+}

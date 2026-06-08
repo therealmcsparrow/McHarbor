@@ -56,6 +56,40 @@
     "signOut": "Sign out",
     "locked": "Locked"
   },
+  "schedule": {
+    "readableMode": "Readable",
+    "advancedMode": "Advanced",
+    "every": "Every",
+    "unit": "Unit",
+    "startingAt": "Starting at",
+    "generatedCron": "Cron: {{value}}",
+    "units": {
+      "hour": "hour(s)",
+      "day": "day(s)",
+      "week": "week(s)",
+      "month": "month(s)",
+      "year": "year"
+    },
+    "weekdays": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "readable": {
+      "everyMinute": "Every minute",
+      "everyHourAt": "Every hour at :{{minute}}",
+      "everyNHoursAt": "Every {{count}} hours at :{{minute}}",
+      "everyDayAt": "Every day at {{time}}",
+      "everyNDaysAt": "Every {{count}} days at {{time}}",
+      "everyWeekdayAt": "Every {{weekday}} at {{time}}",
+      "everyMonthAt": "Every month on day {{day}} at {{time}}",
+      "everyYearAt": "Every year on {{month}}/{{day}} at {{time}}"
+    }
+  },
   "status": {
     "running": "Running",
     "stopped": "Stopped",

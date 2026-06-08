@@ -62,6 +62,7 @@ type DataGridProps<T> = {
   batchActions?: BatchAction[];
   getRowId?: (row: T) => string;
   getRowClassName?: (row: T) => string | undefined;
+  toolbarActions?: React.ReactNode;
 };
 
 export function DataGrid<T>({
@@ -79,6 +80,7 @@ export function DataGrid<T>({
   batchActions,
   getRowId,
   getRowClassName,
+  toolbarActions,
 }: DataGridProps<T>) {
   const { t } = useTranslation('common');
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -160,7 +162,7 @@ export function DataGrid<T>({
   return (
     <div className="space-y-4">
       {/* Search + Batch Toolbar */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
         {searchKey && (
           <input
             type="text"
@@ -170,8 +172,13 @@ export function DataGrid<T>({
             className="py-1s px-2 block w-full max-w-sm bg-card border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
           />
         )}
+        {toolbarActions && (
+          <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:justify-end">
+            {toolbarActions}
+          </div>
+        )}
         {selectable && selectedCount > 0 && batchActions && batchActions.length > 0 && (
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:justify-end">
             <span className="text-xs font-medium text-muted-foreground">
               {t('batch.selected', { count: selectedCount })}
             </span>

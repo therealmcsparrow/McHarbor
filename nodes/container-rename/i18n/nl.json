@@ -4,6 +4,7 @@
   "config": {
     "environment": "Omgeving",
     "container": "Container",
-    "new_name": "Nieuwe naam"
+    "new_name": "Nieuwe naam",
+    "unlock_protected": "Beschermde container ontgrendelen"
   }
 }

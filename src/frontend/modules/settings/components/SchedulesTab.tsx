@@ -13,11 +13,13 @@ import { ListItem } from '@resources/components/ui/ListItem';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { timeAgo } from '@resources/utils/format';
+import { describeCron } from '@resources/utils/schedule';
 import type { ScheduleItem } from '../types';
 import { CreateScheduleDialog } from './CreateScheduleDialog';
 
 export function SchedulesTab() {
   const { t } = useTranslation('settings');
+  const { t: tc } = useTranslation('common');
   const queryClient = useQueryClient();
 
   const { data: schedules = [], isLoading } = useQuery({
@@ -66,7 +68,7 @@ export function SchedulesTab() {
             <ListItem
               key={sch.id}
               title={sch.name}
-              subtitle={`${sch.cron}  \u00b7  ${sch.action} \u2192 ${sch.target}${sch.lastRunAt ? `  \u00b7  Last: ${timeAgo(sch.lastRunAt)}` : ''}`}
+              subtitle={`${describeCron(sch.cron, tc)}  \u00b7  ${sch.action} \u2192 ${sch.target}${sch.lastRunAt ? `  \u00b7  Last: ${timeAgo(sch.lastRunAt)}` : ''}`}
               badge={
                 <Badge variant={sch.enabled ? 'success' : 'secondary'}>
                   {sch.enabled ? t('schedules.active') : t('schedules.inactive')}

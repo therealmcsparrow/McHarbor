@@ -4,6 +4,7 @@
 import {
   IconCpu,
   IconDatabase,
+  IconDatabaseExport,
   IconFileText,
   IconFolder,
   IconInfoCircle,
@@ -14,6 +15,7 @@ import {
   IconTerminal,
   IconVariable,
 } from '@tabler/icons-react';
+import { ScrollableTabBar } from '@resources/components/ScrollableTabBar';
 import { Button } from '@resources/components/ui/Button';
 import { cn } from '@resources/utils/cn';
 
@@ -29,6 +31,7 @@ export const detailTabIDs = [
   'terminal',
   'processes',
   'files',
+  'backups',
 ] as const;
 
 export type DetailTabId = (typeof detailTabIDs)[number];
@@ -45,6 +48,7 @@ const detailTabIcons: Record<DetailTabId, typeof IconInfoCircle> = {
   terminal: IconTerminal,
   processes: IconListDetails,
   files: IconFolder,
+  backups: IconDatabaseExport,
 };
 
 type ContainerDetailTabsProps = {
@@ -60,7 +64,7 @@ export function ContainerDetailTabs({
 }: ContainerDetailTabsProps) {
   return (
     <div className="border-b border-border bg-card px-5 py-3">
-      <nav className="flex w-fit gap-x-1 rounded-lg bg-muted p-1">
+      <ScrollableTabBar>
         {detailTabIDs.map((tabId) => {
           const Icon = detailTabIcons[tabId];
           return (
@@ -81,7 +85,7 @@ export function ContainerDetailTabs({
             </Button>
           );
         })}
-      </nav>
+      </ScrollableTabBar>
     </div>
   );
 }

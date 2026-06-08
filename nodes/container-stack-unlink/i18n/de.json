@@ -1,0 +1,8 @@
+{
+  "label": "Container vom Stack trennen",
+  "description": "Die manuelle Stack-Verknuepfung fuer einen Container entfernen",
+  "config": {
+    "environment": "Umgebung",
+    "container": "Container"
+  }
+}

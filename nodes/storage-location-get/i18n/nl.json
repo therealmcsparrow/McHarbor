@@ -1,0 +1,7 @@
+{
+  "label": "Opslaglocatie ophalen",
+  "description": "Lees een geconfigureerde opslaglocatie zonder geheime waarden",
+  "config": {
+    "storage_location_id": "Opslaglocatie"
+  }
+}

@@ -6,42 +6,40 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import {
   IconSettings,
-  IconLock,
   IconRobot,
   IconWebhook,
   IconPuzzle,
   IconClock,
-  IconMail,
   IconMessageCircle,
   IconAlertTriangle,
   IconInfoCircle,
   IconRefresh,
+  IconDatabase,
 } from '@tabler/icons-react';
 import type { TablerIcon } from '@tabler/icons-react';
 import { PageHeader } from '@resources/layout/PageHeader';
+import { ScrollableTabBar } from '@resources/components/ScrollableTabBar';
 import { Button } from '@resources/components/ui/Button';
 import { cn } from '@resources/utils/cn';
 import { useSettings } from '../hooks/useSettings';
 import { GeneralTab } from '../components/GeneralTab';
-import { HttpsTab } from '../components/HttpsTab';
 import { AgentTab } from '../components/AgentTab';
 import { WebhooksTab } from '../components/WebhooksTab';
 import { PluginsTab } from '../components/PluginsTab';
 import { SchedulesTab } from '../components/SchedulesTab';
-import { EmailTab } from '../components/EmailTab';
 import { CommunicationsTab } from '../components/CommunicationsTab';
+import { StorageTab } from '../components/StorageTab';
 import { AlertsTab } from '../components/AlertsTab';
 import { AboutTab } from '../components/AboutTab';
 import { UpdatesTab } from '../components/UpdatesTab';
 
-const TAB_IDS = ['general', 'https', 'email', 'communications', 'alerts', 'agent', 'webhooks', 'plugins', 'schedules', 'updates', 'about'] as const;
+const TAB_IDS = ['general', 'communications', 'storage', 'alerts', 'agent', 'webhooks', 'plugins', 'schedules', 'updates', 'about'] as const;
 type TabId = (typeof TAB_IDS)[number];
 
 const TAB_ICONS: Record<TabId, TablerIcon> = {
   general: IconSettings,
-  https: IconLock,
-  email: IconMail,
   communications: IconMessageCircle,
+  storage: IconDatabase,
   alerts: IconAlertTriangle,
   agent: IconRobot,
   webhooks: IconWebhook,
@@ -55,10 +53,14 @@ function isValidTab(tab: string | null): tab is TabId {
   return tab !== null && (TAB_IDS as readonly string[]).includes(tab);
 }
 
+function normalizeTab(tab: string | null) {
+  return tab === 'email' ? 'communications' : tab;
+}
+
 export default function SettingsPage() {
   const { t } = useTranslation('settings');
   const [searchParams, setSearchParams] = useSearchParams();
-  const tabParam = searchParams.get('tab');
+  const tabParam = normalizeTab(searchParams.get('tab'));
   const [activeTab, setActiveTab] = useState<TabId>(isValidTab(tabParam) ? tabParam : 'general');
   const { data: settings } = useSettings();
 
@@ -81,8 +83,8 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <PageHeader title={t('title')} description={t('description')} />
 
-      <div className="flex gap-6">
-        <nav className="flex w-fit bg-muted rounded-lg p-1 gap-x-1">
+      <div className="min-w-0">
+        <ScrollableTabBar fadeClassName="from-background">
           {TAB_IDS.map((tabId) => {
             const Icon = TAB_ICONS[tabId];
             return (
@@ -102,15 +104,14 @@ export default function SettingsPage() {
               </Button>
             );
           })}
-        </nav>
+        </ScrollableTabBar>
       </div>
 
       <div className="flex gap-6">
         <div className="min-w-0 flex-1 rounded-xl border border-border bg-card p-6">
           {activeTab === 'general' && <GeneralTab settings={settings} />}
-          {activeTab === 'https' && <HttpsTab />}
-          {activeTab === 'email' && <EmailTab />}
           {activeTab === 'communications' && <CommunicationsTab />}
+          {activeTab === 'storage' && <StorageTab />}
           {activeTab === 'alerts' && <AlertsTab />}
           {activeTab === 'agent' && <AgentTab />}
           {activeTab === 'webhooks' && <WebhooksTab />}

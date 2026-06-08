@@ -52,6 +52,7 @@ McHarbor is built for the work that happens after deployment.
 - **Webhook and Scheduled Triggers**: Start automations from HTTP events or recurring schedules for repeatable maintenance and response flows.
 - **Blueprints and Git Integration**: Standardize repeatable patterns and connect operational workflows to versioned configuration.
 - **Registry Integration**: Keep registry-related workflows in the same control plane instead of treating image distribution as a separate system.
+- **External Storage Locations**: Configure reusable FTP/FTPS, SFTP, Samba, S3, Google Drive, OneDrive, and SharePoint destinations for backups and exports.
 - **Notifications and Alerts**: Surface important activity and failures where operators can react quickly.
 - **Activity and Audit History**: Keep a clearer record of what changed, who changed it, and when it happened.
 - **User Management and Pluggable Auth**: Start with local auth today and keep a path open for broader identity integration over time.
@@ -118,6 +119,14 @@ McHarbor has grown from the initial public release into a broader operations pla
 - **Improved Self-Detection**: McHarbor recognizes its own container through Docker labels, compose metadata, image references, stored compose data, conventional names, and Docker inspect fallbacks.
 - **Release Version Metadata**: Runtime health/about metadata, update checks, startup logging, OpenAPI metadata, frontend package metadata, Docker image labels, and publishing workflows now use the canonical root `VERSION` file.
 - **Agent Install Commands**: Generated agent Docker install commands use the latest agent image by default, pull before restart, and mount a stable Compose workspace for agent-side stack deploys.
+
+### Backups and External Storage
+
+- **Storage Location Registry**: Add reusable backup/export destinations from Settings, including FTP/FTPS, SFTP, Samba, AWS S3, Google Drive, OneDrive Personal, OneDrive Business, and SharePoint.
+- **Encrypted Container Backups**: Generate a one-time backup encryption key from Settings, copy it once, then use **Install and restart** to create `secrets/mcharbor_backup_key` and restart McHarbor with `docker-compose.secrets.yml`. The generated PowerShell setup command remains available as a manual fallback, and encrypted backup runs are written as `mcharbor.tar`.
+- **Protocol-Aware FTP Setup**: Configure FTP and FTPS from one provider choice, then select plain FTP, explicit FTPS, or implicit FTPS with the correct port and firewall guidance.
+- **SFTP Key Authentication**: Store SFTP password, private-key, or combined authentication settings with encrypted private keys and passphrases.
+- **Encrypted Storage Credentials**: Storage passwords, SSH keys, FTPS certificates, OAuth client secrets, and provider tokens are encrypted at rest and omitted from read responses.
 
 ## Built For
 

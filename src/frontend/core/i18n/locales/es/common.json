@@ -56,6 +56,40 @@
     "signOut": "Cerrar sesión",
     "locked": "Bloqueado"
   },
+  "schedule": {
+    "readableMode": "Legible",
+    "advancedMode": "Avanzado",
+    "every": "Cada",
+    "unit": "Unidad",
+    "startingAt": "A partir de",
+    "generatedCron": "Cron: {{value}}",
+    "units": {
+      "hour": "hora(s)",
+      "day": "dia(s)",
+      "week": "semana(s)",
+      "month": "mes(es)",
+      "year": "ano"
+    },
+    "weekdays": {
+      "0": "domingo",
+      "1": "lunes",
+      "2": "martes",
+      "3": "miercoles",
+      "4": "jueves",
+      "5": "viernes",
+      "6": "sabado"
+    },
+    "readable": {
+      "everyMinute": "Cada minuto",
+      "everyHourAt": "Cada hora en :{{minute}}",
+      "everyNHoursAt": "Cada {{count}} horas en :{{minute}}",
+      "everyDayAt": "Cada dia a las {{time}}",
+      "everyNDaysAt": "Cada {{count}} dias a las {{time}}",
+      "everyWeekdayAt": "Cada {{weekday}} a las {{time}}",
+      "everyMonthAt": "Cada mes el dia {{day}} a las {{time}}",
+      "everyYearAt": "Cada ano el {{day}}/{{month}} a las {{time}}"
+    }
+  },
   "status": {
     "running": "En ejecución",
     "stopped": "Detenido",

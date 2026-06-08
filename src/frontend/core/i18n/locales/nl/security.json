@@ -157,9 +157,34 @@
     "scans": "Kwetsbaarheidsscans"
   },
   "sections": {
+    "https": "HTTPS",
     "management": "Beheer",
     "identity": "Identiteit",
     "scanning": "Scannen"
+  },
+  "https": {
+    "title": "HTTPS",
+    "description": "Beheer het TLS-certificaat en HTTPS-afdwinging voor McHarbor.",
+    "certificate": "Certificaat",
+    "noCertificate": "Geen certificaat geupload.",
+    "subject": "Onderwerp:",
+    "issuer": "Uitgever:",
+    "validFrom": "Geldig vanaf:",
+    "validUntil": "Geldig tot:",
+    "serial": "Serienummer:",
+    "dnsNames": "DNS-namen:",
+    "uploadTitle": "Certificaat uploaden",
+    "certLabel": "Certificaat (PEM)",
+    "keyLabel": "Privesleutel (PEM)",
+    "uploading": "Uploaden...",
+    "uploadButton": "Certificaat uploaden",
+    "uploadError": "Certificaat uploaden mislukt",
+    "enableHttps": "HTTPS inschakelen",
+    "enableHttpsDescription": "Verkeer via TLS aanbieden met het geuploade certificaat.",
+    "forceHttps": "HTTPS afdwingen",
+    "forceHttpsDescription": "HTTP omleiden naar HTTPS via X-Forwarded-Proto. Voor reverse-proxy setups.",
+    "restartRequired": "Herstart vereist",
+    "restartDescription": "TLS-wijzigingen worden actief na een containerherstart."
   },
   "scanning": {
     "title": "Kwetsbaarheidsscanners",

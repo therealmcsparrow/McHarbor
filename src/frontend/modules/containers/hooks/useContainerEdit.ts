@@ -17,7 +17,14 @@ import {
   buildRecreatePayload,
 } from '../types/edit-form';
 
-export function useContainerEdit(container: ContainerInspect | undefined) {
+type ContainerEditOptions = {
+  unlockProtected?: boolean;
+};
+
+export function useContainerEdit(
+  container: ContainerInspect | undefined,
+  options: ContainerEditOptions = {},
+) {
   const { t } = useTranslation('containers');
   const queryClient = useQueryClient();
   const envId = useEnvironmentStore((s) => s.currentId);
@@ -87,19 +94,22 @@ export function useContainerEdit(container: ContainerInspect | undefined) {
 
     if (changes.hasResourceChanges && !changes.hasConfigChanges) {
       const payload = buildUpdatePayload(editData, changes);
+      if (options.unlockProtected) payload.unlockProtected = true;
       await updateMutation.mutateAsync(payload);
     } else if (changes.hasConfigChanges) {
       // If both resource and config changes, do update first then recreate
       if (changes.hasResourceChanges) {
         const updatePayload = buildUpdatePayload(editData, changes);
+        if (options.unlockProtected) updatePayload.unlockProtected = true;
         await updateMutation.mutateAsync(updatePayload);
       }
       const recreatePayload = buildRecreatePayload(editData, changes);
+      if (options.unlockProtected) recreatePayload.unlockProtected = true;
       await recreateMutation.mutateAsync(recreatePayload);
     }
 
     cancelEditing();
-  }, [editData, container, changes, updateMutation, recreateMutation, cancelEditing]);
+  }, [editData, container, changes, updateMutation, recreateMutation, cancelEditing, options.unlockProtected]);
 
   const isSaving = updateMutation.isPending || recreateMutation.isPending;
 

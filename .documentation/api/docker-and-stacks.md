@@ -46,6 +46,26 @@ These routes target Docker environments and generally expect `?env=<environmentI
 | GET | `/api/containers/{id}/services` | Detects OS-level services inside the container. |
 | POST | `/api/containers/{id}/shells` | Detects interactive shells for terminal access. |
 
+### Container Backups
+
+Container backup archives are written as encrypted `mcharbor.tar` files under
+the data directory at `backups/containers/<runId>/mcharbor.tar`. The file name is
+stable per run, while the run directory prevents collisions. Backups require the
+`mcharbor_backup_key` Docker secret to be mounted at
+`/run/secrets/mcharbor_backup_key` unless `BACKUP_ENCRYPTION_KEY_FILE` points to
+another key file.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/containers/{id}/backups/options` | Returns selectable backup items for a container. |
+| POST | `/api/containers/{id}/backups/run` | Runs an ad-hoc encrypted backup for a container. |
+| GET | `/api/container-backups/` | Lists saved backup plans, optionally filtered by `containerId`. |
+| POST | `/api/container-backups/` | Creates a saved backup plan. |
+| GET | `/api/container-backups/runs` | Lists recent backup runs, optionally filtered by `containerId`. |
+| PUT | `/api/container-backups/{planId}` | Updates a saved backup plan. |
+| DELETE | `/api/container-backups/{planId}` | Deletes a saved backup plan. |
+| POST | `/api/container-backups/{planId}/run` | Runs a saved backup plan immediately. |
+
 Representative container create body:
 
 ```json

@@ -131,18 +131,22 @@ func (c *Collector) collect() {
 	}
 
 	svc := NewService(c.dockerPool)
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-
 	agentSettings := coreSettings.ReadAgentSettings(c.db)
 
 	for _, envID := range envIDs {
-		// Skip agent environments unless metrics collection is explicitly enabled
-		if envID != "" && c.dockerPool.IsAgentEnv(envID) && !agentSettings.MetricsEnabled {
+		isAgent := envID != "" && c.dockerPool.IsAgentEnv(envID)
+		// Keep the global agent metrics setting as an emergency off switch.
+		if isAgent && !agentSettings.MetricsEnabled {
 			continue
 		}
 
+		timeout := 20 * time.Second
+		if isAgent {
+			timeout = 60 * time.Second
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		stats, err := svc.AllContainerStats(ctx, envID)
+		cancel()
 		if err != nil {
 			c.logger.Debug("metrics collector: skipping environment", "env", envID, "error", err)
 			continue

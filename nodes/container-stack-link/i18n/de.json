@@ -1,0 +1,10 @@
+{
+  "label": "Container mit Stack verknuepfen",
+  "description": "Die manuelle Stack-Verknuepfung fuer einen Container erstellen oder ersetzen",
+  "config": {
+    "environment": "Umgebung",
+    "container": "Container",
+    "stack_name": "Stack-Name",
+    "service_name": "Service-Name"
+  }
+}

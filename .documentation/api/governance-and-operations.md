@@ -60,6 +60,7 @@ auditing, scanners, plugins, update policies, and dashboard-oriented endpoints.
 | PUT | `/api/settings/retention` | Updates retention settings. |
 | GET | `/api/settings/tls` | Returns TLS settings. |
 | PUT | `/api/settings/tls` | Updates TLS settings. |
+| POST | `/api/settings/backup-key/generate` | Generates a 32-byte backup encryption key for one-time copy. The key is returned once and must be stored as the `mcharbor_backup_key` Docker secret. |
 | GET | `/api/settings/{key}` | Returns one setting by key. |
 | PUT | `/api/settings/{key}` | Updates one setting by key. |
 
@@ -98,6 +99,49 @@ auditing, scanners, plugins, update policies, and dashboard-oriented endpoints.
 | DELETE | `/api/communication-channels/{id}` | Deletes a communication channel. |
 | POST | `/api/communication-channels/{id}/default` | Sets the default communication channel. |
 | POST | `/api/communication-channels/{id}/test` | Tests a communication channel. |
+
+### Storage Locations
+
+Storage locations define reusable external destinations for backups, exports,
+and storage workflows. Secrets are encrypted at rest and are never returned by
+read endpoints.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/storage-locations/` | Lists configured storage locations. |
+| POST | `/api/storage-locations/` | Creates a storage location. |
+| GET | `/api/storage-locations/{id}` | Returns one storage location without secret values. |
+| PUT | `/api/storage-locations/{id}` | Updates a storage location. Empty secret fields keep the existing encrypted value. |
+| DELETE | `/api/storage-locations/{id}` | Deletes a storage location. |
+| POST | `/api/storage-locations/{id}/oauth/authorize` | Starts Google Drive, OneDrive, or SharePoint consent. |
+| GET | `/api/storage-locations/oauth/callback` | Completes provider consent and stores returned tokens encrypted. |
+
+Supported `locationType` values:
+
+| Type | Notes |
+| --- | --- |
+| `ftp` | Plain FTP. Uses username/password and normally TCP 21 plus dynamic data ports. |
+| `ftps` | FTP over TLS. Uses `tlsMode` as `explicit` on TCP 21 or `implicit` on TCP 990. Optional CA/client certificate fields are supported. |
+| `sftp` | SSH File Transfer Protocol. Uses `authMethod` as `password`, `private_key`, or `password_private_key`; default port is TCP 22. |
+| `samba` | SMB/CIFS share using host, share, optional domain, username, and password. |
+| `aws` | Amazon S3 or S3-compatible storage using bucket, region, endpoint, and access keys. |
+| `google_drive` | Google Drive OAuth consent using client ID/secret and optional drive ID. |
+| `onedrive_personal` | Personal Microsoft OneDrive consent using client ID/secret and optional drive ID. |
+| `onedrive_business` | Microsoft 365 OneDrive consent using tenant ID, client ID/secret, and optional drive ID. |
+| `sharepoint` | SharePoint document library consent using tenant ID, site URL, client ID/secret, and optional drive ID. |
+
+FTP/FTPS/SFTP transfer fields:
+
+| Field | Applies to | Purpose |
+| --- | --- | --- |
+| `authMethod` | SFTP | `password`, `private_key`, or `password_private_key`. |
+| `tlsMode` | FTPS | `explicit` or `implicit`. |
+| `passiveMode` | FTP/FTPS | Enables passive mode. Useful behind NAT, but the server still needs passive data ports open. |
+| `privateKey` | SFTP | Write-only OpenSSH private key. |
+| `passphrase` | SFTP | Write-only private-key passphrase. |
+| `caCertificate` | FTPS | Write-only PEM CA certificate for validating the server certificate. |
+| `clientCertificate` | FTPS | Write-only PEM client certificate for mutual TLS. |
+| `clientKey` | FTPS | Write-only PEM private key for the client certificate. |
 
 ## Notifications, Alerts, Activity, and Audit
 

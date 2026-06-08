@@ -14,12 +14,13 @@ import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { Label } from '@resources/components/ui/Label';
-import { CronSchedulePreview } from '@resources/components/CronSchedulePreview';
+import { ReadableScheduleField } from '@resources/components/ReadableScheduleField';
 import { Select } from '@resources/components/ui/Select';
 import { Switch } from '@resources/components/ui/Switch';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { useContainers } from '@resources/hooks/useContainers';
 import { timeAgo } from '@resources/utils/format';
+import { describeCron } from '@resources/utils/schedule';
 import {
   useUpdatePolicies,
   useCreateUpdatePolicy,
@@ -141,7 +142,7 @@ export function UpdatesTab() {
                   )}
                 </span>
                 <span>{t('updates.imagePattern')}: <code className="font-mono">{policy.imageMatch || '*'}</code></span>
-                <span>{t('updates.schedule')}: <code className="font-mono">{policy.schedule}</code></span>
+                <span>{t('updates.schedule')}: {describeCron(policy.schedule, tc)}</span>
                 {policy.autoRestart && <span>{t('updates.autoRestart')}</span>}
                 {policy.lastRunAt && (
                   <span>{t('updates.lastRun')}: {timeAgo(policy.lastRunAt)}</span>
@@ -198,16 +199,12 @@ export function UpdatesTab() {
                 placeholder={t('updates.namePlaceholder')}
               />
             </div>
-            <div>
-              <Label className="mb-1.5">{t('updates.scheduleLabel')}</Label>
-              <Input
-                value={form.schedule}
-                onChange={(e) => setForm({ ...form, schedule: e.target.value })}
-                placeholder="0 3 * * *"
-              />
-              <p className="mt-1 text-xs text-muted-foreground">{t('updates.scheduleHint')}</p>
-              <CronSchedulePreview expression={form.schedule} className="mt-2 rounded-md border border-border/60 bg-muted/30 p-2" />
-            </div>
+            <ReadableScheduleField
+              value={form.schedule}
+              onChange={(schedule) => setForm({ ...form, schedule })}
+              label={t('updates.scheduleLabel')}
+              hint={t('updates.scheduleHint')}
+            />
           </div>
 
           {/* Container selector — tag style */}

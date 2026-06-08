@@ -2,6 +2,33 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.5.0] - 2026-06-07
+
+### Added
+- Added reusable external storage locations for backups and exports, covering FTP, FTPS, SFTP, Samba, S3-compatible storage, Google Drive, OneDrive, and SharePoint, with encrypted credential storage and OAuth consent support for cloud providers.
+- Added encrypted container backups with ad-hoc runs, saved backup plans, scheduled execution, selectable backup contents, backup run history, and archive downloads from the container detail Backups tab.
+- Added container backup restore actions, including a secret-key prompt when an archive was encrypted with a different backup key than the current one.
+- Added backup encryption key generation and one-click Docker secret installation from Settings, plus `docker-compose.secrets.yml` and backup key environment examples for manual setup.
+- Added runtime backup encryption key status detection and an option to install a user-provided backup key from Settings.
+- Added backup retention settings so administrators can cap successful container backups by maximum age and maximum count per container.
+- Added workflow nodes for running container backups, running backup plans, downloading backup archives, listing and reading storage locations, and linking or unlinking containers from Compose stacks.
+- Added HTTPS certificate management under Security, including certificate metadata, upload controls, and HTTPS/force-HTTPS toggles.
+- Added OpenAPI coverage for storage locations, storage OAuth flows, backup encryption keys, and container backup plan/run endpoints.
+
+### Changed
+- Upgraded the frontend production toolchain to Vite `8.0.16` with `@vitejs/plugin-react` `6.0.2`, refreshed the frontend lockfile, and added compatibility aliases for the Vite 8/Rolldown build.
+- Updated backend dependencies including `modernc.org/sqlite` `1.52.0`, newer `goja`, refreshed OpenAPI-related transitive packages, and updated Go module checksums.
+- Scoped persisted dashboard layouts per selected environment so widget placement can differ between environments.
+- Moved health/about endpoints onto explicit public route registration so runtime metadata remains public without sharing auth route behavior.
+- Consolidated email and communication settings into a Communications tab and added a dedicated Storage tab for storage locations and backup encryption setup.
+- Bumped the minor application version to `1.5.0` across canonical runtime metadata, agent metadata, frontend package metadata, and lockfile root metadata.
+
+### Fixed
+- Allowed protected McHarbor container runtime edits and renames only through an explicit unlock flow while keeping destructive protected-container actions blocked.
+- Improved container header locking states so edit-only unlocks do not imply start, stop, restart, move, kill, or remove permissions.
+- Improved shared data grid toolbars and select popovers so action controls and dropdowns behave better in dense settings and backup forms.
+- Improved the generated backup key state with a green success indicator, explicit warning, and regenerate action.
+
 ## [1.4.1] - 2026-06-04
 
 ### Added

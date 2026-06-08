@@ -20,6 +20,7 @@ import { EmailServerSelect } from "./EmailServerSelect";
 import { CommunicationChannelSelect } from "./CommunicationChannelSelect";
 import { WebhookSelect } from "./WebhookSelect";
 import { RegistrySelect } from "./RegistrySelect";
+import { StorageLocationSelect } from "./StorageLocationSelect";
 import type { ConfigField } from "../types";
 
 interface ConfigFieldRendererProps {
@@ -268,6 +269,20 @@ export function ConfigFieldRenderer({
             {field.required && <span className="text-destructive"> *</span>}
           </Label>
           <RegistrySelect value={strVal} onChange={(v) => onChange(v)} />
+        </div>
+      );
+
+    case "storage-location-select":
+      return (
+        <div>
+          <Label className="mb-1.5 text-xs">
+            {fieldLabel}
+            {field.required && <span className="text-destructive"> *</span>}
+          </Label>
+          <StorageLocationSelect
+            value={strVal}
+            onChange={(v) => onChange(v)}
+          />
         </div>
       );
 

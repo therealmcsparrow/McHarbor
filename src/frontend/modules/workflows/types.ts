@@ -19,7 +19,8 @@ export type ConfigFieldType =
   | "email-server-select"
   | "communication-channel-select"
   | "webhook-select"
-  | "registry-select";
+  | "registry-select"
+  | "storage-location-select";
 
 export type ConfigFieldOption = {
   value: string;
