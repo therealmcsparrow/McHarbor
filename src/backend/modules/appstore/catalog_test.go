@@ -4,6 +4,10 @@
 package appstore
 
 import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -126,6 +130,42 @@ func TestBundledCatalogComposeOverridesRender(t *testing.T) {
 		if strings.Contains(compose, "{{") || strings.Contains(compose, "}}") {
 			t.Fatalf("app %q rendered unresolved template placeholder:\n%s", app.Slug, compose)
 		}
+	}
+}
+
+func TestBundledCatalogGeneratedComposeIsParseable(t *testing.T) {
+	if _, err := exec.LookPath("docker"); err != nil {
+		t.Skipf("docker CLI not available: %v", err)
+	}
+
+	catalog, err := loadBundledCatalog()
+	if err != nil {
+		t.Fatalf("loadBundledCatalog returned error: %v", err)
+	}
+
+	tempDir := t.TempDir()
+	var failures []string
+	for _, app := range catalog.Apps {
+		envVars := make(map[string]string, len(app.EnvVars))
+		for _, ev := range app.EnvVars {
+			envVars[ev.Key] = ev.Default
+		}
+
+		compose := generateCompose(app, app.Slug, app.Ports, app.Volumes, envVars, nil)
+		composePath := filepath.Join(tempDir, app.Slug+".yml")
+		if err := os.WriteFile(composePath, []byte(compose), 0o600); err != nil {
+			t.Fatalf("writing compose for %q: %v", app.Slug, err)
+		}
+
+		cmd := exec.Command("docker", "compose", "-f", composePath, "config", "--quiet")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			failures = append(failures, fmt.Sprintf("%s: %s\n%s", app.Slug, strings.TrimSpace(string(output)), compose))
+		}
+	}
+
+	if len(failures) > 0 {
+		t.Fatalf("generated compose validation failed for %d app(s):\n\n%s", len(failures), strings.Join(failures, "\n\n"))
 	}
 }
 

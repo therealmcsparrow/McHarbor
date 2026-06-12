@@ -2,6 +2,17 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.5.3] - 2026-06-12
+
+### Changed
+- Bumped McHarbor and the remote agent to `1.5.3`.
+
+### Fixed
+- Fixed App Store Compose generation for env-based list items so volume mounts such as Drupal, WordPress, Joomla, Ghost, Matomo, MediaWiki, Moodle, and Odoo render as valid quoted `host:container` strings.
+- Added full bundled App Store Compose validation that renders every app template with defaults and verifies it with Docker Compose, preventing invalid generated YAML from reaching installs.
+- Fixed stack API responses so stacks without discovered services return `services: []` instead of `services: null`, preventing the stacks page from crashing when an agent is unavailable or a stack has no live containers.
+- Extended token-protected agent archive upload and download transfer deadlines so large agent-side backup and restore archives are not cut off by the default HTTP timeout.
+
 ## [1.5.2] - 2026-06-12
 
 ### Added

@@ -287,14 +287,14 @@ func (s *Service) List(ctx context.Context, envID string) ([]Stack, error) {
 			m.Status = s.deriveStatus(svcs)
 		}
 		seen[m.Name] = true
-		result = append(result, m)
+		result = append(result, normalizeStack(m))
 	}
 
 	for name, d := range discovered {
 		if seen[name] {
 			continue
 		}
-		result = append(result, d)
+		result = append(result, normalizeStack(d))
 	}
 
 	if result == nil {
@@ -445,8 +445,16 @@ func (s *Service) byName(ctx context.Context, name string) (*Stack, error) {
 	}
 	st.Services = svcs
 	st.Status = s.deriveStatus(svcs)
+	*st = normalizeStack(*st)
 
 	return st, nil
+}
+
+func normalizeStack(st Stack) Stack {
+	if st.Services == nil {
+		st.Services = []StackSvc{}
+	}
+	return st
 }
 
 // Create deploys a new Compose stack.
@@ -2181,7 +2189,7 @@ func scanStack(rows *sql.Rows) (Stack, error) {
 		st.Description = &description.String
 	}
 
-	return st, nil
+	return normalizeStack(st), nil
 }
 
 // scanStackRow scans a single row into a Stack struct.
@@ -2203,6 +2211,7 @@ func scanStackRow(row *sql.Row) (*Stack, error) {
 	if description.Valid {
 		st.Description = &description.String
 	}
+	st = normalizeStack(st)
 	return &st, nil
 }
 

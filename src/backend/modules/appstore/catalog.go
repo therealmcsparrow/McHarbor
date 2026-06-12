@@ -143,6 +143,7 @@ func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes 
 }
 
 var composeEnvPlaceholder = regexp.MustCompile(`\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}`)
+var composeEnvListItemPlaceholder = regexp.MustCompile(`^(\s*-\s*)\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}(.*)$`)
 var composeRawEnvPlaceholder = regexp.MustCompile(`\{\{envRaw\.([A-Za-z_][A-Za-z0-9_]*)\}\}`)
 
 func renderComposeOverride(app AppTemplate, serviceName string, ports []PortMapping, volumes []VolumeMount, envVars map[string]string, netCfg *NetworkConfig) string {
@@ -164,10 +165,7 @@ func renderComposeOverride(app AppTemplate, serviceName string, ports []PortMapp
 	for placeholder, value := range replacements {
 		compose = strings.ReplaceAll(compose, placeholder, value)
 	}
-	compose = composeEnvPlaceholder.ReplaceAllStringFunc(compose, func(match string) string {
-		key := composeEnvPlaceholder.FindStringSubmatch(match)[1]
-		return quoteYAMLString(envVars[key])
-	})
+	compose = renderComposeEnvPlaceholders(compose, envVars)
 	compose = composeRawEnvPlaceholder.ReplaceAllStringFunc(compose, func(match string) string {
 		key := composeRawEnvPlaceholder.FindStringSubmatch(match)[1]
 		return envVars[key]
@@ -176,6 +174,26 @@ func renderComposeOverride(app AppTemplate, serviceName string, ports []PortMapp
 		compose += "\n"
 	}
 	return compose
+}
+
+func renderComposeEnvPlaceholders(compose string, envVars map[string]string) string {
+	lines := strings.Split(compose, "\n")
+	for i, line := range lines {
+		if !strings.Contains(line, "{{env.") {
+			continue
+		}
+
+		if match := composeEnvListItemPlaceholder.FindStringSubmatch(line); match != nil {
+			lines[i] = match[1] + quoteYAMLString(envVars[match[2]]+match[3])
+			continue
+		}
+
+		lines[i] = composeEnvPlaceholder.ReplaceAllStringFunc(line, func(match string) string {
+			key := composeEnvPlaceholder.FindStringSubmatch(match)[1]
+			return quoteYAMLString(envVars[key])
+		})
+	}
+	return strings.Join(lines, "\n")
 }
 
 func renderGeneratedNetwork(b *strings.Builder, netCfg *NetworkConfig) {

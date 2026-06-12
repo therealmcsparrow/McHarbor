@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/client"
 	"github.com/go-chi/chi/v5"
@@ -504,6 +505,7 @@ func (h *Handler) HandleRestoreTransfer(w http.ResponseWriter, r *http.Request) 
 
 // HandleAgentArchiveUpload receives a complete encrypted archive from an agent.
 func (h *Handler) HandleAgentArchiveUpload(w http.ResponseWriter, r *http.Request) {
+	extendAgentArchiveTransferDeadline(w, true, false)
 	transferID := chi.URLParam(r, "transferId")
 	entry, status, ok := agentArchiveTransfers.consume(transferID, r.Header.Get("Authorization"))
 	if !ok {
@@ -524,6 +526,7 @@ func (h *Handler) HandleAgentArchiveUpload(w http.ResponseWriter, r *http.Reques
 
 // HandleAgentArchiveDownload streams a complete encrypted archive to an agent.
 func (h *Handler) HandleAgentArchiveDownload(w http.ResponseWriter, r *http.Request) {
+	extendAgentArchiveTransferDeadline(w, false, true)
 	transferID := chi.URLParam(r, "transferId")
 	entry, status, ok := agentArchiveTransfers.consume(transferID, r.Header.Get("Authorization"))
 	if !ok {
@@ -539,6 +542,17 @@ func (h *Handler) HandleAgentArchiveDownload(w http.ResponseWriter, r *http.Requ
 	if err := h.service.streamAgentArchive(r.Context(), w, entry.SourcePath); err != nil {
 		h.app.Logger.Error("agent backup archive download failed", "transfer", transferID, "run", entry.RunID, "error", err)
 		return
+	}
+}
+
+func extendAgentArchiveTransferDeadline(w http.ResponseWriter, read, write bool) {
+	deadline := time.Now().Add(backupUploadTimeout)
+	controller := http.NewResponseController(w)
+	if read {
+		_ = controller.SetReadDeadline(deadline)
+	}
+	if write {
+		_ = controller.SetWriteDeadline(deadline)
 	}
 }
 
