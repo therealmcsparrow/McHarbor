@@ -1,0 +1,49 @@
+{
+  "slug": "bazarr",
+  "name": "Bazarr",
+  "description": "Subtitle management and automation for Sonarr and Radarr libraries.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/bazarr:latest",
+  "logo": "",
+  "website": "https://docs.linuxserver.io/images/docker-bazarr/",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-bazarr/",
+  "ports": [
+    {
+      "host": 6767,
+      "container": 6767,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/bazarr/config",
+      "container": "/config"
+    },
+    {
+      "host": "/srv/media",
+      "container": "/media"
+    },
+    {
+      "host": "/srv/downloads",
+      "container": "/downloads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

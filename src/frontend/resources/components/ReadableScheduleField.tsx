@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
@@ -32,7 +32,7 @@ function parseReadableCron(value: string) {
   const [minute, hour, day, month, weekday] = fields as [string, string, string, string, string];
   const now = new Date();
   let interval = 1;
-  let unit: ScheduleUnit = 'day';
+  let unit: ScheduleUnit;
   let startsAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), Number(hour) || 0, Number(minute) || 0);
 
   if (/^\d+$/.test(minute) && hour === '*' && day === '*' && month === '*' && weekday === '*') {
@@ -69,6 +69,11 @@ export function ReadableScheduleField({ value, onChange, label, hint, timezone }
   const [interval, setInterval] = useState(parsed.interval);
   const [unit, setUnit] = useState<ScheduleUnit>(parsed.unit);
   const [startsAt, setStartsAt] = useState(parsed.startsAt);
+  const onChangeRef = useRef(onChange);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     setAdvanced(parsed.advanced);
@@ -85,9 +90,7 @@ export function ReadableScheduleField({ value, onChange, label, hint, timezone }
 
   useEffect(() => {
     if (advanced) return;
-    onChange(cronFromReadableSchedule(interval, unit, startsAt));
-    // onChange is intentionally omitted because most callers pass inline patch callbacks.
-    // Re-running on callback identity changes would cause redundant parent updates.
+    onChangeRef.current(cronFromReadableSchedule(interval, unit, startsAt));
   }, [advanced, interval, unit, startsAt]);
 
   const unitOptions = [

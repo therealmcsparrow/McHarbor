@@ -1,0 +1,41 @@
+{
+  "slug": "grocy",
+  "name": "Grocy",
+  "description": "ERP-style groceries, pantry, chores, and household management.",
+  "category": "Productivity",
+  "image": "lscr.io/linuxserver/grocy:latest",
+  "logo": "",
+  "website": "https://docs.linuxserver.io/images/docker-grocy/",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-grocy/",
+  "ports": [
+    {
+      "host": 9283,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/grocy/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -23,6 +23,7 @@ func Mount(app *router.AppDeps) {
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsView)).Get("/", h.HandleGet)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Put("/", h.HandleUpdate)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Delete("/", h.HandleDelete)
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Post("/migrate-container-backups", h.HandleMigrateContainerBackups)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Post("/oauth/authorize", h.HandleOAuthAuthorize)
 			})
 		})

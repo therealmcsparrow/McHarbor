@@ -1,0 +1,31 @@
+{
+  "slug": "dashy",
+  "name": "Dashy",
+  "description": "Highly configurable dashboard for homelab bookmarks and widgets.",
+  "category": "Dashboards",
+  "image": "lissy93/dashy:latest",
+  "logo": "",
+  "website": "https://dashy.to",
+  "docsUrl": "https://dashy.to/docs",
+  "ports": [
+    {
+      "host": 8088,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/dashy/conf.yml",
+      "container": "/app/user-data/conf.yml"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

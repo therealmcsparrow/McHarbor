@@ -1,0 +1,36 @@
+{
+  "slug": "docspell",
+  "name": "Docspell",
+  "description": "Document organizer and OCR-assisted personal document archive.",
+  "category": "Documents",
+  "image": "docspell/restserver:latest",
+  "logo": "",
+  "website": "https://docspell.org",
+  "docsUrl": "https://docspell.org/docs",
+  "ports": [
+    {
+      "host": 7880,
+      "container": 7880,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/docspell/data",
+      "container": "/opt/docspell/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "DOCSPELL_SERVER_INTERNAL__URL",
+      "default": "http://localhost:7880",
+      "description": "Internal server URL"
+    }
+  ],
+  "version": "latest"
+}

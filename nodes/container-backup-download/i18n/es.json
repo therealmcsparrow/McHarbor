@@ -1,0 +1,7 @@
+{
+  "label": "Backup Download Info",
+  "description": "Validate a completed backup run and return its download metadata",
+  "config": {
+    "run_id": "Run ID"
+  }
+}

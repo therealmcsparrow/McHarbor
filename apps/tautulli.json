@@ -1,0 +1,41 @@
+{
+  "slug": "tautulli",
+  "name": "Tautulli",
+  "description": "Monitoring, analytics, and notifications for Plex Media Server.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/tautulli:latest",
+  "logo": "",
+  "website": "https://docs.linuxserver.io/images/docker-tautulli/",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-tautulli/",
+  "ports": [
+    {
+      "host": 8181,
+      "container": 8181,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/tautulli/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,31 @@
+{
+  "slug": "gatus",
+  "name": "Gatus",
+  "description": "Developer-oriented status page and uptime monitor.",
+  "category": "Monitoring",
+  "image": "twinproduction/gatus:latest",
+  "logo": "",
+  "website": "https://gatus.io",
+  "docsUrl": "https://gatus.io/docs",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/gatus/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

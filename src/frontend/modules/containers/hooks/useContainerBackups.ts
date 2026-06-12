@@ -3,7 +3,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { api } from '@core/api/client';
+import { api, type ApiResponse } from '@core/api/client';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { assertSuccess } from '@resources/utils/api-mutation';
 
@@ -48,6 +48,8 @@ export type ContainerBackupPlan = {
 export type ContainerBackupRun = {
   id: string;
   planId?: string;
+  operation: 'backup' | 'restore';
+  sourceRunId?: string;
   environmentId: string;
   containerId: string;
   status: 'running' | 'success' | 'failure';
@@ -57,19 +59,58 @@ export type ContainerBackupRun = {
   archiveKeyId?: string;
   requiresSecretKey?: boolean;
   error?: string;
+  progressStage?: string;
+  progressMessage?: string;
+  progressUpdatedAt?: string;
+  destinations: ContainerBackupRunDestination[];
   startedAt: string;
   completedAt?: string;
   durationMs: number;
 };
 
+export type ContainerBackupRunDestination = {
+  id: string;
+  runId: string;
+  storageLocationId?: string;
+  storageLocationName: string;
+  locationType: string;
+  status: 'uploading' | 'success' | 'failure';
+  path: string;
+  error?: string;
+  uploadedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ContainerBackupRestoreInput = {
   id: string;
+  secretKey?: string;
+  restoreItems: string[];
+};
+
+export type ContainerBackupUploadRestoreInput = {
+  file: File;
   secretKey?: string;
 };
 
 export type ContainerBackupRestoreResult = {
   runId: string;
   restored: string[];
+};
+
+export type ContainerBackupRestoreOption = {
+  key: string;
+  type: 'image' | 'filesystem' | 'mount';
+  label: string;
+  description: string;
+  default: boolean;
+  required: boolean;
+};
+
+export type ContainerBackupRestoreOptions = {
+  runId: string;
+  items: ContainerBackupRestoreOption[];
+  message?: string;
 };
 
 export type ContainerBackupInput = {
@@ -89,6 +130,16 @@ export type ContainerBackupInput = {
 
 function envQuery(envId?: string | null) {
   return envId ? `?env=${envId}` : '';
+}
+
+function restoreSecretCacheKey(secretKey?: string) {
+  const value = secretKey?.trim();
+  if (!value) return 'current';
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0;
+  }
+  return `secret:${value.length}:${hash}`;
 }
 
 export function containerBackupDownloadUrl(runId: string) {
@@ -128,6 +179,7 @@ export function useContainerBackupRuns(containerId: string) {
         .get<ContainerBackupRun[]>('/container-backups/runs', envId ? { env: envId, containerId } : { containerId })
         .then((r) => r.data ?? []),
     enabled: !!containerId,
+    refetchInterval: (query) => (query.state.data?.some((run) => run.status === 'running') ? 5000 : false),
   });
 }
 
@@ -140,7 +192,40 @@ export function useRunContainerBackup(containerId: string) {
     mutationFn: (body: ContainerBackupInput) =>
       api.post<ContainerBackupRun>(`/containers/${containerId}/backups/run${envQuery(envId)}`, body).then(assertSuccess),
     meta: { success: () => t('backups.toast.started') },
-    onSuccess: () => {
+    onMutate: async () => {
+      const queryKey = ['container-backup-runs', envId, containerId] as const;
+      const optimisticRunId = `pending-${Date.now()}`;
+      await queryClient.cancelQueries({ queryKey });
+      queryClient.setQueryData<ContainerBackupRun[]>(queryKey, (current = []) => [
+        {
+          id: optimisticRunId,
+          planId: '',
+          operation: 'backup',
+          environmentId: envId ?? '',
+          containerId,
+          status: 'running',
+          archiveSize: 0,
+          progressStage: 'queued',
+          destinations: [],
+          startedAt: new Date().toISOString(),
+          durationMs: 0,
+        },
+        ...current.filter((run) => run.id !== optimisticRunId),
+      ]);
+      return { optimisticRunId, queryKey };
+    },
+    onSuccess: (run, _variables, context) => {
+      queryClient.setQueryData<ContainerBackupRun[]>(context.queryKey, (current = []) => [
+        run,
+        ...current.filter((item) => item.id !== context.optimisticRunId && item.id !== run.id),
+      ]);
+      queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
+    },
+    onError: (_error, _variables, context) => {
+      if (!context) return;
+      queryClient.setQueryData<ContainerBackupRun[]>(context.queryKey, (current = []) =>
+        current.filter((run) => run.id !== context.optimisticRunId),
+      );
       queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
     },
   });
@@ -176,6 +261,19 @@ export function useDeleteContainerBackupPlan() {
   });
 }
 
+export function useDeleteContainerBackupRun() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('containers');
+
+  return useMutation({
+    mutationFn: (id: string) => api.del(`/container-backups/runs/${id}`).then(assertSuccess),
+    meta: { success: () => t('backups.toast.runDeleted') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
+    },
+  });
+}
+
 export function useRunContainerBackupPlan() {
   const queryClient = useQueryClient();
   const { t } = useTranslation('containers');
@@ -190,14 +288,86 @@ export function useRunContainerBackupPlan() {
   });
 }
 
-export function useRestoreContainerBackup() {
+export function useContainerBackupRestoreOptions(runId?: string, secretKey?: string, enabled = false) {
+  return useQuery({
+    queryKey: ['container-backup-restore-options', runId, restoreSecretCacheKey(secretKey)],
+    queryFn: () =>
+      api
+        .post<ContainerBackupRestoreOptions>(
+          `/container-backups/runs/${runId}/restore-options`,
+          secretKey?.trim() ? { secretKey: secretKey.trim() } : {},
+        )
+        .then(assertSuccess),
+    enabled: !!runId && enabled,
+    retry: false,
+  });
+}
+
+export function useRestoreContainerBackup(containerId: string) {
+  const queryClient = useQueryClient();
+  const envId = useEnvironmentStore((s) => s.currentId);
   const { t } = useTranslation('containers');
 
   return useMutation({
-    mutationFn: ({ id, secretKey }: ContainerBackupRestoreInput) =>
+    mutationFn: ({ id, secretKey, restoreItems }: ContainerBackupRestoreInput) =>
       api
-        .post<ContainerBackupRestoreResult>(`/container-backups/runs/${id}/restore`, secretKey ? { secretKey } : {})
+        .post<ContainerBackupRun>(
+          `/container-backups/runs/${id}/restore`,
+          {
+            ...(secretKey?.trim() ? { secretKey: secretKey.trim() } : {}),
+            restoreItems,
+          },
+        )
         .then(assertSuccess),
+    meta: { success: () => t('backups.toast.restoreStarted') },
+    onSuccess: (run) => {
+      const queryKey = ['container-backup-runs', envId, containerId] as const;
+      queryClient.setQueryData<ContainerBackupRun[]>(queryKey, (current = []) => [
+        run,
+        ...current.filter((item) => item.id !== run.id),
+      ]);
+      queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
+    },
+  });
+}
+
+export function useUploadRestoreContainerBackup(containerId: string) {
+  const queryClient = useQueryClient();
+  const envId = useEnvironmentStore((s) => s.currentId);
+  const { t } = useTranslation('containers');
+
+  return useMutation({
+    mutationFn: async ({ file, secretKey }: ContainerBackupUploadRestoreInput) => {
+      const form = new FormData();
+      form.append('file', file);
+      if (secretKey?.trim()) {
+        form.append('secretKey', secretKey.trim());
+      }
+
+      const stored = typeof window !== 'undefined'
+        ? localStorage.getItem('mcharbor-language')
+        : null;
+      let lang = 'en';
+      if (stored) {
+        try {
+          lang = JSON.parse(stored)?.state?.language || 'en';
+        } catch {
+          lang = stored;
+        }
+      }
+
+      const response = await fetch(`/api/containers/${containerId}/backups/restore-upload${envQuery(envId)}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Accept-Language': lang },
+        body: form,
+      });
+      const payload = await response.json() as ApiResponse<ContainerBackupRestoreResult>;
+      return assertSuccess(payload);
+    },
     meta: { success: () => t('backups.toast.restored') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
+    },
   });
 }

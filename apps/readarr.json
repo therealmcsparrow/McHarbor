@@ -1,0 +1,49 @@
+{
+  "slug": "readarr",
+  "name": "Readarr",
+  "description": "Book and audiobook collection manager for Usenet and BitTorrent users.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/readarr:latest",
+  "logo": "",
+  "website": "https://docs.linuxserver.io/images/docker-readarr/",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-readarr/",
+  "ports": [
+    {
+      "host": 8787,
+      "container": 8787,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/readarr/config",
+      "container": "/config"
+    },
+    {
+      "host": "/srv/media",
+      "container": "/media"
+    },
+    {
+      "host": "/srv/downloads",
+      "container": "/downloads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

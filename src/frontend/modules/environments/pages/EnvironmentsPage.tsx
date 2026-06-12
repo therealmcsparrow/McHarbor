@@ -12,6 +12,7 @@ import { AgentTokenDialog } from '../components/AgentTokenDialog';
 import { CreateEnvironmentDialog } from '../components/CreateEnvironmentDialog';
 import { EnvironmentCardGrid } from '../components/EnvironmentCardGrid';
 import { useEnvironmentColumns } from '../components/EnvironmentsColumns';
+import { useVersionInfo } from '../hooks/useEnvironments';
 import {
   useEnvironmentList,
   useTestEnvironment,
@@ -30,6 +31,7 @@ type AgentTokenData = {
 export default function EnvironmentsPage() {
   const { t } = useTranslation('environments');
   const { data: environments = [], isLoading } = useEnvironmentList();
+  const { data: versionInfo } = useVersionInfo();
   const testEnv = useTestEnvironment();
   const removeEnv = useRemoveEnvironment();
   const createInstallToken = useCreateInstallToken();
@@ -109,6 +111,7 @@ export default function EnvironmentsPage() {
         <EnvironmentCardGrid
           environments={environments}
           isLoading={isLoading}
+          mcharborVersion={versionInfo?.mcharbor.version}
           onTest={(id) => testEnv.mutate(id)}
           onInstall={handleShowInstallInfo}
           onRemove={setConfirmTarget}

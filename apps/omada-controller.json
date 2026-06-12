@@ -1,0 +1,80 @@
+{
+  "slug": "omada-controller",
+  "name": "Omada Controller",
+  "description": "TP-Link Omada SDN controller for access points and switches.",
+  "category": "Networking",
+  "image": "mbentley/omada-controller:latest",
+  "logo": "",
+  "website": "https://github.com/mbentley/docker-omada-controller",
+  "docsUrl": "https://github.com/mbentley/docker-omada-controller",
+  "ports": [
+    {
+      "host": 8043,
+      "container": 8043,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8088,
+      "container": 8088,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8843,
+      "container": 8843,
+      "protocol": "tcp"
+    },
+    {
+      "host": 29810,
+      "container": 29810,
+      "protocol": "tcp"
+    },
+    {
+      "host": 29811,
+      "container": 29811,
+      "protocol": "tcp"
+    },
+    {
+      "host": 29812,
+      "container": 29812,
+      "protocol": "tcp"
+    },
+    {
+      "host": 29813,
+      "container": 29813,
+      "protocol": "tcp"
+    },
+    {
+      "host": 29814,
+      "container": 29814,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/omada-controller/data",
+      "container": "/opt/tplink/EAPController/data"
+    },
+    {
+      "host": "/opt/appdata/omada-controller/logs",
+      "container": "/opt/tplink/EAPController/logs"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "MANAGE_HTTP_PORT",
+      "default": "8088",
+      "description": "Management HTTP port"
+    },
+    {
+      "key": "MANAGE_HTTPS_PORT",
+      "default": "8043",
+      "description": "Management HTTPS port"
+    }
+  ],
+  "version": "latest"
+}

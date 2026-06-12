@@ -57,7 +57,9 @@ func ReadAgentSettings(db *sql.DB) AgentSettings {
 				s.PingInterval = v
 			}
 		case "agent_metrics_enabled":
-			s.MetricsEnabled = value == "true"
+			if v, err := strconv.ParseBool(value); err == nil {
+				s.MetricsEnabled = v
+			}
 		case "agent_request_timeout":
 			if v, err := strconv.Atoi(value); err == nil && v >= 5 && v <= 120 {
 				s.RequestTimeout = v

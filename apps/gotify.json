@@ -1,0 +1,31 @@
+{
+  "slug": "gotify",
+  "name": "Gotify",
+  "description": "Simple server for sending and receiving push notifications.",
+  "category": "Notifications",
+  "image": "gotify/server:latest",
+  "logo": "",
+  "website": "https://gotify.net",
+  "docsUrl": "https://gotify.net/docs",
+  "ports": [
+    {
+      "host": 8089,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/gotify/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

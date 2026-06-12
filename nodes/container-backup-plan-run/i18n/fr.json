@@ -1,0 +1,7 @@
+{
+  "label": "Run Backup Plan",
+  "description": "Run a saved container backup plan",
+  "config": {
+    "plan_id": "Plan ID"
+  }
+}

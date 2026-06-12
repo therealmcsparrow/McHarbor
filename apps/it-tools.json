@@ -1,0 +1,26 @@
+{
+  "slug": "it-tools",
+  "name": "IT Tools",
+  "description": "Collection of handy developer and sysadmin utilities.",
+  "category": "Productivity",
+  "image": "ghcr.io/corentinth/it-tools:latest",
+  "logo": "",
+  "website": "https://it-tools.tech",
+  "docsUrl": "https://github.com/CorentinTh/it-tools",
+  "ports": [
+    {
+      "host": 8089,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "scrutiny",
+  "name": "Scrutiny",
+  "description": "Web UI for SMART disk health, temperature, and metrics.",
+  "category": "Monitoring",
+  "image": "ghcr.io/analogj/scrutiny:master-omnibus",
+  "logo": "",
+  "website": "https://github.com/AnalogJ/scrutiny",
+  "docsUrl": "https://github.com/AnalogJ/scrutiny",
+  "ports": [
+    {
+      "host": 8086,
+      "container": 8086,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/scrutiny/config",
+      "container": "/opt/scrutiny/config"
+    },
+    {
+      "host": "/opt/appdata/scrutiny/influxdb",
+      "container": "/opt/scrutiny/influxdb"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

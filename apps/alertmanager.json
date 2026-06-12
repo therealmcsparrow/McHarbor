@@ -1,0 +1,31 @@
+{
+  "slug": "alertmanager",
+  "name": "Alertmanager",
+  "description": "Prometheus alert routing, grouping, and notification manager.",
+  "category": "Monitoring",
+  "image": "prom/alertmanager:latest",
+  "logo": "",
+  "website": "https://prometheus.io/docs/alerting/latest/alertmanager/",
+  "docsUrl": "https://prometheus.io/docs/alerting/latest/alertmanager/",
+  "ports": [
+    {
+      "host": 9093,
+      "container": 9093,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/alertmanager/config",
+      "container": "/etc/alertmanager"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

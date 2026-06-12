@@ -1,0 +1,43 @@
+{
+  "slug": "audiobookshelf",
+  "name": "Audiobookshelf",
+  "description": "Self-hosted audiobook and podcast server.",
+  "category": "Media",
+  "image": "ghcr.io/advplyr/audiobookshelf:latest",
+  "logo": "",
+  "website": "https://www.audiobookshelf.org",
+  "docsUrl": "https://www.audiobookshelf.org/docs",
+  "ports": [
+    {
+      "host": 13378,
+      "container": 13378,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/audiobookshelf/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/audiobookshelf/metadata",
+      "container": "/metadata"
+    },
+    {
+      "host": "/srv/audiobooks",
+      "container": "/audiobooks"
+    },
+    {
+      "host": "/srv/podcasts",
+      "container": "/podcasts"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

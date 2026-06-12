@@ -26,6 +26,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/encryption"
 )
 
 // ErrBackupEncryptionKeyNotConfigured means encrypted backups cannot run until the Docker secret is mounted.
@@ -43,20 +44,39 @@ var ErrBackupRestoreKeyInvalid = errors.New("backup restore secret key is invali
 // ErrBackupRestoreNoRestorableEntries means the archive has no image, filesystem, or mount entries.
 var ErrBackupRestoreNoRestorableEntries = errors.New("backup archive has no restorable entries")
 
+// ErrBackupRunActive means a backup run cannot be deleted while it is still active.
+var ErrBackupRunActive = errors.New("backup run is still running")
+
+// ErrBackupMigrationStorageNotLocal means the destination cannot receive local backup migrations.
+var ErrBackupMigrationStorageNotLocal = errors.New("backup migration storage location is not local")
+
+// ErrBackupMigrationStorageDisabled means the destination cannot be written while disabled.
+var ErrBackupMigrationStorageDisabled = errors.New("backup migration storage location is disabled")
+
+const (
+	backupRunFinalizeTimeout     = 30 * time.Second
+	backupRunProgressTimeout     = 5 * time.Second
+	backupRunProgressStaleAfter  = 6 * time.Minute
+	backupRunBackgroundTimeout   = 3 * time.Hour
+	restoreRunProgressStaleAfter = backupRunBackgroundTimeout + 10*time.Minute
+	defaultLocalStorageID        = "default-local-backup"
+)
+
 // Service handles container backup plans and archive execution.
 type Service struct {
 	db           *sql.DB
 	pool         *coredocker.ClientPool
 	dataDir      string
 	backupCrypto *backupcrypto.Service
+	enc          *encryption.Service
 	logger       *slog.Logger
 }
 
 var safeArchiveName = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
 
 // NewService creates a backup service.
-func NewService(database *sql.DB, pool *coredocker.ClientPool, dataDir string, backupCrypto *backupcrypto.Service, logger *slog.Logger) *Service {
-	return &Service{db: database, pool: pool, dataDir: dataDir, backupCrypto: backupCrypto, logger: logger}
+func NewService(database *sql.DB, pool *coredocker.ClientPool, dataDir string, backupCrypto *backupcrypto.Service, enc *encryption.Service, logger *slog.Logger) *Service {
+	return &Service{db: database, pool: pool, dataDir: dataDir, backupCrypto: backupCrypto, enc: enc, logger: logger}
 }
 
 func (s *Service) client(envID string) (*client.Client, error) {
@@ -185,7 +205,10 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 	if input.Enabled && strings.TrimSpace(input.Cron) != "" {
 		nextRun = nextCronRun(input.Cron, time.Now().UTC()).Format(time.RFC3339)
 	}
-	storageIDs := backupStorageLocationIDs(input.StorageLocationID, input.StorageLocationIDs)
+	storageIDs, err := s.requiredBackupStorageLocationIDs(ctx, input.StorageLocationID, input.StorageLocationIDs)
+	if err != nil {
+		return nil, err
+	}
 
 	_, err = s.db.ExecContext(ctx, `
 		INSERT INTO container_backup_plans (
@@ -241,18 +264,23 @@ func (s *Service) UpdatePlan(ctx context.Context, id string, input UpdateBackupP
 			return nil, fmt.Errorf("updating backup plan name: %w", err)
 		}
 	}
-	if input.StorageLocationID != nil {
-		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET storage_location_id = ?, updated_at = ? WHERE id = ?", nullString(*input.StorageLocationID), now, id); err != nil {
+	if input.StorageLocationID != nil && input.StorageLocationIDs == nil {
+		ids, err := s.requiredBackupStorageLocationIDs(ctx, *input.StorageLocationID, nil)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET storage_location_id = ?, updated_at = ? WHERE id = ?", nullString(firstStorageLocationID(ids)), now, id); err != nil {
 			return nil, fmt.Errorf("updating backup plan storage location: %w", err)
 		}
-		if input.StorageLocationIDs == nil {
-			if err := s.setPlanStorageLocations(ctx, id, backupStorageLocationIDs(*input.StorageLocationID, nil)); err != nil {
-				return nil, err
-			}
+		if err := s.setPlanStorageLocations(ctx, id, ids); err != nil {
+			return nil, err
 		}
 	}
 	if input.StorageLocationIDs != nil {
-		ids := backupStorageLocationIDs("", *input.StorageLocationIDs)
+		ids, err := s.requiredBackupStorageLocationIDs(ctx, "", *input.StorageLocationIDs)
+		if err != nil {
+			return nil, err
+		}
 		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET storage_location_id = ?, updated_at = ? WHERE id = ?", nullString(firstStorageLocationID(ids)), now, id); err != nil {
 			return nil, fmt.Errorf("updating backup plan primary storage location: %w", err)
 		}
@@ -336,9 +364,14 @@ func (s *Service) DeletePlan(ctx context.Context, id string) (bool, error) {
 
 // ListRuns returns recent backup runs.
 func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]BackupRun, error) {
+	if err := s.RecoverAbandonedRuns(ctx, envID, containerID); err != nil && s.logger != nil {
+		s.logger.Warn("container backup abandoned run recovery failed", "env", envID, "container", containerID, "error", err)
+	}
+
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, COALESCE(plan_id, ''), environment_id, container_id, status, COALESCE(archive_path, ''),
+		SELECT id, COALESCE(plan_id, ''), COALESCE(operation, 'backup'), COALESCE(source_run_id, ''), environment_id, container_id, status, COALESCE(archive_path, ''),
 		       archive_size, COALESCE(archive_encryption, ''), COALESCE(archive_key_id, ''), COALESCE(error, ''),
+		       COALESCE(progress_stage, ''), COALESCE(progress_message, ''), COALESCE(progress_updated_at, ''),
 		       started_at, COALESCE(completed_at, ''), duration_ms, created_at, updated_at
 		FROM container_backup_runs
 		WHERE environment_id = ? AND container_id = ?
@@ -347,22 +380,98 @@ func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]Ba
 	if err != nil {
 		return nil, fmt.Errorf("listing backup runs: %w", err)
 	}
-	defer rows.Close()
 
 	runs := []BackupRun{}
 	for rows.Next() {
 		run, err := scanRun(rows)
 		if err != nil {
+			rows.Close()
 			return nil, err
 		}
 		s.annotateRunKeyRequirement(&run)
 		runs = append(runs, run)
 	}
-	return runs, rows.Err()
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return nil, err
+	}
+	if err := rows.Close(); err != nil {
+		return nil, fmt.Errorf("closing backup run rows: %w", err)
+	}
+
+	for i := range runs {
+		if err := s.hydrateRunDestinations(ctx, &runs[i]); err != nil {
+			return nil, err
+		}
+	}
+	return runs, nil
+}
+
+// RecoverAbandonedRuns finalizes old running rows left behind by request cancellation or shutdown.
+func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID string) error {
+	cutoff := time.Now().UTC().Add(-backupRunProgressStaleAfter).Format(time.RFC3339)
+	query := `
+		SELECT id, started_at
+		FROM container_backup_runs
+		WHERE status = 'running'
+		  AND COALESCE(operation, 'backup') = 'backup'
+		  AND COALESCE(NULLIF(progress_updated_at, ''), started_at) < ?`
+	args := []any{cutoff}
+	if envID != "" {
+		query += " AND environment_id = ?"
+		args = append(args, envID)
+	}
+	if containerID != "" {
+		query += " AND container_id = ?"
+		args = append(args, containerID)
+	}
+	query += " ORDER BY started_at ASC LIMIT 1000"
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("listing abandoned backup runs: %w", err)
+	}
+
+	type abandonedRun struct {
+		id      string
+		started string
+	}
+	runs := []abandonedRun{}
+	for rows.Next() {
+		var run abandonedRun
+		if err := rows.Scan(&run.id, &run.started); err != nil {
+			rows.Close()
+			return fmt.Errorf("scanning abandoned backup run: %w", err)
+		}
+		runs = append(runs, run)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	if err := rows.Close(); err != nil {
+		return fmt.Errorf("closing abandoned backup run rows: %w", err)
+	}
+
+	for _, run := range runs {
+		if err := s.recoverAbandonedRun(ctx, run.id); err != nil && s.logger != nil {
+			s.logger.Warn("container backup abandoned run recovery failed", "run", run.id, "started", run.started, "error", err)
+		}
+	}
+	if err := s.recoverAbandonedRestoreRuns(ctx, envID, containerID); err != nil {
+		return err
+	}
+	if err := s.recoverOrphanUploadingDestinations(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
 // RunPlan executes a saved backup plan synchronously.
 func (s *Service) RunPlan(ctx context.Context, planID string) (*BackupRun, error) {
+	if s.backupCrypto == nil {
+		return nil, ErrBackupEncryptionKeyNotConfigured
+	}
 	plan, err := s.Plan(ctx, planID)
 	if err != nil || plan == nil {
 		return nil, err
@@ -371,12 +480,60 @@ func (s *Service) RunPlan(ctx context.Context, planID string) (*BackupRun, error
 	if err != nil {
 		return nil, err
 	}
-	archive, execErr := s.writeArchive(ctx, plan, run.ID)
-	return s.finishRun(ctx, run.ID, archive, execErr)
+	return s.executeRun(ctx, plan, run.ID)
+}
+
+// StartPlan starts a saved backup plan in the background and returns the queued run.
+func (s *Service) StartPlan(ctx context.Context, planID string) (*BackupRun, error) {
+	if s.backupCrypto == nil {
+		return nil, ErrBackupEncryptionKeyNotConfigured
+	}
+	plan, err := s.Plan(ctx, planID)
+	if err != nil || plan == nil {
+		return nil, err
+	}
+	run, err := s.createRun(ctx, plan.ID, plan.EnvironmentID, plan.ContainerID)
+	if err != nil {
+		return nil, err
+	}
+	s.startBackgroundRun(plan, run.ID)
+	return run, nil
 }
 
 // RunAdhoc executes an unsaved backup request.
 func (s *Service) RunAdhoc(ctx context.Context, envID, containerID string, input RunBackupInput) (*BackupRun, error) {
+	if s.backupCrypto == nil {
+		return nil, ErrBackupEncryptionKeyNotConfigured
+	}
+	plan, err := s.adhocPlan(ctx, envID, containerID, input)
+	if err != nil {
+		return nil, err
+	}
+	run, err := s.createRun(ctx, "", envID, containerID)
+	if err != nil {
+		return nil, err
+	}
+	return s.executeRun(ctx, plan, run.ID)
+}
+
+// StartAdhoc starts an unsaved backup request in the background and returns the queued run.
+func (s *Service) StartAdhoc(ctx context.Context, envID, containerID string, input RunBackupInput) (*BackupRun, error) {
+	if s.backupCrypto == nil {
+		return nil, ErrBackupEncryptionKeyNotConfigured
+	}
+	plan, err := s.adhocPlan(ctx, envID, containerID, input)
+	if err != nil {
+		return nil, err
+	}
+	run, err := s.createRun(ctx, "", envID, containerID)
+	if err != nil {
+		return nil, err
+	}
+	s.startBackgroundRun(plan, run.ID)
+	return run, nil
+}
+
+func (s *Service) adhocPlan(ctx context.Context, envID, containerID string, input RunBackupInput) (*BackupPlan, error) {
 	name := input.Name
 	if strings.TrimSpace(name) == "" {
 		name = "Manual backup"
@@ -385,26 +542,43 @@ func (s *Service) RunAdhoc(ctx context.Context, envID, containerID string, input
 	if err != nil {
 		return nil, err
 	}
-	plan := &BackupPlan{
+	storageIDs, err := s.requiredBackupStorageLocationIDs(ctx, input.StorageLocationID, input.StorageLocationIDs)
+	if err != nil {
+		return nil, err
+	}
+	return &BackupPlan{
 		ID:                 "",
 		Name:               name,
 		EnvironmentID:      envID,
 		ContainerID:        containerID,
 		ContainerName:      containerName,
-		StorageLocationID:  input.StorageLocationID,
-		StorageLocationIDs: backupStorageLocationIDs(input.StorageLocationID, input.StorageLocationIDs),
+		StorageLocationID:  firstStorageLocationID(storageIDs),
+		StorageLocationIDs: storageIDs,
 		IncludeConfig:      true,
 		IncludeLogs:        input.IncludeLogs,
 		IncludeFilesystem:  input.IncludeFilesystem,
 		IncludeImage:       input.IncludeImage,
 		SelectedMounts:     input.SelectedMounts,
+	}, nil
+}
+
+func (s *Service) executeRun(ctx context.Context, plan *BackupPlan, runID string) (*BackupRun, error) {
+	archive, execErr := s.writeArchive(ctx, plan, runID)
+	if execErr == nil {
+		execErr = s.uploadArchiveDestinations(ctx, plan, runID, archive)
 	}
-	run, err := s.createRun(ctx, "", envID, containerID)
-	if err != nil {
-		return nil, err
-	}
-	archive, execErr := s.writeArchive(ctx, plan, run.ID)
-	return s.finishRun(ctx, run.ID, archive, execErr)
+	return s.finishRun(ctx, runID, archive, execErr)
+}
+
+func (s *Service) startBackgroundRun(plan *BackupPlan, runID string) {
+	planCopy := *plan
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), backupRunBackgroundTimeout)
+		defer cancel()
+		if _, err := s.executeRun(ctx, &planCopy, runID); err != nil && s.logger != nil {
+			s.logger.Error("background container backup failed", "run", runID, "env", planCopy.EnvironmentID, "container", planCopy.ContainerID, "error", err)
+		}
+	}()
 }
 
 func (s *Service) containerName(ctx context.Context, envID, containerID string) (string, error) {
@@ -429,12 +603,15 @@ func (s *Service) createRun(ctx context.Context, planID, envID, containerID stri
 	id := xid.New().String()
 	now := time.Now().UTC().Format(time.RFC3339)
 	_, err := s.db.ExecContext(ctx, `
-		INSERT INTO container_backup_runs (id, plan_id, environment_id, container_id, status, started_at, created_at, updated_at)
-		VALUES (?, ?, ?, ?, 'running', ?, ?, ?)`, id, nullString(planID), envID, containerID, now, now, now)
+		INSERT INTO container_backup_runs (id, plan_id, operation, environment_id, container_id, status, started_at, created_at, updated_at)
+		VALUES (?, ?, 'backup', ?, ?, 'running', ?, ?, ?)`, id, nullString(planID), envID, containerID, now, now, now)
 	if err != nil {
 		return nil, fmt.Errorf("creating backup run: %w", err)
 	}
-	return &BackupRun{ID: id, PlanID: planID, EnvironmentID: envID, ContainerID: containerID, Status: "running", StartedAt: now, CreatedAt: now, UpdatedAt: now}, nil
+	if err := s.setRunProgress(ctx, id, "queued", ""); err != nil && s.logger != nil {
+		s.logger.Warn("container backup progress update failed", "run", id, "stage", "queued", "error", err)
+	}
+	return &BackupRun{ID: id, PlanID: planID, EnvironmentID: envID, ContainerID: containerID, Status: "running", ProgressStage: "queued", ProgressUpdatedAt: now, StartedAt: now, CreatedAt: now, UpdatedAt: now}, nil
 }
 
 type archiveResult struct {
@@ -445,46 +622,254 @@ type archiveResult struct {
 }
 
 func (s *Service) finishRun(ctx context.Context, runID string, archive archiveResult, execErr error) (*BackupRun, error) {
+	finishCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), backupRunFinalizeTimeout)
+	defer cancel()
+
 	now := time.Now().UTC()
 	status := "success"
 	errorText := ""
+	var started, envID, containerID, operation, progressStage string
+	if err := s.db.QueryRowContext(finishCtx, `
+		SELECT started_at, environment_id, container_id, COALESCE(operation, 'backup'), COALESCE(progress_stage, '')
+		FROM container_backup_runs
+		WHERE id = ?`, runID).Scan(&started, &envID, &containerID, &operation, &progressStage); err != nil {
+		return nil, fmt.Errorf("reading backup run start time: %w", err)
+	}
+	finalProgressStage := status
+	progressMessage := ""
 	if execErr != nil {
 		status = "failure"
-		errorText = "backup failed; check McHarbor logs"
+		finalProgressStage = backupRunFailureStage(operation, progressStage)
+		errorText = backupRunFailureText(operation, progressStage)
+		progressMessage = errorText
 	}
-	var started string
-	if err := s.db.QueryRowContext(ctx, "SELECT started_at FROM container_backup_runs WHERE id = ?", runID).Scan(&started); err != nil {
-		return nil, fmt.Errorf("reading backup run start time: %w", err)
+	if execErr != nil && s.logger != nil {
+		s.logger.Error("container backup run failed", "run", runID, "env", envID, "container", containerID, "stage", progressStage, "error", execErr)
 	}
 	startedAt, _ := time.Parse(time.RFC3339, started)
 	duration := now.Sub(startedAt).Milliseconds()
-	_, err := s.db.ExecContext(ctx, `
+	result, err := s.db.ExecContext(finishCtx, `
 		UPDATE container_backup_runs
 		SET status = ?, archive_path = ?, archive_size = ?, archive_encryption = ?, archive_key_id = ?,
-		    error = ?, completed_at = ?, duration_ms = ?, updated_at = ?
-		WHERE id = ?`,
+		    error = ?, progress_stage = ?, progress_message = ?, progress_updated_at = ?,
+		    completed_at = ?, duration_ms = ?, updated_at = ?
+		WHERE id = ? AND status = 'running'`,
 		status, nullString(archive.path), archive.size, archive.encryption, archive.keyID,
-		nullString(errorText), now.Format(time.RFC3339), duration, now.Format(time.RFC3339), runID)
+		nullString(errorText), finalProgressStage, progressMessage, now.Format(time.RFC3339),
+		now.Format(time.RFC3339), duration, now.Format(time.RFC3339), runID)
 	if err != nil {
 		return nil, fmt.Errorf("finishing backup run: %w", err)
+	}
+	if db.RowsAffected(result) == 0 {
+		run, readErr := s.runByID(finishCtx, runID)
+		if readErr != nil {
+			return nil, readErr
+		}
+		if run.Status != "running" {
+			return run, nil
+		}
+		return run, execErr
 	}
 	if execErr != nil {
 		return nil, execErr
 	}
-	run, err := s.runByID(ctx, runID)
+	run, err := s.runByID(finishCtx, runID)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.pruneBackupPlanRuns(ctx, run); err != nil && s.logger != nil {
+	if err := s.pruneBackupPlanRuns(finishCtx, run); err != nil && s.logger != nil {
 		s.logger.Warn("container backup retention pruning failed", "plan", run.PlanID, "env", run.EnvironmentID, "container", run.ContainerID, "error", err)
 	}
 	return run, nil
 }
 
+func backupRunFailureStage(operation, stage string) string {
+	stage = strings.TrimSpace(stage)
+	if stage == "" || stage == "queued" || stage == "success" || stage == "failure" {
+		return "failure"
+	}
+	if operation == "restore" && strings.HasPrefix(stage, "restore_") {
+		return stage
+	}
+	return stage
+}
+
+func backupRunFailureText(operation, stage string) string {
+	if operation == "restore" {
+		switch backupRunFailureStage(operation, stage) {
+		case "restore_connecting":
+			return "Restore failed while connecting to the Docker environment. Check McHarbor logs."
+		case "restore_inspecting":
+			return "Restore failed while inspecting the target container. Check McHarbor logs."
+		case "restore_scanning":
+			return "Restore failed while reading the backup archive. Check McHarbor logs."
+		case "restore_image":
+			return "Restore failed while loading the container image. Check McHarbor logs."
+		case "restore_filesystem":
+			return "Restore failed while restoring the container filesystem. Check McHarbor logs."
+		case "restore_mounts":
+			return "Restore failed while restoring mounted data. Check McHarbor logs."
+		default:
+			return "Restore failed. Check McHarbor logs."
+		}
+	}
+	switch backupRunFailureStage(operation, stage) {
+	case "connecting":
+		return "Backup failed while connecting to the Docker environment. Check McHarbor logs."
+	case "inspecting":
+		return "Backup failed while inspecting the container. Check McHarbor logs."
+	case "preparing":
+		return "Backup failed while preparing the archive. Check McHarbor logs."
+	case "writing", "manifest", "config", "finalizing":
+		return "Backup failed while writing the archive. Check McHarbor logs."
+	case "logs":
+		return "Backup failed while reading container logs. Check McHarbor logs."
+	case "filesystem":
+		return "Backup failed while exporting the container filesystem. Check McHarbor logs."
+	case "image":
+		return "Backup failed while saving the container image. Check McHarbor logs."
+	case "mounts":
+		return "Backup failed while copying mounted data. Check McHarbor logs."
+	case "uploading":
+		return "Backup failed while uploading to selected storage. Check McHarbor logs."
+	default:
+		return "Backup failed. Check McHarbor logs."
+	}
+}
+
+func (s *Service) recoverAbandonedRun(ctx context.Context, runID string) error {
+	archivePath := filepath.Join(s.backupDir(), safeArchiveName.ReplaceAllString(runID, "-"), "mcharbor.tar")
+	_, statErr := os.Stat(archivePath)
+	if statErr != nil && !os.IsNotExist(statErr) {
+		return fmt.Errorf("checking abandoned backup archive: %w", statErr)
+	}
+	if statErr == nil {
+		if err := os.RemoveAll(filepath.Dir(archivePath)); err != nil {
+			return fmt.Errorf("removing abandoned backup archive directory: %w", err)
+		}
+	}
+	if err := s.failUploadingDestinations(ctx, runID, "Upload did not finish before the backup run ended."); err != nil {
+		return err
+	}
+	_, err := s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("backup abandoned before completion"))
+	if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) recoverAbandonedRestoreRuns(ctx context.Context, envID, containerID string) error {
+	cutoff := time.Now().UTC().Add(-restoreRunProgressStaleAfter).Format(time.RFC3339)
+	query := `
+		SELECT id, started_at
+		FROM container_backup_runs
+		WHERE status = 'running'
+		  AND operation = 'restore'
+		  AND COALESCE(NULLIF(progress_updated_at, ''), started_at) < ?`
+	args := []any{cutoff}
+	if envID != "" {
+		query += " AND environment_id = ?"
+		args = append(args, envID)
+	}
+	if containerID != "" {
+		query += " AND container_id = ?"
+		args = append(args, containerID)
+	}
+	query += " ORDER BY started_at ASC LIMIT 1000"
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("listing abandoned restore runs: %w", err)
+	}
+
+	type abandonedRestoreRun struct {
+		id      string
+		started string
+	}
+	runs := []abandonedRestoreRun{}
+	for rows.Next() {
+		var run abandonedRestoreRun
+		if err := rows.Scan(&run.id, &run.started); err != nil {
+			rows.Close()
+			return fmt.Errorf("scanning abandoned restore run: %w", err)
+		}
+		runs = append(runs, run)
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	if err := rows.Close(); err != nil {
+		return fmt.Errorf("closing abandoned restore run rows: %w", err)
+	}
+
+	for _, run := range runs {
+		_, err := s.finishRun(ctx, run.id, archiveResult{}, fmt.Errorf("restore abandoned before completion"))
+		if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) && s.logger != nil {
+			s.logger.Warn("container restore abandoned run recovery failed", "run", run.id, "started", run.started, "error", err)
+		}
+	}
+	return nil
+}
+
+func (s *Service) recoverOrphanUploadingDestinations(ctx context.Context) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	_, err := s.db.ExecContext(ctx, `
+		UPDATE container_backup_run_destinations
+		SET status = 'failure',
+		    error = CASE WHEN COALESCE(error, '') = '' THEN 'Upload did not finish before the backup run ended.' ELSE error END,
+		    updated_at = ?
+		WHERE status = 'uploading'
+		  AND run_id IN (SELECT id FROM container_backup_runs WHERE status <> 'running')`,
+		now)
+	if err != nil {
+		return fmt.Errorf("recovering unfinished backup destinations: %w", err)
+	}
+	return nil
+}
+
+func (s *Service) failUploadingDestinations(ctx context.Context, runID, message string) error {
+	now := time.Now().UTC().Format(time.RFC3339)
+	_, err := s.db.ExecContext(ctx, `
+		UPDATE container_backup_run_destinations
+		SET status = 'failure',
+		    error = CASE WHEN COALESCE(error, '') = '' THEN ? ELSE error END,
+		    updated_at = ?
+		WHERE run_id = ? AND status = 'uploading'`,
+		message, now, runID)
+	if err != nil {
+		return fmt.Errorf("marking unfinished backup destinations failed: %w", err)
+	}
+	return nil
+}
+
+func (s *Service) setRunProgress(ctx context.Context, runID, stage, message string) error {
+	progressCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), backupRunProgressTimeout)
+	defer cancel()
+
+	now := time.Now().UTC().Format(time.RFC3339)
+	_, err := s.db.ExecContext(progressCtx, `
+		UPDATE container_backup_runs
+		SET progress_stage = ?, progress_message = ?, progress_updated_at = ?, updated_at = ?
+		WHERE id = ? AND status = 'running'`,
+		stage, message, now, now, runID)
+	if err != nil {
+		return fmt.Errorf("updating backup progress: %w", err)
+	}
+	return nil
+}
+
+func (s *Service) updateRunProgress(ctx context.Context, runID, stage, message string) {
+	if err := s.setRunProgress(ctx, runID, stage, message); err != nil && s.logger != nil {
+		s.logger.Warn("container backup progress update failed", "run", runID, "stage", stage, "error", err)
+	}
+}
+
 func (s *Service) runByID(ctx context.Context, id string) (*BackupRun, error) {
 	row := s.db.QueryRowContext(ctx, `
-		SELECT id, COALESCE(plan_id, ''), environment_id, container_id, status, COALESCE(archive_path, ''),
+		SELECT id, COALESCE(plan_id, ''), COALESCE(operation, 'backup'), COALESCE(source_run_id, ''), environment_id, container_id, status, COALESCE(archive_path, ''),
 		       archive_size, COALESCE(archive_encryption, ''), COALESCE(archive_key_id, ''), COALESCE(error, ''),
+		       COALESCE(progress_stage, ''), COALESCE(progress_message, ''), COALESCE(progress_updated_at, ''),
 		       started_at, COALESCE(completed_at, ''), duration_ms, created_at, updated_at
 		FROM container_backup_runs WHERE id = ?`, id)
 	run, err := scanRun(row)
@@ -492,7 +877,46 @@ func (s *Service) runByID(ctx context.Context, id string) (*BackupRun, error) {
 		return nil, err
 	}
 	s.annotateRunKeyRequirement(&run)
+	if err := s.hydrateRunDestinations(ctx, &run); err != nil {
+		return nil, err
+	}
 	return &run, nil
+}
+
+// DeleteRun deletes a finished or failed backup run and its local archive files.
+func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
+	run, err := s.runByID(ctx, id)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	if run.Status == "running" {
+		return false, ErrBackupRunActive
+	}
+
+	if strings.TrimSpace(run.ArchivePath) != "" {
+		archivePath, err := s.validatedArchivePath(run.ArchivePath)
+		if err == nil {
+			if err := os.RemoveAll(filepath.Dir(archivePath)); err != nil {
+				return false, fmt.Errorf("removing backup archive directory: %w", err)
+			}
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return false, fmt.Errorf("validating backup archive before delete: %w", err)
+		}
+	} else {
+		runDir := filepath.Join(s.backupDir(), safeArchiveName.ReplaceAllString(run.ID, "-"))
+		if err := os.RemoveAll(runDir); err != nil {
+			return false, fmt.Errorf("removing backup run directory: %w", err)
+		}
+	}
+
+	result, err := s.db.ExecContext(ctx, "DELETE FROM container_backup_runs WHERE id = ?", id)
+	if err != nil {
+		return false, fmt.Errorf("deleting backup run: %w", err)
+	}
+	return db.RowsAffected(result) > 0, nil
 }
 
 func (s *Service) annotateRunKeyRequirement(run *BackupRun) {
@@ -652,6 +1076,56 @@ func (s *Service) Download(ctx context.Context, runID string) (*BackupDownload, 
 	}, nil
 }
 
+// RestoreOptions returns restorable entries found in a completed encrypted backup run.
+func (s *Service) RestoreOptions(ctx context.Context, runID string, input RestoreBackupOptionsInput) (*RestoreBackupOptions, error) {
+	run, err := s.runByID(ctx, strings.TrimSpace(runID))
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
+		return nil, ErrBackupRunNotDownloadable
+	}
+
+	file, decrypted, err := s.openRestoreArchive(run, input.SecretKey)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	defer decrypted.Close()
+
+	options, err := restoreArchiveOptions(decrypted)
+	if err != nil {
+		return nil, err
+	}
+	return &RestoreBackupOptions{RunID: run.ID, Items: options}, nil
+}
+
+// StartRestore starts a background restore run and returns the tracked run.
+func (s *Service) StartRestore(ctx context.Context, runID string, input RestoreBackupInput) (*BackupRun, error) {
+	sourceRun, err := s.runByID(ctx, strings.TrimSpace(runID))
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if sourceRun.Operation != "backup" || sourceRun.Status != "success" || strings.TrimSpace(sourceRun.ArchivePath) == "" {
+		return nil, ErrBackupRunNotDownloadable
+	}
+	if _, err := s.restoreCrypto(sourceRun, input.SecretKey); err != nil {
+		return nil, err
+	}
+	run, err := s.createRestoreRun(ctx, sourceRun)
+	if err != nil {
+		return nil, err
+	}
+	s.startBackgroundRestore(run.ID, sourceRun.ID, input)
+	return run, nil
+}
+
 // Restore applies restorable entries from a completed encrypted backup run to its original container.
 func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackupInput) (*RestoreBackupResult, error) {
 	run, err := s.runByID(ctx, strings.TrimSpace(runID))
@@ -661,35 +1135,58 @@ func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackup
 	if err != nil {
 		return nil, err
 	}
-	if run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
+	return s.restoreFromRun(ctx, "", run, input)
+}
+
+func (s *Service) createRestoreRun(ctx context.Context, sourceRun *BackupRun) (*BackupRun, error) {
+	id := xid.New().String()
+	now := time.Now().UTC().Format(time.RFC3339)
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO container_backup_runs (id, plan_id, operation, source_run_id, environment_id, container_id, status, started_at, created_at, updated_at)
+		VALUES (?, NULL, 'restore', ?, ?, ?, 'running', ?, ?, ?)`,
+		id, sourceRun.ID, sourceRun.EnvironmentID, sourceRun.ContainerID, now, now, now)
+	if err != nil {
+		return nil, fmt.Errorf("creating restore run: %w", err)
+	}
+	if err := s.setRunProgress(ctx, id, "queued", ""); err != nil && s.logger != nil {
+		s.logger.Warn("container restore progress update failed", "run", id, "stage", "queued", "error", err)
+	}
+	return &BackupRun{ID: id, Operation: "restore", SourceRunID: sourceRun.ID, EnvironmentID: sourceRun.EnvironmentID, ContainerID: sourceRun.ContainerID, Status: "running", ProgressStage: "queued", ProgressUpdatedAt: now, StartedAt: now, CreatedAt: now, UpdatedAt: now}, nil
+}
+
+func (s *Service) startBackgroundRestore(restoreRunID, sourceRunID string, input RestoreBackupInput) {
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), backupRunBackgroundTimeout)
+		defer cancel()
+
+		sourceRun, err := s.runByID(ctx, sourceRunID)
+		if err == nil && sourceRun != nil {
+			_, err = s.restoreFromRun(ctx, restoreRunID, sourceRun, input)
+		}
+		archive := archiveResult{}
+		if _, finishErr := s.finishRun(ctx, restoreRunID, archive, err); finishErr != nil && s.logger != nil {
+			s.logger.Error("background container restore failed", "run", restoreRunID, "source", sourceRunID, "error", finishErr)
+		}
+	}()
+}
+
+func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run *BackupRun, input RestoreBackupInput) (*RestoreBackupResult, error) {
+	if run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, ErrBackupRunNotDownloadable
 	}
-
-	archivePath, err := s.validatedArchivePath(run.ArchivePath)
+	if progressRunID != "" {
+		s.updateRunProgress(ctx, progressRunID, "restore_scanning", "")
+	}
+	file, decrypted, err := s.openRestoreArchive(run, input.SecretKey)
 	if err != nil {
 		return nil, err
-	}
-
-	cryptoSvc, err := s.restoreCrypto(run, input.SecretKey)
-	if err != nil {
-		return nil, err
-	}
-
-	file, err := os.Open(archivePath)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("opening backup archive for restore: %w", err)
 	}
 	defer file.Close()
-
-	decrypted, _, err := cryptoSvc.DecryptReader(file)
-	if err != nil {
-		return nil, ErrBackupRestoreKeyInvalid
-	}
 	defer decrypted.Close()
 
+	if progressRunID != "" {
+		s.updateRunProgress(ctx, progressRunID, "restore_connecting", "")
+	}
 	cli, err := s.client(run.EnvironmentID)
 	if err != nil {
 		return nil, err
@@ -697,6 +1194,9 @@ func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackup
 	opCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
+	if progressRunID != "" {
+		s.updateRunProgress(opCtx, progressRunID, "restore_inspecting", "")
+	}
 	if _, err := cli.ContainerInspect(opCtx, run.ContainerID); err != nil {
 		return nil, fmt.Errorf("inspecting container before restore: %w", err)
 	}
@@ -704,6 +1204,7 @@ func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackup
 	tr := tar.NewReader(decrypted)
 	mountTargets := map[string]string{}
 	restored := []string{}
+	wanted := restoreSelection(input.RestoreItems)
 	for {
 		header, err := tr.Next()
 		if errors.Is(err, io.EOF) {
@@ -720,12 +1221,25 @@ func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackup
 		case header.Name == "manifest.json":
 			mountTargets = restoreMountTargets(tr)
 		case header.Name == "image/image.tar":
+			if !wanted("image") {
+				continue
+			}
+			if progressRunID != "" {
+				s.updateRunProgress(opCtx, progressRunID, "restore_image", "")
+			}
 			if err := restoreImageArchive(opCtx, cli, tr); err != nil {
 				return nil, err
 			}
 			restored = append(restored, "image")
 		case header.Name == "container/filesystem.tar":
-			if err := cli.CopyToContainer(opCtx, run.ContainerID, "/", tr, container.CopyToContainerOptions{AllowOverwriteDirWithFile: false}); err != nil {
+			if !wanted("filesystem") {
+				continue
+			}
+			if progressRunID != "" {
+				s.updateRunProgress(opCtx, progressRunID, "restore_filesystem", "")
+			}
+			reader := s.restoreProgressReader(opCtx, progressRunID, "restore_filesystem", "Restoring container filesystem", tr, header.Size)
+			if err := s.copyRestoreEntryToContainer(opCtx, cli, run, progressRunID, "restore_filesystem", "Restoring container filesystem", header.Name, "/", reader, header.Size, input.SecretKey); err != nil {
 				return nil, fmt.Errorf("restoring container filesystem: %w", err)
 			}
 			restored = append(restored, "filesystem")
@@ -734,11 +1248,18 @@ func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackup
 			if target == "" {
 				return nil, fmt.Errorf("backup mount target is missing")
 			}
+			if !wanted("mount:" + target) {
+				continue
+			}
+			if progressRunID != "" {
+				s.updateRunProgress(opCtx, progressRunID, "restore_mounts", "Restoring mounted data "+target+".")
+			}
 			restoreTarget := filepath.Dir(target)
 			if restoreTarget == "." {
 				restoreTarget = "/"
 			}
-			if err := cli.CopyToContainer(opCtx, run.ContainerID, restoreTarget, tr, container.CopyToContainerOptions{AllowOverwriteDirWithFile: false}); err != nil {
+			reader := s.restoreProgressReader(opCtx, progressRunID, "restore_mounts", "Restoring mounted data "+target, tr, header.Size)
+			if err := s.copyRestoreEntryToContainer(opCtx, cli, run, progressRunID, "restore_mounts", "Restoring mounted data "+target, header.Name, restoreTarget, reader, header.Size, input.SecretKey); err != nil {
 				return nil, fmt.Errorf("restoring mounted data: %w", err)
 			}
 			restored = append(restored, "mount:"+target)
@@ -749,6 +1270,121 @@ func (s *Service) Restore(ctx context.Context, runID string, input RestoreBackup
 	}
 
 	return &RestoreBackupResult{RunID: run.ID, Restored: restored}, nil
+}
+
+func (s *Service) copyRestoreEntryToContainer(ctx context.Context, cli *client.Client, run *BackupRun, progressRunID, progressStage, label, entryName, targetPath string, reader io.Reader, size int64, secretKey string) error {
+	if !s.pool.IsAgentEnv(run.EnvironmentID) {
+		return cli.CopyToContainer(ctx, run.ContainerID, targetPath, reader, container.CopyToContainerOptions{AllowOverwriteDirWithFile: false})
+	}
+	return s.copyRestoreEntryToContainerViaAgent(ctx, run, progressRunID, progressStage, label, entryName, targetPath, size, secretKey)
+}
+
+func (s *Service) copyRestoreEntryToContainerViaAgent(ctx context.Context, run *BackupRun, progressRunID, progressStage, label, entryName, targetPath string, size int64, secretKey string) error {
+	agentConn, ok := s.pool.AgentConnection(run.EnvironmentID)
+	if !ok {
+		return fmt.Errorf("agent not connected for environment %s", run.EnvironmentID)
+	}
+
+	entry, err := restoreTransfers.create(run.ID, secretKey, entryName, size)
+	if err != nil {
+		return err
+	}
+	transferURL := "/api/container-backups/internal/transfers/" + entry.ID
+
+	progress := func(bytes int64, stage string) {
+		if progressRunID == "" {
+			return
+		}
+		message := backupRestoreProgressMessage(label, bytes, size)
+		if strings.EqualFold(stage, "apply") {
+			message = label + ": applying archive to container."
+		}
+		s.updateRunProgress(ctx, progressRunID, progressStage, message)
+	}
+
+	err = agentConn.Transport.StartRestoreTransfer(ctx, entry.ID, run.ContainerID, targetPath, transferURL, entry.Token, size, progress)
+	if err != nil {
+		restoreTransfers.cancel(entry.ID)
+		return err
+	}
+	if progressRunID != "" {
+		s.updateRunProgress(ctx, progressRunID, progressStage, backupRestoreProgressMessage(label, size, size))
+	}
+	return nil
+}
+
+func (s *Service) openRestoreArchive(run *BackupRun, secretKey string) (*os.File, io.ReadCloser, error) {
+	archivePath, err := s.validatedArchivePath(run.ArchivePath)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cryptoSvc, err := s.restoreCrypto(run, secretKey)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	file, err := os.Open(archivePath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil, ErrBackupRunNotDownloadable
+		}
+		return nil, nil, fmt.Errorf("opening backup archive for restore: %w", err)
+	}
+
+	decrypted, _, err := cryptoSvc.DecryptReader(file)
+	if err != nil {
+		if closeErr := file.Close(); closeErr != nil && s.logger != nil {
+			s.logger.Warn("backup archive close after decrypt failure failed", "run", run.ID, "error", closeErr)
+		}
+		return nil, nil, ErrBackupRestoreKeyInvalid
+	}
+	return file, decrypted, nil
+}
+
+// RestoreUploaded stores an uploaded encrypted archive and restores it to the selected container.
+func (s *Service) RestoreUploaded(ctx context.Context, input RestoreUploadedBackupInput) (*RestoreBackupResult, error) {
+	if strings.TrimSpace(input.EnvironmentID) == "" || strings.TrimSpace(input.ContainerID) == "" || input.Reader == nil {
+		return nil, fmt.Errorf("uploaded backup restore input is invalid")
+	}
+
+	archive := archiveResult{}
+	secretKey := strings.TrimSpace(input.SecretKey)
+	switch {
+	case secretKey != "":
+		cryptoSvc, err := backupcrypto.NewFromKeyMaterial(secretKey)
+		if err != nil {
+			return nil, ErrBackupRestoreKeyInvalid
+		}
+		archive.encryption = backupcrypto.Algorithm
+		archive.keyID = cryptoSvc.KeyID()
+	case s.backupCrypto != nil:
+		archive.encryption = backupcrypto.Algorithm
+		archive.keyID = s.backupCrypto.KeyID()
+	default:
+		return nil, ErrBackupRestoreSecretRequired
+	}
+
+	run, err := s.createRun(ctx, "", input.EnvironmentID, input.ContainerID)
+	if err != nil {
+		return nil, err
+	}
+
+	archive.path, archive.size, err = s.storeUploadedArchive(run.ID, input.Reader)
+	if err != nil {
+		if cleanupErr := s.deleteRunArchive(ctx, run.ID, archive.path); cleanupErr != nil && s.logger != nil {
+			s.logger.Warn("uploaded backup cleanup failed", "run", run.ID, "error", cleanupErr)
+		}
+		if _, finishErr := s.finishRun(ctx, run.ID, archive, err); finishErr != nil && s.logger != nil {
+			s.logger.Warn("uploaded backup failure finalization failed", "run", run.ID, "error", finishErr)
+		}
+		return nil, err
+	}
+	run, err = s.finishRun(ctx, run.ID, archive, nil)
+	if err != nil {
+		return nil, err
+	}
+	return s.Restore(ctx, run.ID, RestoreBackupInput{SecretKey: secretKey})
 }
 
 func (s *Service) restoreCrypto(run *BackupRun, secretKey string) (*backupcrypto.Service, error) {
@@ -771,6 +1407,47 @@ func (s *Service) restoreCrypto(run *BackupRun, secretKey string) (*backupcrypto
 	return cryptoSvc, nil
 }
 
+func (s *Service) storeUploadedArchive(runID string, reader io.Reader) (string, int64, error) {
+	if err := os.MkdirAll(s.backupDir(), 0750); err != nil {
+		return "", 0, fmt.Errorf("creating backup directory: %w", err)
+	}
+	runDir := filepath.Join(s.backupDir(), safeArchiveName.ReplaceAllString(runID, "-"))
+	if err := os.MkdirAll(runDir, 0750); err != nil {
+		return "", 0, fmt.Errorf("creating backup upload directory: %w", err)
+	}
+	archivePath := filepath.Join(runDir, "mcharbor.tar")
+	file, err := os.OpenFile(archivePath, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0640)
+	if err != nil {
+		return "", 0, fmt.Errorf("creating uploaded backup archive: %w", err)
+	}
+	size, copyErr := io.Copy(file, reader)
+	closeErr := file.Close()
+	if copyErr != nil {
+		return archivePath, size, fmt.Errorf("saving uploaded backup archive: %w", copyErr)
+	}
+	if closeErr != nil {
+		return archivePath, size, fmt.Errorf("closing uploaded backup archive: %w", closeErr)
+	}
+	if size == 0 {
+		return archivePath, 0, fmt.Errorf("uploaded backup archive is empty")
+	}
+	return archivePath, size, nil
+}
+
+func (s *Service) deleteRunArchive(ctx context.Context, runID, archivePath string) error {
+	if strings.TrimSpace(archivePath) != "" {
+		if err := os.RemoveAll(filepath.Dir(archivePath)); err != nil {
+			return fmt.Errorf("removing uploaded backup archive: %w", err)
+		}
+	}
+	if strings.TrimSpace(runID) != "" {
+		if _, err := s.db.ExecContext(ctx, "DELETE FROM container_backup_runs WHERE id = ?", runID); err != nil {
+			return fmt.Errorf("deleting uploaded backup run: %w", err)
+		}
+	}
+	return nil
+}
+
 type backupArchiveManifest struct {
 	Plan BackupPlan `json:"plan"`
 }
@@ -789,6 +1466,127 @@ func restoreMountTargets(reader io.Reader) map[string]string {
 		targets[backupMountEntryName(mountPath)] = mountPath
 	}
 	return targets
+}
+
+func restoreArchiveOptions(reader io.Reader) ([]BackupOption, error) {
+	tr := tar.NewReader(reader)
+	mountTargets := map[string]string{}
+	items := []BackupOption{}
+	for {
+		header, err := tr.Next()
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, fmt.Errorf("reading backup restore options: %w", err)
+		}
+		if header == nil || header.Typeflag != tar.TypeReg {
+			continue
+		}
+
+		switch {
+		case header.Name == "manifest.json":
+			mountTargets = restoreMountTargets(tr)
+		case header.Name == "image/image.tar":
+			items = append(items, BackupOption{
+				Key:         "image",
+				Type:        "image",
+				Label:       "Container image",
+				Description: "Load the image archive saved in this backup.",
+				Default:     true,
+			})
+		case header.Name == "container/filesystem.tar":
+			items = append(items, BackupOption{
+				Key:         "filesystem",
+				Type:        "filesystem",
+				Label:       "Container filesystem",
+				Description: "Restore the writable container filesystem layer.",
+				Default:     true,
+			})
+		case strings.HasPrefix(header.Name, "mounts/") && strings.HasSuffix(header.Name, ".tar"):
+			target := mountTargets[header.Name]
+			if target == "" {
+				target = strings.TrimSuffix(strings.TrimPrefix(header.Name, "mounts/"), ".tar")
+			}
+			items = append(items, BackupOption{
+				Key:         "mount:" + target,
+				Type:        "mount",
+				Label:       target,
+				Description: "Restore mounted data saved for this container path.",
+				Default:     true,
+			})
+		}
+	}
+	return items, nil
+}
+
+func restoreSelection(items []string) func(string) bool {
+	selected := map[string]struct{}{}
+	for _, item := range items {
+		item = strings.TrimSpace(item)
+		if item != "" {
+			selected[item] = struct{}{}
+		}
+	}
+	if len(selected) == 0 {
+		return func(string) bool { return true }
+	}
+	return func(item string) bool {
+		_, ok := selected[item]
+		return ok
+	}
+}
+
+func (s *Service) restoreProgressReader(ctx context.Context, runID, stage, label string, reader io.Reader, total int64) io.Reader {
+	if strings.TrimSpace(runID) == "" {
+		return reader
+	}
+	return &backupRestoreProgressReader{
+		reader: reader,
+		onProgress: func(read int64) {
+			s.updateRunProgress(ctx, runID, stage, backupRestoreProgressMessage(label, read, total))
+		},
+	}
+}
+
+type backupRestoreProgressReader struct {
+	reader     io.Reader
+	bytes      int64
+	lastUpdate time.Time
+	onProgress func(read int64)
+}
+
+func (r *backupRestoreProgressReader) Read(p []byte) (int, error) {
+	n, err := r.reader.Read(p)
+	if n > 0 {
+		r.bytes += int64(n)
+		if time.Since(r.lastUpdate) >= 5*time.Second {
+			r.flush()
+		}
+	}
+	if errors.Is(err, io.EOF) {
+		r.flush()
+	}
+	return n, err
+}
+
+func (r *backupRestoreProgressReader) flush() {
+	if r.onProgress == nil || r.bytes == 0 {
+		return
+	}
+	r.lastUpdate = time.Now()
+	r.onProgress(r.bytes)
+}
+
+func backupRestoreProgressMessage(label string, read, total int64) string {
+	label = strings.TrimSpace(label)
+	if label == "" {
+		label = "Restoring data"
+	}
+	if total <= 0 {
+		return fmt.Sprintf("%s (%s).", label, formatBackupUploadBytes(read))
+	}
+	return fmt.Sprintf("%s (%s of %s).", label, formatBackupUploadBytes(read), formatBackupUploadBytes(total))
 }
 
 func restoreImageArchive(ctx context.Context, cli *client.Client, reader io.Reader) error {
@@ -923,17 +1721,20 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 	if s.backupCrypto == nil {
 		return archiveResult{}, ErrBackupEncryptionKeyNotConfigured
 	}
+	s.updateRunProgress(ctx, runID, "connecting", "")
 	cli, err := s.client(plan.EnvironmentID)
 	if err != nil {
 		return archiveResult{}, err
 	}
 	opCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
+	s.updateRunProgress(opCtx, runID, "inspecting", "")
 	info, err := cli.ContainerInspect(opCtx, plan.ContainerID)
 	if err != nil {
 		return archiveResult{}, fmt.Errorf("inspecting container for backup: %w", err)
 	}
 
+	s.updateRunProgress(opCtx, runID, "preparing", "")
 	if err := os.MkdirAll(s.backupDir(), 0750); err != nil {
 		return archiveResult{}, fmt.Errorf("creating backup directory: %w", err)
 	}
@@ -953,8 +1754,10 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 		return archiveResult{path: archivePath}, err
 	}
 
+	s.updateRunProgress(opCtx, runID, "writing", "")
 	tw := tar.NewWriter(encryptedWriter)
-	writeErr := s.writeArchiveEntries(opCtx, cli, tw, plan, info)
+	writeErr := s.writeArchiveEntries(opCtx, cli, tw, plan, info, runID)
+	s.updateRunProgress(opCtx, runID, "finalizing", "")
 	closeErr := tw.Close()
 	if writeErr != nil {
 		_ = encryptedWriter.Close()
@@ -974,7 +1777,8 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 	return archiveResult{path: archivePath, size: stat.Size(), encryption: metadata.Algorithm, keyID: metadata.KeyID}, nil
 }
 
-func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, tw *tar.Writer, plan *BackupPlan, info types.ContainerJSON) error {
+func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, tw *tar.Writer, plan *BackupPlan, info types.ContainerJSON, runID string) error {
+	s.updateRunProgress(ctx, runID, "manifest", "")
 	manifest, err := json.MarshalIndent(map[string]any{
 		"format":      "mcharbor.container.backup.v1",
 		"createdAt":   time.Now().UTC().Format(time.RFC3339),
@@ -988,6 +1792,7 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 		return err
 	}
 	if plan.IncludeConfig {
+		s.updateRunProgress(ctx, runID, "config", "")
 		inspect, err := json.MarshalIndent(info, "", "  ")
 		if err != nil {
 			return fmt.Errorf("encoding container inspect: %w", err)
@@ -997,24 +1802,31 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 		}
 	}
 	if plan.IncludeLogs {
+		s.updateRunProgress(ctx, runID, "logs", "")
 		reader, err := cli.ContainerLogs(ctx, plan.ContainerID, container.LogsOptions{ShowStdout: true, ShowStderr: true, Timestamps: true, Tail: "all"})
 		if err != nil {
 			return fmt.Errorf("reading container logs: %w", err)
 		}
-		if err := writeStream(tw, "container/logs.txt", reader, s.backupTempDir()); err != nil {
+		if err := writeStream(ctx, tw, "container/logs.txt", reader, s.backupTempDir(), func() {
+			s.updateRunProgress(ctx, runID, "logs", "")
+		}); err != nil {
 			return err
 		}
 	}
 	if plan.IncludeFilesystem {
+		s.updateRunProgress(ctx, runID, "filesystem", "")
 		reader, err := cli.ContainerExport(ctx, plan.ContainerID)
 		if err != nil {
 			return fmt.Errorf("exporting container filesystem: %w", err)
 		}
-		if err := writeStream(tw, "container/filesystem.tar", reader, s.backupTempDir()); err != nil {
+		if err := writeStream(ctx, tw, "container/filesystem.tar", reader, s.backupTempDir(), func() {
+			s.updateRunProgress(ctx, runID, "filesystem", "")
+		}); err != nil {
 			return err
 		}
 	}
 	if plan.IncludeImage {
+		s.updateRunProgress(ctx, runID, "image", "")
 		inspect, err := cli.ContainerInspect(ctx, plan.ContainerID)
 		if err != nil {
 			return fmt.Errorf("inspecting container image: %w", err)
@@ -1028,7 +1840,9 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 			if err != nil {
 				return fmt.Errorf("saving container image: %w", err)
 			}
-			if err := writeStream(tw, "image/image.tar", reader, s.backupTempDir()); err != nil {
+			if err := writeStream(ctx, tw, "image/image.tar", reader, s.backupTempDir(), func() {
+				s.updateRunProgress(ctx, runID, "image", "")
+			}); err != nil {
 				return err
 			}
 		}
@@ -1044,12 +1858,15 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 		if cleanMount == "" || strings.Contains(cleanMount, "..") || !strings.HasPrefix(cleanMount, "/") || !allowedMounts[cleanMount] {
 			return fmt.Errorf("invalid backup mount path")
 		}
+		s.updateRunProgress(ctx, runID, "mounts", "")
 		reader, _, err := cli.CopyFromContainer(ctx, plan.ContainerID, cleanMount)
 		if err != nil {
 			return fmt.Errorf("copying mounted data %s: %w", cleanMount, err)
 		}
 		name := backupMountEntryName(cleanMount)
-		if err := writeStream(tw, name, reader, s.backupTempDir()); err != nil {
+		if err := writeStream(ctx, tw, name, reader, s.backupTempDir(), func() {
+			s.updateRunProgress(ctx, runID, "mounts", "")
+		}); err != nil {
 			return err
 		}
 	}
@@ -1070,8 +1887,18 @@ func writeBytes(tw *tar.Writer, name string, data []byte) error {
 	return nil
 }
 
-func writeStream(tw *tar.Writer, name string, reader io.ReadCloser, tempDir string) error {
+func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.ReadCloser, tempDir string, onProgress func()) error {
 	defer reader.Close()
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			_ = reader.Close()
+		case <-done:
+		}
+	}()
+	defer close(done)
+
 	if err := os.MkdirAll(tempDir, 0700); err != nil {
 		return fmt.Errorf("creating backup temp directory: %w", err)
 	}
@@ -1081,7 +1908,9 @@ func writeStream(tw *tar.Writer, name string, reader io.ReadCloser, tempDir stri
 	}
 	tmpName := tmp.Name()
 	defer os.Remove(tmpName)
-	size, copyErr := io.Copy(tmp, reader)
+	progressWriter := &backupProgressWriter{writer: tmp, onProgress: onProgress}
+	size, copyErr := io.Copy(progressWriter, reader)
+	progressWriter.flush()
 	closeErr := tmp.Close()
 	if copyErr != nil {
 		return fmt.Errorf("spooling backup entry %s: %w", name, copyErr)
@@ -1101,6 +1930,32 @@ func writeStream(tw *tar.Writer, name string, reader io.ReadCloser, tempDir stri
 		return fmt.Errorf("writing backup entry %s: %w", name, err)
 	}
 	return nil
+}
+
+type backupProgressWriter struct {
+	writer     io.Writer
+	bytes      int64
+	lastUpdate time.Time
+	onProgress func()
+}
+
+func (w *backupProgressWriter) Write(p []byte) (int, error) {
+	n, err := w.writer.Write(p)
+	if n > 0 {
+		w.bytes += int64(n)
+		if time.Since(w.lastUpdate) >= 5*time.Second {
+			w.flush()
+		}
+	}
+	return n, err
+}
+
+func (w *backupProgressWriter) flush() {
+	if w.onProgress == nil || w.bytes == 0 {
+		return
+	}
+	w.lastUpdate = time.Now()
+	w.onProgress()
 }
 
 func (s *Service) backupDir() string {
@@ -1141,12 +1996,20 @@ func (s *Service) hydratePlanStorageLocations(ctx context.Context, plan *BackupP
 	if len(ids) == 0 && strings.TrimSpace(plan.StorageLocationID) != "" {
 		ids = []string{strings.TrimSpace(plan.StorageLocationID)}
 	}
-	plan.StorageLocationIDs = backupStorageLocationIDs("", ids)
+	requiredIDs, err := s.requiredBackupStorageLocationIDs(ctx, "", ids)
+	if err != nil {
+		return err
+	}
+	plan.StorageLocationIDs = requiredIDs
 	plan.StorageLocationID = firstStorageLocationID(plan.StorageLocationIDs)
 	return nil
 }
 
 func (s *Service) setPlanStorageLocations(ctx context.Context, planID string, ids []string) error {
+	ids, err := s.requiredBackupStorageLocationIDs(ctx, "", ids)
+	if err != nil {
+		return err
+	}
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("starting backup destination update: %w", err)
@@ -1181,6 +2044,44 @@ func (s *Service) setPlanStorageLocations(ctx context.Context, planID string, id
 	return nil
 }
 
+func (s *Service) requiredBackupStorageLocationIDs(ctx context.Context, legacy string, ids []string) ([]string, error) {
+	out := backupStorageLocationIDs(legacy, ids)
+	localID, err := s.defaultLocalStorageLocationID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if localID == "" {
+		return out, nil
+	}
+	return backupStorageLocationIDs(localID, out), nil
+}
+
+func (s *Service) defaultLocalStorageLocationID(ctx context.Context) (string, error) {
+	var id string
+	err := s.db.QueryRowContext(ctx, `
+		SELECT id
+		FROM storage_locations
+		WHERE location_type = 'local'
+		  AND enabled = 1
+		ORDER BY
+		  CASE
+		    WHEN id = ? THEN 0
+		    WHEN COALESCE(base_path, '') = '/mnt/backup' THEN 1
+		    ELSE 2
+		  END,
+		  created_at ASC,
+		  id ASC
+		LIMIT 1`, defaultLocalStorageID,
+	).Scan(&id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("reading default local backup storage location: %w", err)
+	}
+	return id, nil
+}
+
 func scanPlan(scanner interface{ Scan(dest ...any) error }) (BackupPlan, error) {
 	var plan BackupPlan
 	var selected string
@@ -1207,12 +2108,15 @@ func scanPlan(scanner interface{ Scan(dest ...any) error }) (BackupPlan, error) 
 func scanRun(scanner interface{ Scan(dest ...any) error }) (BackupRun, error) {
 	var run BackupRun
 	if err := scanner.Scan(
-		&run.ID, &run.PlanID, &run.EnvironmentID, &run.ContainerID, &run.Status,
+		&run.ID, &run.PlanID, &run.Operation, &run.SourceRunID, &run.EnvironmentID, &run.ContainerID, &run.Status,
 		&run.ArchivePath, &run.ArchiveSize, &run.ArchiveEncryption, &run.ArchiveKeyID,
-		&run.Error, &run.StartedAt,
+		&run.Error, &run.ProgressStage, &run.ProgressMessage, &run.ProgressUpdatedAt, &run.StartedAt,
 		&run.CompletedAt, &run.DurationMS, &run.CreatedAt, &run.UpdatedAt,
 	); err != nil {
 		return BackupRun{}, err
+	}
+	if run.Operation == "" {
+		run.Operation = "backup"
 	}
 	return run, nil
 }

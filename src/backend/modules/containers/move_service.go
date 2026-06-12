@@ -36,8 +36,8 @@ const moveProgressTotal = 10
 const moveImageLoadHeartbeat = 15 * time.Second
 const moveImageLoadTimeout = 30 * time.Minute
 const moveOperationTimeout = 2 * time.Hour
-const moveAgentSpoolMinVersion = "1.3.3"
 const moveAgentDirectTransferMinVersion = "1.3.5"
+const moveAgentPullTransferMinVersion = "1.5.1"
 
 type moveProgressEmitter func(MoveContainerEvent)
 
@@ -187,12 +187,12 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	if !req.TransferImage {
 		return MoveContainerResult{}, fmt.Errorf("container filesystem data requires image transfer")
 	}
-	if s.pool.IsAgentEnv(req.TargetEnvID) && !s.pool.AgentAtLeast(req.TargetEnvID, moveAgentSpoolMinVersion) {
+	if s.pool.IsAgentEnv(req.TargetEnvID) && !s.pool.AgentAtLeast(req.TargetEnvID, moveAgentPullTransferMinVersion) {
 		version, _ := s.pool.AgentVersion(req.TargetEnvID)
 		if version == "" {
 			version = "unknown"
 		}
-		return MoveContainerResult{}, fmt.Errorf("target agent %s does not support staged image loading; update mcharbor-agent to %s or newer", version, moveAgentSpoolMinVersion)
+		return MoveContainerResult{}, fmt.Errorf("target agent %s does not support pull-based move transfers; update mcharbor-agent to %s or newer", version, moveAgentPullTransferMinVersion)
 	}
 
 	emitMoveProgress(emit, 4, "image", "Creating source container filesystem snapshot.", "progress")
@@ -269,7 +269,7 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 			if volumePlan.Type != "volume" || volumePlan.Destination == "" || volumePlan.TargetDestination == "" {
 				continue
 			}
-			if err := copyContainerPath(opCtx, sourceCli, targetCli, id, resp.ID, volumePlan.Destination, volumePlan.TargetDestination); err != nil {
+			if err := s.copyContainerPath(opCtx, envID, req.TargetEnvID, sourceCli, targetCli, id, resp.ID, volumePlan.Destination, volumePlan.TargetDestination, volumePlan.Name, emit); err != nil {
 				return MoveContainerResult{}, fmt.Errorf("copying volume %s: %w", volumePlan.Name, err)
 			}
 			result.VolumesCopied = append(result.VolumesCopied, volumePlan.TargetName)
@@ -504,17 +504,96 @@ func firstPositive(values ...int64) int64 {
 
 func (s *Service) transferImage(ctx context.Context, sourceEnvID, targetEnvID string, sourceCli, targetCli *client.Client, ref string, imageSize int64, emit moveProgressEmitter) error {
 	directStarted, err := s.tryDirectAgentImageTransfer(ctx, sourceEnvID, targetEnvID, ref, imageSize, emit)
-	if directStarted || err != nil {
-		return err
+	if err == nil && directStarted {
+		return nil
+	}
+	if err != nil {
+		if !directStarted || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return err
+		}
+		slog.Warn("direct agent image transfer failed; falling back to host relay", "source_env", sourceEnvID, "target_env", targetEnvID, "error", err)
+		emitMoveProgress(emit, 4, "image", "Direct agent-to-agent transfer failed; using target agent pull route.", "progress")
+	}
+	pullStarted, pullErr := s.tryTargetAgentImagePullTransfer(ctx, sourceEnvID, targetEnvID, ref, imageSize, emit)
+	if pullErr == nil && pullStarted {
+		return nil
+	}
+	if pullErr != nil {
+		if pullStarted {
+			return pullErr
+		}
+		slog.Warn("target agent pull image transfer unavailable; falling back to host relay", "source_env", sourceEnvID, "target_env", targetEnvID, "error", pullErr)
 	}
 	route := moveTransferRouteDefault
 	if s.pool.IsAgentEnv(sourceEnvID) && s.pool.IsAgentEnv(targetEnvID) {
 		route = moveTransferRouteAgentHostAgent
-		emitMoveProgress(emit, 4, "image", "Direct agent-to-agent transfer unavailable; using McHarbor host relay (agent-host-agent route).", "progress")
+		if !directStarted {
+			emitMoveProgress(emit, 4, "image", "Direct agent-to-agent transfer unavailable; using McHarbor host relay (agent-host-agent route).", "progress")
+		}
 	} else {
 		emitMoveProgress(emit, 4, "image", "Using McHarbor relay for snapshot transfer.", "progress")
 	}
 	return transferImage(ctx, sourceCli, targetCli, ref, imageSize, emit, route)
+}
+
+func (s *Service) tryTargetAgentImagePullTransfer(ctx context.Context, sourceEnvID, targetEnvID, ref string, imageSize int64, emit moveProgressEmitter) (bool, error) {
+	if !s.pool.IsAgentEnv(targetEnvID) {
+		return false, nil
+	}
+	if !s.pool.AgentAtLeast(targetEnvID, moveAgentPullTransferMinVersion) {
+		version, _ := s.pool.AgentVersion(targetEnvID)
+		if version == "" {
+			version = "unknown"
+		}
+		return false, fmt.Errorf("target agent %s does not support pull-based move transfers; update mcharbor-agent to %s or newer", version, moveAgentPullTransferMinVersion)
+	}
+	targetConn, ok := s.pool.AgentConnection(targetEnvID)
+	if !ok || targetConn.Transport == nil {
+		return false, nil
+	}
+	entry, err := moveTransfers.create(moveTransferEntry{
+		Kind:        moveTransferKindImage,
+		SourceEnvID: sourceEnvID,
+		ImageRef:    ref,
+	})
+	if err != nil {
+		return false, err
+	}
+	transferURL := "/api/containers/internal/move-transfers/" + entry.ID
+	started := true
+	completed := false
+	defer func() {
+		if !completed {
+			moveTransfers.cancel(entry.ID)
+			targetConn.Transport.CancelTransfer(entry.ID)
+		}
+	}()
+
+	var lastBytes atomic.Int64
+	emitMoveProgress(emit, 4, "image", "Target agent is pulling the snapshot image from McHarbor.", "progress")
+	err = targetConn.Transport.StartImagePullTransfer(ctx, entry.ID, transferURL, entry.Token, func(transferred int64, stage string) {
+		if transferred <= 0 {
+			return
+		}
+		lastBytes.Store(transferred)
+		displayTotal := moveProgressTotalBytes(transferred, imageSize)
+		message := formatMoveTargetAgentPullProgress(transferred, displayTotal)
+		if strings.EqualFold(stage, "apply") {
+			message = "Target Docker is loading the staged snapshot image."
+		}
+		emitMoveProgressBytes(emit, 4, "image", message, "progress", transferred, displayTotal)
+	})
+	if err != nil {
+		return started, err
+	}
+	completed = true
+	transferred := lastBytes.Load()
+	if transferred > 0 {
+		displayTotal := moveProgressTotalBytes(transferred, imageSize)
+		emitMoveProgressBytes(emit, 4, "image", formatMoveTargetAgentPullProgress(transferred, displayTotal), "progress", transferred, displayTotal)
+	}
+	emitMoveProgress(emit, 4, "image", "Target agent finished loading the snapshot image.", "progress")
+	return started, nil
 }
 
 func (s *Service) tryDirectAgentImageTransfer(ctx context.Context, sourceEnvID, targetEnvID, ref string, imageSize int64, emit moveProgressEmitter) (bool, error) {
@@ -1098,6 +1177,13 @@ func formatMoveDirectTransferProgress(transferred, total int64) string {
 	return "Sent " + formatMoveBytes(transferred) + " directly between agents (agent-to-agent route)."
 }
 
+func formatMoveTargetAgentPullProgress(transferred, total int64) string {
+	if total > 0 {
+		return "Target agent pulled " + formatMoveBytes(transferred) + " of " + formatMoveBytes(total) + " from McHarbor."
+	}
+	return "Target agent pulled " + formatMoveBytes(transferred) + " from McHarbor."
+}
+
 func moveProgressTotalBytes(transferred, total int64) int64 {
 	if total > 0 && transferred > total {
 		return transferred
@@ -1320,7 +1406,32 @@ func createTargetVolume(ctx context.Context, sourceCli, targetCli *client.Client
 	return nil
 }
 
-func copyContainerPath(ctx context.Context, sourceCli, targetCli *client.Client, sourceID, targetID, sourcePath, targetPath string) error {
+func (s *Service) copyContainerPath(ctx context.Context, sourceEnvID, targetEnvID string, sourceCli, targetCli *client.Client, sourceID, targetID, sourcePath, targetPath, label string, emit moveProgressEmitter) error {
+	if s.pool.IsAgentEnv(sourceEnvID) && s.pool.IsAgentEnv(targetEnvID) {
+		started, err := s.tryDirectAgentArchiveTransfer(ctx, sourceEnvID, targetEnvID, sourceID, targetID, sourcePath, targetPath, label, emit)
+		if err == nil && started {
+			return nil
+		}
+		if err != nil {
+			if started {
+				return err
+			}
+			slog.Warn("direct agent archive transfer unavailable; trying target pull route", "source_env", sourceEnvID, "target_env", targetEnvID, "error", err)
+		}
+	}
+	if s.pool.IsAgentEnv(targetEnvID) {
+		started, err := s.tryTargetAgentArchivePullTransfer(ctx, sourceEnvID, targetEnvID, sourceID, targetID, sourcePath, targetPath, label, emit)
+		if err == nil && started {
+			return nil
+		}
+		if err != nil {
+			if started {
+				return err
+			}
+			slog.Warn("target agent archive pull transfer unavailable; falling back to docker copy", "source_env", sourceEnvID, "target_env", targetEnvID, "error", err)
+		}
+	}
+
 	sourceCopyPath := strings.TrimRight(sourcePath, "/") + "/."
 	reader, _, err := sourceCli.CopyFromContainer(ctx, sourceID, sourceCopyPath)
 	if err != nil {
@@ -1332,4 +1443,126 @@ func copyContainerPath(ctx context.Context, sourceCli, targetCli *client.Client,
 		return fmt.Errorf("copying to target path %s: %w", targetPath, err)
 	}
 	return nil
+}
+
+func (s *Service) tryDirectAgentArchiveTransfer(ctx context.Context, sourceEnvID, targetEnvID, sourceID, targetID, sourcePath, targetPath, label string, emit moveProgressEmitter) (bool, error) {
+	if !s.pool.AgentAtLeast(sourceEnvID, moveAgentPullTransferMinVersion) || !s.pool.AgentAtLeast(targetEnvID, moveAgentPullTransferMinVersion) {
+		return false, nil
+	}
+	sourceConn, ok := s.pool.AgentConnection(sourceEnvID)
+	if !ok || sourceConn.Transport == nil {
+		return false, nil
+	}
+	targetConn, ok := s.pool.AgentConnection(targetEnvID)
+	if !ok || targetConn.Transport == nil || strings.TrimSpace(targetConn.TransferURL) == "" {
+		return false, nil
+	}
+
+	token, err := newMoveTransferToken()
+	if err != nil {
+		return false, fmt.Errorf("creating direct archive transfer token: %w", err)
+	}
+	transferID, err := newMoveTransferID()
+	if err != nil {
+		return false, fmt.Errorf("creating direct archive transfer id: %w", err)
+	}
+	sourceCopyPath := strings.TrimRight(sourcePath, "/") + "/."
+
+	prepareCtx, prepareCancel := context.WithTimeout(ctx, 30*time.Second)
+	uploadURL, err := targetConn.Transport.PrepareArchiveTransfer(prepareCtx, transferID, token, targetID, targetPath)
+	prepareCancel()
+	if err != nil {
+		targetConn.Transport.CancelTransfer(transferID)
+		return false, nil
+	}
+
+	started := true
+	completed := false
+	defer func() {
+		if !completed {
+			sourceConn.Transport.CancelTransfer(transferID)
+			targetConn.Transport.CancelTransfer(transferID)
+		}
+	}()
+
+	var lastBytes atomic.Int64
+	emitMoveProgress(emit, 9, "copy-volumes", "Sending "+moveTransferLabel(label)+" directly between agents.", "progress")
+	err = sourceConn.Transport.StartArchiveTransfer(ctx, transferID, sourceID, sourceCopyPath, uploadURL, token, func(transferred int64) {
+		if transferred <= 0 {
+			return
+		}
+		lastBytes.Store(transferred)
+		emitMoveProgressBytes(emit, 9, "copy-volumes", "Sent "+formatMoveBytes(transferred)+" for "+moveTransferLabel(label)+" directly between agents.", "progress", transferred, 0)
+	})
+	if err != nil {
+		return started, err
+	}
+	completed = true
+	if transferred := lastBytes.Load(); transferred > 0 {
+		emitMoveProgressBytes(emit, 9, "copy-volumes", "Sent "+formatMoveBytes(transferred)+" for "+moveTransferLabel(label)+" directly between agents.", "progress", transferred, 0)
+	}
+	return started, nil
+}
+
+func (s *Service) tryTargetAgentArchivePullTransfer(ctx context.Context, sourceEnvID, targetEnvID, sourceID, targetID, sourcePath, targetPath, label string, emit moveProgressEmitter) (bool, error) {
+	if !s.pool.AgentAtLeast(targetEnvID, moveAgentPullTransferMinVersion) {
+		version, _ := s.pool.AgentVersion(targetEnvID)
+		if version == "" {
+			version = "unknown"
+		}
+		return false, fmt.Errorf("target agent %s does not support pull-based move transfers; update mcharbor-agent to %s or newer", version, moveAgentPullTransferMinVersion)
+	}
+	targetConn, ok := s.pool.AgentConnection(targetEnvID)
+	if !ok || targetConn.Transport == nil {
+		return false, nil
+	}
+	sourceCopyPath := strings.TrimRight(sourcePath, "/") + "/."
+	entry, err := moveTransfers.create(moveTransferEntry{
+		Kind:        moveTransferKindArchive,
+		SourceEnvID: sourceEnvID,
+		ContainerID: sourceID,
+		SourcePath:  sourceCopyPath,
+	})
+	if err != nil {
+		return false, err
+	}
+	transferURL := "/api/containers/internal/move-transfers/" + entry.ID
+	started := true
+	completed := false
+	defer func() {
+		if !completed {
+			moveTransfers.cancel(entry.ID)
+			targetConn.Transport.CancelTransfer(entry.ID)
+		}
+	}()
+
+	var lastBytes atomic.Int64
+	emitMoveProgress(emit, 9, "copy-volumes", "Target agent is pulling "+moveTransferLabel(label)+" from McHarbor.", "progress")
+	err = targetConn.Transport.StartRestoreTransfer(ctx, entry.ID, targetID, targetPath, transferURL, entry.Token, 0, func(transferred int64, stage string) {
+		if transferred <= 0 {
+			return
+		}
+		lastBytes.Store(transferred)
+		message := "Pulled " + formatMoveBytes(transferred) + " for " + moveTransferLabel(label) + " to the target agent."
+		if strings.EqualFold(stage, "apply") {
+			message = "Target Docker is applying " + moveTransferLabel(label) + "."
+		}
+		emitMoveProgressBytes(emit, 9, "copy-volumes", message, "progress", transferred, 0)
+	})
+	if err != nil {
+		return started, err
+	}
+	completed = true
+	if transferred := lastBytes.Load(); transferred > 0 {
+		emitMoveProgressBytes(emit, 9, "copy-volumes", "Pulled "+formatMoveBytes(transferred)+" for "+moveTransferLabel(label)+" to the target agent.", "progress", transferred, 0)
+	}
+	return started, nil
+}
+
+func moveTransferLabel(label string) string {
+	label = strings.TrimSpace(label)
+	if label == "" {
+		return "container data"
+	}
+	return label
 }

@@ -114,6 +114,68 @@ func (p *Proxy) LoadImage(ctx context.Context, body io.Reader) error {
 	return nil
 }
 
+func (p *Proxy) CopyArchiveFromContainer(ctx context.Context, containerID, sourcePath string) (io.ReadCloser, int64, error) {
+	containerID = strings.TrimSpace(containerID)
+	sourcePath = strings.TrimSpace(sourcePath)
+	if containerID == "" {
+		return nil, 0, fmt.Errorf("container id is required")
+	}
+	if sourcePath == "" {
+		return nil, 0, fmt.Errorf("source path is required")
+	}
+	values := url.Values{}
+	values.Set("path", sourcePath)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://docker/containers/"+url.PathEscape(containerID)+"/archive?"+values.Encode(), nil)
+	if err != nil {
+		return nil, 0, fmt.Errorf("building container archive copy request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return nil, 0, fmt.Errorf("copying archive from container %s: %w", containerID, err)
+	}
+	if resp.StatusCode >= 300 {
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return nil, 0, fmt.Errorf("copying archive from container %s returned status %d: %s", containerID, resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return resp.Body, resp.ContentLength, nil
+}
+
+func (p *Proxy) CopyArchiveToContainer(ctx context.Context, containerID, targetPath string, body io.Reader, size int64) error {
+	containerID = strings.TrimSpace(containerID)
+	targetPath = strings.TrimSpace(targetPath)
+	if containerID == "" {
+		return fmt.Errorf("container id is required")
+	}
+	if targetPath == "" {
+		targetPath = "/"
+	}
+	values := url.Values{}
+	values.Set("path", targetPath)
+	values.Set("noOverwriteDirNonDir", "1")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, "http://docker/containers/"+url.PathEscape(containerID)+"/archive?"+values.Encode(), body)
+	if err != nil {
+		return fmt.Errorf("building container archive restore request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-tar")
+	if size >= 0 {
+		req.ContentLength = size
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("restoring archive to container %s: %w", containerID, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return fmt.Errorf("restoring archive to container %s returned status %d: %s", containerID, resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+		return fmt.Errorf("reading container archive restore response: %w", err)
+	}
+	return nil
+}
+
 func (p *Proxy) RemoveContainer(ctx context.Context, containerID string) error {
 	containerID = strings.TrimSpace(containerID)
 	if containerID == "" {

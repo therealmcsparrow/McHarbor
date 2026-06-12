@@ -6,6 +6,7 @@ import {
   IconBrandGoogleDrive,
   IconBrandOffice,
   IconCloud,
+  IconFolder,
   IconFolderShare,
   IconServer,
 } from "@tabler/icons-react";
@@ -27,6 +28,12 @@ const DEFAULT_STORAGE_PROVIDER: StorageProviderOption = {
 };
 
 export const STORAGE_PROVIDER_OPTIONS: StorageProviderOption[] = [
+  {
+    type: "local",
+    labelKey: "storage.typeLocal",
+    descriptionKey: "storage.typeLocalDescription",
+    icon: IconFolder,
+  },
   {
     type: "ftp",
     labelKey: "storage.typeFtp",

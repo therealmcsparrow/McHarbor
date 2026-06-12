@@ -1,0 +1,31 @@
+{
+  "slug": "registry-ui",
+  "name": "Docker Registry UI",
+  "description": "Web UI for browsing a Docker Registry v2 instance.",
+  "category": "Developer Tools",
+  "image": "joxit/docker-registry-ui:latest",
+  "logo": "",
+  "website": "https://github.com/Joxit/docker-registry-ui",
+  "docsUrl": "https://github.com/Joxit/docker-registry-ui",
+  "ports": [
+    {
+      "host": 8083,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "REGISTRY_TITLE",
+      "default": "Docker Registry",
+      "description": "UI title"
+    },
+    {
+      "key": "NGINX_PROXY_PASS_URL",
+      "default": "http://registry:5000",
+      "description": "Registry URL"
+    }
+  ],
+  "version": "latest"
+}

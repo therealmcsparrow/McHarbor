@@ -1,0 +1,35 @@
+{
+  "slug": "papermerge",
+  "name": "Papermerge",
+  "description": "Document management system for scanned documents and PDFs.",
+  "category": "Documents",
+  "image": "papermerge/papermerge:latest",
+  "logo": "",
+  "website": "https://papermerge.com",
+  "docsUrl": "https://docs.papermerge.io",
+  "ports": [
+    {
+      "host": 12000,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/papermerge/data",
+      "container": "/db"
+    },
+    {
+      "host": "/opt/appdata/papermerge/media",
+      "container": "/media"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

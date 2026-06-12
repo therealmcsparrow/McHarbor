@@ -1,0 +1,35 @@
+{
+  "slug": "netalertx",
+  "name": "NetAlertX",
+  "description": "Network presence, device discovery, and alerting dashboard.",
+  "category": "Networking",
+  "image": "jokobsk/netalertx:latest",
+  "logo": "",
+  "website": "https://github.com/jokob-sk/NetAlertX",
+  "docsUrl": "https://github.com/jokob-sk/NetAlertX",
+  "ports": [
+    {
+      "host": 20211,
+      "container": 20211,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/netalertx/config",
+      "container": "/app/config"
+    },
+    {
+      "host": "/opt/appdata/netalertx/db",
+      "container": "/app/db"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,68 @@
+{
+  "slug": "tdarr",
+  "name": "Tdarr",
+  "description": "Distributed media transcoding and library health automation.",
+  "category": "Media",
+  "image": "ghcr.io/haveagitgat/tdarr:latest",
+  "logo": "",
+  "website": "https://tdarr.io",
+  "docsUrl": "https://docs.tdarr.io",
+  "ports": [
+    {
+      "host": 8265,
+      "container": 8265,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8266,
+      "container": 8266,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/tdarr/server",
+      "container": "/app/server"
+    },
+    {
+      "host": "/opt/appdata/tdarr/configs",
+      "container": "/app/configs"
+    },
+    {
+      "host": "/opt/appdata/tdarr/logs",
+      "container": "/app/logs"
+    },
+    {
+      "host": "/srv/media",
+      "container": "/media"
+    },
+    {
+      "host": "/srv/transcode",
+      "container": "/temp"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "serverIP",
+      "default": "0.0.0.0",
+      "description": "Server bind address"
+    },
+    {
+      "key": "serverPort",
+      "default": "8266",
+      "description": "Server API port"
+    },
+    {
+      "key": "webUIPort",
+      "default": "8265",
+      "description": "Web UI port"
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

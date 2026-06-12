@@ -1,0 +1,39 @@
+{
+  "slug": "stirling-pdf",
+  "name": "Stirling PDF",
+  "description": "Local web tools for PDF conversion, editing, OCR, and signing.",
+  "category": "Documents",
+  "image": "frooodle/s-pdf:latest",
+  "logo": "",
+  "website": "https://www.stirlingpdf.com",
+  "docsUrl": "https://docs.stirlingpdf.com",
+  "ports": [
+    {
+      "host": 8082,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/stirling-pdf/trainingData",
+      "container": "/usr/share/tessdata"
+    },
+    {
+      "host": "/opt/appdata/stirling-pdf/configs",
+      "container": "/configs"
+    },
+    {
+      "host": "/opt/appdata/stirling-pdf/customFiles",
+      "container": "/customFiles"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

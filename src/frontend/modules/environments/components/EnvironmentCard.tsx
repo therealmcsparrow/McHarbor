@@ -28,6 +28,7 @@ import { useEnvironmentMetrics, useEnvironmentUpdateSummary } from '../hooks/use
 type EnvironmentCardProps = {
   environment: EnvironmentListItem;
   metricsEnabled: boolean;
+  mcharborVersion?: string;
   onTest: (id: string) => void;
   onInstall: (id: string) => void;
   onRemove: (id: string) => void;
@@ -102,6 +103,7 @@ function CountTile({
 export function EnvironmentCard({
   environment,
   metricsEnabled,
+  mcharborVersion,
   onTest,
   onInstall,
   onRemove,
@@ -134,6 +136,14 @@ export function EnvironmentCard({
     ? environment.agentHostname ?? t('waitingForAgent')
     : environment.socketPath
       ?? (environment.host ? `${environment.host}:${environment.port ?? ''}` : '-');
+  const primaryVersion = environment.connectionType === 'agent'
+    ? environment.agentVersion
+    : environment.dockerVersion ?? environment.k8sVersion;
+  const isLocalRuntime = environment.connectionType === 'socket' || environment.connectionType === 'podman';
+  const controlPlaneVersion = isLocalRuntime ? mcharborVersion : environment.agentVersion;
+  const runtimeVersion = environment.connectionType === 'agent'
+    ? environment.dockerVersion
+    : environment.dockerVersion ?? environment.k8sVersion;
 
   return (
     <Card className="min-h-[350px] transition-colors hover:border-primary/40">
@@ -155,18 +165,23 @@ export function EnvironmentCard({
             </div>
             <p className="truncate font-mono text-xs text-muted-foreground">{endpoint}</p>
           </div>
-          <StatusBadge status={status} map={ENVIRONMENT_STATUS} className="shrink-0 px-2 py-1 text-[10px]" />
+          <div className="flex shrink-0 flex-col items-center gap-1">
+            <StatusBadge status={status} map={ENVIRONMENT_STATUS} className="px-2 py-1 text-[10px]" />
+            {controlPlaneVersion && (
+              <span className="font-mono text-xs text-muted-foreground">{controlPlaneVersion}</span>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-[auto_auto_1fr] items-center gap-3">
           <Badge variant={environment.orchestratorType === 'kubernetes' ? 'default' : 'secondary'}>
             {environment.orchestratorType === 'kubernetes' ? t('platform.kubernetes') : t('platform.docker')}
           </Badge>
           <Badge variant="outline" className="uppercase">
             {environment.connectionType || '-'}
           </Badge>
-          <span className="truncate text-xs text-muted-foreground">
-            {environment.dockerVersion ?? environment.k8sVersion ?? t('card.versionUnknown')}
+          <span className="truncate font-mono text-xs text-muted-foreground">
+            {runtimeVersion ?? primaryVersion ?? t('card.versionUnknown')}
           </span>
         </div>
 

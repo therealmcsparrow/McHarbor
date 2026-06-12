@@ -1,0 +1,45 @@
+{
+  "slug": "urbackup",
+  "name": "UrBackup",
+  "description": "Client/server backup system for image and file backups.",
+  "category": "Backups",
+  "image": "uroni/urbackup-server:latest",
+  "logo": "",
+  "website": "https://www.urbackup.org",
+  "docsUrl": "https://www.urbackup.org/administration_manual.html",
+  "ports": [
+    {
+      "host": 55414,
+      "container": 55414,
+      "protocol": "tcp"
+    },
+    {
+      "host": 55415,
+      "container": 55415,
+      "protocol": "tcp"
+    },
+    {
+      "host": 35623,
+      "container": 35623,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/urbackup/database",
+      "container": "/var/urbackup"
+    },
+    {
+      "host": "/srv/backups/urbackup",
+      "container": "/backups"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

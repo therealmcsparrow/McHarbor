@@ -68,6 +68,28 @@ type EnvironmentImageUpdateResult = {
   error?: string;
 };
 
+type ComponentVersion = {
+  name: string;
+  version: string;
+};
+
+export type AgentVersionInfo = {
+  envId: string;
+  envName: string;
+  status: string;
+  hostname?: string;
+  os?: string;
+  arch?: string;
+  agentVersion?: string;
+  dockerVersion?: string;
+  lastSeen?: string;
+};
+
+export type VersionInfo = {
+  mcharbor: ComponentVersion;
+  agents: AgentVersionInfo[];
+};
+
 export type { EnvironmentInfo, DashboardStats, EnvironmentUpdateSummary };
 
 export function useEnvironment(id: string) {
@@ -124,6 +146,14 @@ export function useEnvironmentHostMetrics(envId: string) {
       api.get<HostMetrics>('/metrics/host', { env: envId }).then((r) => r.data),
     refetchInterval: uploadActive ? false : 30_000,
     enabled: !!envId && !uploadActive,
+  });
+}
+
+export function useVersionInfo() {
+  return useQuery({
+    queryKey: ['versions'],
+    queryFn: () => api.get<VersionInfo>('/versions').then((r) => r.data),
+    refetchInterval: 30_000,
   });
 }
 

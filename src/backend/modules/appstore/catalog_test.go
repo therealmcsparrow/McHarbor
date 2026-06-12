@@ -38,6 +38,7 @@ services:
 			"HASS_WEBSOCKET_URI": "ws://homeassistant.local:8123/api/websocket",
 			"HASS_TOKEN":         `token"withquote`,
 		},
+		nil,
 	)
 
 	expectedParts := []string{
@@ -48,6 +49,54 @@ services:
 		"      - HASS_WEBSOCKET_URI=ws://homeassistant.local:8123/api/websocket",
 		"      - \"ws://homeassistant.local:8123/api/websocket\"",
 		"      - \"token\\\"withquote\"",
+	}
+
+	for _, part := range expectedParts {
+		if !strings.Contains(compose, part) {
+			t.Fatalf("expected compose to contain %q\ncompose:\n%s", part, compose)
+		}
+	}
+}
+
+func TestGenerateComposeRendersComplexComposeHelpers(t *testing.T) {
+	app := AppTemplate{
+		Slug:  "complex-app",
+		Image: "example/app:latest",
+		ComposeOverride: `services:
+  {{serviceName}}:
+    image: {{image}}
+    container_name: {{containerName}}
+    volumes:
+      - {{appDataPath}}/config:/config
+{{environmentMap}}
+    labels:
+      mc.harbor.project: {{env.PROJECT_LABEL}}
+      mc.harbor.raw: {{envRaw.RAW_LABEL}}
+`,
+	}
+
+	compose := generateCompose(
+		app,
+		"Complex App",
+		nil,
+		nil,
+		map[string]string{
+			"PROJECT_LABEL": "Complex App",
+			"RAW_LABEL":     "raw-value",
+			"TZ":            "Europe/Amsterdam",
+		},
+		nil,
+	)
+
+	expectedParts := []string{
+		"  complex-app:",
+		"    container_name: complex-app",
+		"      - /opt/appdata/complex-app/config:/config",
+		"      PROJECT_LABEL: \"Complex App\"",
+		"      RAW_LABEL: \"raw-value\"",
+		"      TZ: \"Europe/Amsterdam\"",
+		"      mc.harbor.project: \"Complex App\"",
+		"      mc.harbor.raw: raw-value",
 	}
 
 	for _, part := range expectedParts {
@@ -73,7 +122,7 @@ func TestBundledCatalogComposeOverridesRender(t *testing.T) {
 			envVars[ev.Key] = ev.Default
 		}
 
-		compose := generateCompose(app, app.Slug, app.Ports, app.Volumes, envVars)
+		compose := generateCompose(app, app.Slug, app.Ports, app.Volumes, envVars, nil)
 		if strings.Contains(compose, "{{") || strings.Contains(compose, "}}") {
 			t.Fatalf("app %q rendered unresolved template placeholder:\n%s", app.Slug, compose)
 		}
@@ -158,7 +207,7 @@ func TestBundledCatalogIncludesWhatsAppGatewayApps(t *testing.T) {
 		for _, ev := range app.EnvVars {
 			envVars[ev.Key] = ev.Default
 		}
-		compose := generateCompose(app, app.Slug, app.Ports, app.Volumes, envVars)
+		compose := generateCompose(app, app.Slug, app.Ports, app.Volumes, envVars, nil)
 		if strings.Contains(compose, `":/`) {
 			t.Fatalf("expected %q compose not to render a split quoted bind mount\ncompose:\n%s", slug, compose)
 		}
@@ -169,7 +218,7 @@ func TestBundledCatalogIncludesWhatsAppGatewayApps(t *testing.T) {
 	for _, ev := range evolution.EnvVars {
 		envVars[ev.Key] = ev.Default
 	}
-	compose := generateCompose(evolution, evolution.Slug, evolution.Ports, evolution.Volumes, envVars)
+	compose := generateCompose(evolution, evolution.Slug, evolution.Ports, evolution.Volumes, envVars, nil)
 	if !strings.Contains(compose, `DATABASE_CONNECTION_URI: "postgresql://evolution:change-me@evolution-api-postgres:5432/evolution"`) {
 		t.Fatalf("expected Evolution API compose to render a valid database URI\ncompose:\n%s", compose)
 	}

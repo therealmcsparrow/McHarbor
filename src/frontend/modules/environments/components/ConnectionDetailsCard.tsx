@@ -98,7 +98,7 @@ export function AgentInfoCard({ env, onRegenerateToken, isRegenerating }: AgentI
         </div>
         <div>
           <span className="text-muted-foreground">{t('detail.agentVersion')}</span>
-          <p className="font-medium">{env.agentVersion ?? '-'}</p>
+          <p className="font-mono text-xs font-medium">{env.agentVersion ?? '-'}</p>
         </div>
         <div>
           <span className="text-muted-foreground">{t('detail.lastSeen')}</span>

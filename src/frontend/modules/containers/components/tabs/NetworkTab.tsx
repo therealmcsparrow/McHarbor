@@ -8,6 +8,7 @@ import { api } from '@core/api/client';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { assertSuccess } from '@resources/utils/api-mutation';
 import type { ContainerInspect, NetworkInfo } from '@core/types/docker';
+import { useContainers } from '@resources/hooks/useContainers';
 import type { EditFormData, PortMappingEntry } from '../../types/edit-form';
 import { NetworkTabConfigSection } from './NetworkTabConfigSection';
 import { NetworkTabPortsSection } from './NetworkTabPortsSection';
@@ -31,15 +32,21 @@ type NetworkTabProps = {
 export function NetworkTab({ container, editing = false, editData, onFieldChange }: NetworkTabProps) {
   const queryClient = useQueryClient();
   const envId = useEnvironmentStore((s) => s.currentId);
+  const currentEnvironment = useEnvironmentStore((s) => s.environments.find((env) => env.id === s.currentId));
+  const isAgentEnvironment = currentEnvironment?.connectionType === 'agent';
   const envQuery = envId ? `?env=${envId}` : '';
   const [selectedNetwork, setSelectedNetwork] = useState('');
 
-  const connectedNetworkNames = new Set(Object.keys(container.NetworkSettings?.Networks ?? {}));
+  const connectedNetworkNames = useMemo(
+    () => new Set(Object.keys(container.NetworkSettings?.Networks ?? {})),
+    [container.NetworkSettings?.Networks],
+  );
+  const { data: containers = [] } = useContainers(true);
 
   const { data: availableNetworks } = useQuery<NetworkInfo[]>({
     queryKey: ['networks', envId],
     queryFn: () => api.get<NetworkInfo[]>(`/networks${envQuery}`).then((r) => r.data ?? []),
-    enabled: !editing,
+    enabled: !isAgentEnvironment,
   });
 
   const connectMutation = useMutation({
@@ -130,7 +137,38 @@ export function NetworkTab({ container, editing = false, editData, onFieldChange
     [extraHosts, onFieldChange],
   );
 
-  const joinableNetworks = (availableNetworks ?? []).filter((n: NetworkInfo) => !connectedNetworkNames.has(n.Name));
+  const knownAgentNetworks = useMemo(() => {
+    if (!isAgentEnvironment) return [];
+
+    const names = new Set<string>();
+    for (const name of connectedNetworkNames) {
+      names.add(name);
+    }
+    for (const item of containers) {
+      for (const name of Object.keys(item.NetworkSettings?.Networks ?? {})) {
+        names.add(name);
+      }
+    }
+
+    return Array.from(names)
+      .sort((a, b) => a.localeCompare(b))
+      .map((name) => ({
+        Id: name,
+        Name: name,
+        Created: '',
+        Scope: '',
+        Driver: 'bridge',
+        EnableIPv6: false,
+        IPAM: { Driver: '', Config: [] },
+        Internal: false,
+        Attachable: false,
+        Containers: {},
+        Options: null,
+        Labels: null,
+      }));
+  }, [connectedNetworkNames, containers, isAgentEnvironment]);
+  const resolvedAvailableNetworks = isAgentEnvironment ? knownAgentNetworks : (availableNetworks ?? []);
+  const joinableNetworks = resolvedAvailableNetworks.filter((n: NetworkInfo) => !connectedNetworkNames.has(n.Name));
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -153,6 +191,7 @@ export function NetworkTab({ container, editing = false, editData, onFieldChange
         dnsSearch={dnsSearch}
         editing={editing}
         editData={editData}
+        availableNetworks={resolvedAvailableNetworks}
         extraHostKeys={extraHostKeys}
         extraHosts={extraHosts}
         joinableNetworks={joinableNetworks}

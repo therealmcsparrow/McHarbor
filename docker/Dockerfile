@@ -2,7 +2,7 @@
 # McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 # Stage 1: Go backend
-FROM golang:1.26-alpine AS backend
+FROM golang:1.26.4-alpine AS backend
 RUN apk add --no-cache git
 WORKDIR /app
 COPY src/backend/go.mod ./

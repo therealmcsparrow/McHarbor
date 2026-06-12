@@ -1,0 +1,35 @@
+{
+  "slug": "cross-seed",
+  "name": "cross-seed",
+  "description": "Find cross-seedable torrents across trackers and clients.",
+  "category": "Media",
+  "image": "ghcr.io/cross-seed/cross-seed:latest",
+  "logo": "",
+  "website": "https://www.cross-seed.org",
+  "docsUrl": "https://www.cross-seed.org/docs",
+  "ports": [
+    {
+      "host": 2468,
+      "container": 2468,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/cross-seed/config",
+      "container": "/config"
+    },
+    {
+      "host": "/srv/downloads",
+      "container": "/downloads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

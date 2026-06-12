@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -20,14 +21,17 @@ import (
 
 const transferReceiverTTL = 30 * time.Minute
 const (
-	transferKindImage = "image"
-	transferKindProbe = "probe"
+	transferKindImage   = "image"
+	transferKindArchive = "archive"
+	transferKindProbe   = "probe"
 )
 
 type transferReceiver struct {
-	token     string
-	kind      string
-	expiresAt time.Time
+	token       string
+	kind        string
+	containerID string
+	targetPath  string
+	expiresAt   time.Time
 }
 
 type transferReceiverAuthCheck struct {
@@ -78,6 +82,7 @@ func (s *TransferServer) Start(ctx context.Context) error {
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/transfer/image/", s.handleImageUpload)
+	mux.HandleFunc("/api/transfer/archive/", s.handleArchiveUpload)
 	mux.HandleFunc("/api/transfer/probe/", s.handleProbeUpload)
 	s.server = &http.Server{
 		Handler:           mux,
@@ -121,14 +126,18 @@ func (s *TransferServer) SetReporter(reporter transferReporter) {
 }
 
 func (s *TransferServer) Prepare(transferID, token string) (string, *TransferReceiverMarker, error) {
-	return s.prepareReceiver(transferID, token, transferKindImage, "/api/transfer/image/")
+	return s.prepareReceiver(transferID, token, transferKindImage, "/api/transfer/image/", "", "")
 }
 
 func (s *TransferServer) PrepareProbe(transferID, token string) (string, *TransferReceiverMarker, error) {
-	return s.prepareReceiver(transferID, token, transferKindProbe, "/api/transfer/probe/")
+	return s.prepareReceiver(transferID, token, transferKindProbe, "/api/transfer/probe/", "", "")
 }
 
-func (s *TransferServer) prepareReceiver(transferID, token, kind, pathPrefix string) (string, *TransferReceiverMarker, error) {
+func (s *TransferServer) PrepareArchive(transferID, token, containerID, targetPath string) (string, *TransferReceiverMarker, error) {
+	return s.prepareReceiver(transferID, token, transferKindArchive, "/api/transfer/archive/", containerID, targetPath)
+}
+
+func (s *TransferServer) prepareReceiver(transferID, token, kind, pathPrefix, containerID, targetPath string) (string, *TransferReceiverMarker, error) {
 	if s == nil {
 		return "", nil, fmt.Errorf("direct transfer receiver is not configured")
 	}
@@ -147,9 +156,11 @@ func (s *TransferServer) prepareReceiver(transferID, token, kind, pathPrefix str
 		}
 	}
 	s.receivers[transferID] = transferReceiver{
-		token:     token,
-		kind:      kind,
-		expiresAt: expiresAt,
+		token:       token,
+		kind:        kind,
+		containerID: strings.TrimSpace(containerID),
+		targetPath:  strings.TrimSpace(targetPath),
+		expiresAt:   expiresAt,
 	}
 	s.mu.Unlock()
 
@@ -199,9 +210,62 @@ func (s *TransferServer) handleImageUpload(w http.ResponseWriter, r *http.Reques
 	}
 	s.logger.Debug("direct transfer receiver authorized", "transferId", transferID, "kind", transferKindImage, "remote", r.RemoteAddr)
 
-	if err := s.proxy.LoadImage(r.Context(), r.Body); err != nil {
+	file, cleanup, err := s.stageTransferBody(r.Body, "mcharbor-agent-direct-image-*.tar")
+	if err != nil {
+		s.logger.Warn("direct transfer image staging failed", "transferId", transferID, "error", err)
+		http.Error(w, "image staging failed", http.StatusBadGateway)
+		return
+	}
+	defer cleanup()
+
+	if err := s.proxy.LoadImage(r.Context(), file); err != nil {
 		s.logger.Warn("direct transfer image load failed", "transferId", transferID, "error", err)
 		http.Error(w, "image load failed", http.StatusBadGateway)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *TransferServer) handleArchiveUpload(w http.ResponseWriter, r *http.Request) {
+	s.writeReceiverHeaders(w)
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	transferID := strings.TrimPrefix(r.URL.Path, "/api/transfer/archive/")
+	if transferID == "" || strings.Contains(transferID, "/") {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	check, receiver := s.consumeReceiverWithMetadata(transferID, transferKindArchive, r.Header.Get("Authorization"))
+	if !check.allowed {
+		s.logReceiverAuthFailure(transferID, transferKindArchive, r.RemoteAddr, check)
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		if r.Body != nil {
+			io.Copy(io.Discard, io.LimitReader(r.Body, 1024))
+		}
+		return
+	}
+	if strings.TrimSpace(receiver.containerID) == "" || strings.TrimSpace(receiver.targetPath) == "" {
+		http.Error(w, "invalid archive receiver", http.StatusBadRequest)
+		return
+	}
+	s.logger.Debug("direct transfer receiver authorized", "transferId", transferID, "kind", transferKindArchive, "remote", r.RemoteAddr)
+
+	file, cleanup, err := s.stageTransferBody(r.Body, "mcharbor-agent-direct-archive-*.tar")
+	if err != nil {
+		s.logger.Warn("direct transfer archive staging failed", "transferId", transferID, "error", err)
+		http.Error(w, "archive staging failed", http.StatusBadGateway)
+		return
+	}
+	defer cleanup()
+
+	if err := s.proxy.CopyArchiveToContainer(r.Context(), receiver.containerID, receiver.targetPath, file, -1); err != nil {
+		s.logger.Warn("direct transfer archive restore failed", "transferId", transferID, "error", err)
+		http.Error(w, "archive restore failed", http.StatusBadGateway)
 		return
 	}
 
@@ -238,6 +302,11 @@ func (s *TransferServer) handleProbeUpload(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *TransferServer) consumeReceiver(transferID, kind, authHeader string) transferReceiverAuthCheck {
+	check, _ := s.consumeReceiverWithMetadata(transferID, kind, authHeader)
+	return check
+}
+
+func (s *TransferServer) consumeReceiverWithMetadata(transferID, kind, authHeader string) (transferReceiverAuthCheck, transferReceiver) {
 	check := transferReceiverAuthCheck{
 		bearerPresent: strings.HasPrefix(authHeader, "Bearer ") && strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer ")) != "",
 	}
@@ -258,15 +327,40 @@ func (s *TransferServer) consumeReceiver(transferID, kind, authHeader string) tr
 	s.mu.Unlock()
 
 	if !ok {
-		return check
+		return check, transferReceiver{}
 	}
 	check.kindMatched = receiver.kind == kind
 	if !check.kindMatched {
-		return check
+		return check, receiver
 	}
 	check.tokenMatched = subtle.ConstantTimeCompare([]byte(token), []byte(receiver.token)) == 1
 	check.allowed = check.tokenMatched
-	return check
+	return check, receiver
+}
+
+func (s *TransferServer) stageTransferBody(reader io.Reader, pattern string) (*os.File, func(), error) {
+	file, err := os.CreateTemp("", pattern)
+	if err != nil {
+		return nil, nil, fmt.Errorf("creating temporary transfer archive: %w", err)
+	}
+	path := file.Name()
+	cleanup := func() {
+		if err := file.Close(); err != nil {
+			s.logger.Warn("close temporary transfer archive failed", "path", path, "error", err)
+		}
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			s.logger.Warn("remove temporary transfer archive failed", "path", path, "error", err)
+		}
+	}
+	if _, err := io.Copy(file, reader); err != nil {
+		cleanup()
+		return nil, nil, fmt.Errorf("staging transfer archive: %w", err)
+	}
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		cleanup()
+		return nil, nil, fmt.Errorf("rewinding transfer archive: %w", err)
+	}
+	return file, cleanup, nil
 }
 
 func (s *TransferServer) logReceiverAuthFailure(transferID, kind, remote string, check transferReceiverAuthCheck) {

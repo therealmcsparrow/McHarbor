@@ -24,6 +24,9 @@
     "kubernetes": "Kubernetes"
   },
   "waitingForAgent": "Esperando al agente...",
+  "versions": {
+    "docker": "Docker"
+  },
   "testConnection": "Conexión de prueba",
   "connectionTypes": {
     "socket": "Zócalo Unix",
@@ -188,7 +191,9 @@
     "copyDockerCommand": "Copiar comando Docker",
     "copyBinaryCommand": "Copiar comando binario",
     "scriptExpiry": "Esta URL caduca después de 24 horas y solo se puede utilizar una vez.",
-    "done": "Hecho"
+    "done": "Hecho",
+    "installInfoTitle": "Agent Installation",
+    "installInfoDescription": "Use these commands to install or reinstall the agent on the remote host. The token is sensitive."
   },
   "toast": {
     "created": "Entorno creado",
@@ -204,5 +209,6 @@
   "confirm": {
     "removeTitle": "Eliminar entorno",
     "removeDescription": "Esto eliminará este entorno de McHarbor."
-  }
+  },
+  "installAgent": "Agent installation"
 }

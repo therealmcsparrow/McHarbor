@@ -1,0 +1,31 @@
+{
+  "slug": "memos",
+  "name": "Memos",
+  "description": "Lightweight note-taking and knowledge capture app.",
+  "category": "Productivity",
+  "image": "neosmemo/memos:stable",
+  "logo": "",
+  "website": "https://www.usememos.com",
+  "docsUrl": "https://www.usememos.com/docs",
+  "ports": [
+    {
+      "host": 5230,
+      "container": 5230,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/memos/data",
+      "container": "/var/opt/memos"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

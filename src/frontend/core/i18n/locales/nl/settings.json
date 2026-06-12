@@ -625,7 +625,9 @@
       "microsoftRedirect": "Voeg de onderstaande redirect-URI toe aan de appregistratie.",
       "microsoftTenant": "Voer de tenant-ID in en maak een client secret voor de appregistratie.",
       "microsoftGraph": "Ken Microsoft Graph-bestandsrechten toe die deze opslaglocatie nodig heeft.",
-      "sharepointSite": "Voer de SharePoint-site-URL en documentbibliotheek-drive-ID in."
+      "sharepointSite": "Voer de SharePoint-site-URL en documentbibliotheek-drive-ID in.",
+      "localMount": "Mount een hostmap in de McHarbor-container. De standaard compose-mount koppelt MCHARBOR_LOCAL_BACKUP_PATH aan /mnt/backup.",
+      "localPath": "Stel het lokale back-uppad in. Gebruik /mnt/backup tenzij je een ander containerpad hebt gemount."
     },
     "typeFtp": "FTP",
     "typeFtpDescription": "Sla bestanden op een gewone FTP-server op.",
@@ -658,7 +660,14 @@
     "enterBackupKeyPlaceholder": "Base64 back-upversleutelingssleutel",
     "enterBackupKeyHint": "Gebruik de oorspronkelijke sleutel voor bestaande versleutelde back-ups. Een andere sleutel kan ervoor zorgen dat oudere back-ups hun oude geheime sleutel nodig hebben bij herstel.",
     "installEnteredBackupKey": "Sleutel installeren",
-    "cancelBackupKeyEntry": "Annuleren"
+    "cancelBackupKeyEntry": "Annuleren",
+    "localPathHint": "McHarbor schrijft naar dit pad binnen de container. Koppel het met MCHARBOR_LOCAL_BACKUP_PATH aan een hostmap zodat de bestanden buiten de container staan.",
+    "localPathLabel": "Lokaal back-uppad",
+    "localPathHelper": "Standaard is /mnt/backup. De map moet beschrijfbaar zijn voor de McHarbor-container.",
+    "typeLocal": "Lokaal pad",
+    "typeLocalDescription": "Sla bestanden op op een host-gemount pad dat beschikbaar is in de McHarbor-container.",
+    "migrateBackups": "Back-ups migreren",
+    "migratingBackups": "Migreren..."
   },
   "alerts": {
     "description": "Maak waarschuwingsregels met ernst, doelcondities en een of meer bezorgbestemmingen.",
@@ -803,6 +812,8 @@
     "backupKeyGenerated": "Back-upversleutelingssleutel gegenereerd",
     "backupKeyInstalled": "Back-upgeheim geinstalleerd; McHarbor-herstart gepland",
     "backupKeyCopied": "Back-upversleutelingssleutel gekopieerd",
-    "backupKeySetupCopied": "Back-upinstallatieopdracht gekopieerd"
+    "backupKeySetupCopied": "Back-upinstallatieopdracht gekopieerd",
+    "storageBackupsMigrated": "Back-ups gemigreerd: {{migrated}} gekopieerd, {{skipped}} overgeslagen, {{failed}} mislukt",
+    "storageBackupsMigrationFailed": "Back-upmigratie mislukt"
   }
 }

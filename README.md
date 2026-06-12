@@ -89,6 +89,8 @@ McHarbor has grown from the initial public release into a broader operations pla
 - **Editable Target Networks**: Adjust target network name, mode, driver, IPAM subnet/gateway/range, aliases, target IP/MAC, internal mode, and attachable settings before moving.
 - **Editable Target Volume Mounts**: Change target Docker volume names and target container paths during a move, prefilled from the source volume name and mount path.
 - **Remote-Agent Move Support**: Large image and filesystem snapshot transfers now use staged remote-agent uploads so slow target Docker hosts can finish loading archives reliably.
+- **Pull-Based Agent Transfers**: Container restores and moves that target remote agents use one-use McHarbor transfer URLs. The target agent pulls the image or archive, stages it locally, validates transfer size when available, then applies it through the host Docker socket instead of pushing large tar streams through the generic Docker-over-WebSocket proxy.
+- **Agent Move Archive Transfers**: Named-volume data copied during container moves can be transferred as container archives, including agent-to-agent moves and McHarbor-to-agent moves, with progress events for transferred bytes.
 
 ### Workflow Automation
 
@@ -124,6 +126,8 @@ McHarbor has grown from the initial public release into a broader operations pla
 
 - **Storage Location Registry**: Add reusable backup/export destinations from Settings, including FTP/FTPS, SFTP, Samba, AWS S3, Google Drive, OneDrive Personal, OneDrive Business, and SharePoint.
 - **Encrypted Container Backups**: Generate a one-time backup encryption key from Settings, copy it once, then use **Install and restart** to create `secrets/mcharbor_backup_key` and restart McHarbor with `docker-compose.secrets.yml`. The generated PowerShell setup command remains available as a manual fallback, and encrypted backup runs are written as `mcharbor.tar`.
+- **Selectable Restores**: Restore workflows can preview saved backup contents and choose which image, filesystem, or mounted-data entries should be restored.
+- **Restore Progress**: Filesystem and mounted-data restores report stage and byte progress, including remote-agent restores that are pulled and applied by the agent.
 - **Protocol-Aware FTP Setup**: Configure FTP and FTPS from one provider choice, then select plain FTP, explicit FTPS, or implicit FTPS with the correct port and firewall guidance.
 - **SFTP Key Authentication**: Store SFTP password, private-key, or combined authentication settings with encrypted private keys and passphrases.
 - **Encrypted Storage Credentials**: Storage passwords, SSH keys, FTPS certificates, OAuth client secrets, and provider tokens are encrypted at rest and omitted from read responses.
@@ -201,6 +205,46 @@ Then open:
 ```text
 http://<your-server-ip>:8705
 ```
+
+## API Documentation
+
+McHarbor exposes its machine-readable OpenAPI document at:
+
+```text
+GET /api/docs/
+```
+
+Most API routes return McHarbor's shared response envelope:
+
+```json
+{ "success": true, "data": {} }
+```
+
+Authenticated clients can use the browser session cookie or a Bearer API key. Docker, agent, and Kubernetes runtime routes select the target environment with `?env=<environmentId>`.
+
+Version metadata is available from:
+
+```text
+GET /api/about
+GET /api/versions
+```
+
+Container backup restores use:
+
+```text
+POST /api/container-backups/runs/{runId}/restore-options
+POST /api/container-backups/runs/{runId}/restore
+```
+
+Container moves use:
+
+```text
+POST /api/containers/{id}/move/plan?env=<sourceEnvId>
+POST /api/containers/{id}/move?env=<sourceEnvId>
+POST /api/containers/{id}/move/stream?env=<sourceEnvId>
+```
+
+Internal transfer routes under `/api/containers/internal/*` and `/api/container-backups/internal/*` are token-only, one-use transport endpoints for agents. They are not general client APIs.
 
 To install the optional remote agent on another machine:
 

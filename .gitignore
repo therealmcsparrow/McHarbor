@@ -26,6 +26,7 @@ secrets/
 
 # Database
 /data/
+mnt/backup/
 *.db
 *.db-journal
 *.db-wal
@@ -54,17 +55,5 @@ tmp/
 # Marketing
 # The standalone website is excluded from the app build context, but the site
 # pages and assets themselves are versioned.
-# website/*
-!website/index.html
-!website/styles.css
-!website/assets/
-!website/assets/favicon.svg
-!website/assets/logo_McHarbor.svg
-!website/pricing/
-!website/pricing/index.html
-!website/compare/
-!website/compare/portainer/
-!website/compare/portainer/index.html
-!website/api/
-!website/api/index.html
-website/README.md
+website/*
+services/*

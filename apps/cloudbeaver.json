@@ -1,0 +1,31 @@
+{
+  "slug": "cloudbeaver",
+  "name": "CloudBeaver",
+  "description": "Web database manager for SQL and NoSQL databases.",
+  "category": "Developer Tools",
+  "image": "dbeaver/cloudbeaver:latest",
+  "logo": "",
+  "website": "https://dbeaver.com/cloudbeaver/",
+  "docsUrl": "https://github.com/dbeaver/cloudbeaver/wiki",
+  "ports": [
+    {
+      "host": 8978,
+      "container": 8978,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/cloudbeaver/workspace",
+      "container": "/opt/cloudbeaver/workspace"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

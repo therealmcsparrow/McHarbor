@@ -1,0 +1,55 @@
+{
+  "slug": "gitlab",
+  "name": "GitLab CE",
+  "description": "Full-featured Git hosting, CI/CD, registry, and DevOps platform.",
+  "category": "Developer Tools",
+  "image": "gitlab/gitlab-ce:latest",
+  "logo": "",
+  "website": "https://about.gitlab.com",
+  "docsUrl": "https://docs.gitlab.com/ee/install/docker.html",
+  "ports": [
+    {
+      "host": 8087,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8444,
+      "container": 443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 2224,
+      "container": 22,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/gitlab/config",
+      "container": "/etc/gitlab"
+    },
+    {
+      "host": "/opt/appdata/gitlab/logs",
+      "container": "/var/log/gitlab"
+    },
+    {
+      "host": "/opt/appdata/gitlab/data",
+      "container": "/var/opt/gitlab"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "GITLAB_OMNIBUS_CONFIG",
+      "default": "external_url 'http://localhost:8087'",
+      "description": "Omnibus configuration"
+    }
+  ],
+  "minMemory": "4GB",
+  "version": "latest"
+}

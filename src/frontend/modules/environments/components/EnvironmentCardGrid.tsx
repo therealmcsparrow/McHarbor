@@ -11,6 +11,7 @@ import { EnvironmentCard } from './EnvironmentCard';
 type EnvironmentCardGridProps = {
   environments: EnvironmentListItem[];
   isLoading: boolean;
+  mcharborVersion?: string;
   onTest: (id: string) => void;
   onInstall: (id: string) => void;
   onRemove: (id: string) => void;
@@ -38,6 +39,7 @@ function EnvironmentCardSkeleton() {
 export function EnvironmentCardGrid({
   environments,
   isLoading,
+  mcharborVersion,
   onTest,
   onInstall,
   onRemove,
@@ -83,6 +85,7 @@ export function EnvironmentCardGrid({
               key={environment.id}
               environment={environment}
               metricsEnabled
+              mcharborVersion={mcharborVersion}
               onTest={onTest}
               onInstall={onInstall}
               onRemove={onRemove}

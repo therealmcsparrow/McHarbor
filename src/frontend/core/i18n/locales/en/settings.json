@@ -625,7 +625,9 @@
       "microsoftRedirect": "Add the redirect URI below to the app registration.",
       "microsoftTenant": "Enter the tenant ID and create a client secret for the app registration.",
       "microsoftGraph": "Grant Microsoft Graph file permissions required by this storage location.",
-      "sharepointSite": "Enter the SharePoint site URL and document library drive ID."
+      "sharepointSite": "Enter the SharePoint site URL and document library drive ID.",
+      "localMount": "Mount a host directory into the McHarbor container. The default compose mount maps MCHARBOR_LOCAL_BACKUP_PATH to /mnt/backup.",
+      "localPath": "Set the local backup path. Use /mnt/backup unless you mounted a different container path."
     },
     "typeFtp": "FTP",
     "typeFtpDescription": "Store files on a plain FTP server.",
@@ -658,7 +660,14 @@
     "enterBackupKeyPlaceholder": "Base64 backup encryption key",
     "enterBackupKeyHint": "Use the original key for existing encrypted backups. Installing a different key can make older backups require their old secret during restore.",
     "installEnteredBackupKey": "Install key",
-    "cancelBackupKeyEntry": "Cancel"
+    "cancelBackupKeyEntry": "Cancel",
+    "localPathHint": "McHarbor writes to this path inside the container. Mount it to a host folder with MCHARBOR_LOCAL_BACKUP_PATH so the files live outside the container.",
+    "localPathLabel": "Local backup path",
+    "localPathHelper": "Default is /mnt/backup. The directory must be writable by the McHarbor container.",
+    "typeLocal": "Local path",
+    "typeLocalDescription": "Store files on a host-mounted path available to the McHarbor container.",
+    "migrateBackups": "Migrate backups",
+    "migratingBackups": "Migrating..."
   },
   "alerts": {
     "description": "Create alert rules with severity, target conditions, and one or more delivery destinations.",
@@ -803,6 +812,8 @@
     "backupKeyGenerated": "Backup encryption key generated",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
     "backupKeyCopied": "Backup encryption key copied",
-    "backupKeySetupCopied": "Backup setup command copied"
+    "backupKeySetupCopied": "Backup setup command copied",
+    "storageBackupsMigrated": "Backups migrated: {{migrated}} copied, {{skipped}} skipped, {{failed}} failed",
+    "storageBackupsMigrationFailed": "Backup migration failed"
   }
 }

@@ -1,0 +1,37 @@
+{
+  "slug": "jenkins",
+  "name": "Jenkins",
+  "description": "Automation server for builds, tests, and deployment pipelines.",
+  "category": "Developer Tools",
+  "image": "jenkins/jenkins:lts",
+  "logo": "",
+  "website": "https://www.jenkins.io",
+  "docsUrl": "https://www.jenkins.io/doc/book/installing/docker/",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    },
+    {
+      "host": 50000,
+      "container": 50000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/jenkins/home",
+      "container": "/var/jenkins_home"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

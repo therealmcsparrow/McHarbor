@@ -1,0 +1,31 @@
+{
+  "slug": "loki",
+  "name": "Loki",
+  "description": "Log aggregation backend from Grafana Labs.",
+  "category": "Monitoring",
+  "image": "grafana/loki:latest",
+  "logo": "",
+  "website": "https://grafana.com/oss/loki",
+  "docsUrl": "https://grafana.com/docs/loki/latest/",
+  "ports": [
+    {
+      "host": 3100,
+      "container": 3100,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/loki/data",
+      "container": "/loki"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

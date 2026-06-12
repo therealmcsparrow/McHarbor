@@ -1,0 +1,31 @@
+{
+  "slug": "requestrr",
+  "name": "Requestrr",
+  "description": "Chat-driven media request bot for Sonarr, Radarr, and Overseerr.",
+  "category": "Media",
+  "image": "darkalfx/requestrr:latest",
+  "logo": "",
+  "website": "https://github.com/darkalfx/requestrr",
+  "docsUrl": "https://github.com/darkalfx/requestrr",
+  "ports": [
+    {
+      "host": 4545,
+      "container": 4545,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/requestrr/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

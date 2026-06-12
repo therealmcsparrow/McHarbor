@@ -24,6 +24,7 @@ export type EnvironmentListItem = {
   highlightContainerChangesEnabled: boolean;
   dockerDiskUsageNotificationsEnabled: boolean;
   dockerDiskUsageThresholdPercent: number;
+  timezone: string;
   agentStatus?: string;
   agentHostname?: string;
   agentVersion?: string;

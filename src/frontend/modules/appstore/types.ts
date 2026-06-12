@@ -13,6 +13,17 @@ export interface VolumeMount {
   readOnly?: boolean;
 }
 
+export type AppNetworkMode = 'default' | 'bridge' | 'host' | 'none' | 'existing';
+
+export interface AppNetworkSettings {
+  mode: AppNetworkMode;
+  name: string;
+  aliases: string[];
+  ipv4Address: string;
+  ipv6Address: string;
+  macAddress: string;
+}
+
 export interface EnvVarDef {
   key: string;
   default: string;
@@ -58,6 +69,7 @@ export interface InstallRequest {
   ports?: PortMapping[];
   volumes?: VolumeMount[];
   envVars?: Record<string, string>;
+  network?: AppNetworkSettings;
 }
 
 export interface InstallResult {

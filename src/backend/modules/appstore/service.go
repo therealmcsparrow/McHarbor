@@ -262,7 +262,7 @@ func (s *Service) Install(ctx context.Context, req InstallRequest) (*InstallResu
 	ports, volumes, envVars := mergeOverrides(*app, req)
 
 	// Generate compose YAML
-	compose := generateCompose(*app, stackName, ports, volumes, envVars)
+	compose := generateCompose(*app, stackName, ports, volumes, envVars, req.Network)
 
 	if s.stackSvc == nil {
 		return nil, fmt.Errorf("stack installer unavailable")
@@ -331,7 +331,7 @@ func (s *Service) InstallWithProgress(ctx context.Context, req InstallRequest, e
 
 	// Step 3: Generate compose file
 	events <- InstallEvent{Step: 3, Total: totalSteps, Message: "Generating docker-compose.yml...", Status: "progress"}
-	compose := generateCompose(*app, stackName, ports, volumes, envVars)
+	compose := generateCompose(*app, stackName, ports, volumes, envVars, req.Network)
 
 	// Step 4: Create and start stack
 	events <- InstallEvent{Step: 4, Total: totalSteps, Message: "Pulling image and starting container...", Status: "progress"}

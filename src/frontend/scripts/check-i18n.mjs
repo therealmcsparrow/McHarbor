@@ -4,7 +4,8 @@ import process from 'node:process';
 
 const baseDir = path.resolve('core/i18n/locales');
 const referenceLang = 'en';
-const coLocatedI18nRoots = [path.resolve('widgets'), path.resolve('nodes')];
+const repoRoot = path.resolve('..', '..');
+const coLocatedI18nRoots = [path.join(repoRoot, 'widgets'), path.join(repoRoot, 'nodes')];
 
 function flattenKeys(value, prefix = '') {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {

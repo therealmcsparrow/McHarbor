@@ -1,0 +1,36 @@
+{
+  "slug": "restic-rest-server",
+  "name": "restic REST Server",
+  "description": "REST backend server for restic backup repositories.",
+  "category": "Backups",
+  "image": "restic/rest-server:latest",
+  "logo": "",
+  "website": "https://github.com/restic/rest-server",
+  "docsUrl": "https://github.com/restic/rest-server",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/srv/backups/restic",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "OPTIONS",
+      "default": "--append-only",
+      "description": "Server options"
+    }
+  ],
+  "version": "latest"
+}

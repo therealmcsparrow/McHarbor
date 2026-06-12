@@ -625,7 +625,9 @@
       "microsoftRedirect": "Fuegen Sie die unten stehende Redirect-URI zur App-Registrierung hinzu.",
       "microsoftTenant": "Geben Sie die Tenant-ID ein und erstellen Sie ein Client Secret fuer die App-Registrierung.",
       "microsoftGraph": "Gewaehrleisten Sie die fuer diesen Speicherort benoetigten Microsoft Graph-Dateiberechtigungen.",
-      "sharepointSite": "Geben Sie die SharePoint-Site-URL und die Drive-ID der Dokumentbibliothek ein."
+      "sharepointSite": "Geben Sie die SharePoint-Site-URL und die Drive-ID der Dokumentbibliothek ein.",
+      "localMount": "Binde ein Host-Verzeichnis in den McHarbor-Container ein. Der Standard-Compose-Mount verbindet MCHARBOR_LOCAL_BACKUP_PATH mit /mnt/backup.",
+      "localPath": "Lege den lokalen Backup-Pfad fest. Verwende /mnt/backup, sofern du keinen anderen Containerpfad gemountet hast."
     },
     "typeFtp": "FTP",
     "typeFtpDescription": "Dateien auf einem einfachen FTP-Server speichern.",
@@ -658,7 +660,14 @@
     "enterBackupKeyPlaceholder": "Base64-Backup-Verschluesselungsschluessel",
     "enterBackupKeyHint": "Verwenden Sie den urspruenglichen Schluessel fuer bestehende verschluesselte Backups. Ein anderer Schluessel kann dazu fuehren, dass alte Backups beim Wiederherstellen ihren alten geheimen Schluessel benoetigen.",
     "installEnteredBackupKey": "Schluessel installieren",
-    "cancelBackupKeyEntry": "Abbrechen"
+    "cancelBackupKeyEntry": "Abbrechen",
+    "localPathHint": "McHarbor schreibt in diesen Pfad innerhalb des Containers. Binde ihn mit MCHARBOR_LOCAL_BACKUP_PATH an einen Host-Ordner, damit die Dateien ausserhalb des Containers liegen.",
+    "localPathLabel": "Lokaler Backup-Pfad",
+    "localPathHelper": "Standard ist /mnt/backup. Das Verzeichnis muss fuer den McHarbor-Container beschreibbar sein.",
+    "typeLocal": "Lokaler Pfad",
+    "typeLocalDescription": "Dateien in einem Host-Mount speichern, der im McHarbor-Container verfuegbar ist.",
+    "migrateBackups": "Backups migrieren",
+    "migratingBackups": "Migrieren..."
   },
   "alerts": {
     "description": "Erstellen Sie Warnungsregeln mit Schweregrad, Zielbedingungen und einem oder mehreren Zustellzielen.",
@@ -803,6 +812,8 @@
     "backupKeyGenerated": "Backup-Verschluesselungsschluessel generiert",
     "backupKeyInstalled": "Backup-Secret installiert; McHarbor-Neustart geplant",
     "backupKeyCopied": "Backup-Verschluesselungsschluessel kopiert",
-    "backupKeySetupCopied": "Backup-Einrichtungsbefehl kopiert"
+    "backupKeySetupCopied": "Backup-Einrichtungsbefehl kopiert",
+    "storageBackupsMigrated": "Backups migriert: {{migrated}} kopiert, {{skipped}} ubersprungen, {{failed}} fehlgeschlagen",
+    "storageBackupsMigrationFailed": "Backup-Migration fehlgeschlagen"
   }
 }

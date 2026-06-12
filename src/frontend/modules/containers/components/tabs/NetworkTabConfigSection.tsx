@@ -13,6 +13,7 @@ import type { NetworkConnectPayload } from './NetworkTab';
 import { NetworkTabNetworksSection } from './NetworkTabNetworksSection';
 
 type NetworkTabConfigSectionProps = {
+  availableNetworks: NetworkInfo[];
   connectMutation: UseMutationResult<unknown, Error, NetworkConnectPayload, unknown>;
   container: ContainerInspect;
   disconnectMutation: UseMutationResult<unknown, Error, string, unknown>;
@@ -37,7 +38,10 @@ function splitCsvValue(value: string): string[] {
   return value ? value.split(',').map((item) => item.trim()) : [];
 }
 
+const builtinNetworkModes = new Set(['bridge', 'host', 'none']);
+
 export function NetworkTabConfigSection({
+  availableNetworks,
   connectMutation,
   container,
   disconnectMutation,
@@ -58,6 +62,16 @@ export function NetworkTabConfigSection({
   setSelectedNetwork,
 }: NetworkTabConfigSectionProps) {
   const { t } = useTranslation('containers');
+  const selectedNetworkMode = editData?.networkMode ?? '';
+  const networkModeOptions = [
+    ...Array.from(builtinNetworkModes).map((mode) => ({ value: mode, label: mode })),
+    ...availableNetworks
+      .filter((network) => !builtinNetworkModes.has(network.Name))
+      .map((network) => ({ value: network.Name, label: `${network.Name} (${network.Driver})` }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+  ];
+  const shouldAddCurrentNetworkMode =
+    !!selectedNetworkMode && !networkModeOptions.some((option) => option.value === selectedNetworkMode);
 
   return (
     <>
@@ -67,15 +81,15 @@ export function NetworkTabConfigSection({
           <div>
             <label className="text-xs font-medium text-muted-foreground">{t('networkTab.networkMode')}</label>
             <select
-              value={editData?.networkMode ?? ''}
+              value={selectedNetworkMode}
               onChange={(event) => onFieldChange?.('networkMode', event.target.value)}
               className="mt-1 w-full rounded-md border border-border bg-muted px-2 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
             >
-              <option value="bridge">bridge</option>
-              <option value="host">host</option>
-              <option value="none">none</option>
-              {editData?.networkMode && !['bridge', 'host', 'none'].includes(editData.networkMode) && (
-                <option value={editData.networkMode}>{editData.networkMode}</option>
+              {networkModeOptions.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+              {shouldAddCurrentNetworkMode && (
+                <option value={selectedNetworkMode}>{selectedNetworkMode}</option>
               )}
             </select>
           </div>

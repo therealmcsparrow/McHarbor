@@ -12,6 +12,7 @@ type StorageLocationSetupGuideProps = {
 };
 
 const GUIDE_STEPS: Record<StorageLocationType, string[]> = {
+  local: ["localMount", "localPath", "basePath"],
   ftp: ["networkEndpoint", "networkCredentials", "basePath"],
   ftps: ["networkEndpoint", "tlsEndpoint", "networkCredentials", "basePath"],
   sftp: ["networkEndpoint", "sftpAccess", "networkCredentials", "basePath"],

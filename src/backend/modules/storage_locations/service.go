@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"time"
 
@@ -16,6 +17,9 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 )
+
+// ErrLocalStorageProtected means local backup storage cannot be disabled, deleted, or changed to a different type.
+var ErrLocalStorageProtected = errors.New("local backup storage is protected")
 
 // Service handles storage location persistence.
 type Service struct {
@@ -176,11 +180,19 @@ func (s *Service) Create(ctx context.Context, input CreateStorageLocationInput) 
 
 // Update applies partial updates to a storage location.
 func (s *Service) Update(ctx context.Context, id string, input UpdateStorageLocationInput) (*StorageLocation, error) {
-	var existsID string
-	if err := s.db.QueryRowContext(ctx, "SELECT id FROM storage_locations WHERE id = ?", id).Scan(&existsID); err == sql.ErrNoRows {
+	var existsID, existingType string
+	if err := s.db.QueryRowContext(ctx, "SELECT id, location_type FROM storage_locations WHERE id = ?", id).Scan(&existsID, &existingType); err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
 		return nil, fmt.Errorf("checking storage location existence: %w", err)
+	}
+	if existingType == "local" {
+		if input.Enabled != nil && !*input.Enabled {
+			return nil, ErrLocalStorageProtected
+		}
+		if input.LocationType != nil && *input.LocationType != "local" {
+			return nil, ErrLocalStorageProtected
+		}
 	}
 
 	now := time.Now().UTC().Format(time.RFC3339)
@@ -267,6 +279,16 @@ func (s *Service) Update(ctx context.Context, id string, input UpdateStorageLoca
 
 // Delete removes a storage location.
 func (s *Service) Delete(ctx context.Context, id string) (bool, error) {
+	var locationType string
+	if err := s.db.QueryRowContext(ctx, "SELECT location_type FROM storage_locations WHERE id = ?", id).Scan(&locationType); err == sql.ErrNoRows {
+		return false, nil
+	} else if err != nil {
+		return false, fmt.Errorf("checking storage location type: %w", err)
+	}
+	if locationType == "local" {
+		return false, ErrLocalStorageProtected
+	}
+
 	result, err := s.db.ExecContext(ctx, "DELETE FROM storage_locations WHERE id = ?", id)
 	if err != nil {
 		return false, fmt.Errorf("deleting storage location %s: %w", id, err)

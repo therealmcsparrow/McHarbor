@@ -2,6 +2,34 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.5.1] - 2026-06-10
+
+### Changed
+- Bumped the patch application version to `1.5.1` across canonical runtime metadata, agent metadata, frontend package metadata, and lockfile root metadata.
+- Added version reporting for the local McHarbor instance and connected agents, including backend version APIs and centered version display on environment connection cards.
+- Improved the container Backups tab layout by making manual and scheduled backup sections collapsible and grouping restore-from-file actions with the saved backup area.
+- Added delete actions for completed and failed container backup runs, including local archive cleanup when an archive exists.
+- Added restore item selection so users can choose which saved backup contents to restore, including images, container filesystems, and individual mounted data archives.
+- Added pull-based agent transfer support for large restore and move payloads: agents can now pull one-use archive URLs from McHarbor, stage data locally, validate transfer size where available, and apply images or container archives through the local Docker socket.
+- Added direct container archive transfer support between agents for move volume/path copies, with one-use target receivers and transfer progress reporting.
+- Updated the frontend dependency lockfile for the current Vite/React lint and build toolchain.
+- Raised Docker-based Go build images and backend module metadata to Go `1.26.4`.
+
+### Fixed
+- Fixed backup tab translation rendering so the Backups tab resolves to a string label instead of an object-valued translation key.
+- Fixed frontend i18n validation for co-located workflow node and widget translation files, including ES/FR/PT fallback coverage for new backup, stack-link, and storage-location workflow nodes.
+- Fixed React hook dependency warnings in backup, app store, network, container detail, and schedule input components.
+- Fixed abandoned container backup runs staying in `running` after request cancellation, server timeout, shutdown, or agent stream interruption; stale runs are now finalized on startup/list, and timed-out backup streams are closed explicitly.
+- Fixed manual container backups so a running entry appears in the Backups group immediately after clicking run, and the manual run button stays disabled until that backup finishes or fails.
+- Added live backup progress stages under running backup timestamps, and use those progress heartbeats to fail stalled agent-stream backups instead of leaving them running.
+- Added live restore progress for filesystem and mount restores, including byte progress while archive data is transferred to an agent or Docker target.
+- Fixed large agent restore uploads hanging or being marked abandoned by moving filesystem and mount restores off the generic Docker-over-WebSocket upload path.
+- Improved container move transfers to use the same staged transfer model as backup restores when moving images and named-volume data to agent-backed environments.
+- Improved container backup failure diagnostics so missing backup encryption keys are logged per request and rejected before creating a failed run, while real run failures log the run ID, environment, container, stage, and internal cause.
+- Fixed ignored encrypted credential decrypt errors in communication provider tests.
+- Fixed container upload and restore error wrapping to preserve the original error cause.
+- Fixed invalid persisted `agent_metrics_enabled` values so they no longer silently disable metrics.
+
 ## [1.5.0] - 2026-06-07
 
 ### Added

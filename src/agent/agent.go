@@ -21,7 +21,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.5.0"
+const agentVersion = "1.5.1"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -35,6 +35,7 @@ type transferProgressReader struct {
 	reader     io.Reader
 	conn       *websocket.Conn
 	transferID string
+	stage      string
 	bytes      atomic.Int64
 	lastEmit   time.Time
 }
@@ -534,6 +535,24 @@ func (a *Agent) Connect(ctx context.Context) error {
 				a.runImageTransfer(transferCtx, conn, payload)
 			}(*msg.Transfer)
 
+		case MsgTransferArchive:
+			if msg.Transfer == nil {
+				continue
+			}
+			transferCtx, transferCancel := context.WithCancel(ctx)
+			cancelMu.Lock()
+			transferCancels[msg.Transfer.TransferID] = transferCancel
+			cancelMu.Unlock()
+			go func(payload TransferPayload) {
+				defer func() {
+					cancelMu.Lock()
+					delete(transferCancels, payload.TransferID)
+					cancelMu.Unlock()
+					transferCancel()
+				}()
+				a.runArchiveTransfer(transferCtx, conn, payload)
+			}(*msg.Transfer)
+
 		case MsgTransferProbe:
 			if msg.Transfer == nil {
 				continue
@@ -550,6 +569,24 @@ func (a *Agent) Connect(ctx context.Context) error {
 					transferCancel()
 				}()
 				a.runTransferProbe(transferCtx, conn, payload)
+			}(*msg.Transfer)
+
+		case MsgTransferRestore:
+			if msg.Transfer == nil {
+				continue
+			}
+			transferCtx, transferCancel := context.WithCancel(ctx)
+			cancelMu.Lock()
+			transferCancels[msg.Transfer.TransferID] = transferCancel
+			cancelMu.Unlock()
+			go func(payload TransferPayload) {
+				defer func() {
+					cancelMu.Lock()
+					delete(transferCancels, payload.TransferID)
+					cancelMu.Unlock()
+					transferCancel()
+				}()
+				a.runRestoreTransfer(transferCtx, conn, payload)
 			}(*msg.Transfer)
 
 		case MsgTransferCancel:
@@ -580,9 +617,12 @@ func (a *Agent) handleTransferPrepare(conn *websocket.Conn, payload *TransferPay
 	var uploadURL string
 	var receiver *TransferReceiverMarker
 	var err error
-	if payload.Kind == transferKindProbe {
+	switch payload.Kind {
+	case transferKindProbe:
 		uploadURL, receiver, err = a.transfer.PrepareProbe(payload.TransferID, payload.Token)
-	} else {
+	case transferKindArchive:
+		uploadURL, receiver, err = a.transfer.PrepareArchive(payload.TransferID, payload.Token, payload.ContainerID, payload.TargetPath)
+	default:
 		uploadURL, receiver, err = a.transfer.Prepare(payload.TransferID, payload.Token)
 	}
 	if err != nil {
@@ -648,6 +688,53 @@ func (a *Agent) runImageTransfer(ctx context.Context, conn *websocket.Conn, payl
 	a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, true, progressReader.bytes.Load(), "", resp.StatusCode, nil)
 }
 
+func (a *Agent) runArchiveTransfer(ctx context.Context, conn *websocket.Conn, payload TransferPayload) {
+	if strings.TrimSpace(payload.TransferID) == "" || strings.TrimSpace(payload.ContainerID) == "" || strings.TrimSpace(payload.SourcePath) == "" || strings.TrimSpace(payload.URL) == "" || strings.TrimSpace(payload.Token) == "" {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("invalid direct archive transfer request"))
+		return
+	}
+
+	reader, _, err := a.proxy.CopyArchiveFromContainer(ctx, payload.ContainerID, payload.SourcePath)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, err)
+		return
+	}
+	defer reader.Close()
+
+	progressReader := &transferProgressReader{
+		reader:     reader,
+		conn:       conn,
+		transferID: payload.TransferID,
+		stage:      "archive",
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, payload.URL, progressReader)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("building direct archive transfer request: %w", err))
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+payload.Token)
+	req.Header.Set("Content-Type", "application/x-tar")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", 0, fmt.Errorf("uploading direct archive transfer: %w", err))
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", resp.StatusCode, fmt.Errorf("target direct archive upload returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
+		return
+	}
+	if _, err := io.Copy(io.Discard, resp.Body); err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", resp.StatusCode, fmt.Errorf("reading direct archive upload response: %w", err))
+		return
+	}
+
+	a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, true, progressReader.bytes.Load(), "", resp.StatusCode, nil)
+}
+
 func (a *Agent) runTransferProbe(ctx context.Context, conn *websocket.Conn, payload TransferPayload) {
 	if strings.TrimSpace(payload.TransferID) == "" || strings.TrimSpace(payload.URL) == "" || strings.TrimSpace(payload.Token) == "" {
 		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("invalid direct transfer probe request"))
@@ -682,24 +769,116 @@ func (a *Agent) runTransferProbe(ctx context.Context, conn *websocket.Conn, payl
 	a.sendTransferResultWithResponder(conn, MsgTransferResult, payload.TransferID, true, 0, "", resp.StatusCode, responderAgentMarker, nil)
 }
 
+func (a *Agent) runRestoreTransfer(ctx context.Context, conn *websocket.Conn, payload TransferPayload) {
+	if strings.TrimSpace(payload.TransferID) == "" || strings.TrimSpace(payload.URL) == "" || strings.TrimSpace(payload.Token) == "" {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("invalid restore transfer request"))
+		return
+	}
+
+	archiveURL, err := a.resolveServerURL(payload.URL)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, err)
+		return
+	}
+	tmp, err := os.CreateTemp("", "mcharbor-agent-restore-*.tar")
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("creating temporary restore archive: %w", err))
+		return
+	}
+	tmpPath := tmp.Name()
+	defer func() {
+		if closeErr := tmp.Close(); closeErr != nil {
+			a.logger.Warn("close temporary restore archive failed", "path", tmpPath, "error", closeErr)
+		}
+		if removeErr := os.Remove(tmpPath); removeErr != nil && !os.IsNotExist(removeErr) {
+			a.logger.Warn("remove temporary restore archive failed", "path", tmpPath, "error", removeErr)
+		}
+	}()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, archiveURL, nil)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("building restore transfer request: %w", err))
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+payload.Token)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", 0, fmt.Errorf("downloading restore archive: %w", err))
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, 0, "", resp.StatusCode, fmt.Errorf("restore archive download returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body))))
+		return
+	}
+
+	progressReader := &transferProgressReader{
+		reader:     resp.Body,
+		conn:       conn,
+		transferID: payload.TransferID,
+		stage:      "download",
+	}
+	written, err := io.Copy(tmp, progressReader)
+	if err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, progressReader.bytes.Load(), "", resp.StatusCode, fmt.Errorf("writing temporary restore archive: %w", err))
+		return
+	}
+	if payload.Size > 0 && written != payload.Size {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, written, "", resp.StatusCode, fmt.Errorf("restore archive size mismatch: expected %d bytes, got %d", payload.Size, written))
+		return
+	}
+	a.sendTransferProgress(conn, payload.TransferID, written, "apply")
+	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
+		a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, written, "", resp.StatusCode, fmt.Errorf("rewinding temporary restore archive: %w", err))
+		return
+	}
+	if payload.Kind == transferKindImage {
+		if err := a.proxy.LoadImage(ctx, tmp); err != nil {
+			a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, written, "", resp.StatusCode, err)
+			return
+		}
+	} else {
+		if strings.TrimSpace(payload.ContainerID) == "" {
+			a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, written, "", resp.StatusCode, fmt.Errorf("container id is required"))
+			return
+		}
+		if err := a.proxy.CopyArchiveToContainer(ctx, payload.ContainerID, payload.TargetPath, tmp, written); err != nil {
+			a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, false, written, "", resp.StatusCode, err)
+			return
+		}
+	}
+
+	a.sendTransferResult(conn, MsgTransferResult, payload.TransferID, true, written, "", resp.StatusCode, nil)
+}
+
 func (r *transferProgressReader) Read(p []byte) (int, error) {
 	n, err := r.reader.Read(p)
 	if n > 0 {
 		total := r.bytes.Add(int64(n))
 		if r.lastEmit.IsZero() || time.Since(r.lastEmit) >= 3*time.Second {
 			r.lastEmit = time.Now()
-			writeMu.Lock()
-			r.conn.WriteJSON(WSMessage{
-				Type: MsgTransferProgress,
-				Transfer: &TransferPayload{
-					TransferID: r.transferID,
-					Bytes:      total,
-				},
-			})
-			writeMu.Unlock()
+			sendTransferProgress(r.conn, r.transferID, total, r.stage)
 		}
 	}
 	return n, err
+}
+
+func (a *Agent) sendTransferProgress(conn *websocket.Conn, transferID string, bytes int64, stage string) {
+	sendTransferProgress(conn, transferID, bytes, stage)
+}
+
+func sendTransferProgress(conn *websocket.Conn, transferID string, bytes int64, stage string) {
+	writeMu.Lock()
+	conn.WriteJSON(WSMessage{
+		Type: MsgTransferProgress,
+		Transfer: &TransferPayload{
+			TransferID: transferID,
+			Bytes:      bytes,
+			Stage:      strings.TrimSpace(stage),
+		},
+	})
+	writeMu.Unlock()
 }
 
 func (a *Agent) sendTransferResult(conn *websocket.Conn, msgType, transferID string, success bool, bytes int64, uploadURL string, statusCode int, err error) {
@@ -750,4 +929,36 @@ func (a *Agent) buildWSURL() (string, error) {
 	u.RawQuery = q.Encode()
 
 	return u.String(), nil
+}
+
+func (a *Agent) resolveServerURL(value string) (string, error) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "", fmt.Errorf("server URL is required")
+	}
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return "", fmt.Errorf("parsing server URL: %w", err)
+	}
+	if parsed.IsAbs() {
+		return parsed.String(), nil
+	}
+
+	base, err := url.Parse(a.cfg.McHarborURL)
+	if err != nil {
+		return "", fmt.Errorf("parsing McHarbor URL: %w", err)
+	}
+	switch base.Scheme {
+	case "ws":
+		base.Scheme = "http"
+	case "wss":
+		base.Scheme = "https"
+	case "http", "https":
+	default:
+		return "", fmt.Errorf("unsupported McHarbor URL scheme: %s", base.Scheme)
+	}
+	base.Path = "/"
+	base.RawQuery = ""
+	base.Fragment = ""
+	return base.ResolveReference(parsed).String(), nil
 }

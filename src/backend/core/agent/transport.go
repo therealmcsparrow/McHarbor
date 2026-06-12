@@ -124,25 +124,33 @@ func (t *AgentTransport) registerTransferWaiter(transferID string) (chan *WSMess
 
 // PrepareTransfer asks a target agent to open a one-use direct upload receiver.
 func (t *AgentTransport) PrepareTransfer(ctx context.Context, transferID, token string) (string, error) {
-	url, _, err := t.prepareTransfer(ctx, transferID, token, "")
+	url, _, err := t.prepareTransfer(ctx, transferID, token, "", "", "")
+	return url, err
+}
+
+// PrepareArchiveTransfer asks a target agent to open a one-use container archive receiver.
+func (t *AgentTransport) PrepareArchiveTransfer(ctx context.Context, transferID, token, containerID, targetPath string) (string, error) {
+	url, _, err := t.prepareTransfer(ctx, transferID, token, "archive", containerID, targetPath)
 	return url, err
 }
 
 // PrepareProbe asks a target agent to open a one-use direct transfer probe receiver.
 func (t *AgentTransport) PrepareProbe(ctx context.Context, transferID, token string) (string, *TransferReceiverMarker, error) {
-	return t.prepareTransfer(ctx, transferID, token, TransferKindProbe)
+	return t.prepareTransfer(ctx, transferID, token, TransferKindProbe, "", "")
 }
 
-func (t *AgentTransport) prepareTransfer(ctx context.Context, transferID, token, kind string) (string, *TransferReceiverMarker, error) {
+func (t *AgentTransport) prepareTransfer(ctx context.Context, transferID, token, kind, containerID, targetPath string) (string, *TransferReceiverMarker, error) {
 	ch, cleanup := t.registerTransferWaiter(transferID)
 	defer cleanup()
 
 	msg := WSMessage{
 		Type: MsgTransferPrepare,
 		Transfer: &TransferPayload{
-			TransferID: transferID,
-			Kind:       kind,
-			Token:      token,
+			TransferID:  transferID,
+			Kind:        kind,
+			Token:       token,
+			ContainerID: containerID,
+			TargetPath:  targetPath,
 		},
 	}
 	if err := t.conn.WriteJSON(msg); err != nil {
@@ -217,6 +225,117 @@ func (t *AgentTransport) StartImageTransfer(ctx context.Context, transferID, ima
 					return fmt.Errorf("direct image transfer failed: %s", msg.Transfer.Error)
 				}
 				return fmt.Errorf("direct image transfer failed")
+			}
+		case <-t.done:
+			return fmt.Errorf("agent transport closed")
+		}
+	}
+}
+
+// StartImagePullTransfer asks an agent to pull an image archive from McHarbor and load it locally.
+func (t *AgentTransport) StartImagePullTransfer(ctx context.Context, transferID, archiveURL, token string, onProgress func(int64, string)) error {
+	return t.startPullTransfer(ctx, TransferPayload{
+		TransferID: transferID,
+		Kind:       "image",
+		URL:        archiveURL,
+		Token:      token,
+	}, onProgress)
+}
+
+// StartRestoreTransfer asks an agent to pull a restore archive from McHarbor and apply it locally.
+func (t *AgentTransport) StartRestoreTransfer(ctx context.Context, transferID, containerID, targetPath, archiveURL, token string, size int64, onProgress func(int64, string)) error {
+	return t.startPullTransfer(ctx, TransferPayload{
+		TransferID:  transferID,
+		ContainerID: containerID,
+		TargetPath:  targetPath,
+		URL:         archiveURL,
+		Token:       token,
+		Size:        size,
+	}, onProgress)
+}
+
+func (t *AgentTransport) startPullTransfer(ctx context.Context, payload TransferPayload, onProgress func(int64, string)) error {
+	ch, cleanup := t.registerTransferWaiter(payload.TransferID)
+	defer cleanup()
+
+	msg := WSMessage{
+		Type:     MsgTransferRestore,
+		Transfer: &payload,
+	}
+	if err := t.conn.WriteJSON(msg); err != nil {
+		return fmt.Errorf("sending restore transfer command: %w", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			t.cancelTransfer(payload.TransferID)
+			return ctx.Err()
+		case msg := <-ch:
+			if msg == nil || msg.Transfer == nil {
+				continue
+			}
+			switch msg.Type {
+			case MsgTransferProgress:
+				if onProgress != nil {
+					onProgress(msg.Transfer.Bytes, msg.Transfer.Stage)
+				}
+			case MsgTransferResult:
+				if msg.Transfer.Success {
+					return nil
+				}
+				if msg.Transfer.Error != "" {
+					return fmt.Errorf("restore transfer failed: %s", msg.Transfer.Error)
+				}
+				return fmt.Errorf("restore transfer failed")
+			}
+		case <-t.done:
+			return fmt.Errorf("agent transport closed")
+		}
+	}
+}
+
+// StartArchiveTransfer asks a source agent to stream a container archive directly to a target upload URL.
+func (t *AgentTransport) StartArchiveTransfer(ctx context.Context, transferID, containerID, sourcePath, uploadURL, token string, onProgress func(int64)) error {
+	ch, cleanup := t.registerTransferWaiter(transferID)
+	defer cleanup()
+
+	msg := WSMessage{
+		Type: MsgTransferArchive,
+		Transfer: &TransferPayload{
+			TransferID:  transferID,
+			ContainerID: containerID,
+			SourcePath:  sourcePath,
+			URL:         uploadURL,
+			Token:       token,
+		},
+	}
+	if err := t.conn.WriteJSON(msg); err != nil {
+		return fmt.Errorf("sending direct archive transfer command: %w", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			t.cancelTransfer(transferID)
+			return ctx.Err()
+		case msg := <-ch:
+			if msg == nil || msg.Transfer == nil {
+				continue
+			}
+			switch msg.Type {
+			case MsgTransferProgress:
+				if onProgress != nil {
+					onProgress(msg.Transfer.Bytes)
+				}
+			case MsgTransferResult:
+				if msg.Transfer.Success {
+					return nil
+				}
+				if msg.Transfer.Error != "" {
+					return fmt.Errorf("direct archive transfer failed: %s", msg.Transfer.Error)
+				}
+				return fmt.Errorf("direct archive transfer failed")
 			}
 		case <-t.done:
 			return fmt.Errorf("agent transport closed")

@@ -1,0 +1,8 @@
+{
+  "label": "Unlink Container From Stack",
+  "description": "Remove the manual stack link for a container",
+  "config": {
+    "environment": "Environment",
+    "container": "Container"
+  }
+}

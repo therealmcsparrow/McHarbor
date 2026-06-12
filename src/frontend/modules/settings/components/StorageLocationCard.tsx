@@ -3,7 +3,12 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IconExternalLink, IconPencil, IconTrash } from "@tabler/icons-react";
+import {
+  IconDatabaseImport,
+  IconExternalLink,
+  IconPencil,
+  IconTrash,
+} from "@tabler/icons-react";
 import { Badge } from "@resources/components/ui/Badge";
 import { Button } from "@resources/components/ui/Button";
 import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
@@ -12,6 +17,7 @@ import {
   type StorageLocation,
   useAuthorizeStorageLocation,
   useDeleteStorageLocation,
+  useMigrateStorageLocationBackups,
   useUpdateStorageLocation,
 } from "../hooks/useStorageLocations";
 import { storageProvider } from "./storage-location-options";
@@ -22,6 +28,9 @@ type StorageLocationCardProps = {
 };
 
 function locationSummary(location: StorageLocation) {
+  if (location.locationType === "local") {
+    return location.basePath ?? "";
+  }
   if (location.locationType === "aws") {
     return [location.bucket, location.region].filter(Boolean).join(" · ");
   }
@@ -57,10 +66,12 @@ export function StorageLocationCard({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const authorizeLocation = useAuthorizeStorageLocation();
   const deleteLocation = useDeleteStorageLocation();
+  const migrateBackups = useMigrateStorageLocationBackups();
   const updateLocation = useUpdateStorageLocation();
   const provider = storageProvider(location.locationType);
   const Icon = provider.icon;
   const summary = locationSummary(location) || t("storage.noEndpoint");
+  const protectedLocal = location.locationType === "local";
 
   function handleDelete() {
     deleteLocation.mutate(location.id, {
@@ -74,6 +85,10 @@ export function StorageLocationCard({
         window.location.assign(data.authorizationUrl);
       },
     });
+  }
+
+  function handleMigrateBackups() {
+    migrateBackups.mutate(location.id);
   }
 
   return (
@@ -110,10 +125,23 @@ export function StorageLocationCard({
               {t("storage.connectConsent")}
             </Button>
           )}
+          {location.locationType === "local" && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!location.enabled || migrateBackups.isPending}
+              onClick={handleMigrateBackups}
+            >
+              <IconDatabaseImport className="size-4" />
+              {migrateBackups.isPending
+                ? t("storage.migratingBackups")
+                : t("storage.migrateBackups")}
+            </Button>
+          )}
           <Switch
             checked={location.enabled}
             aria-label={t("storage.toggleEnabled")}
-            disabled={updateLocation.isPending}
+            disabled={protectedLocal || updateLocation.isPending}
             onCheckedChange={(enabled) =>
               updateLocation.mutate({ id: location.id, enabled })
             }
@@ -130,6 +158,7 @@ export function StorageLocationCard({
             variant="ghost"
             size="icon-sm"
             aria-label={t("storage.deleteLocation")}
+            disabled={protectedLocal}
             onClick={() => setDeleteOpen(true)}
           >
             <IconTrash className="size-4 text-destructive" />

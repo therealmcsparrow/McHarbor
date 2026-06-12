@@ -1,0 +1,44 @@
+{
+  "slug": "caddy",
+  "name": "Caddy",
+  "description": "Automatic HTTPS web server and reverse proxy.",
+  "category": "Networking",
+  "image": "caddy:latest",
+  "logo": "",
+  "website": "https://caddyserver.com",
+  "docsUrl": "https://caddyserver.com/docs",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/caddy/Caddyfile",
+      "container": "/etc/caddy/Caddyfile"
+    },
+    {
+      "host": "/opt/appdata/caddy/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/caddy/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

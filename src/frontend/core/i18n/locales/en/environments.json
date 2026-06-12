@@ -24,6 +24,9 @@
     "kubernetes": "Kubernetes"
   },
   "waitingForAgent": "Waiting for agent...",
+  "versions": {
+    "docker": "Docker"
+  },
   "testConnection": "Test Connection",
   "installAgent": "Agent installation",
   "connectionTypes": {

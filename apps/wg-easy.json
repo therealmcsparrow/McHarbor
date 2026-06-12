@@ -1,0 +1,47 @@
+{
+  "slug": "wg-easy",
+  "name": "WG Easy",
+  "description": "Simple WireGuard VPN server with a web UI.",
+  "category": "Networking",
+  "image": "ghcr.io/wg-easy/wg-easy:latest",
+  "logo": "",
+  "website": "https://github.com/wg-easy/wg-easy",
+  "docsUrl": "https://github.com/wg-easy/wg-easy",
+  "ports": [
+    {
+      "host": 51820,
+      "container": 51820,
+      "protocol": "udp"
+    },
+    {
+      "host": 51821,
+      "container": 51821,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/wg-easy/config",
+      "container": "/etc/wireguard"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "WG_HOST",
+      "default": "vpn.example.com",
+      "description": "Public hostname or IP"
+    },
+    {
+      "key": "PASSWORD_HASH",
+      "default": "",
+      "description": "Optional bcrypt password hash",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

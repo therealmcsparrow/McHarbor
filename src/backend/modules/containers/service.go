@@ -1037,7 +1037,7 @@ func (s *Service) NetworkConnect(ctx context.Context, envID, id string, req Netw
 		if err := cli.NetworkConnect(ctx, req.Network, id, settings); err != nil {
 			if hasPrevious {
 				if restoreErr := cli.NetworkConnect(ctx, req.Network, id, previous); restoreErr != nil {
-					return fmt.Errorf("connecting container %s to network %s: %w; restoring previous endpoint settings: %v", id, req.Network, err, restoreErr)
+					return fmt.Errorf("connecting container %s to network %s: %w; restoring previous endpoint settings: %w", id, req.Network, err, restoreErr)
 				}
 			}
 			return fmt.Errorf("connecting container %s to network %s: %w", id, req.Network, err)

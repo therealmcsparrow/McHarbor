@@ -3,7 +3,7 @@
 
 services:
   backend:
-    image: golang:1.23-alpine
+    image: golang:1.26.4-alpine
     working_dir: /app
     ports:
       - "5474:5474"
@@ -13,6 +13,7 @@ services:
       - ./VERSION:/app/VERSION:ro
       - go-cache:/root/go
       - mcharbor-data:/app/data
+      - ${MCHARBOR_LOCAL_BACKUP_PATH:-./mnt/backup}:/mnt/backup
     environment:
       - PORT=5474
       - AUTH_DISABLE=true

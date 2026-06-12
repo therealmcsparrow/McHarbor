@@ -93,11 +93,11 @@ export default function ContainerDetailPage() {
       setActiveTab('resources');
     }
     edit.startEditing();
-  }, [captureScroll, container, edit.startEditing]);
+  }, [captureScroll, container, edit]);
   const handleCancelEditing = useCallback(() => {
     captureScroll();
     edit.cancelEditing();
-  }, [captureScroll, edit.cancelEditing]);
+  }, [captureScroll, edit]);
   const handleToggleEditLock = useCallback(() => {
     if (editUnlocked) {
       captureScroll();
@@ -111,7 +111,7 @@ export default function ContainerDetailPage() {
   ) => {
     captureScroll();
     edit.onFieldChange(field, value);
-  }, [captureScroll, edit.onFieldChange]);
+  }, [captureScroll, edit]);
   if (isLoading) {
     return <div className="flex h-64 items-center justify-center"><Spinner size="lg" /></div>;
   }

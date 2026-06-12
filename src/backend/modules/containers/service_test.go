@@ -129,15 +129,15 @@ func TestMoveImageLoadHeartbeatMessageReportsLoadingWhenArchiveRead(t *testing.T
 
 func TestMoveImageLoadHeartbeatMessageReportsReceivingBeforeArchiveRead(t *testing.T) {
 	got := moveImageLoadHeartbeatMessage(6, 12)
-	want := "Target Docker is receiving the image archive."
+	want := "Target Docker is receiving the staged image archive."
 	if got != want {
 		t.Fatalf("expected %q, got %q", want, got)
 	}
 }
 
 func TestMoveProgressErrorMessageExplainsOldAgent(t *testing.T) {
-	got := moveProgressErrorMessage(errors.New("streaming docker request bodies require mcharbor-agent 1.3.0 or newer, connected agent is 1.2.1"))
-	want := "The target agent must be updated to mcharbor-agent 1.3.0 or newer before moving images or volume data."
+	got := moveProgressErrorMessage(errors.New("streaming docker request bodies require mcharbor-agent 1.3.3 or newer, connected agent is 1.2.1"))
+	want := "The target agent must be updated to mcharbor-agent 1.3.3 or newer before moving container data."
 	if got != want {
 		t.Fatalf("expected %q, got %q", want, got)
 	}

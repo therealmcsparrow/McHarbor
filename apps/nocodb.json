@@ -1,0 +1,31 @@
+{
+  "slug": "nocodb",
+  "name": "NocoDB",
+  "description": "Open-source Airtable alternative for databases and APIs.",
+  "category": "Developer Tools",
+  "image": "nocodb/nocodb:latest",
+  "logo": "",
+  "website": "https://nocodb.com",
+  "docsUrl": "https://docs.nocodb.com",
+  "ports": [
+    {
+      "host": 8086,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/nocodb/data",
+      "container": "/usr/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

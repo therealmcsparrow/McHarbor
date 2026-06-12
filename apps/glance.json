@@ -1,0 +1,31 @@
+{
+  "slug": "glance",
+  "name": "Glance",
+  "description": "Fast self-hosted dashboard with feeds, widgets, and service status.",
+  "category": "Dashboards",
+  "image": "glanceapp/glance:latest",
+  "logo": "",
+  "website": "https://github.com/glanceapp/glance",
+  "docsUrl": "https://github.com/glanceapp/glance",
+  "ports": [
+    {
+      "host": 8089,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/glance/config",
+      "container": "/app/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

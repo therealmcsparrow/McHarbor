@@ -14,6 +14,10 @@ import (
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
 
+	app.RegisterPublicRoutes(func(r chi.Router) {
+		r.Get("/containers/internal/move-transfers/{transferId}", h.HandleMoveTransfer)
+	})
+
 	app.RegisterProtectedRoutes(func(r chi.Router) {
 		r.Route("/containers", func(r chi.Router) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersView)).Get("/", h.HandleList)

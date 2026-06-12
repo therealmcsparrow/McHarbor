@@ -7,6 +7,7 @@ import { api } from "@core/api/client";
 import { assertSuccess } from "@resources/utils/api-mutation";
 
 export type StorageLocationType =
+  | "local"
   | "ftp"
   | "ftps"
   | "sftp"
@@ -77,6 +78,14 @@ export type StorageLocationInput = {
 export type StorageOAuthAuthorizeResponse = {
   authorizationUrl: string;
   expiresAt: string;
+};
+
+export type StorageLocationBackupMigrationResult = {
+  storageLocationId: string;
+  total: number;
+  migrated: number;
+  skipped: number;
+  failed: number;
 };
 
 export type BackupEncryptionKeyResponse = {
@@ -174,6 +183,34 @@ export function useAuthorizeStorageLocation() {
   });
 }
 
+export function useMigrateStorageLocationBackups() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation("settings");
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      api
+        .post<StorageLocationBackupMigrationResult>(
+          `/storage-locations/${id}/migrate-container-backups`,
+        )
+        .then(assertSuccess),
+    meta: {
+      success: (data: unknown) => {
+        const result = data as StorageLocationBackupMigrationResult;
+        return t("toast.storageBackupsMigrated", {
+          migrated: result.migrated,
+          skipped: result.skipped,
+          failed: result.failed,
+        });
+      },
+      error: t("toast.storageBackupsMigrationFailed"),
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["container-backup-runs"] });
+    },
+  });
+}
+
 export function useGenerateBackupEncryptionKey() {
   const { t } = useTranslation("settings");
 
@@ -203,11 +240,16 @@ export function useInstallBackupEncryptionKey() {
   return useMutation({
     mutationFn: (key: string) =>
       api
-        .post<BackupEncryptionKeyInstallResponse>("/settings/backup-key/install", { key })
+        .post<BackupEncryptionKeyInstallResponse>(
+          "/settings/backup-key/install",
+          { key },
+        )
         .then(assertSuccess),
     meta: { success: () => t("toast.backupKeyInstalled") },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["backup-encryption-key-status"] });
+      queryClient.invalidateQueries({
+        queryKey: ["backup-encryption-key-status"],
+      });
     },
   });
 }

@@ -1,30 +1,65 @@
 {
   "slug": "faster-whisper",
   "name": "Faster Whisper",
-  "description": "High-performance speech-to-text server using CTranslate2 and Whisper models.",
+  "description": "LinuxServer.io Faster Whisper Wyoming server for local speech-to-text with Home Assistant Assist.",
   "category": "AI & Voice",
-  "image": "linto-ai/whisper-timestamped:latest",
-  "logo": "https://github.githubassets.com/favicons/favicon.svg",
-  "website": "https://github.com/SYSTRAN/faster-whisper",
-  "docsUrl": "https://github.com/SYSTRAN/faster-whisper#usage",
+  "image": "lscr.io/linuxserver/faster-whisper:latest",
+  "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/linuxserver-ls-logo.png",
+  "website": "https://hub.docker.com/r/linuxserver/faster-whisper",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-faster-whisper/",
   "ports": [
     {
-      "host": 8787,
-      "container": 8080,
+      "host": 10300,
+      "container": 10300,
       "protocol": "tcp"
     }
   ],
   "volumes": [
     {
-      "host": "/opt/appdata/faster-whisper/models",
-      "container": "/root/.cache/huggingface"
+      "host": "/opt/appdata/faster-whisper/config",
+      "container": "/config"
     }
   ],
   "envVars": [
     {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID for file ownership"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID for file ownership"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "DEBUG",
+      "default": "",
+      "description": "Set to true to enable debug logging"
+    },
+    {
+      "key": "LOCAL_ONLY",
+      "default": "",
+      "description": "Set to true to use only locally provided models"
+    },
+    {
+      "key": "WHISPER_BEAM",
+      "default": "1",
+      "description": "Number of transcription candidates to consider"
+    },
+    {
+      "key": "WHISPER_LANG",
+      "default": "auto",
+      "description": "Two-character language code or auto"
+    },
+    {
       "key": "WHISPER_MODEL",
-      "default": "base",
-      "description": "Model size (tiny, base, small, medium, large-v3)"
+      "default": "auto",
+      "description": "Whisper model used for transcription"
     }
   ],
   "minMemory": "2GB",

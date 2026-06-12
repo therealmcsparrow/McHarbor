@@ -1,0 +1,41 @@
+{
+  "slug": "navidrome",
+  "name": "Navidrome",
+  "description": "Lightweight Subsonic-compatible music server.",
+  "category": "Media",
+  "image": "deluan/navidrome:latest",
+  "logo": "",
+  "website": "https://www.navidrome.org",
+  "docsUrl": "https://www.navidrome.org/docs",
+  "ports": [
+    {
+      "host": 4533,
+      "container": 4533,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/navidrome/data",
+      "container": "/data"
+    },
+    {
+      "host": "/srv/music",
+      "container": "/music",
+      "readOnly": true
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "ND_SCANINTERVAL",
+      "default": "1h",
+      "description": "Music library scan interval"
+    }
+  ],
+  "version": "latest"
+}

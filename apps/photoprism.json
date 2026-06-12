@@ -1,0 +1,41 @@
+{
+  "slug": "photoprism",
+  "name": "PhotoPrism",
+  "description": "AI-powered photo management for private photo collections.",
+  "category": "Photos & Files",
+  "image": "photoprism/photoprism:latest",
+  "logo": "",
+  "website": "https://www.photoprism.app",
+  "docsUrl": "https://docs.photoprism.app",
+  "ports": [
+    {
+      "host": 2342,
+      "container": 2342,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/photoprism/storage",
+      "container": "/photoprism/storage"
+    },
+    {
+      "host": "/srv/photos",
+      "container": "/photoprism/originals"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "PHOTOPRISM_ADMIN_PASSWORD",
+      "default": "change-me",
+      "description": "Initial admin password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

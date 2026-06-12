@@ -1,0 +1,31 @@
+{
+  "slug": "beszel",
+  "name": "Beszel",
+  "description": "Lightweight server monitoring hub with historical metrics.",
+  "category": "Monitoring",
+  "image": "henrygd/beszel:latest",
+  "logo": "",
+  "website": "https://beszel.dev",
+  "docsUrl": "https://beszel.dev/guide",
+  "ports": [
+    {
+      "host": 8090,
+      "container": 8090,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/beszel/data",
+      "container": "/beszel_data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

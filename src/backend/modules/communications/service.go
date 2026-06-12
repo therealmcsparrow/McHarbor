@@ -406,8 +406,14 @@ func (s *Service) Test(ctx context.Context, id string) error {
 		}, title, message)
 
 	case "ntfy":
-		decToken, _ := s.decryptField(token.String)
-		decPassword, _ := s.decryptField(password.String)
+		decToken, err := s.decryptField(token.String)
+		if err != nil {
+			return fmt.Errorf("decrypting token: %w", err)
+		}
+		decPassword, err := s.decryptField(password.String)
+		if err != nil {
+			return fmt.Errorf("decrypting password: %w", err)
+		}
 		return notify.SendNtfy(ctx, notify.NtfyConfig{
 			ServerURL:   serverURL.String,
 			Topic:       topic.String,
@@ -454,7 +460,10 @@ func (s *Service) Test(ctx context.Context, id string) error {
 				Recipients:   recipientList,
 			}, title, message)
 		default: // "", "rest_api", "simple"
-			decPassword, _ := s.decryptField(password.String)
+			decPassword, err := s.decryptField(password.String)
+			if err != nil {
+				return fmt.Errorf("decrypting password: %w", err)
+			}
 			return notify.SendSignal(ctx, notify.SignalConfig{
 				ServerURL:    serverURL.String,
 				SenderNumber: senderNumber.String,

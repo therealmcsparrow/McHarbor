@@ -86,11 +86,11 @@ func loadAppTemplateFile(path string) (AppTemplate, error) {
 }
 
 // generateCompose builds a docker-compose.yml string from an AppTemplate
-// with optional user overrides for ports, volumes, and env vars.
-func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes []VolumeMount, envVars map[string]string) string {
+// with optional user overrides for ports, volumes, env vars, and networking.
+func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes []VolumeMount, envVars map[string]string, netCfg *NetworkConfig) string {
 	serviceName := sanitizeServiceName(name)
 	if app.ComposeOverride != "" {
-		return renderComposeOverride(app, serviceName, ports, volumes, envVars)
+		return renderComposeOverride(app, serviceName, ports, volumes, envVars, netCfg)
 	}
 
 	var b strings.Builder
@@ -137,20 +137,29 @@ func generateCompose(app AppTemplate, name string, ports []PortMapping, volumes 
 		}
 	}
 
+	renderGeneratedNetwork(&b, netCfg)
+
 	return b.String()
 }
 
 var composeEnvPlaceholder = regexp.MustCompile(`\{\{env\.([A-Za-z_][A-Za-z0-9_]*)\}\}`)
+var composeRawEnvPlaceholder = regexp.MustCompile(`\{\{envRaw\.([A-Za-z_][A-Za-z0-9_]*)\}\}`)
 
-func renderComposeOverride(app AppTemplate, serviceName string, ports []PortMapping, volumes []VolumeMount, envVars map[string]string) string {
+func renderComposeOverride(app AppTemplate, serviceName string, ports []PortMapping, volumes []VolumeMount, envVars map[string]string, netCfg *NetworkConfig) string {
 	compose := app.ComposeOverride
+	appDataPath := "/opt/appdata/" + serviceName
 	replacements := map[string]string{
-		"{{serviceName}}":   serviceName,
-		"{{containerName}}": serviceName,
-		"{{image}}":         app.Image,
-		"{{ports}}":         renderComposePorts(ports),
-		"{{volumes}}":       renderComposeVolumes(volumes),
-		"{{environment}}":   renderComposeEnvironment(envVars),
+		"{{serviceName}}":    serviceName,
+		"{{containerName}}":  serviceName,
+		"{{projectName}}":    serviceName,
+		"{{appDataPath}}":    appDataPath,
+		"{{image}}":          app.Image,
+		"{{ports}}":          renderComposePorts(ports),
+		"{{volumes}}":        renderComposeVolumes(volumes),
+		"{{environment}}":    renderComposeEnvironment(envVars),
+		"{{environmentMap}}": renderComposeEnvironmentMap(envVars),
+		"{{networks}}":       renderComposeNetwork(netCfg),
+		"{{networkMode}}":    renderComposeNetworkMode(netCfg),
 	}
 	for placeholder, value := range replacements {
 		compose = strings.ReplaceAll(compose, placeholder, value)
@@ -159,10 +168,80 @@ func renderComposeOverride(app AppTemplate, serviceName string, ports []PortMapp
 		key := composeEnvPlaceholder.FindStringSubmatch(match)[1]
 		return quoteYAMLString(envVars[key])
 	})
+	compose = composeRawEnvPlaceholder.ReplaceAllStringFunc(compose, func(match string) string {
+		key := composeRawEnvPlaceholder.FindStringSubmatch(match)[1]
+		return envVars[key]
+	})
 	if !strings.HasSuffix(compose, "\n") {
 		compose += "\n"
 	}
 	return compose
+}
+
+func renderGeneratedNetwork(b *strings.Builder, netCfg *NetworkConfig) {
+	if netCfg == nil {
+		return
+	}
+
+	mode := strings.TrimSpace(netCfg.Mode)
+	switch mode {
+	case "bridge", "host", "none":
+		b.WriteString(fmt.Sprintf("    network_mode: %s\n", quoteYAMLString(mode)))
+	case "existing":
+		networkName := strings.TrimSpace(netCfg.Name)
+		if networkName == "" {
+			return
+		}
+		networkKey := sanitizeServiceName(networkName)
+		if networkKey == "" {
+			networkKey = "app-network"
+		}
+		b.WriteString("    networks:\n")
+		if len(netCfg.Aliases) == 0 && strings.TrimSpace(netCfg.IPv4Address) == "" && strings.TrimSpace(netCfg.IPv6Address) == "" && strings.TrimSpace(netCfg.MACAddress) == "" {
+			b.WriteString(fmt.Sprintf("      %s: {}\n", networkKey))
+		} else {
+			b.WriteString(fmt.Sprintf("      %s:\n", networkKey))
+			if len(netCfg.Aliases) > 0 {
+				b.WriteString("        aliases:\n")
+				for _, alias := range netCfg.Aliases {
+					alias = strings.TrimSpace(alias)
+					if alias != "" {
+						b.WriteString(fmt.Sprintf("          - %s\n", quoteYAMLString(alias)))
+					}
+				}
+			}
+			if value := strings.TrimSpace(netCfg.IPv4Address); value != "" {
+				b.WriteString(fmt.Sprintf("        ipv4_address: %s\n", quoteYAMLString(value)))
+			}
+			if value := strings.TrimSpace(netCfg.IPv6Address); value != "" {
+				b.WriteString(fmt.Sprintf("        ipv6_address: %s\n", quoteYAMLString(value)))
+			}
+			if value := strings.TrimSpace(netCfg.MACAddress); value != "" {
+				b.WriteString(fmt.Sprintf("        mac_address: %s\n", quoteYAMLString(value)))
+			}
+		}
+		b.WriteString("networks:\n")
+		b.WriteString(fmt.Sprintf("  %s:\n", networkKey))
+		b.WriteString("    external: true\n")
+		b.WriteString(fmt.Sprintf("    name: %s\n", quoteYAMLString(networkName)))
+	}
+}
+
+func renderComposeNetwork(netCfg *NetworkConfig) string {
+	var b strings.Builder
+	renderGeneratedNetwork(&b, netCfg)
+	return strings.TrimRight(b.String(), "\n")
+}
+
+func renderComposeNetworkMode(netCfg *NetworkConfig) string {
+	if netCfg == nil {
+		return ""
+	}
+	mode := strings.TrimSpace(netCfg.Mode)
+	if mode == "bridge" || mode == "host" || mode == "none" {
+		return mode
+	}
+	return ""
 }
 
 func renderComposePorts(ports []PortMapping) string {
@@ -210,10 +289,33 @@ func renderComposeEnvironment(envVars map[string]string) string {
 
 	var b strings.Builder
 	b.WriteString("    environment:\n")
-	for k, v := range envVars {
+	for _, k := range sortedEnvKeys(envVars) {
+		v := envVars[k]
 		b.WriteString(fmt.Sprintf("      - %s=%s\n", k, v))
 	}
 	return strings.TrimRight(b.String(), "\n")
+}
+
+func renderComposeEnvironmentMap(envVars map[string]string) string {
+	if len(envVars) == 0 {
+		return ""
+	}
+
+	var b strings.Builder
+	b.WriteString("    environment:\n")
+	for _, k := range sortedEnvKeys(envVars) {
+		b.WriteString(fmt.Sprintf("      %s: %s\n", k, quoteYAMLString(envVars[k])))
+	}
+	return strings.TrimRight(b.String(), "\n")
+}
+
+func sortedEnvKeys(envVars map[string]string) []string {
+	keys := make([]string, 0, len(envVars))
+	for k := range envVars {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
 
 func quoteYAMLString(value string) string {

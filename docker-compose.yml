@@ -15,6 +15,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - mcharbor-data:/app/data
+      - ${MCHARBOR_LOCAL_BACKUP_PATH:-./mnt/backup}:/mnt/backup
 
   agent:
     profiles: ["agent"]

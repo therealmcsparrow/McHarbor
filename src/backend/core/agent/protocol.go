@@ -9,48 +9,50 @@ package agent
 // WebSocket message types exchanged between server and agent.
 const (
 	// Auth handshake
-	MsgAuth       = "auth"        // Agent→Server: token + hostname + Docker version
-	MsgAuthResult = "auth_result" // Server→Agent: accept/reject with envID
+	MsgAuth       = "auth"        // Agent->Server: token + hostname + Docker version
+	MsgAuthResult = "auth_result" // Server->Agent: accept/reject with envID
 
 	// Keepalive
 	MsgPing = "ping" // Bidirectional
 	MsgPong = "pong" // Bidirectional
 
 	// HTTP proxy (Docker API calls)
-	MsgHTTPRequest      = "http_request"       // Server→Agent: proxied Docker API call
-	MsgHTTPRequestStart = "http_request_start" // Server→Agent: proxied Docker API call with streamed request body
-	MsgHTTPRequestChunk = "http_request_chunk" // Server→Agent: request body chunk
-	MsgHTTPRequestEnd   = "http_request_end"   // Server→Agent: end of request body stream
-	MsgHTTPResponse     = "http_response"      // Agent→Server: full response
+	MsgHTTPRequest      = "http_request"       // Server->Agent: proxied Docker API call
+	MsgHTTPRequestStart = "http_request_start" // Server->Agent: proxied Docker API call with streamed request body
+	MsgHTTPRequestChunk = "http_request_chunk" // Server->Agent: request body chunk
+	MsgHTTPRequestEnd   = "http_request_end"   // Server->Agent: end of request body stream
+	MsgHTTPResponse     = "http_response"      // Agent->Server: full response
 
 	// Streaming responses (logs, stats, exec)
-	MsgHTTPResponseStart = "http_response_start" // Agent→Server: streaming header
-	MsgHTTPResponseChunk = "http_response_chunk" // Agent→Server: binary data chunk
-	MsgHTTPResponseEnd   = "http_response_end"   // Agent→Server: end of stream
+	MsgHTTPResponseStart = "http_response_start" // Agent->Server: streaming header
+	MsgHTTPResponseChunk = "http_response_chunk" // Agent->Server: binary data chunk
+	MsgHTTPResponseEnd   = "http_response_end"   // Agent->Server: end of stream
 
 	// Cancellation
-	MsgHTTPCancel = "http_cancel" // Server→Agent: cancel in-flight request
+	MsgHTTPCancel = "http_cancel" // Server->Agent: cancel in-flight request
 
 	// Exec session (terminal over agent)
-	MsgExecStart  = "exec_start"  // Server→Agent: start exec attach
-	MsgExecInput  = "exec_input"  // Server→Agent: stdin data
-	MsgExecOutput = "exec_output" // Agent→Server: stdout data
-	MsgExecResize = "exec_resize" // Server→Agent: terminal resize
+	MsgExecStart  = "exec_start"  // Server->Agent: start exec attach
+	MsgExecInput  = "exec_input"  // Server->Agent: stdin data
+	MsgExecOutput = "exec_output" // Agent->Server: stdout data
+	MsgExecResize = "exec_resize" // Server->Agent: terminal resize
 	MsgExecEnd    = "exec_end"    // Bidirectional: exec session ended
 
 	// Compose stack commands
-	MsgComposeRun    = "compose_run"    // Server→Agent: run docker compose in a staged project
-	MsgComposeResult = "compose_result" // Agent→Server: compose command result
-	MsgComposeCancel = "compose_cancel" // Server→Agent: cancel compose command
+	MsgComposeRun    = "compose_run"    // Server->Agent: run docker compose in a staged project
+	MsgComposeResult = "compose_result" // Agent->Server: compose command result
+	MsgComposeCancel = "compose_cancel" // Server->Agent: cancel compose command
 
 	// Direct agent-to-agent transfers
-	MsgTransferPrepare  = "transfer_prepare"  // Server→Target agent: prepare upload receiver
-	MsgTransferReady    = "transfer_ready"    // Target agent→Server: receiver status
-	MsgTransferImage    = "transfer_image"    // Server→Source agent: stream Docker image to target
-	MsgTransferProbe    = "transfer_probe"    // Server→Source agent: test direct reachability to target
-	MsgTransferProgress = "transfer_progress" // Source agent→Server: bytes sent directly
-	MsgTransferResult   = "transfer_result"   // Agent→Server: direct transfer result
-	MsgTransferCancel   = "transfer_cancel"   // Server→Agent: cancel direct transfer
+	MsgTransferPrepare  = "transfer_prepare"  // Server->Target agent: prepare upload receiver
+	MsgTransferReady    = "transfer_ready"    // Target agent->Server: receiver status
+	MsgTransferImage    = "transfer_image"    // Server->Source agent: stream Docker image to target
+	MsgTransferArchive  = "transfer_archive"  // Server->Source agent: stream container archive to target
+	MsgTransferProbe    = "transfer_probe"    // Server->Source agent: test direct reachability to target
+	MsgTransferRestore  = "transfer_restore"  // Server->Agent: pull restore archive from McHarbor and apply locally
+	MsgTransferProgress = "transfer_progress" // Source agent->Server: bytes sent directly
+	MsgTransferResult   = "transfer_result"   // Agent->Server: direct transfer result
+	MsgTransferCancel   = "transfer_cancel"   // Server->Agent: cancel direct transfer
 )
 
 // WSMessage is the envelope for all WebSocket messages.
@@ -88,6 +90,11 @@ type TransferPayload struct {
 	Token                string                  `json:"token,omitempty"`
 	URL                  string                  `json:"url,omitempty"`
 	ImageRef             string                  `json:"imageRef,omitempty"`
+	ContainerID          string                  `json:"containerId,omitempty"`
+	SourcePath           string                  `json:"sourcePath,omitempty"`
+	TargetPath           string                  `json:"targetPath,omitempty"`
+	Stage                string                  `json:"stage,omitempty"`
+	Size                 int64                   `json:"size,omitempty"`
 	Bytes                int64                   `json:"bytes,omitempty"`
 	StatusCode           int                     `json:"statusCode,omitempty"`
 	Success              bool                    `json:"success,omitempty"`

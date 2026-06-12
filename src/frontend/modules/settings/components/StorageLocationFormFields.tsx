@@ -104,6 +104,24 @@ export function StorageLocationFormFields({
   const { t } = useTranslation("settings");
   const secretPlaceholder = isEdit ? t("storage.secretHint") : undefined;
 
+  if (data.locationType === "local") {
+    return (
+      <div className="space-y-4">
+        <InfoPanel>{t("storage.localPathHint")}</InfoPanel>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field
+            id="storage-local-path"
+            label={t("storage.localPathLabel")}
+            value={data.basePath}
+            onChange={(basePath) => onChange({ basePath })}
+            placeholder="/mnt/backup"
+            helper={t("storage.localPathHelper")}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (data.locationType === "ftp" || data.locationType === "ftps") {
     const protocolValue =
       data.locationType === "ftps" && data.tlsMode === "implicit"

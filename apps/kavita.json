@@ -1,0 +1,35 @@
+{
+  "slug": "kavita",
+  "name": "Kavita",
+  "description": "Reading server for manga, comics, and ebooks.",
+  "category": "Media",
+  "image": "jvmilazz0/kavita:latest",
+  "logo": "",
+  "website": "https://www.kavitareader.com",
+  "docsUrl": "https://wiki.kavitareader.com",
+  "ports": [
+    {
+      "host": 5000,
+      "container": 5000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kavita/config",
+      "container": "/kavita/config"
+    },
+    {
+      "host": "/srv/books",
+      "container": "/books"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

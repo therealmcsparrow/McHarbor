@@ -75,7 +75,7 @@ export function MoveContainerDialog({ container, open, onOpenChange, onSuccess }
     setNetworks([]);
     setVolumes([]);
     moveStream.reset();
-  }, [open, showProgress, container, defaultTargetEnvId, moveStream.reset]);
+  }, [open, showProgress, container, defaultTargetEnvId, moveStream]);
   const planQuery = useMoveContainerPlan(container?.id ?? '', targetEnvId, targetName, networkMode, networks, volumes, open);
   const targetNetworksQuery = useQuery({
     queryKey: ['networks', targetEnvId],

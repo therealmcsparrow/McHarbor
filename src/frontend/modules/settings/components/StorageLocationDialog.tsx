@@ -38,11 +38,10 @@ type StorageLocationDialogProps = {
 
 const DEFAULT_FORM: StorageLocationInput = {
   name: "",
-  locationType: "sftp",
+  locationType: "local",
   enabled: true,
-  authMethod: "private_key",
   passiveMode: true,
-  port: 22,
+  basePath: "/mnt/backup",
 };
 
 function supportsConsent(locationType: StorageLocationType) {
@@ -76,7 +75,11 @@ function formFromLocation(
     username: location.username ?? "",
     authMethod:
       location.authMethod ??
-      (location.locationType === "sftp" ? "private_key" : "password"),
+      (location.locationType === "local"
+        ? undefined
+        : location.locationType === "sftp"
+          ? "private_key"
+          : "password"),
     tlsMode: location.tlsMode,
     passiveMode: location.passiveMode,
   };
@@ -128,6 +131,17 @@ export function StorageLocationDialog({
   }
 
   function handleSelectType(locationType: StorageLocationType) {
+    if (locationType === "local") {
+      update({
+        locationType,
+        basePath: form.basePath || "/mnt/backup",
+        authMethod: undefined,
+        port: undefined,
+        tlsMode: undefined,
+      });
+      setStep("config");
+      return;
+    }
     if (locationType === "ftp") {
       update({
         locationType,

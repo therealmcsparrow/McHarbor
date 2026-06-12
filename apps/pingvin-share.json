@@ -1,0 +1,31 @@
+{
+  "slug": "pingvin-share",
+  "name": "Pingvin Share",
+  "description": "Simple self-hosted file sharing with expiring links.",
+  "category": "Photos & Files",
+  "image": "stonith404/pingvin-share:latest",
+  "logo": "",
+  "website": "https://stonith404.github.io/pingvin-share",
+  "docsUrl": "https://stonith404.github.io/pingvin-share",
+  "ports": [
+    {
+      "host": 3001,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/pingvin-share/data",
+      "container": "/opt/app/backend/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

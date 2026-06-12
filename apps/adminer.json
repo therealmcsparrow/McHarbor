@@ -1,0 +1,26 @@
+{
+  "slug": "adminer",
+  "name": "Adminer",
+  "description": "Single-file database administration UI.",
+  "category": "Developer Tools",
+  "image": "adminer:latest",
+  "logo": "",
+  "website": "https://www.adminer.org",
+  "docsUrl": "https://hub.docker.com/_/adminer",
+  "ports": [
+    {
+      "host": 8084,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

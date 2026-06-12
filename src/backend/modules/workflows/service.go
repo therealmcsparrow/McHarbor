@@ -2691,7 +2691,7 @@ func (s *Service) executeContainerBackupRun(ctx context.Context, node *CanvasNod
 		SelectedMounts:    configStringSlice(node.Config["selected_mounts"]),
 	}
 
-	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.logger)
+	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.enc, s.logger)
 	opCtx, cancel := context.WithTimeout(ctx, 45*time.Minute)
 	defer cancel()
 
@@ -2716,7 +2716,7 @@ func (s *Service) executeContainerBackupPlanRun(ctx context.Context, node *Canva
 		return "", nil, fmt.Errorf("plan_id is required")
 	}
 
-	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.logger)
+	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.enc, s.logger)
 	opCtx, cancel := context.WithTimeout(ctx, 45*time.Minute)
 	defer cancel()
 
@@ -2741,7 +2741,7 @@ func (s *Service) executeContainerBackupDownload(ctx context.Context, node *Canv
 		return "", nil, fmt.Errorf("run_id is required")
 	}
 
-	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.logger)
+	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.enc, s.logger)
 	download, err := backupSvc.Download(ctx, runID)
 	if err != nil {
 		s.logger.Error("workflows: container backup download info failed", "error", err, "run", runID)

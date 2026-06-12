@@ -1,0 +1,31 @@
+{
+  "slug": "phpmyadmin",
+  "name": "phpMyAdmin",
+  "description": "Web administration UI for MySQL and MariaDB.",
+  "category": "Developer Tools",
+  "image": "phpmyadmin:latest",
+  "logo": "",
+  "website": "https://www.phpmyadmin.net",
+  "docsUrl": "https://hub.docker.com/_/phpmyadmin",
+  "ports": [
+    {
+      "host": 8085,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "PMA_ARBITRARY",
+      "default": "1",
+      "description": "Allow connecting to arbitrary servers"
+    }
+  ],
+  "version": "latest"
+}

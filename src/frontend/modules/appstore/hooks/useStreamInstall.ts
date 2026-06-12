@@ -5,7 +5,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { createClientId } from '@resources/utils/id';
-import type { InstallEvent, PortMapping, VolumeMount } from '../types';
+import type { AppNetworkSettings, InstallEvent, PortMapping, VolumeMount } from '../types';
 import type { LogEntry } from '../components/InstallProgress';
 
 interface InstallPayload {
@@ -14,6 +14,7 @@ interface InstallPayload {
   environmentId: string;
   ports?: PortMapping[];
   volumes?: VolumeMount[];
+  network?: AppNetworkSettings;
   envVars?: Record<string, string>;
 }
 

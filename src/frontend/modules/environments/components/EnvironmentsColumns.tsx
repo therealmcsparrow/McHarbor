@@ -74,7 +74,21 @@ export function useEnvironmentColumns({ onTest, onInstall, onRemove }: UseEnviro
     {
       id: 'version',
       header: t('columns.version'),
-      cell: ({ row }) => row.original.dockerVersion ?? row.original.k8sVersion ?? '-',
+      cell: ({ row }) => {
+        if (row.original.connectionType === 'agent') {
+          return (
+            <div className="min-w-0">
+              <p className="font-mono text-xs font-medium text-foreground">
+                {row.original.agentVersion ?? '-'}
+              </p>
+              <p className="truncate text-xs text-muted-foreground">
+                {row.original.dockerVersion ? `${t('versions.docker')} ${row.original.dockerVersion}` : t('card.versionUnknown')}
+              </p>
+            </div>
+          );
+        }
+        return row.original.dockerVersion ?? row.original.k8sVersion ?? '-';
+      },
     },
     {
       id: 'status',

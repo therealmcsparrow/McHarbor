@@ -19,6 +19,7 @@ type Environment = {
   highlightContainerChangesEnabled: boolean;
   dockerDiskUsageNotificationsEnabled: boolean;
   dockerDiskUsageThresholdPercent: number;
+  timezone?: string;
 };
 
 type EnvironmentState = {

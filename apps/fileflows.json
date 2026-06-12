@@ -1,0 +1,43 @@
+{
+  "slug": "fileflows",
+  "name": "FileFlows",
+  "description": "Rule-based file processing and media conversion automation.",
+  "category": "Media",
+  "image": "revenz/fileflows:latest",
+  "logo": "",
+  "website": "https://fileflows.com",
+  "docsUrl": "https://fileflows.com/docs",
+  "ports": [
+    {
+      "host": 5000,
+      "container": 5000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/fileflows/data",
+      "container": "/app/Data"
+    },
+    {
+      "host": "/opt/appdata/fileflows/logs",
+      "container": "/app/Logs"
+    },
+    {
+      "host": "/srv/media",
+      "container": "/media"
+    },
+    {
+      "host": "/srv/temp",
+      "container": "/temp"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,36 @@
+{
+  "slug": "homepage",
+  "name": "Homepage",
+  "description": "Modern application dashboard for homelab services.",
+  "category": "Dashboards",
+  "image": "ghcr.io/gethomepage/homepage:latest",
+  "logo": "",
+  "website": "https://gethomepage.dev",
+  "docsUrl": "https://gethomepage.dev",
+  "ports": [
+    {
+      "host": 3004,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/homepage/config",
+      "container": "/app/config"
+    },
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock",
+      "readOnly": true
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,43 @@
+{
+  "slug": "karakeep",
+  "name": "Karakeep",
+  "description": "Self-hosted bookmark, note, and read-it-later archive.",
+  "category": "Productivity",
+  "image": "ghcr.io/karakeep-app/karakeep:release",
+  "logo": "",
+  "website": "https://karakeep.app",
+  "docsUrl": "https://docs.karakeep.app",
+  "ports": [
+    {
+      "host": 3002,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/karakeep/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "NEXTAUTH_SECRET",
+      "default": "change-me",
+      "description": "NextAuth secret",
+      "secret": true
+    },
+    {
+      "key": "MEILI_MASTER_KEY",
+      "default": "change-me",
+      "description": "Meilisearch master key",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "headscale",
+  "name": "Headscale",
+  "description": "Self-hosted coordination server for Tailscale-compatible networks.",
+  "category": "Networking",
+  "image": "headscale/headscale:latest",
+  "logo": "",
+  "website": "https://headscale.net",
+  "docsUrl": "https://headscale.net",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/headscale/config",
+      "container": "/etc/headscale"
+    },
+    {
+      "host": "/opt/appdata/headscale/data",
+      "container": "/var/lib/headscale"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

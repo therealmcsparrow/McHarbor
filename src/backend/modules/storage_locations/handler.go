@@ -5,6 +5,8 @@ package storage_locations
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"net/http"
 	"regexp"
 	"strings"
@@ -18,21 +20,28 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
+	containerbackups "github.com/therealmcsparrow/mcharbor/modules/container_backups"
 )
 
 // Handler holds dependencies for storage location handlers.
 type Handler struct {
-	app     *router.AppDeps
-	service *Service
+	app           *router.AppDeps
+	service       *Service
+	backupService *containerbackups.Service
 }
 
 // NewHandler creates a new storage location handler.
 func NewHandler(app *router.AppDeps) *Handler {
-	return &Handler{app: app, service: NewService(app.DB, app.Encryption)}
+	return &Handler{
+		app:           app,
+		service:       NewService(app.DB, app.Encryption),
+		backupService: containerbackups.NewService(app.DB, app.DockerPool, app.Config.DataDir, app.BackupCrypto, app.Encryption, app.Logger),
+	}
 }
 
 var validLocationTypes = map[string]bool{
-	"ftp": true, "ftps": true, "sftp": true, "samba": true, "aws": true,
+	"local": true,
+	"ftp":   true, "ftps": true, "sftp": true, "samba": true, "aws": true,
 	"google_drive": true, "onedrive_personal": true, "onedrive_business": true,
 	"sharepoint": true,
 }
@@ -155,6 +164,10 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 
 	item, err := h.service.Update(r.Context(), id, input)
 	if err != nil {
+		if errors.Is(err, ErrLocalStorageProtected) {
+			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+			return
+		}
 		h.app.Logger.Error("storage locations: update error", "error", err, "id", id)
 		response.InternalErrorCode(w, r, i18n.ErrSettingsUpdateFailed)
 		return
@@ -184,6 +197,10 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	deleted, err := h.service.Delete(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, ErrLocalStorageProtected) {
+			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+			return
+		}
 		h.app.Logger.Error("storage locations: delete error", "error", err, "id", id)
 		response.InternalErrorCode(w, r, i18n.ErrSettingsUpdateFailed)
 		return
@@ -200,6 +217,41 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response.NoContent(w)
+}
+
+// HandleMigrateContainerBackups copies existing completed backups to a local storage location.
+func (h *Handler) HandleMigrateContainerBackups(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+	migrateCtx, cancel := context.WithTimeout(r.Context(), 2*time.Hour)
+	defer cancel()
+
+	result, err := h.backupService.MigrateCompletedRunsToLocalStorage(migrateCtx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			response.NotFoundCode(w, r, i18n.ErrNotFound)
+			return
+		}
+		if errors.Is(err, containerbackups.ErrBackupMigrationStorageNotLocal) || errors.Is(err, containerbackups.ErrBackupMigrationStorageDisabled) {
+			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+			return
+		}
+		h.app.Logger.Error("storage locations: backup migration error", "error", err, "id", id)
+		response.InternalErrorCode(w, r, i18n.ErrSettingsUpdateFailed)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "storage_location.container_backups_migrated",
+		EntityType: "storage_location",
+		EntityID:   id,
+	})
+
+	response.OK(w, result)
 }
 
 // HandleOAuthAuthorize creates a delegated provider consent URL.

@@ -52,6 +52,16 @@ type VolumeMount struct {
 	ReadOnly  bool   `json:"readOnly,omitempty"`
 }
 
+// NetworkConfig defines the network attachment generated for an app install.
+type NetworkConfig struct {
+	Mode        string   `json:"mode,omitempty"` // default, bridge, host, none, existing
+	Name        string   `json:"name,omitempty"`
+	Aliases     []string `json:"aliases,omitempty"`
+	IPv4Address string   `json:"ipv4Address,omitempty"`
+	IPv6Address string   `json:"ipv6Address,omitempty"`
+	MACAddress  string   `json:"macAddress,omitempty"`
+}
+
 // EnvVarDef defines an environment variable with metadata.
 type EnvVarDef struct {
 	Key         string `json:"key"`
@@ -74,6 +84,7 @@ type InstallRequest struct {
 	Ports         []PortMapping     `json:"ports,omitempty"`
 	Volumes       []VolumeMount     `json:"volumes,omitempty"`
 	EnvVars       map[string]string `json:"envVars,omitempty"`
+	Network       *NetworkConfig    `json:"network,omitempty"`
 }
 
 // InstallResult is returned after a successful install.

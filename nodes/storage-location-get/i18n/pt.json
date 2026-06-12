@@ -1,0 +1,7 @@
+{
+  "label": "Get Storage Location",
+  "description": "Read one configured storage location without secret values",
+  "config": {
+    "storage_location_id": "Storage Location"
+  }
+}

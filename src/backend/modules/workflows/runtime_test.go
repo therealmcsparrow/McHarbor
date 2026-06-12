@@ -65,7 +65,7 @@ func TestExecuteHTTPRequestHitsServer(t *testing.T) {
 	defer server.Close()
 
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	svc := NewService(nil, nil, logger, nil, nil)
+	svc := NewService(nil, nil, logger, nil, nil, "", nil)
 	node := &CanvasNode{
 		ID:     "http-1",
 		Action: "http-request",

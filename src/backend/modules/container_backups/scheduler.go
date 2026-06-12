@@ -39,6 +39,10 @@ func (s *Scheduler) Start(ctx context.Context) {
 }
 
 func (s *Scheduler) check(ctx context.Context, now time.Time) {
+	if err := s.service.RecoverAbandonedRuns(ctx, "", ""); err != nil {
+		s.logger.Warn("container backup scheduler: abandoned run recovery failed", "error", err)
+	}
+
 	rows, err := s.service.db.QueryContext(ctx, `
 		SELECT id, name, environment_id, container_id, container_name, COALESCE(storage_location_id, ''),
 		       include_config, include_logs, include_filesystem, include_image, selected_mounts,

@@ -50,6 +50,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/stacks"
 	"github.com/therealmcsparrow/mcharbor/modules/system"
 	"github.com/therealmcsparrow/mcharbor/modules/terminal"
+	"github.com/therealmcsparrow/mcharbor/modules/versions"
 	"github.com/therealmcsparrow/mcharbor/modules/volumes"
 
 	// Kubernetes modules
@@ -225,7 +226,10 @@ func main() {
 	app := router.NewAppDeps(cfg, database, dockerPool, k8sPool, agentPool, authSvc, rbacSvc, auditLog, enc, backupCrypto, logger)
 
 	// Start container backup scheduler.
-	containerBackupSvc := containerbackups.NewService(database, dockerPool, cfg.DataDir, backupCrypto, logger)
+	containerBackupSvc := containerbackups.NewService(database, dockerPool, cfg.DataDir, backupCrypto, enc, logger)
+	if err := containerBackupSvc.RecoverAbandonedRuns(context.Background(), "", ""); err != nil {
+		logger.Warn("container backup abandoned run recovery failed", "error", err)
+	}
 	containerBackupScheduler := containerbackups.NewScheduler(containerBackupSvc, logger)
 	containerBackupCtx, containerBackupCancel := context.WithCancel(context.Background())
 	defer containerBackupCancel()
@@ -252,6 +256,7 @@ func main() {
 	stacks.Mount(app)
 	system.Mount(app)
 	terminal.Mount(app)
+	versions.Mount(app)
 	logs.Mount(app)
 	events.Mount(app)
 	dashboard.Mount(app)

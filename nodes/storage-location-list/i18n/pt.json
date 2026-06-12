@@ -1,0 +1,7 @@
+{
+  "label": "List Storage Locations",
+  "description": "Return configured storage locations without secret values",
+  "config": {
+    "enabled_only": "Enabled Only"
+  }
+}

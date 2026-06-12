@@ -1,0 +1,40 @@
+{
+  "slug": "diun",
+  "name": "Diun",
+  "description": "Docker image update notifier with multiple notification providers.",
+  "category": "Monitoring",
+  "image": "crazymax/diun:latest",
+  "logo": "",
+  "website": "https://crazymax.dev/diun",
+  "docsUrl": "https://crazymax.dev/diun",
+  "ports": [],
+  "volumes": [
+    {
+      "host": "/opt/appdata/diun/data",
+      "container": "/data"
+    },
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock",
+      "readOnly": true
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "DIUN_WATCH_WORKERS",
+      "default": "10",
+      "description": "Concurrent watcher workers"
+    },
+    {
+      "key": "DIUN_WATCH_SCHEDULE",
+      "default": "0 */6 * * *",
+      "description": "Cron schedule"
+    }
+  ],
+  "version": "latest"
+}

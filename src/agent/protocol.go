@@ -47,7 +47,9 @@ const (
 	MsgTransferPrepare  = "transfer_prepare"  // Server->Target agent: prepare upload receiver
 	MsgTransferReady    = "transfer_ready"    // Target agent->Server: receiver status
 	MsgTransferImage    = "transfer_image"    // Server->Source agent: stream Docker image to target
+	MsgTransferArchive  = "transfer_archive"  // Server->Source agent: stream container archive to target
 	MsgTransferProbe    = "transfer_probe"    // Server->Source agent: test direct reachability to target
+	MsgTransferRestore  = "transfer_restore"  // Server->Agent: pull restore archive from McHarbor and apply locally
 	MsgTransferProgress = "transfer_progress" // Source agent->Server: bytes sent directly
 	MsgTransferResult   = "transfer_result"   // Agent->Server: direct transfer result
 	MsgTransferCancel   = "transfer_cancel"   // Server->Agent: cancel direct transfer
@@ -88,6 +90,11 @@ type TransferPayload struct {
 	Token                string                  `json:"token,omitempty"`
 	URL                  string                  `json:"url,omitempty"`
 	ImageRef             string                  `json:"imageRef,omitempty"`
+	ContainerID          string                  `json:"containerId,omitempty"`
+	SourcePath           string                  `json:"sourcePath,omitempty"`
+	TargetPath           string                  `json:"targetPath,omitempty"`
+	Stage                string                  `json:"stage,omitempty"`
+	Size                 int64                   `json:"size,omitempty"`
 	Bytes                int64                   `json:"bytes,omitempty"`
 	StatusCode           int                     `json:"statusCode,omitempty"`
 	Success              bool                    `json:"success,omitempty"`

@@ -1,0 +1,49 @@
+{
+  "slug": "deluge",
+  "name": "Deluge",
+  "description": "Cross-platform BitTorrent client with daemon and web UI.",
+  "category": "Media",
+  "image": "lscr.io/linuxserver/deluge:latest",
+  "logo": "",
+  "website": "https://docs.linuxserver.io/images/docker-deluge/",
+  "docsUrl": "https://docs.linuxserver.io/images/docker-deluge/",
+  "ports": [
+    {
+      "host": 8112,
+      "container": 8112,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/deluge/config",
+      "container": "/config"
+    },
+    {
+      "host": "/srv/media",
+      "container": "/media"
+    },
+    {
+      "host": "/srv/downloads",
+      "container": "/downloads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

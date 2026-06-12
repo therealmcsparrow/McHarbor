@@ -1,0 +1,40 @@
+{
+  "slug": "sftpgo",
+  "name": "SFTPGo",
+  "description": "SFTP, HTTP/S, FTP/S, and WebDAV server with a web admin UI.",
+  "category": "Photos & Files",
+  "image": "drakkan/sftpgo:latest",
+  "logo": "",
+  "website": "https://sftpgo.com",
+  "docsUrl": "https://docs.sftpgo.com",
+  "ports": [
+    {
+      "host": 8081,
+      "container": 8081,
+      "protocol": "tcp"
+    },
+    {
+      "host": 2022,
+      "container": 2022,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/sftpgo/data",
+      "container": "/srv/sftpgo"
+    },
+    {
+      "host": "/opt/appdata/sftpgo/home",
+      "container": "/var/lib/sftpgo"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

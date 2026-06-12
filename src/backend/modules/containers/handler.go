@@ -86,6 +86,22 @@ func (h *Handler) containerAuditName(ctx context.Context, envID, id string) stri
 	return normalizeContainerName(info.Name, id)
 }
 
+// HandleMoveTransfer streams one prepared move archive to a connected agent.
+func (h *Handler) HandleMoveTransfer(w http.ResponseWriter, r *http.Request) {
+	transferID := chi.URLParam(r, "transferId")
+	entry, status, ok := moveTransfers.consume(transferID, r.Header.Get("Authorization"))
+	if !ok {
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+
+	if err := h.svc.writeMoveTransfer(r.Context(), w, entry); err != nil {
+		h.app.Logger.Error("container move transfer stream failed", "transfer", transferID, "kind", entry.Kind, "sourceEnv", entry.SourceEnvID, "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+}
+
 func (h *Handler) logContainerAudit(r *http.Request, envID, action, id, details string) {
 	h.logContainerAuditWithName(r, envID, action, id, h.containerAuditName(r.Context(), envID, id), details)
 }
@@ -1334,20 +1350,20 @@ func uploadTempFileFromPart(part *multipart.Part) (*os.File, string, int64, erro
 	if copyErr != nil {
 		name := file.Name()
 		if closeErr := file.Close(); closeErr != nil {
-			return nil, "", 0, fmt.Errorf("copying upload temp file: %w; closing temp file: %v", copyErr, closeErr)
+			return nil, "", 0, fmt.Errorf("copying upload temp file: %w; closing temp file: %w", copyErr, closeErr)
 		}
 		if removeErr := os.Remove(name); removeErr != nil {
-			return nil, "", 0, fmt.Errorf("copying upload temp file: %w; removing temp file: %v", copyErr, removeErr)
+			return nil, "", 0, fmt.Errorf("copying upload temp file: %w; removing temp file: %w", copyErr, removeErr)
 		}
 		return nil, "", 0, fmt.Errorf("copying upload temp file: %w", copyErr)
 	}
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		name := file.Name()
 		if closeErr := file.Close(); closeErr != nil {
-			return nil, "", 0, fmt.Errorf("seeking upload temp file: %w; closing temp file: %v", err, closeErr)
+			return nil, "", 0, fmt.Errorf("seeking upload temp file: %w; closing temp file: %w", err, closeErr)
 		}
 		if removeErr := os.Remove(name); removeErr != nil {
-			return nil, "", 0, fmt.Errorf("seeking upload temp file: %w; removing temp file: %v", err, removeErr)
+			return nil, "", 0, fmt.Errorf("seeking upload temp file: %w; removing temp file: %w", err, removeErr)
 		}
 		return nil, "", 0, fmt.Errorf("seeking upload temp file: %w", err)
 	}
