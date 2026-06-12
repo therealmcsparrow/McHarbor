@@ -228,6 +228,12 @@ func (s *Service) KeyID() string {
 	return s.keyID
 }
 
+// KeyMaterialBase64 returns the master key material for trusted in-process or
+// authenticated-agent operations that need to produce compatible archives.
+func (s *Service) KeyMaterialBase64() string {
+	return base64.StdEncoding.EncodeToString(s.masterKey)
+}
+
 // EncryptWriter writes an encrypted backup archive envelope to writer.
 func (s *Service) EncryptWriter(writer io.Writer) (io.WriteCloser, Metadata, error) {
 	dek := make([]byte, keyLength)

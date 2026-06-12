@@ -2,6 +2,23 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.5.2] - 2026-06-12
+
+### Added
+- Added agent-side container backups for agent environments using local agent temp archives: updated agents can now create encrypted backup archives beside the remote Docker socket and upload the completed archive to McHarbor local backup storage through a one-use direct HTTP transfer.
+- Added agent-side full-archive restores for agent environments: updated agents can download the encrypted archive to local temp storage, decrypt it locally, and restore selected image, filesystem, or mount entries through the local Docker socket.
+- Added internal one-use full-archive upload and download transfer endpoints for authenticated agents, separate from the existing single-entry restore transfer path.
+- Added agent backup and restore progress events for local archive creation, upload, download, and restore apply phases.
+
+### Changed
+- Bumped McHarbor and the remote agent to `1.5.2`.
+- Agent-backed backups now prefer the new agent-local archive path when the connected agent is `1.5.2+` and the selected backup destination is McHarbor local storage; older agents continue to use the existing fallback path.
+- Restore on agent-backed environments now prefers full-archive agent restore when the connected agent is `1.5.2+`, reducing Docker-over-WebSocket transfer overhead for large filesystem and mount restores.
+
+### Fixed
+- Prevented active in-process backup and restore runs from being marked abandoned by polling recovery while they are still executing.
+- Improved stalled backup diagnostics for long agent filesystem exports by moving supported backups off the generic Docker-over-WebSocket archive stream.
+
 ## [1.5.1] - 2026-06-10
 
 ### Changed

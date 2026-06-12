@@ -502,6 +502,46 @@ func (h *Handler) HandleRestoreTransfer(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// HandleAgentArchiveUpload receives a complete encrypted archive from an agent.
+func (h *Handler) HandleAgentArchiveUpload(w http.ResponseWriter, r *http.Request) {
+	transferID := chi.URLParam(r, "transferId")
+	entry, status, ok := agentArchiveTransfers.consume(transferID, r.Header.Get("Authorization"))
+	if !ok {
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	if strings.TrimSpace(entry.TargetPath) == "" {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	if err := h.service.receiveAgentArchive(r.Context(), entry, r.Body); err != nil {
+		h.app.Logger.Error("agent backup archive upload failed", "transfer", transferID, "run", entry.RunID, "error", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	response.NoContent(w)
+}
+
+// HandleAgentArchiveDownload streams a complete encrypted archive to an agent.
+func (h *Handler) HandleAgentArchiveDownload(w http.ResponseWriter, r *http.Request) {
+	transferID := chi.URLParam(r, "transferId")
+	entry, status, ok := agentArchiveTransfers.consume(transferID, r.Header.Get("Authorization"))
+	if !ok {
+		http.Error(w, http.StatusText(status), status)
+		return
+	}
+	if strings.TrimSpace(entry.SourcePath) == "" {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/x-tar")
+	w.Header().Set("Cache-Control", "no-store")
+	if err := h.service.streamAgentArchive(r.Context(), w, entry.SourcePath); err != nil {
+		h.app.Logger.Error("agent backup archive download failed", "transfer", transferID, "run", entry.RunID, "error", err)
+		return
+	}
+}
+
 func cleanMountSelection(input []string) []string {
 	out := make([]string, 0, len(input))
 	seen := map[string]bool{}

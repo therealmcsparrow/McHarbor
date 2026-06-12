@@ -53,6 +53,10 @@ const (
 	MsgTransferProgress = "transfer_progress" // Source agent->Server: bytes sent directly
 	MsgTransferResult   = "transfer_result"   // Agent->Server: direct transfer result
 	MsgTransferCancel   = "transfer_cancel"   // Server->Agent: cancel direct transfer
+
+	// Agent-side container backup and restore
+	MsgBackupRun     = "backup_run"     // Server->Agent: create archive locally and upload it
+	MsgBackupRestore = "backup_restore" // Server->Agent: download archive locally and restore entries
 )
 
 // WSMessage is the envelope for all WebSocket messages.
@@ -70,6 +74,7 @@ type WSMessage struct {
 	ExecResize   *ExecResizePayload `json:"execResize,omitempty"`
 	Compose      *ComposePayload    `json:"compose,omitempty"`
 	Transfer     *TransferPayload   `json:"transfer,omitempty"`
+	Backup       *BackupPayload     `json:"backup,omitempty"`
 }
 
 // ComposePayload carries an agent-side docker compose command.
@@ -102,6 +107,41 @@ type TransferPayload struct {
 	Receiver             *TransferReceiverMarker `json:"receiver,omitempty"`
 	ResponderAgentMarker string                  `json:"responderAgentMarker,omitempty"`
 	Diagnostic           *TransferAuthDiagnostic `json:"diagnostic,omitempty"`
+}
+
+// BackupPayload carries agent-side backup and restore metadata.
+type BackupPayload struct {
+	TransferID          string                     `json:"transferId"`
+	ContainerID         string                     `json:"containerId,omitempty"`
+	ContainerName       string                     `json:"containerName,omitempty"`
+	IncludeConfig       bool                       `json:"includeConfig,omitempty"`
+	IncludeLogs         bool                       `json:"includeLogs,omitempty"`
+	IncludeFilesystem   bool                       `json:"includeFilesystem,omitempty"`
+	IncludeImage        bool                       `json:"includeImage,omitempty"`
+	SelectedMounts      []string                   `json:"selectedMounts,omitempty"`
+	RestoreItems        []string                   `json:"restoreItems,omitempty"`
+	EncryptionKey       string                     `json:"encryptionKey,omitempty"`
+	StorageDestinations []BackupStorageDestination `json:"storageDestinations,omitempty"`
+	ArchiveURL          string                     `json:"archiveUrl,omitempty"`
+	ArchiveToken        string                     `json:"archiveToken,omitempty"`
+	ArchiveSize         int64                      `json:"archiveSize,omitempty"`
+	Stage               string                     `json:"stage,omitempty"`
+	StorageLocationID   string                     `json:"storageLocationId,omitempty"`
+	Bytes               int64                      `json:"bytes,omitempty"`
+	Size                int64                      `json:"size,omitempty"`
+	Success             bool                       `json:"success,omitempty"`
+	Error               string                     `json:"error,omitempty"`
+	Restored            []string                   `json:"restored,omitempty"`
+}
+
+// BackupStorageDestination describes an operation-scoped upload target.
+type BackupStorageDestination struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	LocationType string `json:"locationType"`
+	UploadURL    string `json:"uploadUrl"`
+	Token        string `json:"token"`
+	RemotePath   string `json:"remotePath"`
 }
 
 // TransferReceiverMarker identifies a prepared receiver without exposing tokens.

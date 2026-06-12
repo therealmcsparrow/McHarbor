@@ -21,7 +21,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.5.1"
+const agentVersion = "1.5.2"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -588,6 +588,42 @@ func (a *Agent) Connect(ctx context.Context) error {
 				}()
 				a.runRestoreTransfer(transferCtx, conn, payload)
 			}(*msg.Transfer)
+
+		case MsgBackupRun:
+			if msg.Backup == nil {
+				continue
+			}
+			transferCtx, transferCancel := context.WithCancel(ctx)
+			cancelMu.Lock()
+			transferCancels[msg.Backup.TransferID] = transferCancel
+			cancelMu.Unlock()
+			go func(payload BackupPayload) {
+				defer func() {
+					cancelMu.Lock()
+					delete(transferCancels, payload.TransferID)
+					cancelMu.Unlock()
+					transferCancel()
+				}()
+				a.runBackup(transferCtx, conn, payload)
+			}(*msg.Backup)
+
+		case MsgBackupRestore:
+			if msg.Backup == nil {
+				continue
+			}
+			transferCtx, transferCancel := context.WithCancel(ctx)
+			cancelMu.Lock()
+			transferCancels[msg.Backup.TransferID] = transferCancel
+			cancelMu.Unlock()
+			go func(payload BackupPayload) {
+				defer func() {
+					cancelMu.Lock()
+					delete(transferCancels, payload.TransferID)
+					cancelMu.Unlock()
+					transferCancel()
+				}()
+				a.runBackupRestore(transferCtx, conn, payload)
+			}(*msg.Backup)
 
 		case MsgTransferCancel:
 			if msg.Transfer == nil {

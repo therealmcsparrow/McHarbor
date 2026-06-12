@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
@@ -19,6 +20,18 @@ import (
 
 	"github.com/gorilla/websocket"
 )
+
+type DockerContainerInspect struct {
+	ID     string `json:"Id"`
+	Name   string `json:"Name"`
+	Config *struct {
+		Image string `json:"Image"`
+	} `json:"Config"`
+	Mounts []struct {
+		Type        string `json:"Type"`
+		Destination string `json:"Destination"`
+	} `json:"Mounts"`
+}
 
 // Proxy handles forwarding Docker API requests to the local Docker socket.
 type Proxy struct {
@@ -112,6 +125,78 @@ func (p *Proxy) LoadImage(ctx context.Context, body io.Reader) error {
 		return fmt.Errorf("reading image load response: %w", err)
 	}
 	return nil
+}
+
+func (p *Proxy) InspectContainer(ctx context.Context, containerID string) (DockerContainerInspect, error) {
+	containerID = strings.TrimSpace(containerID)
+	if containerID == "" {
+		return DockerContainerInspect{}, fmt.Errorf("container id is required")
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://docker/containers/"+url.PathEscape(containerID)+"/json", nil)
+	if err != nil {
+		return DockerContainerInspect{}, fmt.Errorf("building container inspect request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return DockerContainerInspect{}, fmt.Errorf("inspecting container %s: %w", containerID, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return DockerContainerInspect{}, fmt.Errorf("inspecting container %s returned status %d: %s", containerID, resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	var inspect DockerContainerInspect
+	if err := json.NewDecoder(resp.Body).Decode(&inspect); err != nil {
+		return DockerContainerInspect{}, fmt.Errorf("decoding container inspect: %w", err)
+	}
+	return inspect, nil
+}
+
+func (p *Proxy) ContainerLogs(ctx context.Context, containerID string) (io.ReadCloser, error) {
+	containerID = strings.TrimSpace(containerID)
+	if containerID == "" {
+		return nil, fmt.Errorf("container id is required")
+	}
+	values := url.Values{}
+	values.Set("stdout", "1")
+	values.Set("stderr", "1")
+	values.Set("timestamps", "1")
+	values.Set("tail", "all")
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://docker/containers/"+url.PathEscape(containerID)+"/logs?"+values.Encode(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("building container logs request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("reading container logs: %w", err)
+	}
+	if resp.StatusCode >= 300 {
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return nil, fmt.Errorf("reading container logs returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return resp.Body, nil
+}
+
+func (p *Proxy) ExportContainer(ctx context.Context, containerID string) (io.ReadCloser, error) {
+	containerID = strings.TrimSpace(containerID)
+	if containerID == "" {
+		return nil, fmt.Errorf("container id is required")
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://docker/containers/"+url.PathEscape(containerID)+"/export", nil)
+	if err != nil {
+		return nil, fmt.Errorf("building container export request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("exporting container filesystem: %w", err)
+	}
+	if resp.StatusCode >= 300 {
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return nil, fmt.Errorf("exporting container filesystem returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return resp.Body, nil
 }
 
 func (p *Proxy) CopyArchiveFromContainer(ctx context.Context, containerID, sourcePath string) (io.ReadCloser, int64, error) {

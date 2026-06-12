@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -23,6 +24,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/rs/xid"
 
+	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
@@ -60,6 +62,7 @@ const (
 	backupRunBackgroundTimeout   = 3 * time.Hour
 	restoreRunProgressStaleAfter = backupRunBackgroundTimeout + 10*time.Minute
 	defaultLocalStorageID        = "default-local-backup"
+	agentBackupMinVersion        = "1.5.2"
 )
 
 // Service handles container backup plans and archive execution.
@@ -73,6 +76,8 @@ type Service struct {
 }
 
 var safeArchiveName = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
+
+var activeBackupRuns sync.Map
 
 // NewService creates a backup service.
 func NewService(database *sql.DB, pool *coredocker.ClientPool, dataDir string, backupCrypto *backupcrypto.Service, enc *encryption.Service, logger *slog.Logger) *Service {
@@ -454,6 +459,9 @@ func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID s
 	}
 
 	for _, run := range runs {
+		if backupRunIsActive(run.id) {
+			continue
+		}
 		if err := s.recoverAbandonedRun(ctx, run.id); err != nil && s.logger != nil {
 			s.logger.Warn("container backup abandoned run recovery failed", "run", run.id, "started", run.started, "error", err)
 		}
@@ -563,9 +571,127 @@ func (s *Service) adhocPlan(ctx context.Context, envID, containerID string, inpu
 }
 
 func (s *Service) executeRun(ctx context.Context, plan *BackupPlan, runID string) (*BackupRun, error) {
+	done := markBackupRunActive(runID)
+	defer done()
+
+	if s.canRunAgentLocalBackup(ctx, plan) {
+		return s.executeAgentLocalBackup(ctx, plan, runID)
+	}
+
 	archive, execErr := s.writeArchive(ctx, plan, runID)
 	if execErr == nil {
 		execErr = s.uploadArchiveDestinations(ctx, plan, runID, archive)
+	}
+	return s.finishRun(ctx, runID, archive, execErr)
+}
+
+func (s *Service) canRunAgentLocalBackup(ctx context.Context, plan *BackupPlan) bool {
+	if s.backupCrypto == nil || plan == nil || !s.pool.IsAgentEnv(plan.EnvironmentID) || !s.pool.AgentAtLeast(plan.EnvironmentID, agentBackupMinVersion) {
+		return false
+	}
+	ids := backupStorageLocationIDs(plan.StorageLocationID, plan.StorageLocationIDs)
+	if len(ids) == 0 {
+		return false
+	}
+	locations, err := s.backupStorageDestinations(ctx, ids)
+	if err != nil || len(locations) != len(ids) {
+		return false
+	}
+	for _, location := range locations {
+		if location.LocationType != "local" {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Service) executeAgentLocalBackup(ctx context.Context, plan *BackupPlan, runID string) (*BackupRun, error) {
+	locations, err := s.backupStorageDestinations(ctx, backupStorageLocationIDs(plan.StorageLocationID, plan.StorageLocationIDs))
+	if err != nil {
+		return s.finishRun(ctx, runID, archiveResult{}, err)
+	}
+	if len(locations) == 0 {
+		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("backup storage location is required for agent-side backup"))
+	}
+	agentConn, ok := s.pool.AgentConnection(plan.EnvironmentID)
+	if !ok || agentConn.Transport == nil {
+		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("agent not connected for environment %s", plan.EnvironmentID))
+	}
+
+	destinations := make([]coreagent.BackupStorageDestination, 0, len(locations))
+	destinationIDs := make(map[string]string, len(locations))
+	remotePaths := make(map[string]string, len(locations))
+	for _, location := range locations {
+		remotePath := backupStorageRemotePath(location, plan, runID)
+		destinationID, createErr := s.createRunDestination(ctx, runID, location, remotePath)
+		if createErr != nil {
+			return s.finishRun(ctx, runID, archiveResult{}, createErr)
+		}
+		destinationIDs[location.ID] = destinationID
+		remotePaths[location.ID] = remotePath
+		if !location.Enabled {
+			uploadErr := fmt.Errorf("backup storage location is disabled")
+			if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", uploadErr); markErr != nil && s.logger != nil {
+				s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
+			}
+			return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("uploading backup destination %s: %w", location.Name, uploadErr))
+		}
+		entry, transferErr := agentArchiveTransfers.createUpload(runID, remotePath)
+		if transferErr != nil {
+			return s.finishRun(ctx, runID, archiveResult{}, transferErr)
+		}
+		defer agentArchiveTransfers.cancel(entry.ID)
+		destinations = append(destinations, coreagent.BackupStorageDestination{
+			ID:           location.ID,
+			Name:         location.Name,
+			LocationType: location.LocationType,
+			UploadURL:    "/api/container-backups/internal/agent-archives/" + entry.ID,
+			Token:        entry.Token,
+			RemotePath:   remotePath,
+		})
+	}
+
+	payload := coreagent.BackupPayload{
+		TransferID:          runID,
+		ContainerID:         plan.ContainerID,
+		ContainerName:       plan.ContainerName,
+		IncludeConfig:       plan.IncludeConfig,
+		IncludeLogs:         plan.IncludeLogs,
+		IncludeFilesystem:   plan.IncludeFilesystem,
+		IncludeImage:        plan.IncludeImage,
+		SelectedMounts:      plan.SelectedMounts,
+		EncryptionKey:       s.backupCrypto.KeyMaterialBase64(),
+		StorageDestinations: destinations,
+	}
+	s.updateRunProgress(ctx, runID, "agent_backup", "Agent is creating the backup archive locally.")
+	result, execErr := agentConn.Transport.StartBackupRun(ctx, payload, func(progress coreagent.BackupPayload) {
+		stage := strings.TrimSpace(progress.Stage)
+		if stage == "" {
+			stage = "agent_backup"
+		}
+		message := agentBackupProgressMessage(progress)
+		s.updateRunProgress(ctx, runID, stage, message)
+	})
+
+	archive := archiveResult{encryption: backupcrypto.Algorithm, keyID: s.backupCrypto.KeyID()}
+	if result != nil {
+		archive.size = result.Size
+	}
+	for _, location := range locations {
+		destinationID := destinationIDs[location.ID]
+		remotePath := remotePaths[location.ID]
+		if execErr != nil {
+			if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", execErr); markErr != nil && s.logger != nil {
+				s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
+			}
+			continue
+		}
+		if archive.path == "" {
+			archive.path = remotePath
+		}
+		if err := s.finishRunDestination(ctx, destinationID, "success", remotePath, nil); err != nil && execErr == nil {
+			execErr = err
+		}
 	}
 	return s.finishRun(ctx, runID, archive, execErr)
 }
@@ -681,6 +807,22 @@ func (s *Service) finishRun(ctx context.Context, runID string, archive archiveRe
 		s.logger.Warn("container backup retention pruning failed", "plan", run.PlanID, "env", run.EnvironmentID, "container", run.ContainerID, "error", err)
 	}
 	return run, nil
+}
+
+func markBackupRunActive(runID string) func() {
+	runID = strings.TrimSpace(runID)
+	if runID == "" {
+		return func() {}
+	}
+	activeBackupRuns.Store(runID, struct{}{})
+	return func() {
+		activeBackupRuns.Delete(runID)
+	}
+}
+
+func backupRunIsActive(runID string) bool {
+	_, ok := activeBackupRuns.Load(strings.TrimSpace(runID))
+	return ok
 }
 
 func backupRunFailureStage(operation, stage string) string {
@@ -804,6 +946,9 @@ func (s *Service) recoverAbandonedRestoreRuns(ctx context.Context, envID, contai
 	}
 
 	for _, run := range runs {
+		if backupRunIsActive(run.id) {
+			continue
+		}
 		_, err := s.finishRun(ctx, run.id, archiveResult{}, fmt.Errorf("restore abandoned before completion"))
 		if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) && s.logger != nil {
 			s.logger.Warn("container restore abandoned run recovery failed", "run", run.id, "started", run.started, "error", err)
@@ -1156,6 +1301,9 @@ func (s *Service) createRestoreRun(ctx context.Context, sourceRun *BackupRun) (*
 
 func (s *Service) startBackgroundRestore(restoreRunID, sourceRunID string, input RestoreBackupInput) {
 	go func() {
+		done := markBackupRunActive(restoreRunID)
+		defer done()
+
 		ctx, cancel := context.WithTimeout(context.Background(), backupRunBackgroundTimeout)
 		defer cancel()
 
@@ -1173,6 +1321,9 @@ func (s *Service) startBackgroundRestore(restoreRunID, sourceRunID string, input
 func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run *BackupRun, input RestoreBackupInput) (*RestoreBackupResult, error) {
 	if run.Operation != "backup" || run.Status != "success" || strings.TrimSpace(run.ArchivePath) == "" {
 		return nil, ErrBackupRunNotDownloadable
+	}
+	if s.canRunAgentRestore(run) {
+		return s.restoreFromRunViaAgentArchive(ctx, progressRunID, run, input)
 	}
 	if progressRunID != "" {
 		s.updateRunProgress(ctx, progressRunID, "restore_scanning", "")
@@ -1270,6 +1421,63 @@ func (s *Service) restoreFromRun(ctx context.Context, progressRunID string, run 
 	}
 
 	return &RestoreBackupResult{RunID: run.ID, Restored: restored}, nil
+}
+
+func (s *Service) canRunAgentRestore(run *BackupRun) bool {
+	if run == nil || !s.pool.IsAgentEnv(run.EnvironmentID) || !s.pool.AgentAtLeast(run.EnvironmentID, agentBackupMinVersion) {
+		return false
+	}
+	return strings.TrimSpace(run.ArchivePath) != ""
+}
+
+func (s *Service) restoreFromRunViaAgentArchive(ctx context.Context, progressRunID string, run *BackupRun, input RestoreBackupInput) (*RestoreBackupResult, error) {
+	cryptoSvc, err := s.restoreCrypto(run, input.SecretKey)
+	if err != nil {
+		return nil, err
+	}
+	archivePath, err := s.validatedArchivePath(run.ArchivePath)
+	if err != nil {
+		return nil, err
+	}
+	agentConn, ok := s.pool.AgentConnection(run.EnvironmentID)
+	if !ok || agentConn.Transport == nil {
+		return nil, fmt.Errorf("agent not connected for environment %s", run.EnvironmentID)
+	}
+	entry, err := agentArchiveTransfers.createDownload(run.ID, archivePath)
+	if err != nil {
+		return nil, err
+	}
+	defer agentArchiveTransfers.cancel(entry.ID)
+
+	if progressRunID != "" {
+		s.updateRunProgress(ctx, progressRunID, "restore_download", "Agent is downloading backup archive.")
+	}
+	payload := coreagent.BackupPayload{
+		TransferID:    entry.ID,
+		ContainerID:   run.ContainerID,
+		ArchiveURL:    "/api/container-backups/internal/agent-archives/" + entry.ID,
+		ArchiveToken:  entry.Token,
+		ArchiveSize:   run.ArchiveSize,
+		EncryptionKey: cryptoSvc.KeyMaterialBase64(),
+		RestoreItems:  input.RestoreItems,
+	}
+	result, err := agentConn.Transport.StartBackupRestore(ctx, payload, func(progress coreagent.BackupPayload) {
+		if progressRunID == "" {
+			return
+		}
+		stage := strings.TrimSpace(progress.Stage)
+		if stage == "" {
+			stage = "restore_download"
+		}
+		s.updateRunProgress(ctx, progressRunID, stage, agentBackupProgressMessage(progress))
+	})
+	if err != nil {
+		return nil, err
+	}
+	if result == nil || len(result.Restored) == 0 {
+		return nil, ErrBackupRestoreNoRestorableEntries
+	}
+	return &RestoreBackupResult{RunID: run.ID, Restored: result.Restored}, nil
 }
 
 func (s *Service) copyRestoreEntryToContainer(ctx context.Context, cli *client.Client, run *BackupRun, progressRunID, progressStage, label, entryName, targetPath string, reader io.Reader, size int64, secretKey string) error {
@@ -1875,6 +2083,35 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 
 func backupMountEntryName(mountPath string) string {
 	return "mounts/" + safeArchiveName.ReplaceAllString(strings.Trim(mountPath, "/"), "-") + ".tar"
+}
+
+func agentBackupProgressMessage(progress coreagent.BackupPayload) string {
+	stage := strings.TrimSpace(progress.Stage)
+	switch stage {
+	case "agent_backup", "manifest", "config", "logs", "filesystem", "image", "mounts", "finalizing":
+		if progress.Bytes > 0 {
+			return fmt.Sprintf("Agent is creating the backup archive (%s written).", formatBackupUploadBytes(progress.Bytes))
+		}
+		return "Agent is creating the backup archive locally."
+	case "uploading":
+		name := strings.TrimSpace(progress.StorageLocationID)
+		if progress.Size > 0 {
+			return fmt.Sprintf("Agent is uploading backup to %s (%s of %s).", name, formatBackupUploadBytes(progress.Bytes), formatBackupUploadBytes(progress.Size))
+		}
+		if progress.Bytes > 0 {
+			return fmt.Sprintf("Agent is uploading backup to %s (%s sent).", name, formatBackupUploadBytes(progress.Bytes))
+		}
+		return "Agent is uploading backup to " + name + "."
+	case "restore_download":
+		if progress.Size > 0 {
+			return fmt.Sprintf("Agent is downloading backup archive (%s of %s).", formatBackupUploadBytes(progress.Bytes), formatBackupUploadBytes(progress.Size))
+		}
+		return fmt.Sprintf("Agent is downloading backup archive (%s received).", formatBackupUploadBytes(progress.Bytes))
+	case "restore_apply":
+		return "Agent is restoring backup entries locally."
+	default:
+		return strings.TrimSpace(progress.Stage)
+	}
 }
 
 func writeBytes(tw *tar.Writer, name string, data []byte) error {

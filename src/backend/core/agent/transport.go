@@ -295,6 +295,53 @@ func (t *AgentTransport) startPullTransfer(ctx context.Context, payload Transfer
 	}
 }
 
+// StartBackupRun asks an agent to create an encrypted backup archive locally and upload it.
+func (t *AgentTransport) StartBackupRun(ctx context.Context, payload BackupPayload, onProgress func(BackupPayload)) (*BackupPayload, error) {
+	return t.startBackupOperation(ctx, MsgBackupRun, payload, onProgress)
+}
+
+// StartBackupRestore asks an agent to download an encrypted archive and restore entries locally.
+func (t *AgentTransport) StartBackupRestore(ctx context.Context, payload BackupPayload, onProgress func(BackupPayload)) (*BackupPayload, error) {
+	return t.startBackupOperation(ctx, MsgBackupRestore, payload, onProgress)
+}
+
+func (t *AgentTransport) startBackupOperation(ctx context.Context, msgType string, payload BackupPayload, onProgress func(BackupPayload)) (*BackupPayload, error) {
+	ch, cleanup := t.registerTransferWaiter(payload.TransferID)
+	defer cleanup()
+
+	if err := t.conn.WriteJSON(WSMessage{Type: msgType, Backup: &payload}); err != nil {
+		return nil, fmt.Errorf("sending backup command to agent: %w", err)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			t.cancelTransfer(payload.TransferID)
+			return nil, ctx.Err()
+		case msg := <-ch:
+			if msg == nil || msg.Backup == nil {
+				continue
+			}
+			switch msg.Type {
+			case MsgTransferProgress:
+				if onProgress != nil {
+					onProgress(*msg.Backup)
+				}
+			case MsgTransferResult:
+				if msg.Backup.Success {
+					return msg.Backup, nil
+				}
+				if msg.Backup.Error != "" {
+					return nil, fmt.Errorf("agent backup operation failed: %s", msg.Backup.Error)
+				}
+				return nil, fmt.Errorf("agent backup operation failed")
+			}
+		case <-t.done:
+			return nil, fmt.Errorf("agent transport closed")
+		}
+	}
+}
+
 // StartArchiveTransfer asks a source agent to stream a container archive directly to a target upload URL.
 func (t *AgentTransport) StartArchiveTransfer(ctx context.Context, transferID, containerID, sourcePath, uploadURL, token string, onProgress func(int64)) error {
 	ch, cleanup := t.registerTransferWaiter(transferID)
@@ -808,7 +855,20 @@ func (t *AgentTransport) ReadLoop() error {
 			}
 
 		case MsgTransferReady, MsgTransferProgress, MsgTransferResult:
-			if msg.Transfer == nil {
+			if msg.Transfer == nil && msg.Backup == nil {
+				continue
+			}
+			if msg.Backup != nil {
+				t.mu.Lock()
+				ch := t.transferWaiters[msg.Backup.TransferID]
+				t.mu.Unlock()
+				if ch != nil {
+					select {
+					case ch <- &msg:
+					default:
+						t.logger.Warn("agent backup message dropped", "transferId", msg.Backup.TransferID, "type", msg.Type)
+					}
+				}
 				continue
 			}
 			diagnosticOnly := msg.Type == MsgTransferResult && msg.Transfer.Diagnostic != nil

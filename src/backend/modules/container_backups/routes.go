@@ -16,6 +16,8 @@ func Mount(app *router.AppDeps) {
 
 	app.RegisterPublicRoutes(func(r chi.Router) {
 		r.Get("/container-backups/internal/transfers/{transferId}", h.HandleRestoreTransfer)
+		r.Put("/container-backups/internal/agent-archives/{transferId}", h.HandleAgentArchiveUpload)
+		r.Get("/container-backups/internal/agent-archives/{transferId}", h.HandleAgentArchiveDownload)
 	})
 
 	app.RegisterProtectedRoutes(func(r chi.Router) {
