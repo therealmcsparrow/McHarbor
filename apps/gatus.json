@@ -4,7 +4,7 @@
   "description": "Developer-oriented status page and uptime monitor.",
   "category": "Monitoring",
   "image": "twinproduction/gatus:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/gatus.svg",
   "website": "https://gatus.io",
   "docsUrl": "https://gatus.io/docs",
   "ports": [

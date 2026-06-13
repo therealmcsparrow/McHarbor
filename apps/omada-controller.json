@@ -4,7 +4,7 @@
   "description": "TP-Link Omada SDN controller for access points and switches.",
   "category": "Networking",
   "image": "mbentley/omada-controller:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/omada.svg",
   "website": "https://github.com/mbentley/docker-omada-controller",
   "docsUrl": "https://github.com/mbentley/docker-omada-controller",
   "ports": [

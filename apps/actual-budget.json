@@ -4,7 +4,7 @@
   "description": "Local-first personal finance and budgeting app.",
   "category": "Productivity",
   "image": "actualbudget/actual-server:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/actual-budget.svg",
   "website": "https://actualbudget.org",
   "docsUrl": "https://actualbudget.org/docs",
   "ports": [

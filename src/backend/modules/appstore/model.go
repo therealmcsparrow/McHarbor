@@ -32,6 +32,7 @@ type AppTemplate struct {
 	MinMemory       string `json:"minMemory,omitempty"`
 	Source          string `json:"source"`
 	Version         string `json:"version"`
+	UpdatedAt       string `json:"updatedAt"`
 	// Populated at query time from the installation records.
 	Installed     bool              `json:"installed"`
 	StackID       string            `json:"stackId,omitempty"`

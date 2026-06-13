@@ -4,7 +4,7 @@
   "description": "Automatic HTTPS web server and reverse proxy.",
   "category": "Networking",
   "image": "caddy:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/caddy.svg",
   "website": "https://caddyserver.com",
   "docsUrl": "https://caddyserver.com/docs",
   "ports": [

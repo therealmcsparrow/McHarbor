@@ -4,7 +4,7 @@
   "description": "Self-hosted photo management service with object and face recognition.",
   "category": "Photos & Files",
   "image": "reallibrephotos/librephotos:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/librephotos.svg",
   "website": "https://docs.librephotos.com",
   "docsUrl": "https://docs.librephotos.com",
   "ports": [

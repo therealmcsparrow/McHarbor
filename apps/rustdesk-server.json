@@ -4,7 +4,7 @@
   "description": "Self-hosted relay and rendezvous server for RustDesk remote desktop.",
   "category": "Networking",
   "image": "rustdesk/rustdesk-server:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/rustdesk.svg",
   "website": "https://rustdesk.com",
   "docsUrl": "https://rustdesk.com/docs",
   "ports": [

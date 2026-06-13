@@ -4,7 +4,7 @@
   "description": "Rule-based file processing and media conversion automation.",
   "category": "Media",
   "image": "revenz/fileflows:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/fileflows.svg",
   "website": "https://fileflows.com",
   "docsUrl": "https://fileflows.com/docs",
   "ports": [

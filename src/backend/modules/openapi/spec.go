@@ -1878,6 +1878,37 @@ func buildPaths() map[string]any {
 				},
 			}),
 		),
+		"/app-store/installations/{id}": path(
+			op(operationSpec{
+				Method:      "DELETE",
+				Summary:     "Uninstall an app installation",
+				Description: "Removes one Store app installation by tearing down its managed stack resources and deleting the active installation record.",
+				OperationID: "appStoreInstallationDelete",
+				Tags:        []string{"app-store"},
+				Parameters:  []any{pathParam("id", "App installation ID")},
+				Responses: map[string]any{
+					"204": noContentResponse("App installation removed"),
+					"404": errorResponse("App installation not found"),
+				},
+			}),
+		),
+		"/app-store/installations/{id}/uninstall/stream": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Uninstall an app with streaming progress",
+				Description: "Removes one Store app installation and streams cleanup progress over Server-Sent Events, including containers, volumes, networks, images, stack metadata, and the installation record.",
+				OperationID: "appStoreInstallationUninstallStream",
+				Tags:        []string{"app-store", "telemetry"},
+				Parameters:  []any{pathParam("id", "App installation ID")},
+				Responses: map[string]any{
+					"200": sseResponse("App removal progress stream"),
+					"404": errorResponse("App installation not found"),
+				},
+				Extensions: map[string]any{
+					"x-mcharbor-transport": "sse",
+				},
+			}),
+		),
 		"/widgets/definitions": path(
 			op(operationSpec{
 				Method:      "GET",
@@ -2827,12 +2858,24 @@ func buildSchemas() map[string]any {
 		"AppStoreItem": map[string]any{
 			"type": "object",
 			"properties": map[string]any{
-				"slug":          map[string]any{"type": "string"},
-				"name":          map[string]any{"type": "string"},
-				"category":      map[string]any{"type": "string"},
-				"description":   map[string]any{"type": "string"},
-				"latestVersion": map[string]any{"type": "string"},
-				"installed":     map[string]any{"type": "boolean"},
+				"slug":        map[string]any{"type": "string"},
+				"name":        map[string]any{"type": "string"},
+				"category":    map[string]any{"type": "string"},
+				"description": map[string]any{"type": "string"},
+				"version":     map[string]any{"type": "string"},
+				"updatedAt":   map[string]any{"type": "string"},
+				"installed":   map[string]any{"type": "boolean"},
+				"installations": arrayOf(map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"id":              map[string]any{"type": "string"},
+						"stackId":         map[string]any{"type": "string"},
+						"stackName":       map[string]any{"type": "string"},
+						"environmentId":   map[string]any{"type": "string"},
+						"environmentName": map[string]any{"type": "string"},
+						"installedAt":     map[string]any{"type": "string"},
+					},
+				}),
 			},
 		},
 		"WidgetDefinition": map[string]any{

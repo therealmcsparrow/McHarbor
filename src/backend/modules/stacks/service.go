@@ -27,6 +27,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	sdkclient "github.com/docker/docker/client"
@@ -910,12 +911,110 @@ func (s *Service) DownStack(ctx context.Context, envID, name string) error {
 	return nil
 }
 
-// RemoveStack fully removes a stack: down containers/volumes/networks + delete DB record + remove files.
+// RemoveStack fully removes a stack: down containers/volumes/networks/images + delete DB record + remove files.
 func (s *Service) RemoveStack(ctx context.Context, envID, name string) error {
-	// Tear down Docker resources.
-	if err := s.DownStack(ctx, envID, name); err != nil {
+	return s.RemoveStackWithProgress(ctx, envID, name, nil)
+}
+
+// RemoveStackWithProgress removes a stack and reports coarse-grained cleanup progress.
+func (s *Service) RemoveStackWithProgress(ctx context.Context, envID, name string, progress func(int, int, string, string)) error {
+	const totalSteps = 8
+	emit := func(step int, message, phase string) {
+		if progress != nil {
+			progress(step, totalSteps, message, phase)
+		}
+	}
+
+	emit(1, "Inspecting stack resources...", "inspect")
+	cli, err := s.dockerPool.Get(envID)
+	if err != nil {
+		return fmt.Errorf("docker connection failed: %w", err)
+	}
+
+	opCtx, cancel := context.WithTimeout(ctx, 3*time.Minute)
+	defer cancel()
+
+	containers, err := s.StackContainers(opCtx, envID, name)
+	if err != nil {
 		return err
 	}
+
+	bindMounts := make([]string, 0)
+	imageRefs := make(map[string]struct{})
+	for _, c := range containers {
+		if c.Image != "" {
+			imageRefs[c.Image] = struct{}{}
+		}
+		for _, m := range c.Mounts {
+			if m.Type == "bind" {
+				bindMounts = append(bindMounts, m.Source)
+			}
+		}
+	}
+
+	emit(2, fmt.Sprintf("Stopping %d container(s)...", len(containers)), "containers")
+	timeout := 10
+	for _, c := range containers {
+		if c.State != "running" {
+			continue
+		}
+		if err := cli.ContainerStop(opCtx, c.ID, container.StopOptions{Timeout: &timeout}); err != nil && !sdkclient.IsErrNotFound(err) {
+			slog.Warn("stacks: failed to stop container during removal", "error", err, "container", c.ID, "stack", name)
+		}
+	}
+
+	emit(3, fmt.Sprintf("Removing %d container(s)...", len(containers)), "containers")
+	for _, c := range containers {
+		if err := cli.ContainerRemove(opCtx, c.ID, container.RemoveOptions{
+			Force:         true,
+			RemoveVolumes: true,
+		}); err != nil && !sdkclient.IsErrNotFound(err) {
+			return fmt.Errorf("removing container %s: %w", c.ID, err)
+		}
+	}
+
+	emit(4, "Removing stack volumes and bind-mount data...", "volumes")
+	vols, err := cli.VolumeList(opCtx, volume.ListOptions{
+		Filters: filters.NewArgs(
+			filters.Arg("label", "com.docker.compose.project="+name),
+		),
+	})
+	if err != nil {
+		slog.Warn("stacks: failed to list volumes during removal", "error", err, "stack", name)
+	} else {
+		for _, v := range vols.Volumes {
+			if err := cli.VolumeRemove(opCtx, v.Name, true); err != nil && !sdkclient.IsErrNotFound(err) {
+				slog.Warn("stacks: failed to remove volume during removal", "error", err, "volume", v.Name, "stack", name)
+			}
+		}
+	}
+	docker.RemoveBindMounts(opCtx, cli, bindMounts)
+
+	emit(5, "Removing stack networks...", "networks")
+	nets, err := cli.NetworkList(opCtx, network.ListOptions{
+		Filters: filters.NewArgs(
+			filters.Arg("label", "com.docker.compose.project="+name),
+		),
+	})
+	if err != nil {
+		slog.Warn("stacks: failed to list networks during removal", "error", err, "stack", name)
+	} else {
+		for _, n := range nets {
+			if err := cli.NetworkRemove(opCtx, n.ID); err != nil && !sdkclient.IsErrNotFound(err) {
+				slog.Warn("stacks: failed to remove network during removal", "error", err, "network", n.ID, "stack", name)
+			}
+		}
+	}
+
+	emit(6, fmt.Sprintf("Removing %d image(s) used by the app...", len(imageRefs)), "images")
+	for ref := range imageRefs {
+		if _, err := cli.ImageRemove(opCtx, ref, image.RemoveOptions{PruneChildren: true}); err != nil && !sdkclient.IsErrNotFound(err) {
+			slog.Warn("stacks: image removal skipped or failed", "error", err, "image", ref, "stack", name)
+			emit(6, fmt.Sprintf("Skipped image %s because Docker could not remove it.", ref), "warning")
+		}
+	}
+
+	emit(7, "Removing stack metadata...", "stack")
 
 	// Clean up managed stack from DB.
 	st, err := s.ByName(name)
@@ -933,6 +1032,8 @@ func (s *Service) RemoveStack(ctx context.Context, envID, name string) error {
 			os.RemoveAll(st.ProjectPath) // safe: best-effort filesystem cleanup
 		}
 	}
+
+	emit(8, "Removal complete.", "done")
 	return nil
 }
 

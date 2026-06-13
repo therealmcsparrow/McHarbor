@@ -4,7 +4,7 @@
   "description": "Self-hosted coordination server for Tailscale-compatible networks.",
   "category": "Networking",
   "image": "headscale/headscale:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/headscale.svg",
   "website": "https://headscale.net",
   "docsUrl": "https://headscale.net",
   "ports": [

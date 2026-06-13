@@ -4,7 +4,7 @@
   "description": "Self-hosted bookmark, note, and read-it-later archive.",
   "category": "Productivity",
   "image": "ghcr.io/karakeep-app/karakeep:release",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/karakeep.svg",
   "website": "https://karakeep.app",
   "docsUrl": "https://docs.karakeep.app",
   "ports": [

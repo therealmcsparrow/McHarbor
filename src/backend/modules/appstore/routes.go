@@ -32,6 +32,8 @@ func MountWithService(app *router.AppDeps, service *Service) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStoreAppsView)).Get("/sync/status", h.HandleSyncStatus)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStoreAppsManage)).Post("/install", h.HandleInstall)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStoreAppsManage)).Post("/install/stream", h.HandleInstallStream)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStoreAppsManage)).Post("/installations/{id}/uninstall/stream", h.HandleUninstallStream)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStoreAppsManage)).Delete("/installations/{id}", h.HandleUninstall)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStoreAppsManage)).Post("/sync", h.HandleSync)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermStoreAppsView)).Get("/{slug}", h.HandleGet)
 		})

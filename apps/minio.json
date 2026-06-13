@@ -4,7 +4,7 @@
   "description": "S3-compatible object storage for backups and homelab data.",
   "category": "Photos & Files",
   "image": "quay.io/minio/minio:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/minio.svg",
   "website": "https://min.io",
   "docsUrl": "https://min.io/docs",
   "ports": [

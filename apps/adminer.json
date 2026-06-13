@@ -4,7 +4,7 @@
   "description": "Single-file database administration UI.",
   "category": "Developer Tools",
   "image": "adminer:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/adminer.svg",
   "website": "https://www.adminer.org",
   "docsUrl": "https://hub.docker.com/_/adminer",
   "ports": [

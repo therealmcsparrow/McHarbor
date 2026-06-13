@@ -4,7 +4,7 @@
   "description": "Automation for racing torrents from IRC announce channels.",
   "category": "Media",
   "image": "ghcr.io/autobrr/autobrr:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/autobrr.svg",
   "website": "https://autobrr.com",
   "docsUrl": "https://autobrr.com",
   "ports": [

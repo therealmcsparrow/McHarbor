@@ -4,7 +4,7 @@
   "description": "Lightweight Subsonic-compatible music server.",
   "category": "Media",
   "image": "deluan/navidrome:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/navidrome.svg",
   "website": "https://www.navidrome.org",
   "docsUrl": "https://www.navidrome.org/docs",
   "ports": [

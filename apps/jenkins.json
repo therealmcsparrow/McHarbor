@@ -4,7 +4,7 @@
   "description": "Automation server for builds, tests, and deployment pipelines.",
   "category": "Developer Tools",
   "image": "jenkins/jenkins:lts",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/jenkins.svg",
   "website": "https://www.jenkins.io",
   "docsUrl": "https://www.jenkins.io/doc/book/installing/docker/",
   "ports": [

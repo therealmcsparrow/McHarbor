@@ -4,7 +4,7 @@
   "description": "Subtitle management and automation for Sonarr and Radarr libraries.",
   "category": "Media",
   "image": "lscr.io/linuxserver/bazarr:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/bazarr.svg",
   "website": "https://docs.linuxserver.io/images/docker-bazarr/",
   "docsUrl": "https://docs.linuxserver.io/images/docker-bazarr/",
   "ports": [

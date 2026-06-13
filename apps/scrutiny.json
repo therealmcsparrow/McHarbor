@@ -4,7 +4,7 @@
   "description": "Web UI for SMART disk health, temperature, and metrics.",
   "category": "Monitoring",
   "image": "ghcr.io/analogj/scrutiny:master-omnibus",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/scrutiny.svg",
   "website": "https://github.com/AnalogJ/scrutiny",
   "docsUrl": "https://github.com/AnalogJ/scrutiny",
   "ports": [

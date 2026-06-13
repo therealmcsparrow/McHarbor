@@ -4,7 +4,7 @@
   "description": "Web UI for browsing a Docker Registry v2 instance.",
   "category": "Developer Tools",
   "image": "joxit/docker-registry-ui:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/registry-console.svg",
   "website": "https://github.com/Joxit/docker-registry-ui",
   "docsUrl": "https://github.com/Joxit/docker-registry-ui",
   "ports": [

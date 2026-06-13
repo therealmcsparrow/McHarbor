@@ -4,7 +4,7 @@
   "description": "Privacy-respecting metasearch engine.",
   "category": "Productivity",
   "image": "searxng/searxng:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/searxng.svg",
   "website": "https://docs.searxng.org",
   "docsUrl": "https://docs.searxng.org",
   "ports": [

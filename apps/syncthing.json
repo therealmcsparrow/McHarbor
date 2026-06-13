@@ -4,7 +4,7 @@
   "description": "Continuous decentralized file synchronization.",
   "category": "Photos & Files",
   "image": "lscr.io/linuxserver/syncthing:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/syncthing.svg",
   "website": "https://docs.linuxserver.io/images/docker-syncthing/",
   "docsUrl": "https://docs.linuxserver.io/images/docker-syncthing/",
   "ports": [

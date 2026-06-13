@@ -4,7 +4,7 @@
   "description": "Task and project management for personal and team workflows.",
   "category": "Productivity",
   "image": "vikunja/vikunja:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/vikunja.svg",
   "website": "https://vikunja.io",
   "docsUrl": "https://vikunja.io/docs",
   "ports": [

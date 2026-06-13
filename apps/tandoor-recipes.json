@@ -4,7 +4,7 @@
   "description": "Recipe manager, meal planner, and shopping list app.",
   "category": "Productivity",
   "image": "vabene1111/recipes:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/tandoor-recipes.svg",
   "website": "https://tandoor.dev",
   "docsUrl": "https://docs.tandoor.dev",
   "ports": [

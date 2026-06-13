@@ -4,7 +4,7 @@
   "description": "Document organizer and OCR-assisted personal document archive.",
   "category": "Documents",
   "image": "docspell/restserver:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/docspell.svg",
   "website": "https://docspell.org",
   "docsUrl": "https://docspell.org/docs",
   "ports": [

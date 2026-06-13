@@ -4,7 +4,7 @@
   "description": "Efficient Usenet downloader with a web interface.",
   "category": "Media",
   "image": "lscr.io/linuxserver/nzbget:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/nzbget.svg",
   "website": "https://docs.linuxserver.io/images/docker-nzbget/",
   "docsUrl": "https://docs.linuxserver.io/images/docker-nzbget/",
   "ports": [

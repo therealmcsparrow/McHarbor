@@ -4,7 +4,7 @@
   "description": "Document management system for scanned documents and PDFs.",
   "category": "Documents",
   "image": "papermerge/papermerge:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/papermerge.svg",
   "website": "https://papermerge.com",
   "docsUrl": "https://docs.papermerge.io",
   "ports": [

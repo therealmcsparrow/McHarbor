@@ -4,7 +4,7 @@
   "description": "Collaborative bookmark manager and web archive.",
   "category": "Productivity",
   "image": "ghcr.io/linkwarden/linkwarden:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/linkwarden.svg",
   "website": "https://linkwarden.app",
   "docsUrl": "https://docs.linkwarden.app",
   "ports": [

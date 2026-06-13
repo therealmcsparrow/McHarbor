@@ -4,7 +4,7 @@
   "description": "Find cross-seedable torrents across trackers and clients.",
   "category": "Media",
   "image": "ghcr.io/cross-seed/cross-seed:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/cross-seed.svg",
   "website": "https://www.cross-seed.org",
   "docsUrl": "https://www.cross-seed.org/docs",
   "ports": [

@@ -4,7 +4,7 @@
   "description": "Highly configurable dashboard for homelab bookmarks and widgets.",
   "category": "Dashboards",
   "image": "lissy93/dashy:latest",
-  "logo": "",
+  "logo": "https://dashy.to/img/dashy.png",
   "website": "https://dashy.to",
   "docsUrl": "https://dashy.to/docs",
   "ports": [

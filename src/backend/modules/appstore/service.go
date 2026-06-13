@@ -15,8 +15,11 @@ import (
 
 	"github.com/rs/xid"
 
+	mdb "github.com/therealmcsparrow/mcharbor/core/db"
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 )
+
+var ErrInstallationNotFound = errors.New("installation not found")
 
 // Service handles app store operations.
 type Service struct {
@@ -61,6 +64,8 @@ func (s *Service) SeedBundledCatalog() error {
 	}
 	rows.Close()
 
+	bundledSlugs := make(map[string]bool, len(catalog.Apps))
+
 	insertStmt, err := tx.Prepare(`
 		INSERT INTO appstore_catalog
 		(id, slug, name, description, category, image, logo, website, docs_url,
@@ -85,6 +90,8 @@ func (s *Service) SeedBundledCatalog() error {
 	defer updateStmt.Close()
 
 	for _, app := range catalog.Apps {
+		bundledSlugs[app.Slug] = true
+
 		portsJSON, _ := json.Marshal(app.Ports)     // safe: simple struct slice
 		volumesJSON, _ := json.Marshal(app.Volumes) // safe: simple struct slice
 		envJSON, _ := json.Marshal(app.EnvVars)     // safe: simple struct slice
@@ -110,11 +117,33 @@ func (s *Service) SeedBundledCatalog() error {
 		}
 	}
 
+	pruneStmt, err := tx.Prepare(`
+		DELETE FROM appstore_catalog
+		WHERE source = 'bundled'
+		  AND slug = ?
+	`)
+	if err != nil {
+		return fmt.Errorf("preparing prune statement: %w", err)
+	}
+	defer pruneStmt.Close()
+
+	var pruned int64
+	for slug := range existingSlugs {
+		if bundledSlugs[slug] {
+			continue
+		}
+		result, err := pruneStmt.Exec(slug)
+		if err != nil {
+			return fmt.Errorf("pruning removed bundled app %s: %w", slug, err)
+		}
+		pruned += mdb.RowsAffected(result)
+	}
+
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("committing catalog seed: %w", err)
 	}
 
-	s.logger.Info("app store catalog seeded", "apps", len(catalog.Apps))
+	s.logger.Info("app store catalog seeded", "apps", len(catalog.Apps), "pruned", pruned)
 	return nil
 }
 
@@ -145,7 +174,7 @@ func (s *Service) List(category, search string, page, perPage int) ([]AppTemplat
 	query := `
 		SELECT c.id, c.slug, c.name, c.description, c.category, c.image, c.logo,
 		       c.website, c.docs_url, c.ports, c.volumes, c.env_vars,
-		       c.compose_override, c.min_memory, c.source, c.version
+		       c.compose_override, c.min_memory, c.source, c.version, c.updated_at
 		FROM appstore_catalog c
 		WHERE (? = '' OR c.category = ?)
 		  AND (? = '' OR c.name LIKE ? OR c.description LIKE ? OR c.slug LIKE ?)
@@ -191,7 +220,7 @@ func (s *Service) BySlug(slug string) (*AppTemplate, error) {
 	row := s.db.QueryRow(`
 		SELECT c.id, c.slug, c.name, c.description, c.category, c.image, c.logo,
 		       c.website, c.docs_url, c.ports, c.volumes, c.env_vars,
-		       c.compose_override, c.min_memory, c.source, c.version
+		       c.compose_override, c.min_memory, c.source, c.version, c.updated_at
 		FROM appstore_catalog c
 		WHERE c.slug = ?
 	`, slug)
@@ -290,7 +319,11 @@ func (s *Service) Install(ctx context.Context, req InstallRequest) (*InstallResu
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`, id, req.Slug, st.ID, st.Name, req.EnvironmentID, now, now, now)
 	if err != nil {
-		s.logger.Warn("failed to record installation", "slug", req.Slug, "error", err)
+		s.logger.Error("appstore: failed to record installation", "slug", req.Slug, "stack", st.Name, "error", err)
+		if cleanupErr := s.stackSvc.RemoveInstalledStack(ctx, req.EnvironmentID, st.Name); cleanupErr != nil {
+			s.logger.Warn("appstore: failed to clean up stack after record failure", "slug", req.Slug, "stack", st.Name, "error", cleanupErr)
+		}
+		return nil, fmt.Errorf("recording installation for %s: %w", req.Slug, err)
 	}
 
 	return &InstallResult{
@@ -364,7 +397,12 @@ func (s *Service) InstallWithProgress(ctx context.Context, req InstallRequest, e
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`, id, req.Slug, st.ID, st.Name, req.EnvironmentID, now, now, now)
 	if err != nil {
-		s.logger.Warn("failed to record installation", "slug", req.Slug, "error", err)
+		s.logger.Error("appstore: failed to record installation", "slug", req.Slug, "stack", st.Name, "error", err)
+		if cleanupErr := s.stackSvc.RemoveInstalledStack(ctx, req.EnvironmentID, st.Name); cleanupErr != nil {
+			s.logger.Warn("appstore: failed to clean up stack after record failure", "slug", req.Slug, "stack", st.Name, "error", cleanupErr)
+		}
+		events <- InstallEvent{Step: 5, Total: totalSteps, Message: "installation failed", Status: "error"}
+		return
 	}
 
 	// Step 6-7: Vulnerability scan (if enabled)
@@ -419,6 +457,142 @@ func (s *Service) InstalledApps() ([]InstalledApp, error) {
 		apps = []InstalledApp{}
 	}
 	return apps, rows.Err()
+}
+
+func (s *Service) loadInstallation(installationID string) (*AppInstallation, error) {
+	var install AppInstallation
+	var envID sql.NullString
+	err := s.db.QueryRow(`
+		SELECT i.id, i.stack_id, i.stack_name, i.environment_id,
+		       COALESCE(e.name, ''), i.installed_at
+		FROM appstore_installed i
+		LEFT JOIN environments e ON i.environment_id = e.id
+		WHERE i.id = ?
+	`, installationID).Scan(
+		&install.ID,
+		&install.StackID,
+		&install.StackName,
+		&envID,
+		&install.EnvironmentName,
+		&install.InstalledAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrInstallationNotFound
+	}
+	if err != nil {
+		return nil, fmt.Errorf("querying app installation: %w", err)
+	}
+	if envID.Valid {
+		install.EnvironmentID = envID.String
+	}
+
+	return &install, nil
+}
+
+// Uninstall removes a store-installed stack and its active installation record.
+func (s *Service) Uninstall(ctx context.Context, installationID string) (*AppInstallation, error) {
+	return s.uninstall(ctx, installationID, nil)
+}
+
+// UninstallWithProgress removes a store-installed stack and streams progress events.
+func (s *Service) UninstallWithProgress(ctx context.Context, installationID string, events chan<- InstallEvent) {
+	defer close(events)
+
+	_, err := s.uninstall(ctx, installationID, func(event InstallEvent) {
+		events <- event
+	})
+	if err != nil {
+		if errors.Is(err, ErrInstallationNotFound) {
+			events <- InstallEvent{Step: 1, Total: 1, Message: "Installation not found.", Status: "error"}
+			return
+		}
+		s.logger.Error("appstore: failed to uninstall app", "installation", installationID, "error", err)
+		events <- InstallEvent{Step: 1, Total: 1, Message: "Uninstall failed.", Status: "error"}
+	}
+}
+
+func (s *Service) uninstall(ctx context.Context, installationID string, emit func(InstallEvent)) (*AppInstallation, error) {
+	install, err := s.loadInstallation(installationID)
+	if err != nil {
+		return nil, err
+	}
+
+	const totalSteps = 10
+	send := func(step int, message, phase string) {
+		if emit != nil {
+			emit(InstallEvent{
+				Step:      step,
+				Total:     totalSteps,
+				Message:   message,
+				Status:    "progress",
+				Phase:     phase,
+				StackID:   install.StackID,
+				StackName: install.StackName,
+			})
+		}
+	}
+
+	send(1, "Preparing app removal...", "uninstall")
+
+	if s.stackSvc == nil {
+		return nil, fmt.Errorf("stack installer unavailable")
+	}
+
+	remove := s.stackSvc.RemoveInstalledStack
+	if emit != nil {
+		remove = func(ctx context.Context, envID, stackName string) error {
+			return s.stackSvc.RemoveInstalledStackWithProgress(ctx, envID, stackName, func(step, total int, message, phase string) {
+				mappedStep := step + 1
+				if mappedStep > totalSteps-1 {
+					mappedStep = totalSteps - 1
+				}
+				emit(InstallEvent{
+					Step:      mappedStep,
+					Total:     totalSteps,
+					Message:   message,
+					Status:    "progress",
+					Phase:     phase,
+					StackID:   install.StackID,
+					StackName: install.StackName,
+				})
+			})
+		}
+	}
+
+	if err := remove(ctx, install.EnvironmentID, install.StackName); err != nil {
+		return nil, fmt.Errorf("removing stack for installation: %w", err)
+	}
+
+	send(10, "Removing installation record...", "record")
+	result, err := s.db.Exec("DELETE FROM appstore_installed WHERE id = ?", installationID)
+	if err != nil {
+		return nil, fmt.Errorf("deleting app installation record: %w", err)
+	}
+	if mdb.RowsAffected(result) == 0 && emit != nil {
+		emit(InstallEvent{
+			Step:      totalSteps,
+			Total:     totalSteps,
+			Message:   "Installation record already removed.",
+			Status:    "progress",
+			Phase:     "record",
+			StackID:   install.StackID,
+			StackName: install.StackName,
+		})
+	}
+
+	if emit != nil {
+		emit(InstallEvent{
+			Step:      totalSteps,
+			Total:     totalSteps,
+			Message:   "App removal complete.",
+			Status:    "done",
+			Phase:     "done",
+			StackID:   install.StackID,
+			StackName: install.StackName,
+		})
+	}
+
+	return install, nil
 }
 
 // SyncStatus returns the latest remote catalog sync status.
@@ -482,7 +656,7 @@ func (s *Service) scanCatalogApp(scanner rowScanner) (AppTemplate, error) {
 		&app.ID, &app.Slug, &app.Name, &app.Description, &app.Category,
 		&app.Image, &app.Logo, &app.Website, &app.DocsURL,
 		&portsJSON, &volumesJSON, &envJSON,
-		&app.ComposeOverride, &app.MinMemory, &app.Source, &app.Version,
+		&app.ComposeOverride, &app.MinMemory, &app.Source, &app.Version, &app.UpdatedAt,
 	)
 	if err != nil {
 		return app, fmt.Errorf("scanning app: %w", err)

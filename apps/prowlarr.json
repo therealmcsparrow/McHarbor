@@ -4,7 +4,7 @@
   "description": "Indexer manager and proxy for the Servarr media automation stack.",
   "category": "Media",
   "image": "lscr.io/linuxserver/prowlarr:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/prowlarr.svg",
   "website": "https://docs.linuxserver.io/images/docker-prowlarr/",
   "docsUrl": "https://docs.linuxserver.io/images/docker-prowlarr/",
   "ports": [

@@ -4,7 +4,7 @@
   "description": "Simple self-hosted file sharing with expiring links.",
   "category": "Photos & Files",
   "image": "stonith404/pingvin-share:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/pingvin-share.svg",
   "website": "https://stonith404.github.io/pingvin-share",
   "docsUrl": "https://stonith404.github.io/pingvin-share",
   "ports": [

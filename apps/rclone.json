@@ -4,7 +4,7 @@
   "description": "Cloud storage sync and mount tool with a web UI mode.",
   "category": "Backups",
   "image": "rclone/rclone:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/rclone.svg",
   "website": "https://rclone.org",
   "docsUrl": "https://rclone.org/docs/",
   "ports": [

@@ -68,6 +68,24 @@ export function useInstallApp() {
   });
 }
 
+export function useUninstallApp() {
+  const { t } = useTranslation('common');
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (installationId: string) =>
+      api.del(`/app-store/installations/${installationId}`).then((r) => {
+        if (!r.success) throw new Error(r.error ?? 'Uninstall failed');
+        return r.data;
+      }),
+    meta: { success: t('appStore.mutationUninstalled') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['app-store'] });
+      queryClient.invalidateQueries({ queryKey: ['stacks'] });
+    },
+  });
+}
+
 export function useSyncCatalog() {
   const { t } = useTranslation('common');
   const queryClient = useQueryClient();

@@ -4,7 +4,7 @@
   "description": "Identity provider with SSO, OAuth2, SAML, LDAP, and proxy auth.",
   "category": "Security",
   "image": "ghcr.io/goauthentik/server:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/authentik.svg",
   "website": "https://goauthentik.io",
   "docsUrl": "https://docs.goauthentik.io",
   "ports": [

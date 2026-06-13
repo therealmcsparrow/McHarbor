@@ -4,7 +4,7 @@
   "description": "Minimalist and opinionated RSS feed reader.",
   "category": "Productivity",
   "image": "miniflux/miniflux:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/miniflux.svg",
   "website": "https://miniflux.app",
   "docsUrl": "https://miniflux.app/docs",
   "ports": [

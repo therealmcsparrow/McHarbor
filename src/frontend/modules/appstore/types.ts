@@ -48,6 +48,7 @@ export interface AppTemplate {
   minMemory?: string;
   source: string;
   version: string;
+  updatedAt: string;
   installed: boolean;
   stackId?: string;
   installations: AppInstallation[];
@@ -108,7 +109,7 @@ export interface InstallEvent {
   total: number;
   message: string;
   status: 'progress' | 'done' | 'error';
-  phase?: 'scan' | 'scan-result' | 'scan-error';
+  phase?: string;
   stackId?: string;
   stackName?: string;
 }

@@ -4,7 +4,7 @@
   "description": "Simple server for sending and receiving push notifications.",
   "category": "Notifications",
   "image": "gotify/server:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/gotify.svg",
   "website": "https://gotify.net",
   "docsUrl": "https://gotify.net/docs",
   "ports": [

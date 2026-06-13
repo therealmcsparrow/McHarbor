@@ -4,7 +4,7 @@
   "description": "DNS proxy and ad-blocking resolver for home networks.",
   "category": "Networking",
   "image": "spx01/blocky:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/blocky.svg",
   "website": "https://0xerr0r.github.io/blocky",
   "docsUrl": "https://0xerr0r.github.io/blocky",
   "ports": [

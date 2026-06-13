@@ -12,14 +12,15 @@ COPY src/backend/ .
 RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o /mcharbor ./main.go
 
 # Stage 2: React frontend
-FROM node:22-alpine AS frontend
+FROM node:22-bookworm-slim AS frontend
 WORKDIR /app
 COPY src/frontend/package.json src/frontend/package-lock.json* ./
 RUN npm install
 COPY src/frontend/ .
 COPY nodes/ /nodes/
 COPY widgets/ /widgets/
-RUN npm run build
+RUN node --disable-optimizing-compilers ./node_modules/typescript/bin/tsc -b \
+    && node --disable-optimizing-compilers ./node_modules/vite/bin/vite.js build
 
 # Stage 3: Production
 FROM alpine:3.20

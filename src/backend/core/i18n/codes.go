@@ -485,10 +485,11 @@ const (
 
 // --- App Store ---
 const (
-	ErrAppStoreListFailed    MsgCode = "err.appstore.list_failed"
-	ErrAppStoreInstallFailed MsgCode = "err.appstore.install_failed"
-	ErrAppStoreNotFound      MsgCode = "err.appstore.not_found"
-	ErrAppStoreSlugRequired  MsgCode = "err.appstore.slug_required"
+	ErrAppStoreListFailed      MsgCode = "err.appstore.list_failed"
+	ErrAppStoreInstallFailed   MsgCode = "err.appstore.install_failed"
+	ErrAppStoreUninstallFailed MsgCode = "err.appstore.uninstall_failed"
+	ErrAppStoreNotFound        MsgCode = "err.appstore.not_found"
+	ErrAppStoreSlugRequired    MsgCode = "err.appstore.slug_required"
 )
 
 // --- RBAC ---

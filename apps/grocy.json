@@ -4,7 +4,7 @@
   "description": "ERP-style groceries, pantry, chores, and household management.",
   "category": "Productivity",
   "image": "lscr.io/linuxserver/grocy:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/grocy.svg",
   "website": "https://docs.linuxserver.io/images/docker-grocy/",
   "docsUrl": "https://docs.linuxserver.io/images/docker-grocy/",
   "ports": [

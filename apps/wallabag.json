@@ -4,7 +4,7 @@
   "description": "Read-it-later web app for saving and annotating articles.",
   "category": "Productivity",
   "image": "wallabag/wallabag:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/wallabag.svg",
   "website": "https://wallabag.org",
   "docsUrl": "https://doc.wallabag.org",
   "ports": [

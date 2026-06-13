@@ -3,10 +3,10 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconRefresh, IconSearch } from '@tabler/icons-react';
-import { Button } from '@resources/components/ui/Button';
+import { IconSearch } from '@tabler/icons-react';
 import { Spinner } from '@resources/components/ui/Spinner';
-import { useAppCatalog, useAppCategories, useSyncCatalog } from '../hooks/useAppStore';
+import { Switch } from '@resources/components/ui/Switch';
+import { useAppCatalog, useAppCategories } from '../hooks/useAppStore';
 import { AppCard } from '../components/AppCard';
 import { CategorySidebar } from '../components/CategorySidebar';
 import { AppDetailDialog } from '../components/AppDetailDialog';
@@ -17,6 +17,7 @@ export default function AppsTab() {
   const { t } = useTranslation('common');
   const [category, setCategory] = useState('');
   const [search, setSearch] = useState('');
+  const [installedOnly, setInstalledOnly] = useState(false);
   const [detailApp, setDetailApp] = useState<AppTemplate | null>(null);
   const [installApp, setInstallApp] = useState<AppTemplate | null>(null);
 
@@ -25,9 +26,11 @@ export default function AppsTab() {
     search || undefined
   );
   const { data: categories } = useAppCategories();
-  const syncMutation = useSyncCatalog();
 
   const apps = catalogData?.items ?? [];
+  const visibleApps = installedOnly
+    ? apps.filter((app) => app.installed || app.installations.length > 0)
+    : apps;
   const totalCount = categories?.reduce((sum, c) => sum + c.count, 0) ?? 0;
 
   const handleInstall = (app: AppTemplate) => {
@@ -49,16 +52,14 @@ export default function AppsTab() {
             className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => syncMutation.mutate()}
-          disabled={syncMutation.isPending}
-        >
-          <IconRefresh className={`size-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-          {t('appStore.sync')}
-        </Button>
+        <label className="flex h-8 shrink-0 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm">
+          <Switch
+            checked={installedOnly}
+            onCheckedChange={setInstalledOnly}
+            aria-label={t('appStore.installedOnly')}
+          />
+          <span>{t('appStore.installedOnly')}</span>
+        </label>
       </div>
 
       {/* Content */}
@@ -77,13 +78,13 @@ export default function AppsTab() {
             <div className="flex h-full min-h-48 items-center justify-center">
               <Spinner size="lg" />
             </div>
-          ) : apps.length === 0 ? (
+          ) : visibleApps.length === 0 ? (
             <div className="flex h-full min-h-48 items-center justify-center text-sm text-muted-foreground">
-              {t('appStore.noApps')}
+              {installedOnly ? t('appStore.noInstalledApps') : t('appStore.noApps')}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {apps.map((app) => (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {visibleApps.map((app) => (
                 <AppCard
                   key={app.slug}
                   app={app}

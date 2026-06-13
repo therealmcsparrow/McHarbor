@@ -23,6 +23,8 @@ function logLineColor(entry: LogEntry, isLast: boolean, status?: string): string
   if (entry.phase === 'scan-error') return 'text-amber-400';
   if (entry.phase === 'scan-result') return 'text-cyan-400';
   if (entry.phase === 'scan') return 'text-violet-400';
+  if (entry.phase === 'warning') return 'text-amber-400';
+  if (entry.phase === 'containers' || entry.phase === 'volumes' || entry.phase === 'images') return 'text-cyan-400';
   if (status === 'error' && isLast) return 'text-destructive';
   if (status === 'done' && isLast) return 'text-green-400';
   if (isLast && status !== 'done' && status !== 'error') return 'text-foreground';

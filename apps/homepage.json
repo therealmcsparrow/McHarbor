@@ -4,7 +4,7 @@
   "description": "Modern application dashboard for homelab services.",
   "category": "Dashboards",
   "image": "ghcr.io/gethomepage/homepage:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/homepage.svg",
   "website": "https://gethomepage.dev",
   "docsUrl": "https://gethomepage.dev",
   "ports": [

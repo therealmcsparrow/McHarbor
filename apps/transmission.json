@@ -4,7 +4,7 @@
   "description": "Lightweight BitTorrent client with a web interface.",
   "category": "Media",
   "image": "lscr.io/linuxserver/transmission:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/transmission.svg",
   "website": "https://docs.linuxserver.io/images/docker-transmission/",
   "docsUrl": "https://docs.linuxserver.io/images/docker-transmission/",
   "ports": [

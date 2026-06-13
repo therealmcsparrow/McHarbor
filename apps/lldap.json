@@ -4,7 +4,7 @@
   "description": "Lightweight LDAP server for homelab authentication.",
   "category": "Security",
   "image": "lldap/lldap:stable",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/lldap.svg",
   "website": "https://github.com/lldap/lldap",
   "docsUrl": "https://github.com/lldap/lldap",
   "ports": [

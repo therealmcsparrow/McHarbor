@@ -4,7 +4,7 @@
   "description": "Full-featured Git hosting, CI/CD, registry, and DevOps platform.",
   "category": "Developer Tools",
   "image": "gitlab/gitlab-ce:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/gitlab.svg",
   "website": "https://about.gitlab.com",
   "docsUrl": "https://docs.gitlab.com/ee/install/docker.html",
   "ports": [

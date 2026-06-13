@@ -4,7 +4,7 @@
   "description": "Invitation and onboarding portal for Jellyfin, Plex, and media services.",
   "category": "Media",
   "image": "ghcr.io/wizarrrr/wizarr:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/wizarr.svg",
   "website": "https://wizarr.dev",
   "docsUrl": "https://docs.wizarr.dev",
   "ports": [

@@ -4,7 +4,7 @@
   "description": "Kanban board for project and task management.",
   "category": "Productivity",
   "image": "ghcr.io/plankanban/planka:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/planka.svg",
   "website": "https://planka.app",
   "docsUrl": "https://docs.planka.cloud",
   "ports": [

@@ -4,7 +4,7 @@
   "description": "Web administration UI for MySQL and MariaDB.",
   "category": "Developer Tools",
   "image": "phpmyadmin:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/phpmyadmin.svg",
   "website": "https://www.phpmyadmin.net",
   "docsUrl": "https://hub.docker.com/_/phpmyadmin",
   "ports": [

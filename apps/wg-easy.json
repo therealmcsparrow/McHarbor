@@ -4,7 +4,7 @@
   "description": "Simple WireGuard VPN server with a web UI.",
   "category": "Networking",
   "image": "ghcr.io/wg-easy/wg-easy:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/wireguard.svg",
   "website": "https://github.com/wg-easy/wg-easy",
   "docsUrl": "https://github.com/wg-easy/wg-easy",
   "ports": [

@@ -4,7 +4,7 @@
   "description": "File sync and sharing platform for teams and personal clouds.",
   "category": "Photos & Files",
   "image": "seafileltd/seafile-mc:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/seafile.svg",
   "website": "https://www.seafile.com",
   "docsUrl": "https://manual.seafile.com",
   "ports": [

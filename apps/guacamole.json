@@ -4,7 +4,7 @@
   "description": "Clientless remote desktop gateway for SSH, VNC, and RDP.",
   "category": "Networking",
   "image": "guacamole/guacamole:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/guacamole.svg",
   "website": "https://guacamole.apache.org",
   "docsUrl": "https://guacamole.apache.org/doc/gug/",
   "ports": [

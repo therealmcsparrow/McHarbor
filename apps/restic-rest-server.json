@@ -4,7 +4,7 @@
   "description": "REST backend server for restic backup repositories.",
   "category": "Backups",
   "image": "restic/rest-server:latest",
-  "logo": "",
+  "logo": "https://restic.net/apple-touch-icon-144-precomposed.png",
   "website": "https://github.com/restic/rest-server",
   "docsUrl": "https://github.com/restic/rest-server",
   "ports": [

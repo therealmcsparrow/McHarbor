@@ -5,11 +5,13 @@ package appstore
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
@@ -231,4 +233,98 @@ func (h *Handler) HandleInstalled(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, apps)
+}
+
+// HandleUninstall removes one app installation by tearing down its stack.
+func (h *Handler) HandleUninstall(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	install, err := h.service.Uninstall(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrInstallationNotFound) {
+			response.NotFoundCode(w, r, i18n.ErrAppStoreNotFound)
+			return
+		}
+		h.app.Logger.Error("failed to uninstall app", "installation", id, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrAppStoreUninstallFailed)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "uninstall",
+		EntityType: "app",
+		EntityID:   install.ID,
+		EntityName: install.StackName,
+	})
+
+	h.app.Logger.Info("app uninstalled", "installation", id, "stack", install.StackName, "user", user.Username)
+	response.NoContent(w)
+}
+
+// HandleUninstallStream streams uninstall progress for one app installation.
+func (h *Handler) HandleUninstallStream(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("X-Accel-Buffering", "no")
+	w.WriteHeader(http.StatusOK)
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+
+	events := make(chan InstallEvent)
+	go h.service.UninstallWithProgress(r.Context(), id, events)
+
+	ctx := r.Context()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case event, ok := <-events:
+			if !ok {
+				return
+			}
+			data, _ := json.Marshal(event) // safe: simple struct
+			fmt.Fprintf(w, "data: %s\n\n", data)
+			flusher.Flush()
+
+			if event.Status == "done" {
+				h.app.AuditLog.Log(r, audit.Entry{
+					Action:     "uninstall",
+					EntityType: "app",
+					EntityID:   id,
+					EntityName: event.StackName,
+				})
+				h.app.Logger.Info("app uninstalled (streamed)", "installation", id, "stack", event.StackName, "user", user.Username)
+			}
+			if event.Status == "done" || event.Status == "error" {
+				return
+			}
+		}
+	}
 }

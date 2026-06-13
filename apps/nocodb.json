@@ -4,7 +4,7 @@
   "description": "Open-source Airtable alternative for databases and APIs.",
   "category": "Developer Tools",
   "image": "nocodb/nocodb:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/nocodb.svg",
   "website": "https://nocodb.com",
   "docsUrl": "https://docs.nocodb.com",
   "ports": [

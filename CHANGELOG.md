@@ -2,6 +2,17 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.5.4] - 2026-06-13
+
+### Changed
+- Bumped McHarbor and the remote agent to `1.5.4`.
+- Migrated the project agent configuration from the legacy `.agents/` (Claude Code format) to the opencode-native `.opencode/` layout: 5 subagents now live at `.opencode/agent/<name>.md`, 19 skills at `.opencode/skills/<name>/SKILL.md`, 5 rules at `.opencode/rules/*.md`, and 4 legacy bash hooks at `.opencode/hooks/*.sh` (preserved for reference; their protection logic is now encoded in `opencode.json` `permission` rules).
+- Wired the migrated configuration in `opencode.json`: `instructions` array now points at `AGENTS.md` plus the 5 rule files, `skills.paths` points at `.opencode/skills`, and the `permission` block carries the merged bash, read, edit, and webfetch rules previously held in `.agents/settings.json` and `.agents/settings.local.json`.
+- Removed the legacy `.agents/` directory (CLAUDE.md, settings.json, settings.local.json, agents/, skills/, rules/, hooks/).
+
+### Fixed
+- Fixed `opencode.json` `permission.webfetch` to use a flat action (`"ask"`) instead of a per-domain object map; the opencode schema only allows a flat action for `webfetch` (and `websearch`, `todowrite`, `question`, `doom_loop`). Restart opencode for the corrected config to load.
+
 ## [1.5.3] - 2026-06-12
 
 ### Changed

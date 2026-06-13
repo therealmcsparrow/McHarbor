@@ -4,7 +4,7 @@
   "description": "Photo and video backup with mobile apps, search, and sharing.",
   "category": "Photos & Files",
   "image": "ghcr.io/immich-app/immich-server:release",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/immich.svg",
   "website": "https://immich.app",
   "docsUrl": "https://immich.app/docs",
   "ports": [

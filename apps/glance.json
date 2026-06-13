@@ -4,7 +4,7 @@
   "description": "Fast self-hosted dashboard with feeds, widgets, and service status.",
   "category": "Dashboards",
   "image": "glanceapp/glance:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/glance.svg",
   "website": "https://github.com/glanceapp/glance",
   "docsUrl": "https://github.com/glanceapp/glance",
   "ports": [

@@ -4,7 +4,7 @@
   "description": "Application dashboard and launcher for self-hosted services.",
   "category": "Dashboards",
   "image": "lscr.io/linuxserver/heimdall:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/heimdall.svg",
   "website": "https://docs.linuxserver.io/images/docker-heimdall/",
   "docsUrl": "https://docs.linuxserver.io/images/docker-heimdall/",
   "ports": [

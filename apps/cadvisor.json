@@ -4,7 +4,7 @@
   "description": "Container resource usage and performance metrics exporter.",
   "category": "Monitoring",
   "image": "gcr.io/cadvisor/cadvisor:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/cadvisor.svg",
   "website": "https://github.com/google/cadvisor",
   "docsUrl": "https://github.com/google/cadvisor",
   "ports": [

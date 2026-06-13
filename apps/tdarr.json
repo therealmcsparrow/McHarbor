@@ -4,7 +4,7 @@
   "description": "Distributed media transcoding and library health automation.",
   "category": "Media",
   "image": "ghcr.io/haveagitgat/tdarr:latest",
-  "logo": "",
+  "logo": "https://tdarr.io/logo192.png",
   "website": "https://tdarr.io",
   "docsUrl": "https://docs.tdarr.io",
   "ports": [

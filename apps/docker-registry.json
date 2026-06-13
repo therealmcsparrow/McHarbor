@@ -4,7 +4,7 @@
   "description": "Private Docker image registry.",
   "category": "Developer Tools",
   "image": "registry:2",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/docker.svg",
   "website": "https://distribution.github.io/distribution/",
   "docsUrl": "https://distribution.github.io/distribution/about/deploying/",
   "ports": [

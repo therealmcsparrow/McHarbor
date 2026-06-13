@@ -4,7 +4,7 @@
   "description": "Lightweight self-hosted Git forge.",
   "category": "Developer Tools",
   "image": "codeberg.org/forgejo/forgejo:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/forgejo.svg",
   "website": "https://forgejo.org",
   "docsUrl": "https://forgejo.org/docs/latest/admin/installation-docker/",
   "ports": [

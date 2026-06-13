@@ -4,7 +4,7 @@
   "description": "Fast time-series database and Prometheus-compatible metrics backend.",
   "category": "Monitoring",
   "image": "victoriametrics/victoria-metrics:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/victoriametrics.svg",
   "website": "https://victoriametrics.com",
   "docsUrl": "https://docs.victoriametrics.com",
   "ports": [

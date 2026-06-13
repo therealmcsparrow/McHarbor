@@ -443,10 +443,11 @@ var messagesEN = map[MsgCode]string{
 	ErrWorkflowNodeKeyRequired:  "Workflow node key is required",
 
 	// App Store
-	ErrAppStoreListFailed:    "Failed to list apps",
-	ErrAppStoreInstallFailed: "Failed to install app",
-	ErrAppStoreNotFound:      "App not found",
-	ErrAppStoreSlugRequired:  "App slug is required",
+	ErrAppStoreListFailed:      "Failed to list apps",
+	ErrAppStoreInstallFailed:   "Failed to install app",
+	ErrAppStoreUninstallFailed: "Failed to uninstall app",
+	ErrAppStoreNotFound:        "App not found",
+	ErrAppStoreSlugRequired:    "App slug is required",
 
 	// RBAC
 	ErrRBACPermissionDenied: "You do not have permission to perform this action",
@@ -1019,10 +1020,11 @@ var messagesNL = map[MsgCode]string{
 	ErrWorkflowNodeKeyRequired:  "Workflow-nodesleutel is vereist",
 
 	// App Store
-	ErrAppStoreListFailed:    "Kan apps niet ophalen",
-	ErrAppStoreInstallFailed: "Kan app niet installeren",
-	ErrAppStoreNotFound:      "App niet gevonden",
-	ErrAppStoreSlugRequired:  "App-slug is vereist",
+	ErrAppStoreListFailed:      "Kan apps niet ophalen",
+	ErrAppStoreInstallFailed:   "Kan app niet installeren",
+	ErrAppStoreUninstallFailed: "Kan app niet deinstalleren",
+	ErrAppStoreNotFound:        "App niet gevonden",
+	ErrAppStoreSlugRequired:    "App-slug is vereist",
 
 	// RBAC
 	ErrRBACPermissionDenied: "U heeft geen toestemming om deze actie uit te voeren",
@@ -1595,10 +1597,11 @@ var messagesDE = map[MsgCode]string{
 	ErrWorkflowNodeKeyRequired:  "Workflow-Knotenschlussel ist erforderlich",
 
 	// App Store
-	ErrAppStoreListFailed:    "Apps konnten nicht aufgelistet werden",
-	ErrAppStoreInstallFailed: "App konnte nicht installiert werden",
-	ErrAppStoreNotFound:      "App nicht gefunden",
-	ErrAppStoreSlugRequired:  "App-Slug ist erforderlich",
+	ErrAppStoreListFailed:      "Apps konnten nicht aufgelistet werden",
+	ErrAppStoreInstallFailed:   "App konnte nicht installiert werden",
+	ErrAppStoreUninstallFailed: "App konnte nicht deinstalliert werden",
+	ErrAppStoreNotFound:        "App nicht gefunden",
+	ErrAppStoreSlugRequired:    "App-Slug ist erforderlich",
 
 	// RBAC
 	ErrRBACPermissionDenied: "Sie haben keine Berechtigung, diese Aktion auszuführen",
@@ -2170,10 +2173,11 @@ var messagesES = map[MsgCode]string{
 	ErrWorkflowNodeKeyRequired:  "Se requiere la clave del nodo de flujo de trabajo",
 
 	// App Store
-	ErrAppStoreListFailed:    "No se pudieron enumerar las aplicaciones",
-	ErrAppStoreInstallFailed: "No se pudo instalar la aplicación",
-	ErrAppStoreNotFound:      "Aplicación no encontrada",
-	ErrAppStoreSlugRequired:  "Se requiere aplicación slug",
+	ErrAppStoreListFailed:      "No se pudieron enumerar las aplicaciones",
+	ErrAppStoreInstallFailed:   "No se pudo instalar la aplicación",
+	ErrAppStoreUninstallFailed: "No se pudo desinstalar la aplicación",
+	ErrAppStoreNotFound:        "Aplicación no encontrada",
+	ErrAppStoreSlugRequired:    "Se requiere aplicación slug",
 
 	// RBAC
 	ErrRBACPermissionDenied: "No tienes permiso para realizar esta acción",
@@ -2745,10 +2749,11 @@ var messagesFR = map[MsgCode]string{
 	ErrWorkflowNodeKeyRequired:  "La clé du nœud de workflow est requise",
 
 	// App Store
-	ErrAppStoreListFailed:    "Échec de la liste des applications",
-	ErrAppStoreInstallFailed: "Échec de l'installation de l'application",
-	ErrAppStoreNotFound:      "Application introuvable",
-	ErrAppStoreSlugRequired:  "Le slug de l'application est requis",
+	ErrAppStoreListFailed:      "Échec de la liste des applications",
+	ErrAppStoreInstallFailed:   "Échec de l'installation de l'application",
+	ErrAppStoreUninstallFailed: "Échec de la désinstallation de l'application",
+	ErrAppStoreNotFound:        "Application introuvable",
+	ErrAppStoreSlugRequired:    "Le slug de l'application est requis",
 
 	// RBAC
 	ErrRBACPermissionDenied: "Vous n'êtes pas autorisé à effectuer cette action",
@@ -3320,10 +3325,11 @@ var messagesPT = map[MsgCode]string{
 	ErrWorkflowNodeKeyRequired:  "A chave do nó do fluxo de trabalho é obrigatória",
 
 	// App Store
-	ErrAppStoreListFailed:    "Falha ao listar aplicativos",
-	ErrAppStoreInstallFailed: "Falha ao instalar o aplicativo",
-	ErrAppStoreNotFound:      "Aplicativo não encontrado",
-	ErrAppStoreSlugRequired:  "O slug do aplicativo é obrigatório",
+	ErrAppStoreListFailed:      "Falha ao listar aplicativos",
+	ErrAppStoreInstallFailed:   "Falha ao instalar o aplicativo",
+	ErrAppStoreUninstallFailed: "Falha ao desinstalar o aplicativo",
+	ErrAppStoreNotFound:        "Aplicativo não encontrado",
+	ErrAppStoreSlugRequired:    "O slug do aplicativo é obrigatório",
 
 	// RBAC
 	ErrRBACPermissionDenied: "Você não tem permissão para realizar esta ação",

@@ -4,7 +4,7 @@
   "description": "Personal finance manager for budgeting and account tracking.",
   "category": "Productivity",
   "image": "fireflyiii/core:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/firefly-iii.svg",
   "website": "https://www.firefly-iii.org",
   "docsUrl": "https://docs.firefly-iii.org",
   "ports": [

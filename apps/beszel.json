@@ -4,7 +4,7 @@
   "description": "Lightweight server monitoring hub with historical metrics.",
   "category": "Monitoring",
   "image": "henrygd/beszel:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/beszel.svg",
   "website": "https://beszel.dev",
   "docsUrl": "https://beszel.dev/guide",
   "ports": [

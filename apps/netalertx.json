@@ -4,7 +4,7 @@
   "description": "Network presence, device discovery, and alerting dashboard.",
   "category": "Networking",
   "image": "jokobsk/netalertx:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/netalertx.svg",
   "website": "https://github.com/jokob-sk/NetAlertX",
   "docsUrl": "https://github.com/jokob-sk/NetAlertX",
   "ports": [

@@ -4,7 +4,7 @@
   "description": "Lightweight note-taking and knowledge capture app.",
   "category": "Productivity",
   "image": "neosmemo/memos:stable",
-  "logo": "",
+  "logo": "https://usememos.com/logo-rounded.png",
   "website": "https://www.usememos.com",
   "docsUrl": "https://www.usememos.com/docs",
   "ports": [

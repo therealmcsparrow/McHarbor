@@ -6,6 +6,7 @@ package bootstrap
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log/slog"
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
@@ -31,10 +32,35 @@ func (a appStoreStackInstaller) CreateInstalledStack(ctx context.Context, input 
 		EnvVars:       input.EnvVars,
 		Description:   input.Description,
 		EnvironmentID: input.EnvironmentID,
-		AutoStart:     input.AutoStart,
+		AutoStart:     false,
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if input.AutoStart {
+		result := a.svc.Up(ctx, stack.Name)
+		if !result.Success {
+			envID := ""
+			if input.EnvironmentID != nil {
+				envID = *input.EnvironmentID
+			}
+			cleanupErr := a.svc.RemoveStack(ctx, envID, stack.Name)
+			if cleanupErr != nil {
+				if deleteErr := a.svc.Delete(stack.Name, false); deleteErr != nil {
+					return nil, fmt.Errorf("starting stack: %s; cleanup failed: %w; metadata cleanup failed: %v", result.Error, cleanupErr, deleteErr)
+				}
+				return nil, fmt.Errorf("starting stack: %s; resource cleanup failed: %w", result.Error, cleanupErr)
+			}
+			return nil, fmt.Errorf("starting stack: %s", result.Error)
+		}
+		stack, err = a.svc.ByName(stack.Name)
+		if err != nil {
+			return nil, err
+		}
+		if stack == nil {
+			return nil, fmt.Errorf("created stack %q was not found after start", input.Name)
+		}
 	}
 
 	return &appstore.StackInstallOutput{
@@ -42,6 +68,14 @@ func (a appStoreStackInstaller) CreateInstalledStack(ctx context.Context, input 
 		Name:   stack.Name,
 		Status: stack.Status,
 	}, nil
+}
+
+func (a appStoreStackInstaller) RemoveInstalledStack(ctx context.Context, environmentID, stackName string) error {
+	return a.svc.RemoveStack(ctx, environmentID, stackName)
+}
+
+func (a appStoreStackInstaller) RemoveInstalledStackWithProgress(ctx context.Context, environmentID, stackName string, progress appstore.StackRemovalProgress) error {
+	return a.svc.RemoveStackWithProgress(ctx, environmentID, stackName, progress)
 }
 
 type appStoreScanner struct {

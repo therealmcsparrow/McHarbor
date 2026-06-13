@@ -4,7 +4,7 @@
   "description": "Monitoring, analytics, and notifications for Plex Media Server.",
   "category": "Media",
   "image": "lscr.io/linuxserver/tautulli:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/tautulli.svg",
   "website": "https://docs.linuxserver.io/images/docker-tautulli/",
   "docsUrl": "https://docs.linuxserver.io/images/docker-tautulli/",
   "ports": [

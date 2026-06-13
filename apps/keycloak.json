@@ -4,7 +4,7 @@
   "description": "Identity and access management with OAuth2, OIDC, and SAML.",
   "category": "Security",
   "image": "quay.io/keycloak/keycloak:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/keycloak.svg",
   "website": "https://www.keycloak.org",
   "docsUrl": "https://www.keycloak.org/documentation",
   "ports": [

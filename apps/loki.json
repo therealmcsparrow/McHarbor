@@ -4,7 +4,7 @@
   "description": "Log aggregation backend from Grafana Labs.",
   "category": "Monitoring",
   "image": "grafana/loki:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/loki.svg",
   "website": "https://grafana.com/oss/loki",
   "docsUrl": "https://grafana.com/docs/loki/latest/",
   "ports": [

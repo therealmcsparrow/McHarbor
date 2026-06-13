@@ -1,0 +1,43 @@
+{
+  "slug": "euro-office-document-server",
+  "name": "Euro-Office Document Server",
+  "description": "Self-hosted document editing server for text documents, spreadsheets, presentations, and PDFs.",
+  "category": "Documents",
+  "image": "ghcr.io/euro-office/documentserver:latest",
+  "logo": "https://raw.githubusercontent.com/Euro-Office/web-apps/main/theme/euro-office/assets/img/header/eo_logo_light.svg",
+  "website": "https://github.com/Euro-Office",
+  "docsUrl": "https://euro-office.github.io/documentation/installation/docker/",
+  "ports": [
+    {
+      "host": 8088,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/euro-office-document-server/data",
+      "container": "/var/www/euro-office/Data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "JWT_ENABLED",
+      "default": "true",
+      "description": "Enable JWT token validation"
+    },
+    {
+      "key": "JWT_SECRET",
+      "default": "",
+      "description": "JWT secret shared with connected integrations",
+      "secret": true
+    },
+    {
+      "key": "EXAMPLE_ENABLED",
+      "default": "false",
+      "description": "Enable the built-in example app for testing"
+    }
+  ],
+  "minMemory": "4GB",
+  "version": "latest"
+}

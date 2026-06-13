@@ -4,7 +4,7 @@
   "description": "Docker image update notifier with multiple notification providers.",
   "category": "Monitoring",
   "image": "crazymax/diun:latest",
-  "logo": "",
+  "logo": "https://crazymax.dev/diun/assets/meta/favicon-196x196.png",
   "website": "https://crazymax.dev/diun",
   "docsUrl": "https://crazymax.dev/diun",
   "ports": [],

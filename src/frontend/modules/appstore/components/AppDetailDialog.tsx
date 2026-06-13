@@ -2,7 +2,7 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { IconExternalLink, IconCheck, IconDownload } from '@tabler/icons-react';
+import { IconExternalLink, IconDownload } from '@tabler/icons-react';
 import {
   Dialog,
   DialogBody,
@@ -143,12 +143,6 @@ export function AppDetailDialog({ app, open, onOpenChange, onInstall }: AppDetai
             )}
           </div>
           <div className="flex items-center gap-2">
-            {app.installed && (
-              <Badge variant="success" className="gap-1">
-                <IconCheck className="size-3" />
-                {t('appStore.installed')}
-              </Badge>
-            )}
             <Button
               size="sm"
               className="gap-1"

@@ -5,6 +5,9 @@ package appstore
 
 import "context"
 
+// StackRemovalProgress reports stack cleanup progress.
+type StackRemovalProgress func(step, total int, message, phase string)
+
 // StackInstallInput captures the stack payload needed for an app installation.
 type StackInstallInput struct {
 	Name          string
@@ -34,6 +37,8 @@ type InstallScannerResult struct {
 // StackInstaller creates managed stacks for app installs.
 type StackInstaller interface {
 	CreateInstalledStack(context.Context, StackInstallInput) (*StackInstallOutput, error)
+	RemoveInstalledStack(context.Context, string, string) error
+	RemoveInstalledStackWithProgress(context.Context, string, string, StackRemovalProgress) error
 }
 
 // InstallScanner runs the optional scan-on-install flow.

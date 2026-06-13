@@ -4,7 +4,7 @@
   "description": "Fast encrypted backup tool with a web UI.",
   "category": "Backups",
   "image": "kopia/kopia:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/kopia.svg",
   "website": "https://kopia.io",
   "docsUrl": "https://kopia.io/docs",
   "ports": [

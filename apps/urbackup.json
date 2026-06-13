@@ -4,7 +4,7 @@
   "description": "Client/server backup system for image and file backups.",
   "category": "Backups",
   "image": "uroni/urbackup-server:latest",
-  "logo": "",
+  "logo": "https://www.urbackup.org/favicon.ico",
   "website": "https://www.urbackup.org",
   "docsUrl": "https://www.urbackup.org/administration_manual.html",
   "ports": [

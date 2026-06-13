@@ -4,7 +4,7 @@
   "description": "Configuration-driven BorgBackup automation.",
   "category": "Backups",
   "image": "ghcr.io/borgmatic-collective/borgmatic:latest",
-  "logo": "",
+  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/borgmatic.svg",
   "website": "https://torsion.org/borgmatic/",
   "docsUrl": "https://torsion.org/borgmatic/docs/how-to/set-up-backups/",
   "ports": [],
