@@ -1,20 +1,25 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { IconLayoutGrid, IconLayoutList, IconPlus } from '@tabler/icons-react';
+import type { NetworkInfo } from '@core/types/docker';
+import { getNetworkContainerCount } from '@core/utils/network';
 import { DataGrid } from '@resources/components/DataGrid';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { Button } from '@resources/components/ui/Button';
 import { PageHeader } from '@resources/layout/PageHeader';
+import { BulkRemoveNetworkDialog } from '../components/BulkRemoveNetworkDialog';
 import { NetworkCardGrid } from '../components/NetworkCardGrid';
 import { NetworkCreateDialog } from '../components/NetworkCreateDialog';
 import { useNetworks } from '../hooks/useNetworks';
 import { useNetworksPageConfig } from '../hooks/useNetworksPageConfig';
 import { useRemoveNetwork } from '../hooks/useNetworks';
 import { useNetworksViewStore } from '../stores/networks-view';
+
+type UsageFilter = 'all' | 'used' | 'unused';
 
 export default function NetworksPage() {
   const navigate = useNavigate();
@@ -24,7 +29,30 @@ export default function NetworksPage() {
   const { viewMode, setViewMode } = useNetworksViewStore();
   const [createOpen, setCreateOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
-  const { columns, batchActions } = useNetworksPageConfig(setConfirmTarget);
+  const [bulkRemoveNetworks, setBulkRemoveNetworks] = useState<NetworkInfo[]>([]);
+  const [usageFilter, setUsageFilter] = useState<UsageFilter>('all');
+  const { columns, batchActions } = useNetworksPageConfig(
+    setConfirmTarget,
+    setBulkRemoveNetworks,
+  );
+
+  const filteredNetworks = useMemo(() => {
+    if (usageFilter === 'all') return networks;
+    return networks.filter((n) => {
+      const inUse = getNetworkContainerCount(n) > 0;
+      return usageFilter === 'used' ? inUse : !inUse;
+    });
+  }, [networks, usageFilter]);
+
+  const counts = useMemo(() => {
+    let used = 0;
+    let unused = 0;
+    for (const n of networks) {
+      if (getNetworkContainerCount(n) > 0) used++;
+      else unused++;
+    }
+    return { all: networks.length, used, unused };
+  }, [networks]);
 
   return (
     <div className="space-y-6">
@@ -59,9 +87,31 @@ export default function NetworksPage() {
         }
       />
 
+      <div className="flex items-center gap-1 self-start rounded-lg border border-border p-0.5">
+        <FilterButton
+          active={usageFilter === 'all'}
+          onClick={() => setUsageFilter('all')}
+          label={t('filters.all')}
+          count={counts.all}
+        />
+        <FilterButton
+          active={usageFilter === 'used'}
+          onClick={() => setUsageFilter('used')}
+          label={t('filters.used')}
+          count={counts.used}
+          tone="success"
+        />
+        <FilterButton
+          active={usageFilter === 'unused'}
+          onClick={() => setUsageFilter('unused')}
+          label={t('filters.unused')}
+          count={counts.unused}
+        />
+      </div>
+
       {viewMode === 'table' ? (
         <DataGrid
-          data={networks}
+          data={filteredNetworks}
           columns={columns}
           searchKey="Name"
           searchPlaceholder={t('searchPlaceholder')}
@@ -75,7 +125,7 @@ export default function NetworksPage() {
         />
       ) : (
         <NetworkCardGrid
-          networks={networks}
+          networks={filteredNetworks}
           isLoading={isLoading}
           onClick={(network) => navigate(`/networks/${network.Id}`)}
           onRemove={setConfirmTarget}
@@ -97,6 +147,41 @@ export default function NetworksPage() {
         }}
         loading={removeNetwork.isPending}
       />
+
+      <BulkRemoveNetworkDialog
+        networks={bulkRemoveNetworks}
+        open={bulkRemoveNetworks.length > 0}
+        onOpenChange={(open) => !open && setBulkRemoveNetworks([])}
+      />
     </div>
+  );
+}
+
+type FilterButtonProps = {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  count: number;
+  tone?: 'success' | 'default';
+};
+
+function FilterButton({ active, onClick, label, count, tone = 'default' }: FilterButtonProps) {
+  const activeTone =
+    tone === 'success' && active
+      ? 'bg-teal-500/20 text-teal-700 dark:text-teal-300'
+      : active
+        ? 'bg-primary/15 text-primary'
+        : 'text-muted-foreground hover:text-foreground';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${activeTone}`}
+    >
+      <span>{label}</span>
+      <span className="rounded-full bg-background/60 px-1.5 text-[10px] tabular-nums text-muted-foreground">
+        {count}
+      </span>
+    </button>
   );
 }

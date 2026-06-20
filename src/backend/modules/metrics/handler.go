@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/go-chi/chi/v5"
 
+	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
@@ -26,8 +27,55 @@ type Handler struct {
 
 // NewHandler creates a new metrics handler.
 func NewHandler(app *router.AppDeps) *Handler {
-	svc := NewService(app.DockerPool)
+	svc := NewServiceWithAgent(app.DockerPool, app.AgentPool)
 	return &Handler{app: app, service: svc}
+}
+
+// HandleHostPrune runs a Docker prune operation. The request body must set
+// Type and Confirm=true; for system prune, the Volumes flag is an explicit
+// opt-in to also delete named volumes.
+func (h *Handler) HandleHostPrune(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrUnauthorized)
+		return
+	}
+
+	envID := response.ParseEnvID(r)
+
+	var req PruneRequest
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	if req.Type == "" {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+
+	result, err := h.service.Prune(r.Context(), envID, req)
+	if err != nil {
+		h.app.Logger.Error("host prune failed", "env", envID, "type", req.Type, "error", err)
+		response.BadRequestCode(w, r, i18n.ErrMetricsFailed)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:        "prune",
+		EntityType:    "host",
+		EntityID:      envID,
+		Details:       "type=" + req.Type + " volumes=" + boolStr(req.Volumes),
+		EnvironmentID: envID,
+	})
+
+	response.OK(w, result)
+}
+
+func boolStr(v bool) string {
+	if v {
+		return "true"
+	}
+	return "false"
 }
 
 // HandleHostInfo returns host system info and disk usage.

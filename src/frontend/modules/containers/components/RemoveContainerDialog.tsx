@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
 import {
   Dialog,
@@ -14,7 +14,9 @@ import {
 import { Button } from '@resources/components/ui/Button';
 import { Label } from '@resources/components/ui/Label';
 import { Switch } from '@resources/components/ui/Switch';
-import { useRemoveContainer } from '../hooks/useContainers';
+import { useContainer, useRemoveContainer } from '../hooks/useContainers';
+import { useNetworks } from '@resources/hooks/useNetworks';
+import { findOrphanedNetworks } from '@core/utils/network';
 
 type ContainerTarget = {
   id: string;
@@ -39,9 +41,18 @@ export function RemoveContainerDialog({
 }: RemoveContainerDialogProps) {
   const { t } = useTranslation('containers');
   const removeMutation = useRemoveContainer();
+  const { data: networks = [] } = useNetworks();
   const [removeVolumes, setRemoveVolumes] = useState(false);
   const [removeImage, setRemoveImage] = useState(false);
   const [removeStack, setRemoveStack] = useState(false);
+  const [removeNetwork, setRemoveNetwork] = useState(false);
+
+  const { data: inspect } = useContainer(container?.id ?? '');
+  const orphans = useMemo(
+    () => (inspect ? findOrphanedNetworks(inspect, networks) : []),
+    [inspect, networks],
+  );
+  const hasOrphans = orphans.length > 0;
 
   // Reset toggles when dialog opens with a new container
   useEffect(() => {
@@ -49,8 +60,9 @@ export function RemoveContainerDialog({
       setRemoveVolumes(false);
       setRemoveImage(false);
       setRemoveStack(false);
+      setRemoveNetwork(false);
     }
-  }, [open]);
+  }, [open, container?.id]);
 
   if (!container) return null;
 
@@ -62,6 +74,7 @@ export function RemoveContainerDialog({
         removeVolumes,
         removeImage,
         removeStack: removeStack && container.stackName !== null,
+        removeNetwork: removeNetwork && hasOrphans,
       },
       {
         onSuccess: () => {
@@ -125,6 +138,37 @@ export function RemoveContainerDialog({
                   <div className="text-xs text-muted-foreground">{t('removeDialog.removeStackDesc')}</div>
                 </Label>
                 <Switch id="remove-stack" checked={removeStack} onCheckedChange={setRemoveStack} />
+              </div>
+            )}
+
+            {hasOrphans && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="remove-network" className="cursor-pointer">
+                  <div className="text-sm font-medium">
+                    {orphans.length === 1
+                      ? t('removeDialog.removeNetwork')
+                      : t('removeDialog.removeNetworkCount', { count: orphans.length })}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {orphans.length === 1 && orphans[0] ? (
+                      <>
+                        <span className="font-mono text-foreground">{orphans[0].name}</span>
+                        {' — '}
+                        {t('removeDialog.removeNetworkDesc')}
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-mono text-foreground">
+                          {orphans.slice(0, 2).map((o) => o.name).join(', ')}
+                          {orphans.length > 2 ? `, +${orphans.length - 2}` : ''}
+                        </span>
+                        {' — '}
+                        {t('removeDialog.removeNetworkDesc')}
+                      </>
+                    )}
+                  </div>
+                </Label>
+                <Switch id="remove-network" checked={removeNetwork} onCheckedChange={setRemoveNetwork} />
               </div>
             )}
           </div>

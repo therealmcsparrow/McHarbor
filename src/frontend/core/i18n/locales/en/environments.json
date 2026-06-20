@@ -135,10 +135,19 @@
     "chartTx": "Tx",
     "chartRead": "Read",
     "chartWrite": "Write",
+    "network": "Network",
+    "networkUnavailable": "No network samples yet",
+    "engineFooter": "Docker Engine v{{version}} · {{hostname}}",
     "tabs": {
       "overview": "Overview",
       "activity": "Activity",
-      "automation": "Automation"
+      "automation": "Automation",
+      "retention": "Retention",
+      "host": "Host",
+      "docker": "Docker",
+      "processes": "Processes",
+      "terminal": "Terminal",
+      "logs": "Logs"
     },
     "activity": {
       "title": "Activity Settings",
@@ -153,6 +162,7 @@
       "diskUsageNotificationsDescription": "Send an in-app notification when Docker storage crosses the configured threshold for this environment.",
       "diskUsageThresholdLabel": "Disk usage threshold",
       "diskUsageThresholdHint": "Enter a percentage between 1 and 100.",
+      "diskUsageUseGlobalDefaultLabel": "Use global default ({{value}}%)",
       "diskCapacityNote": "Threshold alerts use the Docker storage driver capacity reported by the engine when it is available.",
       "diskUsageExceededTitle": "{{name}} disk usage threshold exceeded",
       "diskUsageExceededDescription": "Docker storage is at {{percent}}% of capacity (threshold: {{threshold}}%, current usage: {{total}}).",
@@ -172,12 +182,222 @@
       "automaticImagePruningTitle": "Automatic image pruning",
       "automaticImagePruningDescription": "Automatically remove unused Docker images every day at 03:00 in this environment's timezone to free up disk space.",
       "automaticImagePruningHint": "Runs daily at 03:00 using the timezone below",
+      "imagePruneDanglingOnlyTitle": "Prune only dangling images",
+      "imagePruneDanglingOnlyDescription": "When enabled, only dangling (untagged) images are removed. Disable to also remove any unused tagged images.",
       "prunePreviewLabel": "Automatic image pruning preview",
       "timezoneLabel": "Timezone",
       "timezoneDescription": "Used for scheduling auto-updates, git syncs, and image pruning.",
       "kubernetesNote": "Update checks and image pruning apply to Docker environments. You can still set the timezone for scheduling.",
       "statusOn": "ON",
       "statusOff": "OFF"
+    },
+    "retention": {
+      "title": "Retention & Pruning",
+      "description": "Configure log retention, automatic container pruning, the auto-update maintenance window, and metric retention for this environment.",
+      "kubernetesNote": "Retention and pruning apply to Docker environments. The auto-update window is informational and used by future automation.",
+      "logRetentionTitle": "Container log retention",
+      "logRetentionDescription": "How long container log history is retained before being pruned.",
+      "logRetentionLabel": "Retention period",
+      "logRetentionHint": "Set to 0 to keep logs forever. Range: 0 to 3650 days.",
+      "containerPruneTitle": "Automatic container pruning",
+      "containerPruneDescription": "Automatically remove stopped containers that have been stopped for the configured number of days.",
+      "containerPruneStoppedLabel": "Days stopped before prune",
+      "containerPruneStoppedHint": "Range: 1 to 3650 days.",
+      "autoUpdateTitle": "Auto-update maintenance window",
+      "autoUpdateDescription": "Restrict automatic container image updates to a specific time window and days of the week.",
+      "autoUpdateWindowStartLabel": "Window start",
+      "autoUpdateWindowEndLabel": "Window end",
+      "autoUpdateDaysLabel": "Active days",
+      "metricRetentionTitle": "Metric retention",
+      "metricRetentionDescription": "How long collected container and host metrics are retained before being pruned.",
+      "metricRetentionLabel": "Retention period",
+      "metricRetentionHint": "Set to 0 to keep metrics forever. Range: 0 to 8760 hours (1 year).",
+      "daysUnit": "days",
+      "hoursUnit": "hours",
+      "statusOn": "ON",
+      "statusOff": "OFF",
+      "statusActive": "ACTIVE",
+      "statusForever": "FOREVER",
+      "daysShort": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      }
+    },
+    "host": {
+      "title": "Host",
+      "description": "Live resource view for {{hostname}}",
+      "loadError": "Failed to load host metrics.",
+      "agentLimitedNotice": "This environment is connected through a remote agent. Live host metrics and prune actions are not available; only Docker-level stats are shown.",
+      "refreshed": "Updated {{value}}",
+      "secondsAgo": "{{count}}s ago",
+      "retry": "Retry",
+      "stats": {
+        "cpu": "CPU",
+        "memory": "Memory",
+        "uptime": "Uptime",
+        "dockerVersion": "Docker version",
+        "load": "Load {{value}}",
+        "cores": "{{count}} cores",
+        "unavailable": "Not available"
+      },
+      "disk": {
+        "title": "Docker disk usage",
+        "images": "Images",
+        "containers": "Containers",
+        "volumes": "Volumes",
+        "buildCache": "Build cache"
+      },
+      "hostFs": {
+        "title": "Host filesystem",
+        "path": "Mount: {{path}}",
+        "unavailable": "Host filesystem usage is not available for this environment."
+      },
+      "prune": {
+        "title": "Prune",
+        "description": "Free disk space by removing unused Docker resources. Destructive — confirm each action.",
+        "agentLimited": "Prune is not available for agent environments: the Docker daemon on the remote host is not directly accessible.",
+        "destructiveTag": "Destructive",
+        "confirm": "Prune",
+        "system": {
+          "label": "System (containers, images, networks)",
+          "title": "Prune system",
+          "description": "Remove all stopped containers, unused images, and unused networks. Named volumes are not touched.",
+          "withVolumesLabel": "System + volumes (destructive)",
+          "withVolumesDescription": "Remove stopped containers, unused images, unused networks, AND unused named volumes. Data in named volumes not used by any container will be permanently deleted."
+        },
+        "builder": {
+          "label": "Builder cache",
+          "title": "Prune builder cache",
+          "description": "Remove the Docker build cache."
+        },
+        "volumes": {
+          "label": "Volumes (destructive)",
+          "title": "Prune volumes",
+          "description": "Remove all unused named volumes. Data in unused named volumes will be permanently deleted."
+        },
+        "images": {
+          "label": "Images",
+          "title": "Prune images",
+          "description": "Remove all dangling and unused images."
+        },
+        "containers": {
+          "label": "Stopped containers",
+          "title": "Prune stopped containers",
+          "description": "Remove all stopped containers."
+        },
+        "networks": {
+          "label": "Networks",
+          "title": "Prune networks",
+          "description": "Remove all unused networks."
+        }
+      }
+    },
+    "docker": {
+      "title": "Docker engine",
+      "description": "Detailed information about the Docker daemon running in this environment.",
+      "unavailable": "Docker engine information is unavailable for this environment.",
+      "server": "Server",
+      "version": "Version",
+      "apiVersion": "API version",
+      "minApiVersion": "Min API version",
+      "gitCommit": "Git commit",
+      "goVersion": "Go version",
+      "os": "OS",
+      "architecture": "Architecture",
+      "kernelVersion": "Kernel",
+      "hostname": "Hostname",
+      "serverId": "Server ID",
+      "resources": "Resources",
+      "cpus": "CPUs",
+      "memory": "Memory",
+      "counts": "Counts",
+      "containers": "Containers",
+      "containersRunning": "Running",
+      "containersPaused": "Paused",
+      "containersStopped": "Stopped",
+      "images": "Images",
+      "storage": "Storage",
+      "storageDriver": "Storage driver",
+      "dockerRootDir": "Docker root",
+      "loggingDriver": "Logging driver",
+      "runtime": "Runtime",
+      "cgroupDriver": "cgroup driver",
+      "cgroupVersion": "cgroup version",
+      "defaultRuntime": "Default runtime",
+      "runtimes": "Runtimes",
+      "isolation": "Isolation",
+      "security": "Security",
+      "plugins": "Plugins",
+      "volumePlugins": "Volume plugins",
+      "networkPlugins": "Network plugins",
+      "logPlugins": "Log plugins",
+      "swarm": "Swarm",
+      "status": "Status",
+      "swarmActive": "Active",
+      "swarmInactive": "Inactive",
+      "swarmNodeId": "Node ID",
+      "swarmManagers": "Managers",
+      "swarmNodes": "Nodes",
+      "labels": "Labels"
+    },
+    "processes": {
+      "title": "Container processes",
+      "description": "Live resource usage (CPU, memory, network, block I/O) for running containers in this environment.",
+      "searchPlaceholder": "Search processes...",
+      "empty": "No running process metrics available.",
+      "columns": {
+        "name": "Name",
+        "cpu": "CPU",
+        "memory": "Memory",
+        "pids": "PIDs",
+        "network": "RX / TX",
+        "block": "Read / Write"
+      }
+    },
+    "hostTerminal": {
+      "title": "Host terminal",
+      "description": "Interactive shell on the remote host running through the agent (or via privileged container for local envs).",
+      "connect": "Connect",
+      "connecting": "Connecting...",
+      "disconnect": "Disconnect",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "warning": "This session has full host-level access. Run commands only when you understand the impact.",
+      "connectError": "Could not connect to the host terminal."
+    },
+    "hostLogs": {
+      "title": "Host logs",
+      "description": "Bounded snapshots of system, kernel, authentication, and Docker daemon logs from the host running this environment.",
+      "sourceLabel": "Log source",
+      "tailLabel": "Line count",
+      "refresh": "Refresh",
+      "empty": "No log lines returned.",
+      "unavailable": "Host logs are unavailable for this environment.",
+      "sources": {
+        "system": "System",
+        "kernel": "Kernel",
+        "auth": "Authentication",
+        "docker": "Docker"
+      },
+      "notices": {
+        "generic": "The log source returned a non-fatal notice.",
+        "permission_denied": "A host log file exists but McHarbor does not have permission to read it. A fallback source was tried.",
+        "no_supported_log_source": "No readable file log or supported journal source was found for this host."
+      }
+    },
+    "hostLogPreview": {
+      "title": "Recent log lines",
+      "description": "Last few lines from this host's system, kernel, authentication, or Docker daemon log. Open the Logs tab for the full view.",
+      "openFull": "Open full Logs",
+      "loading": "Reading logs...",
+      "empty": "No log lines available on the host. Try a different source or check the host's log directory.",
+      "lineCount": "{{count}} lines",
+      "tailNote": "Showing the last {{tail}} lines"
     }
   },
   "agentToken": {

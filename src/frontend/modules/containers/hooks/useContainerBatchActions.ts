@@ -12,12 +12,14 @@ type UseContainerBatchActionsProps = {
   action: { mutate: (vars: { id: string; action: string }) => void };
   onUpdateSelected?: (rows: ContainerInfo[]) => void;
   onReinstallSelected?: (rows: ContainerInfo[]) => void;
+  onRemoveSelected?: (rows: ContainerInfo[]) => void;
 };
 
 export function useContainerBatchActions({
   action,
   onUpdateSelected,
   onReinstallSelected,
+  onRemoveSelected,
 }: UseContainerBatchActionsProps) {
   const { t: tc } = useTranslation('common');
 
@@ -72,15 +74,12 @@ export function useContainerBatchActions({
         label: tc('batch.remove'),
         icon: IconTrash,
         variant: 'destructive',
-        confirm: true,
         onClick: (rows) => {
-          for (const row of rows as ContainerInfo[]) {
-            if (isProtectedContainer(row)) continue;
-            action.mutate({ id: row.Id, action: 'remove' });
-          }
+          const eligible = (rows as ContainerInfo[]).filter((c) => !isProtectedContainer(c));
+          onRemoveSelected?.(eligible);
         },
       },
     ],
-    [tc, action, onUpdateSelected, onReinstallSelected]
+    [tc, action, onUpdateSelected, onReinstallSelected, onRemoveSelected]
   );
 }

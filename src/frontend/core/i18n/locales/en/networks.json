@@ -19,7 +19,14 @@
   },
   "badges": {
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "used": "Used",
+    "unused": "Unused"
+  },
+  "filters": {
+    "all": "All",
+    "used": "Used",
+    "unused": "Unused"
   },
   "create": {
     "title": "Create Network",
@@ -67,6 +74,16 @@
   "confirm": {
     "removeTitle": "Remove Network",
     "removeDescription": "This will permanently remove this network."
+  },
+  "bulkRemoveDialog": {
+    "title": "Remove Networks",
+    "description": "This will permanently remove <bold>{{count}}</bold> networks.",
+    "networks": "Networks",
+    "andXMore": "and {{count}} more",
+    "inUse": "in use",
+    "inUseWarning": "{{count}} selected network(s) are still attached to running containers. Removal will fail for those unless containers are stopped or disconnected first.",
+    "forceLabel": "I understand and want to attempt removal anyway",
+    "removing": "Removing..."
   },
   "actions": {
     "edit": "Edit",

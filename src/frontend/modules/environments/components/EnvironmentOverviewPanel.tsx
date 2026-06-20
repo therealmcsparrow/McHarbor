@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { IconCpu, IconCpu2, IconDatabase, IconServer } from '@tabler/icons-react';
+import { IconActivity, IconCpu, IconCpu2, IconDatabase, IconNetwork } from '@tabler/icons-react';
 import { StatCard } from '@resources/components/StatCard';
 import { StatsAreaChart } from '@resources/components/StatsAreaChart';
 import { formatBytes, splitBytes } from '@resources/utils/format';
@@ -37,6 +37,11 @@ export function EnvironmentOverviewPanel({
     read: point.value,
     write: stats?.blockWriteHistory?.[index]?.value ?? 0,
   }));
+
+  const latestRx = networkData.at(-1)?.rx ?? 0;
+  const latestTx = networkData.at(-1)?.tx ?? 0;
+  const latestNetworkTotal = formatBytes(latestRx + latestTx);
+  const networkSplit = `${formatBytes(latestRx)} ↓ · ${formatBytes(latestTx)} ↑`;
 
   return (
     <div className="space-y-6">
@@ -79,13 +84,13 @@ export function EnvironmentOverviewPanel({
               ) : undefined}
             />
             <StatCard
-              title={t('detail.dockerVersionStat')}
-              value={hostMetrics.host.serverVersion}
-              description={hostMetrics.host.hostname}
-              icon={<IconServer className="h-5 w-5" />}
-              accentColor="hsl(142 70% 45%)"
+              title={t('detail.network')}
+              value={networkData.length > 0 ? latestNetworkTotal : '—'}
+              description={networkData.length > 0 ? networkSplit : t('detail.networkUnavailable')}
+              icon={<IconNetwork className="h-5 w-5" />}
+              accentColor="hsl(170 70% 45%)"
               chart={networkData.length > 0 ? (
-                <StatsAreaChart data={networkData} dataKey="rx" secondaryDataKey="tx" xAxisKey="timestamp" color="hsl(142 70% 45%)" secondaryColor="hsl(30 80% 55%)" formatValue={(value) => formatBytes(value)} label={t('detail.chartRx')} secondaryLabel={t('detail.chartTx')} compact />
+                <StatsAreaChart data={networkData} dataKey="rx" secondaryDataKey="tx" xAxisKey="timestamp" color="hsl(170 70% 45%)" secondaryColor="hsl(30 80% 55%)" formatValue={(value) => formatBytes(value)} label={t('detail.chartRx')} secondaryLabel={t('detail.chartTx')} compact />
               ) : undefined}
             />
             <StatCard
@@ -105,6 +110,18 @@ export function EnvironmentOverviewPanel({
           </div>
         );
       })()}
+
+      {hostMetrics && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+          <IconActivity className="size-4" />
+          <span>
+            {t('detail.engineFooter', {
+              version: hostMetrics.host.serverVersion,
+              hostname: hostMetrics.host.hostname,
+            })}
+          </span>
+        </div>
+      )}
 
       {stats?.containers && (
         <div className="grid grid-cols-3 gap-4">

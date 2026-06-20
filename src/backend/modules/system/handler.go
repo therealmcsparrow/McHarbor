@@ -4,8 +4,10 @@
 package system
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -15,7 +17,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	dockerclient "github.com/docker/docker/client"
 	"github.com/gorilla/websocket"
+	"github.com/rs/xid"
 
+	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/httpx"
@@ -35,7 +39,7 @@ type Handler struct {
 func NewHandler(app *router.AppDeps) *Handler {
 	return &Handler{
 		app: app,
-		svc: NewService(app.DockerPool, app.Logger),
+		svc: NewServiceWithAgent(app.DockerPool, app.AgentPool, app.Logger),
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  4096,
 			WriteBufferSize: 4096,
@@ -161,7 +165,7 @@ func (h *Handler) HandleOSTerminalWS(w http.ResponseWriter, r *http.Request) {
 
 	envID := response.ParseEnvID(r)
 	if h.app.DockerPool.IsAgentEnv(envID) {
-		response.InternalErrorCode(w, r, i18n.ErrTerminalFailed)
+		h.handleAgentHostTerminalWS(w, r, envID)
 		return
 	}
 
@@ -332,4 +336,195 @@ func writeWSError(conn *websocket.Conn, msg string) {
 	if err := conn.WriteMessage(websocket.TextMessage, errPayload); err != nil {
 		return
 	}
+}
+
+// handleAgentHostTerminalWS bridges a browser WebSocket to a PTY-backed
+// shell running on a connected agent. The agent returns stdout as a series
+// of MsgHostTerminalOutput frames; stdin/resize/end are forwarded from the
+// browser to the agent.
+func (h *Handler) handleAgentHostTerminalWS(w http.ResponseWriter, r *http.Request, envID string) {
+	t := h.app.AgentPool.Transport(envID)
+	if t == nil {
+		h.app.Logger.Error("system: agent terminal — agent not connected", "env", envID)
+		response.InternalErrorCode(w, r, i18n.ErrTerminalFailed)
+		return
+	}
+	if !t.HostTerminalSupported() {
+		h.app.Logger.Error("system: agent terminal — unsupported agent version", "env", envID)
+		response.InternalErrorCode(w, r, i18n.ErrTerminalFailed)
+		return
+	}
+
+	conn, err := h.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		h.app.Logger.Error("system: agent terminal ws upgrade failed", "error", err)
+		return
+	}
+	defer conn.Close()
+
+	cols := parseUIntQuery(r, "cols", 80)
+	rows := parseUIntQuery(r, "rows", 24)
+
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+
+	execID, outCh, errCh, err := h.startAgentHostTerminal(ctx, envID, t, cols, rows)
+	if err != nil {
+		h.app.Logger.Error("system: agent terminal start failed", "error", err)
+		writeWSError(conn, "failed to start host terminal on agent: "+err.Error())
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:        "host_terminal_open",
+		EntityType:    "host",
+		EntityID:      envID,
+		EntityName:    "host terminal",
+		Details:       "Agent-backed host terminal session opened",
+		EnvironmentID: envID,
+	})
+
+	// Pump agent output to the browser until the agent signals end.
+	go func() {
+		defer cancel()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case chunk, ok := <-outCh:
+				if !ok {
+					return
+				}
+				if writeErr := conn.WriteMessage(websocket.BinaryMessage, chunk); writeErr != nil {
+					return
+				}
+			case err := <-errCh:
+				if err != nil {
+					writeWSError(conn, err.Error())
+				}
+				return
+			}
+		}
+	}()
+
+	// Forward browser stdin/resize/end messages to the agent.
+	for {
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			break
+		}
+		var msg wsMessage
+		if err := json.Unmarshal(message, &msg); err != nil {
+			continue
+		}
+		switch msg.Type {
+		case "input":
+			if err := t.HostTerminalSendInput(execID, []byte(msg.Data)); err != nil {
+				h.app.Logger.Debug("system: agent terminal input send failed", "id", execID, "error", err)
+			}
+		case "resize":
+			if msg.Cols > 0 && msg.Rows > 0 {
+				if err := t.HostTerminalSendResize(execID, msg.Cols, msg.Rows); err != nil {
+					h.app.Logger.Debug("system: agent terminal resize failed", "id", execID, "error", err)
+				}
+			}
+		case "end":
+			_ = t.HostTerminalSendEnd(execID)
+			cancel()
+			return
+		}
+	}
+	_ = t.HostTerminalSendEnd(execID)
+}
+
+// startAgentHostTerminal sends MsgHostTerminalStart to the agent and
+// returns the assigned exec id along with channels for stdout chunks and
+// errors. The first MsgHostTerminalOutput frame carries the exec id header.
+func (h *Handler) startAgentHostTerminal(ctx context.Context, envID string, t *coreagent.AgentTransport, cols, rows uint) (string, <-chan []byte, <-chan error, error) {
+	out := make(chan []byte, 256)
+	errCh := make(chan error, 1)
+
+	reqID := xid.New().String()
+	waiter := make(chan *coreagent.WSMessage, 8)
+	t.HostTerminalChannel().Set(reqID, waiter)
+	defer t.HostTerminalChannel().Pop(reqID)
+
+	if err := t.WriteJSON(coreagent.WSMessage{
+		Type:         coreagent.MsgHostTerminalStart,
+		ID:           reqID,
+		HostTerminal: &coreagent.HostTerminalStartPayload{Cols: cols, Rows: rows},
+	}); err != nil {
+		return "", nil, nil, fmt.Errorf("sending host terminal start: %w", err)
+	}
+
+	// Pump waiter -> out (after stripping the initial exec id header).
+	go func() {
+		defer close(out)
+		defer close(errCh)
+		for msg := range waiter {
+			if msg.StreamChunk != nil {
+				select {
+				case out <- msg.StreamChunk.Data:
+				case <-ctx.Done():
+					return
+				}
+			}
+			if msg.Type == coreagent.MsgHostTerminalEnd {
+				return
+			}
+		}
+	}()
+
+	// Block briefly waiting for the first frame so we can return the
+	// exec id to the caller. The goroutine above continues streaming
+	// from this point onward.
+	select {
+	case <-ctx.Done():
+		return "", nil, nil, ctx.Err()
+	case msg := <-waiter:
+		if msg == nil || msg.StreamChunk == nil {
+			return "", nil, nil, fmt.Errorf("empty host terminal start response")
+		}
+		execID, rest := parseHostTerminalExecID(msg.StreamChunk.Data)
+		if execID == "" {
+			return "", nil, nil, fmt.Errorf("host terminal did not return exec id")
+		}
+		// Push any leftover stdout from the first frame onto the stream.
+		if len(rest) > 0 {
+			select {
+			case out <- rest:
+			default:
+			}
+		}
+		return execID, out, errCh, nil
+	}
+}
+
+// parseHostTerminalExecID extracts the exec id header from the first
+// MsgHostTerminalOutput frame and returns any trailing stdout bytes.
+func parseHostTerminalExecID(data []byte) (string, []byte) {
+	const prefix = "MCHARBOR_EXEC_ID="
+	if !bytes.HasPrefix(data, []byte(prefix)) {
+		return "", data
+	}
+	rest := data[len(prefix):]
+	for i, b := range rest {
+		if b == '\n' || b == '\r' || b == 0 {
+			return string(rest[:i]), rest[i+1:]
+		}
+	}
+	return string(rest), nil
+}
+
+// parseUIntQuery reads a uint query parameter with a default fallback.
+func parseUIntQuery(r *http.Request, name string, fallback uint) uint {
+	v := r.URL.Query().Get(name)
+	if v == "" {
+		return fallback
+	}
+	parsed, err := strconv.ParseUint(v, 10, 32)
+	if err != nil {
+		return fallback
+	}
+	return uint(parsed)
 }

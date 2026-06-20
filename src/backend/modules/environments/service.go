@@ -46,7 +46,11 @@ func (s *Service) List() ([]Environment, error) {
 		       scheduled_update_check_enabled, automatic_image_pruning_enabled,
 		       track_container_events_enabled, collect_container_metrics_enabled,
 		       highlight_container_changes_enabled, docker_disk_usage_notifications_enabled,
-		       docker_disk_usage_threshold_percent, timezone,
+		       docker_disk_usage_threshold_percent, docker_disk_usage_use_global_default, timezone,
+		       log_retention_days, container_prune_enabled, container_prune_stopped_days,
+		       image_prune_dangling_only,
+		       auto_update_enabled, auto_update_window_start, auto_update_window_end, auto_update_days,
+		       metric_retention_hours,
 		       created_at, updated_at
 		FROM environments
 		ORDER BY is_default DESC, name ASC
@@ -84,7 +88,11 @@ func (s *Service) ByID(id string) (*Environment, error) {
 		       scheduled_update_check_enabled, automatic_image_pruning_enabled,
 		       track_container_events_enabled, collect_container_metrics_enabled,
 		       highlight_container_changes_enabled, docker_disk_usage_notifications_enabled,
-		       docker_disk_usage_threshold_percent, timezone,
+		       docker_disk_usage_threshold_percent, docker_disk_usage_use_global_default, timezone,
+		       log_retention_days, container_prune_enabled, container_prune_stopped_days,
+		       image_prune_dangling_only,
+		       auto_update_enabled, auto_update_window_start, auto_update_window_end, auto_update_days,
+		       metric_retention_hours,
 		       created_at, updated_at
 		FROM environments WHERE id = ?
 	`, id)
@@ -374,9 +382,49 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 	if req.DockerDiskUsageThresholdPercent != nil {
 		dockerDiskUsageThresholdPercent = *req.DockerDiskUsageThresholdPercent
 	}
+	dockerDiskUsageUseGlobalDefault := existing.DockerDiskUsageUseGlobalDefault
+	if req.DockerDiskUsageUseGlobalDefault != nil {
+		dockerDiskUsageUseGlobalDefault = *req.DockerDiskUsageUseGlobalDefault
+	}
 	timezone := existing.Timezone
 	if req.Timezone != nil {
 		timezone = *req.Timezone
+	}
+	logRetentionDays := existing.LogRetentionDays
+	if req.LogRetentionDays != nil {
+		logRetentionDays = *req.LogRetentionDays
+	}
+	containerPruneEnabled := existing.ContainerPruneEnabled
+	if req.ContainerPruneEnabled != nil {
+		containerPruneEnabled = *req.ContainerPruneEnabled
+	}
+	containerPruneStoppedDays := existing.ContainerPruneStoppedDays
+	if req.ContainerPruneStoppedDays != nil {
+		containerPruneStoppedDays = *req.ContainerPruneStoppedDays
+	}
+	imagePruneDanglingOnly := existing.ImagePruneDanglingOnly
+	if req.ImagePruneDanglingOnly != nil {
+		imagePruneDanglingOnly = *req.ImagePruneDanglingOnly
+	}
+	autoUpdateEnabled := existing.AutoUpdateEnabled
+	if req.AutoUpdateEnabled != nil {
+		autoUpdateEnabled = *req.AutoUpdateEnabled
+	}
+	autoUpdateWindowStart := existing.AutoUpdateWindowStart
+	if req.AutoUpdateWindowStart != nil {
+		autoUpdateWindowStart = *req.AutoUpdateWindowStart
+	}
+	autoUpdateWindowEnd := existing.AutoUpdateWindowEnd
+	if req.AutoUpdateWindowEnd != nil {
+		autoUpdateWindowEnd = *req.AutoUpdateWindowEnd
+	}
+	autoUpdateDays := existing.AutoUpdateDays
+	if req.AutoUpdateDays != nil {
+		autoUpdateDays = *req.AutoUpdateDays
+	}
+	metricRetentionHours := existing.MetricRetentionHours
+	if req.MetricRetentionHours != nil {
+		metricRetentionHours = *req.MetricRetentionHours
 	}
 
 	defaultInt := 0
@@ -411,6 +459,22 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 	if dockerDiskUsageNotificationsEnabled {
 		dockerDiskUsageNotificationsEnabledInt = 1
 	}
+	dockerDiskUsageUseGlobalDefaultInt := 0
+	if dockerDiskUsageUseGlobalDefault {
+		dockerDiskUsageUseGlobalDefaultInt = 1
+	}
+	containerPruneEnabledInt := 0
+	if containerPruneEnabled {
+		containerPruneEnabledInt = 1
+	}
+	imagePruneDanglingOnlyInt := 0
+	if imagePruneDanglingOnly {
+		imagePruneDanglingOnlyInt = 1
+	}
+	autoUpdateEnabledInt := 0
+	if autoUpdateEnabled {
+		autoUpdateEnabledInt = 1
+	}
 
 	_, err = s.db.Exec(`
 		UPDATE environments
@@ -427,7 +491,11 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 		    scheduled_update_check_enabled = ?, automatic_image_pruning_enabled = ?,
 		    track_container_events_enabled = ?, collect_container_metrics_enabled = ?,
 		    highlight_container_changes_enabled = ?, docker_disk_usage_notifications_enabled = ?,
-		    docker_disk_usage_threshold_percent = ?, timezone = ?,
+		    docker_disk_usage_threshold_percent = ?, docker_disk_usage_use_global_default = ?, timezone = ?,
+		    log_retention_days = ?, container_prune_enabled = ?, container_prune_stopped_days = ?,
+		    image_prune_dangling_only = ?,
+		    auto_update_enabled = ?, auto_update_window_start = ?, auto_update_window_end = ?, auto_update_days = ?,
+		    metric_retention_hours = ?,
 		    updated_at = ?
 		WHERE id = ?
 	`, name, orchestratorType, connType, socketPath, host, port,
@@ -438,7 +506,11 @@ func (s *Service) Update(id string, req UpdateRequest) (*Environment, error) {
 		scheduledUpdateCheckEnabledInt, automaticImagePruningEnabledInt,
 		trackContainerEventsEnabledInt, collectContainerMetricsEnabledInt,
 		highlightContainerChangesEnabledInt, dockerDiskUsageNotificationsEnabledInt,
-		dockerDiskUsageThresholdPercent, timezone,
+		dockerDiskUsageThresholdPercent, dockerDiskUsageUseGlobalDefaultInt, timezone,
+		logRetentionDays, containerPruneEnabledInt, containerPruneStoppedDays,
+		imagePruneDanglingOnlyInt,
+		autoUpdateEnabledInt, autoUpdateWindowStart, autoUpdateWindowEnd, autoUpdateDays,
+		metricRetentionHours,
 		now, id)
 	if err != nil {
 		return nil, fmt.Errorf("updating environment: %w", err)
@@ -595,8 +667,12 @@ func scanEnvironment(rows *sql.Rows) (Environment, error) {
 	var isDefault, isActive, scheduledUpdateCheckEnabled, automaticImagePruningEnabled int
 	var trackContainerEventsEnabled, collectContainerMetricsEnabled int
 	var highlightContainerChangesEnabled, dockerDiskUsageNotificationsEnabled int
-	var dockerDiskUsageThresholdPercent int
+	var dockerDiskUsageThresholdPercent, dockerDiskUsageUseGlobalDefault int
 	var timezone string
+	var logRetentionDays, containerPruneEnabled, containerPruneStoppedDays int
+	var imagePruneDanglingOnly, autoUpdateEnabled int
+	var autoUpdateWindowStart, autoUpdateWindowEnd, autoUpdateDays string
+	var metricRetentionHours int
 
 	err := rows.Scan(
 		&env.ID, &env.Name, &env.OrchestratorType, &env.ConnectionType,
@@ -609,7 +685,11 @@ func scanEnvironment(rows *sql.Rows) (Environment, error) {
 		&scheduledUpdateCheckEnabled, &automaticImagePruningEnabled,
 		&trackContainerEventsEnabled, &collectContainerMetricsEnabled,
 		&highlightContainerChangesEnabled, &dockerDiskUsageNotificationsEnabled,
-		&dockerDiskUsageThresholdPercent, &timezone,
+		&dockerDiskUsageThresholdPercent, &dockerDiskUsageUseGlobalDefault, &timezone,
+		&logRetentionDays, &containerPruneEnabled, &containerPruneStoppedDays,
+		&imagePruneDanglingOnly,
+		&autoUpdateEnabled, &autoUpdateWindowStart, &autoUpdateWindowEnd, &autoUpdateDays,
+		&metricRetentionHours,
 		&env.CreatedAt, &env.UpdatedAt,
 	)
 	if err != nil {
@@ -650,7 +730,17 @@ func scanEnvironment(rows *sql.Rows) (Environment, error) {
 	env.HighlightContainerChangesEnabled = highlightContainerChangesEnabled == 1
 	env.DockerDiskUsageNotificationsEnabled = dockerDiskUsageNotificationsEnabled == 1
 	env.DockerDiskUsageThresholdPercent = dockerDiskUsageThresholdPercent
+	env.DockerDiskUsageUseGlobalDefault = dockerDiskUsageUseGlobalDefault == 1
 	env.Timezone = timezone
+	env.LogRetentionDays = logRetentionDays
+	env.ContainerPruneEnabled = containerPruneEnabled == 1
+	env.ContainerPruneStoppedDays = containerPruneStoppedDays
+	env.ImagePruneDanglingOnly = imagePruneDanglingOnly == 1
+	env.AutoUpdateEnabled = autoUpdateEnabled == 1
+	env.AutoUpdateWindowStart = autoUpdateWindowStart
+	env.AutoUpdateWindowEnd = autoUpdateWindowEnd
+	env.AutoUpdateDays = autoUpdateDays
+	env.MetricRetentionHours = metricRetentionHours
 
 	return env, nil
 }
@@ -666,8 +756,12 @@ func scanEnvironmentRow(row *sql.Row) (*Environment, error) {
 	var isDefault, isActive, scheduledUpdateCheckEnabled, automaticImagePruningEnabled int
 	var trackContainerEventsEnabled, collectContainerMetricsEnabled int
 	var highlightContainerChangesEnabled, dockerDiskUsageNotificationsEnabled int
-	var dockerDiskUsageThresholdPercent int
+	var dockerDiskUsageThresholdPercent, dockerDiskUsageUseGlobalDefault int
 	var timezone string
+	var logRetentionDays, containerPruneEnabled, containerPruneStoppedDays int
+	var imagePruneDanglingOnly, autoUpdateEnabled int
+	var autoUpdateWindowStart, autoUpdateWindowEnd, autoUpdateDays string
+	var metricRetentionHours int
 
 	err := row.Scan(
 		&env.ID, &env.Name, &env.OrchestratorType, &env.ConnectionType,
@@ -680,7 +774,11 @@ func scanEnvironmentRow(row *sql.Row) (*Environment, error) {
 		&scheduledUpdateCheckEnabled, &automaticImagePruningEnabled,
 		&trackContainerEventsEnabled, &collectContainerMetricsEnabled,
 		&highlightContainerChangesEnabled, &dockerDiskUsageNotificationsEnabled,
-		&dockerDiskUsageThresholdPercent, &timezone,
+		&dockerDiskUsageThresholdPercent, &dockerDiskUsageUseGlobalDefault, &timezone,
+		&logRetentionDays, &containerPruneEnabled, &containerPruneStoppedDays,
+		&imagePruneDanglingOnly,
+		&autoUpdateEnabled, &autoUpdateWindowStart, &autoUpdateWindowEnd, &autoUpdateDays,
+		&metricRetentionHours,
 		&env.CreatedAt, &env.UpdatedAt,
 	)
 	if err != nil {
@@ -721,7 +819,17 @@ func scanEnvironmentRow(row *sql.Row) (*Environment, error) {
 	env.HighlightContainerChangesEnabled = highlightContainerChangesEnabled == 1
 	env.DockerDiskUsageNotificationsEnabled = dockerDiskUsageNotificationsEnabled == 1
 	env.DockerDiskUsageThresholdPercent = dockerDiskUsageThresholdPercent
+	env.DockerDiskUsageUseGlobalDefault = dockerDiskUsageUseGlobalDefault == 1
 	env.Timezone = timezone
+	env.LogRetentionDays = logRetentionDays
+	env.ContainerPruneEnabled = containerPruneEnabled == 1
+	env.ContainerPruneStoppedDays = containerPruneStoppedDays
+	env.ImagePruneDanglingOnly = imagePruneDanglingOnly == 1
+	env.AutoUpdateEnabled = autoUpdateEnabled == 1
+	env.AutoUpdateWindowStart = autoUpdateWindowStart
+	env.AutoUpdateWindowEnd = autoUpdateWindowEnd
+	env.AutoUpdateDays = autoUpdateDays
+	env.MetricRetentionHours = metricRetentionHours
 
 	return &env, nil
 }

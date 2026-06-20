@@ -66,10 +66,12 @@ type EnvironmentAutomationTabProps = {
   env: EnvironmentInfo;
   scheduledUpdateCheckEnabled: boolean;
   automaticImagePruningEnabled: boolean;
+  imagePruneDanglingOnly: boolean;
   timezone: string;
   isSaving: boolean;
   onScheduledUpdateCheckChange: (checked: boolean) => void;
   onAutomaticImagePruningChange: (checked: boolean) => void;
+  onImagePruneDanglingOnlyChange: (checked: boolean) => void;
   onTimezoneChange: (value: string) => void;
 };
 
@@ -77,10 +79,12 @@ export function EnvironmentAutomationTab({
   env,
   scheduledUpdateCheckEnabled,
   automaticImagePruningEnabled,
+  imagePruneDanglingOnly,
   timezone,
   isSaving,
   onScheduledUpdateCheckChange,
   onAutomaticImagePruningChange,
+  onImagePruneDanglingOnlyChange,
   onTimezoneChange,
 }: EnvironmentAutomationTabProps) {
   const { t } = useTranslation('environments');
@@ -121,6 +125,24 @@ export function EnvironmentAutomationTab({
           statusOn={t('detail.automation.statusOn')}
           statusOff={t('detail.automation.statusOff')}
         />
+
+        <div className="rounded-xl border border-border bg-muted/20 p-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <h3 className="text-sm font-semibold text-foreground">
+                {t('detail.automation.imagePruneDanglingOnlyTitle')}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {t('detail.automation.imagePruneDanglingOnlyDescription')}
+              </p>
+            </div>
+            <Switch
+              checked={imagePruneDanglingOnly}
+              disabled={!isDocker || !automaticImagePruningEnabled || isSaving}
+              onCheckedChange={onImagePruneDanglingOnlyChange}
+            />
+          </div>
+        </div>
 
         <div className="rounded-xl border border-border bg-muted/20 p-4">
           <Label className="mb-2 block text-sm font-semibold text-foreground">

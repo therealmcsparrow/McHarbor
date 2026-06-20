@@ -62,6 +62,125 @@ func NewProxy(dockerHost string, logger *slog.Logger) *Proxy {
 }
 
 // DetectDockerVersion tries to get the Docker API version from the local daemon.
+// Prune runs a Docker prune operation locally. Mirrors the server-side logic
+// in src/backend/modules/metrics/service.go so per-resource totals can be
+// aggregated identically. Returns ItemsDeleted and SpaceReclaimed.
+//
+// Supported types: "system" (containers + images + networks, +volumes when
+// payload.Volumes=true), "builder", "volumes", "images", "containers",
+// "networks".
+func (p *Proxy) Prune(ctx context.Context, payload PrunePayload) (PrunePayload, error) {
+	out := PrunePayload{Type: payload.Type, Volumes: payload.Volumes}
+
+	do := func(method, path string, body io.Reader, contentType string) (int64, int64, error) {
+		var req *http.Request
+		var err error
+		if body != nil {
+			req, err = http.NewRequestWithContext(ctx, method, "http://docker"+path, body)
+			if err != nil {
+				return 0, 0, err
+			}
+			req.Header.Set("Content-Type", contentType)
+		} else {
+			req, err = http.NewRequestWithContext(ctx, method, "http://docker"+path, nil)
+			if err != nil {
+				return 0, 0, err
+			}
+		}
+		resp, err := p.httpClient.Do(req)
+		if err != nil {
+			return 0, 0, err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode >= 300 {
+			respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+			return 0, 0, fmt.Errorf("prune %s returned status %d: %s", path, resp.StatusCode, strings.TrimSpace(string(respBody)))
+		}
+		var report struct {
+			SpaceReclaimed      int64    `json:"SpaceReclaimed"`
+			ContainersDeleted   []string `json:"ContainersDeleted"`
+			ImagesDeleted       []string `json:"ImagesDeleted"`
+			VolumesDeleted      []string `json:"VolumesDeleted"`
+			NetworksDeleted     []string `json:"NetworksDeleted"`
+			CachesDeleted       []string `json:"CachesDeleted"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&report); err != nil {
+			return 0, 0, fmt.Errorf("decoding prune response: %w", err)
+		}
+		items := int64(len(report.ContainersDeleted)) +
+			int64(len(report.ImagesDeleted)) +
+			int64(len(report.VolumesDeleted)) +
+			int64(len(report.NetworksDeleted)) +
+			int64(len(report.CachesDeleted))
+		return items, report.SpaceReclaimed, nil
+	}
+
+	switch payload.Type {
+	case "system":
+		imgItems, imgReclaim, err := do("POST", "/images/prune", strings.NewReader("{}"), "application/json")
+		if err != nil {
+			return out, fmt.Errorf("system prune (images): %w", err)
+		}
+		ctnItems, ctnReclaim, err := do("POST", "/containers/prune", strings.NewReader("{}"), "application/json")
+		if err != nil {
+			return out, fmt.Errorf("system prune (containers): %w", err)
+		}
+		netItems, _, err := do("POST", "/networks/prune", strings.NewReader("{}"), "application/json")
+		if err != nil {
+			return out, fmt.Errorf("system prune (networks): %w", err)
+		}
+		out.ItemsDeleted = imgItems + ctnItems + netItems
+		out.SpaceReclaimed = imgReclaim + ctnReclaim
+		if payload.Volumes {
+			volItems, volReclaim, err := do("POST", "/volumes/prune", strings.NewReader("{}"), "application/json")
+			if err != nil {
+				return out, fmt.Errorf("system prune (volumes): %w", err)
+			}
+			out.ItemsDeleted += volItems
+			out.SpaceReclaimed += volReclaim
+		}
+	case "builder":
+		items, reclaim, err := do("POST", "/build/prune?all=0", strings.NewReader("{}"), "application/json")
+		if err != nil {
+			return out, fmt.Errorf("builder prune: %w", err)
+		}
+		out.ItemsDeleted = items
+		out.SpaceReclaimed = reclaim
+	case "volumes":
+		items, reclaim, err := do("POST", "/volumes/prune", strings.NewReader("{}"), "application/json")
+		if err != nil {
+			return out, fmt.Errorf("volume prune: %w", err)
+		}
+		out.ItemsDeleted = items
+		out.SpaceReclaimed = reclaim
+	case "images":
+		items, reclaim, err := do("POST", "/images/prune", strings.NewReader("{}"), "application/json")
+		if err != nil {
+			return out, fmt.Errorf("image prune: %w", err)
+		}
+		out.ItemsDeleted = items
+		out.SpaceReclaimed = reclaim
+	case "containers":
+		items, reclaim, err := do("POST", "/containers/prune", strings.NewReader("{}"), "application/json")
+		if err != nil {
+			return out, fmt.Errorf("container prune: %w", err)
+		}
+		out.ItemsDeleted = items
+		out.SpaceReclaimed = reclaim
+	case "networks":
+		items, _, err := do("POST", "/networks/prune", strings.NewReader("{}"), "application/json")
+		if err != nil {
+			return out, fmt.Errorf("network prune: %w", err)
+		}
+		out.ItemsDeleted = items
+	default:
+		return out, fmt.Errorf("unknown prune type %q", payload.Type)
+	}
+
+	out.Success = true
+	return out, nil
+}
+
 func (p *Proxy) DetectDockerVersion() string {
 	req, err := http.NewRequest("GET", "http://docker/version", nil)
 	if err != nil {

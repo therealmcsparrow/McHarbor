@@ -134,10 +134,19 @@
     "chartTx": "Tx",
     "chartRead": "Ler",
     "chartWrite": "Escrever",
+    "network": "Rede",
+    "networkUnavailable": "Ainda não há amostras de rede",
+    "engineFooter": "Docker Engine v{{version}} · {{hostname}}",
     "tabs": {
       "overview": "Visão geral",
       "activity": "Atividade",
-      "automation": "Automação"
+      "automation": "Automação",
+      "retention": "Retenção",
+      "host": "Host",
+      "docker": "Docker",
+      "processes": "Processos",
+"terminal": "Terminal",
+      "logs": "Logs"
     },
     "activity": {
       "title": "Configurações de atividade",
@@ -152,6 +161,7 @@
       "diskUsageNotificationsDescription": "Envie uma notificação no aplicativo quando o armazenamento Docker ultrapassar o limite configurado para este ambiente.",
       "diskUsageThresholdLabel": "Limite de uso de disco",
       "diskUsageThresholdHint": "Insira uma porcentagem entre 1 e 100.",
+      "diskUsageUseGlobalDefaultLabel": "Usar padrão global ({{value}}%)",
       "diskCapacityNote": "Os alertas de limite usam a capacidade do driver de armazenamento Docker relatada pelo mecanismo quando está disponível.",
       "diskUsageExceededTitle": "Limite de uso do disco {{name}} excedido",
       "diskUsageExceededDescription": "O armazenamento Docker está na capacidade {{percent}}% of (limite: {{threshold}}%, uso atual: {{total}}).",
@@ -171,12 +181,222 @@
       "automaticImagePruningTitle": "Remoção automática de imagem",
       "automaticImagePruningDescription": "Remova automaticamente imagens Docker não utilizadas todos os dias às 03:00 no fuso horário deste ambiente para liberar espaço em disco.",
       "automaticImagePruningHint": "Funciona diariamente às 03:00 usando o fuso horário abaixo",
+      "imagePruneDanglingOnlyTitle": "Remover apenas imagens pendentes",
+      "imagePruneDanglingOnlyDescription": "Quando ativado, apenas imagens pendentes (sem tag) são removidas. Desative para também remover imagens com tag não utilizadas.",
       "prunePreviewLabel": "Visualização automática de remoção de imagem",
       "timezoneLabel": "Fuso horário",
       "timezoneDescription": "Usado para agendar atualizações automáticas, sincronizações git e remoção de imagens.",
       "kubernetesNote": "As verificações de atualização e a remoção de imagens se aplicam a ambientes Docker. Você ainda pode definir o fuso horário para agendamento.",
       "statusOn": "ON",
       "statusOff": "OFF"
+    },
+    "retention": {
+      "title": "Retenção e remoção",
+      "description": "Configure a retenção de logs, a remoção automática de contêineres, a janela de manutenção de atualização automática e a retenção de métricas para este ambiente.",
+      "kubernetesNote": "A retenção e a remoção se aplicam a ambientes Docker. A janela de atualização automática é informativa e usada por automações futuras.",
+      "logRetentionTitle": "Retenção de logs de contêiner",
+      "logRetentionDescription": "Por quanto tempo o histórico de logs do contêiner é mantido antes de ser removido.",
+      "logRetentionLabel": "Período de retenção",
+      "logRetentionHint": "Defina 0 para manter os logs para sempre. Intervalo: 0 a 3650 dias.",
+      "containerPruneTitle": "Remoção automática de contêineres",
+      "containerPruneDescription": "Remova automaticamente contêineres parados que estão parados pelo número configurado de dias.",
+      "containerPruneStoppedLabel": "Dias parados antes da remoção",
+      "containerPruneStoppedHint": "Intervalo: 1 a 3650 dias.",
+      "autoUpdateTitle": "Janela de manutenção de atualização automática",
+      "autoUpdateDescription": "Restrinja as atualizações automáticas de imagens de contêiner a uma janela de tempo e dias específicos da semana.",
+      "autoUpdateWindowStartLabel": "Início da janela",
+      "autoUpdateWindowEndLabel": "Fim da janela",
+      "autoUpdateDaysLabel": "Dias ativos",
+      "metricRetentionTitle": "Retenção de métricas",
+      "metricRetentionDescription": "Por quanto tempo as métricas coletadas de contêiner e host são mantidas antes de serem removidas.",
+      "metricRetentionLabel": "Período de retenção",
+      "metricRetentionHint": "Defina 0 para manter as métricas para sempre. Intervalo: 0 a 8760 horas (1 ano).",
+      "daysUnit": "dias",
+      "hoursUnit": "horas",
+      "statusOn": "ON",
+      "statusOff": "OFF",
+      "statusActive": "ATIVO",
+      "statusForever": "PARA SEMPRE",
+      "daysShort": {
+        "mon": "Seg",
+        "tue": "Ter",
+        "wed": "Qua",
+        "thu": "Qui",
+        "fri": "Sex",
+        "sat": "Sáb",
+        "sun": "Dom"
+      }
+    },
+    "host": {
+      "title": "Host",
+      "description": "Visão de recursos ao vivo para {{hostname}}",
+      "loadError": "Falha ao carregar métricas do host.",
+      "agentLimitedNotice": "Este ambiente está conectado através de um agente remoto. Métricas de host ao vivo e ações de remoção não estão disponíveis; apenas estatísticas do Docker são mostradas.",
+      "refreshed": "Atualizado {{value}}",
+      "secondsAgo": "há {{count}}s",
+      "retry": "Tentar novamente",
+      "stats": {
+        "cpu": "CPU",
+        "memory": "Memória",
+        "uptime": "Tempo de atividade",
+        "dockerVersion": "Versão do Docker",
+        "load": "Carga {{value}}",
+        "cores": "{{count}} núcleos",
+        "unavailable": "Não disponível"
+      },
+      "disk": {
+        "title": "Uso de disco do Docker",
+        "images": "Imagens",
+        "containers": "Contêineres",
+        "volumes": "Volumes",
+        "buildCache": "Cache de build"
+      },
+      "hostFs": {
+        "title": "Sistema de arquivos do host",
+        "path": "Montagem: {{path}}",
+        "unavailable": "O uso do sistema de arquivos do host não está disponível para este ambiente."
+      },
+      "prune": {
+        "title": "Remover",
+        "description": "Libere espaço em disco removendo recursos Docker não utilizados. Destrutivo — confirme cada ação.",
+        "agentLimited": "A remoção não está disponível para ambientes de agente: o daemon Docker no host remoto não é diretamente acessível.",
+        "destructiveTag": "Destrutivo",
+        "confirm": "Remover",
+        "system": {
+          "label": "Sistema (contêineres, imagens, redes)",
+          "title": "Remover do sistema",
+          "description": "Remove todos os contêineres parados, imagens não utilizadas e redes não utilizadas. Volumes nomeados não são tocados.",
+          "withVolumesLabel": "Sistema + volumes (destrutivo)",
+          "withVolumesDescription": "Remove contêineres parados, imagens não utilizadas, redes não utilizadas E volumes nomeados não utilizados. Dados em volumes nomeados não usados por nenhum contêiner serão excluídos permanentemente."
+        },
+        "builder": {
+          "label": "Cache do builder",
+          "title": "Remover cache do builder",
+          "description": "Remove o cache de build do Docker."
+        },
+        "volumes": {
+          "label": "Volumes (destrutivo)",
+          "title": "Remover volumes",
+          "description": "Remove todos os volumes nomeados não utilizados. Dados em volumes nomeados não utilizados serão excluídos permanentemente."
+        },
+        "images": {
+          "label": "Imagens",
+          "title": "Remover imagens",
+          "description": "Remove todas as imagens pendentes e não utilizadas."
+        },
+        "containers": {
+          "label": "Contêineres parados",
+          "title": "Remover contêineres parados",
+          "description": "Remove todos os contêineres parados."
+        },
+        "networks": {
+          "label": "Redes",
+          "title": "Remover redes",
+          "description": "Remove todas as redes não utilizadas."
+        }
+      }
+    },
+    "docker": {
+      "title": "Mecanismo Docker",
+      "description": "Informações detalhadas sobre o daemon Docker em execução neste ambiente.",
+      "unavailable": "Informações do mecanismo Docker não estão disponíveis para este ambiente.",
+      "server": "Servidor",
+      "version": "Versão",
+      "apiVersion": "Versão da API",
+      "minApiVersion": "Versão mínima da API",
+      "gitCommit": "Commit Git",
+      "goVersion": "Versão do Go",
+      "os": "SO",
+      "architecture": "Arquitetura",
+      "kernelVersion": "Kernel",
+      "hostname": "Hostname",
+      "serverId": "ID do servidor",
+      "resources": "Recursos",
+      "cpus": "CPUs",
+      "memory": "Memória",
+      "counts": "Contagens",
+      "containers": "Contêineres",
+      "containersRunning": "Em execução",
+      "containersPaused": "Pausados",
+      "containersStopped": "Parados",
+      "images": "Imagens",
+      "storage": "Armazenamento",
+      "storageDriver": "Driver de armazenamento",
+      "dockerRootDir": "Raiz do Docker",
+      "loggingDriver": "Driver de logs",
+      "runtime": "Runtime",
+      "cgroupDriver": "Driver de cgroup",
+      "cgroupVersion": "Versão do cgroup",
+      "defaultRuntime": "Runtime padrão",
+      "runtimes": "Runtimes",
+      "isolation": "Isolamento",
+      "security": "Segurança",
+      "plugins": "Plugins",
+      "volumePlugins": "Plugins de volume",
+      "networkPlugins": "Plugins de rede",
+      "logPlugins": "Plugins de log",
+      "swarm": "Swarm",
+      "status": "Status",
+      "swarmActive": "Ativo",
+      "swarmInactive": "Inativo",
+      "swarmNodeId": "ID do nó",
+      "swarmManagers": "Managers",
+      "swarmNodes": "Nós",
+      "labels": "Rótulos"
+    },
+    "processes": {
+      "title": "Processos de contêineres",
+      "description": "Uso de recursos ao vivo (CPU, memória, rede, I/O de bloco) dos contêineres em execução neste ambiente.",
+      "searchPlaceholder": "Buscar processos...",
+      "empty": "Nenhuma métrica de processo em execução disponível.",
+      "columns": {
+        "name": "Nome",
+        "cpu": "CPU",
+        "memory": "Memória",
+        "pids": "PIDs",
+        "network": "RX / TX",
+        "block": "Ler / Escrever"
+      }
+    },
+    "hostTerminal": {
+      "title": "Terminal do host",
+      "description": "Shell interativo no host remoto através do agente (ou via contêiner privilegiado para ambientes locais).",
+      "connect": "Conectar",
+      "connecting": "Conectando...",
+      "disconnect": "Desconectar",
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "warning": "Esta sessão tem acesso total ao host. Execute comandos somente quando entender o impacto.",
+      "connectError": "Não foi possível conectar ao terminal do host."
+    },
+    "hostLogs": {
+      "title": "Registros do host",
+      "description": "Instantâneos limitados dos registros do sistema, kernel, autenticação e daemon Docker do host deste ambiente.",
+      "sourceLabel": "Fonte do registro",
+      "tailLabel": "Número de linhas",
+      "refresh": "Atualizar",
+      "empty": "Nenhuma linha de registro retornada.",
+      "unavailable": "Os registros do host não estão disponíveis para este ambiente.",
+      "sources": {
+        "system": "Sistema",
+        "kernel": "Kernel",
+        "auth": "Autenticação",
+        "docker": "Docker"
+      },
+      "notices": {
+        "generic": "A fonte do registro retornou um aviso não fatal.",
+        "permission_denied": "Existe um arquivo de registro do host, mas o McHarbor não tem permissão para lê-lo. Uma fonte alternativa foi tentada.",
+        "no_supported_log_source": "Nenhum arquivo de registro legível ou fonte de journal compatível encontrado para este host."
+      }
+    },
+    "hostLogPreview": {
+      "title": "Linhas de registro recentes",
+      "description": "Últimas linhas do registro do sistema, kernel, autenticação ou daemon Docker deste host. Abra a aba Logs para a visualização completa.",
+      "openFull": "Abrir Logs completos",
+      "loading": "Lendo registros...",
+      "empty": "Nenhuma linha de registro disponível no host. Tente outra fonte ou verifique o diretório de registros do host.",
+      "lineCount": "{{count}} linhas",
+      "tailNote": "Mostrando as últimas {{tail}} linhas"
     }
   },
   "agentToken": {

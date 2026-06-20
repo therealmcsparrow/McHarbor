@@ -16,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/image"
 	dockerclient "github.com/docker/docker/client"
 
+	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 )
 
@@ -23,15 +24,23 @@ const utilityImage = "alpine:3.20"
 
 var errAgentUnsupported = errors.New("agent environments do not support host OS operations")
 
-// Service runs bounded host OS operations through Docker.
+// Service runs bounded host OS operations through Docker (local envs) or the
+// remote agent (agent envs).
 type Service struct {
-	pool   *coredocker.ClientPool
-	logger *slog.Logger
+	pool      *coredocker.ClientPool
+	agentPool *coreagent.AgentPool
+	logger    *slog.Logger
 }
 
 // NewService creates a new system service.
 func NewService(pool *coredocker.ClientPool, logger *slog.Logger) *Service {
 	return &Service{pool: pool, logger: logger}
+}
+
+// NewServiceWithAgent creates a system service that can route host
+// operations through a connected remote agent.
+func NewServiceWithAgent(pool *coredocker.ClientPool, agentPool *coreagent.AgentPool, logger *slog.Logger) *Service {
+	return &Service{pool: pool, agentPool: agentPool, logger: logger}
 }
 
 // Logs returns a bounded host OS log snapshot.
@@ -41,6 +50,10 @@ func (s *Service) Logs(ctx context.Context, envID, source string, tail int) (*OS
 	}
 	if tail > 1000 {
 		tail = 1000
+	}
+
+	if s.pool.IsAgentEnv(envID) {
+		return s.logsViaAgent(ctx, envID, source, tail)
 	}
 
 	cmd, ok := logCommand(source, tail)
@@ -63,8 +76,49 @@ func (s *Service) Logs(ctx context.Context, envID, source string, tail int) (*OS
 	}, nil
 }
 
+// logsViaAgent fetches host logs by streaming from the connected agent.
+func (s *Service) logsViaAgent(ctx context.Context, envID, source string, tail int) (*OSLogResult, error) {
+	t := s.agentPool.Transport(envID)
+	if t == nil {
+		return nil, fmt.Errorf("agent is not connected for environment %s", envID)
+	}
+	if !t.HostLogsSupported() {
+		return nil, fmt.Errorf("host logs require agent 1.8.0+; please upgrade mcharbor-agent")
+	}
+	logCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	stream, err := t.HostLogs(logCtx, coreagent.HostLogRequestPayload{Source: source, Tail: tail})
+	if err != nil {
+		return nil, err
+	}
+	lines := make([]string, 0, tail)
+	for line := range stream.Lines {
+		lines = append(lines, line)
+	}
+	if err := stream.Err(); err != nil {
+		return &OSLogResult{
+			Source:    source,
+			Tail:      tail,
+			Lines:     lines,
+			Notices:   stream.Notices,
+			FetchedAt: time.Now().UTC(),
+		}, err
+	}
+	return &OSLogResult{
+		Source:    source,
+		Tail:      tail,
+		Lines:     lines,
+		Notices:   stream.Notices,
+		FetchedAt: time.Now().UTC(),
+	}, nil
+}
+
 // CheckUpdates returns available host OS package updates.
 func (s *Service) CheckUpdates(ctx context.Context, envID string) (*OSUpdateCheckResult, error) {
+	if s.pool.IsAgentEnv(envID) {
+		return nil, fmt.Errorf("OS update checks are not yet supported over remote agents; run locally and review output on the agent host")
+	}
+
 	result, err := s.runHostCommand(ctx, envID, updateCheckScript(), false, 2*time.Minute)
 	if err != nil {
 		return nil, err
@@ -84,6 +138,10 @@ func (s *Service) CheckUpdates(ctx context.Context, envID string) (*OSUpdateChec
 
 // ApplyUpdates runs the host OS package manager update command.
 func (s *Service) ApplyUpdates(ctx context.Context, envID string) (*OSUpdateApplyResult, error) {
+	if s.pool.IsAgentEnv(envID) {
+		return nil, fmt.Errorf("OS update apply is not yet supported over remote agents; run on the agent host directly")
+	}
+
 	result, err := s.runHostCommand(ctx, envID, updateApplyScript(), true, 30*time.Minute)
 	if err != nil {
 		return nil, err
@@ -229,6 +287,25 @@ func logCommand(source string, tail int) (string, bool) {
 func logScript(tailArg string, files []string, journalCommand string) string {
 	var builder strings.Builder
 	builder.WriteString("set +e\n")
+	// Discover what log files are actually present under /host/var/log.
+	// emit_diag prints one MCHARBOR_NOTICE per candidate so the UI can
+	// tell the user why a particular source failed (missing file,
+	// permission denied, empty file).
+	builder.WriteString("emit_diag() {\n")
+	builder.WriteString("  echo \"MCHARBOR_NOTICE=$1\"\n")
+	builder.WriteString("}\n")
+	// List available log files (filtered by name) so the user can see
+	// what the host actually exposes.
+	builder.WriteString("list_available() {\n")
+	builder.WriteString("  if [ -d /host/var/log ]; then\n")
+	builder.WriteString("    for f in $(ls /host/var/log 2>/dev/null | grep -E '\\.(log|txt|out)$' | head -n 20); do\n")
+	builder.WriteString("      echo \"MCHARBOR_NOTICE=available_file:$f\"\n")
+	builder.WriteString("    done\n")
+	builder.WriteString("  else\n")
+	builder.WriteString("    emit_diag 'no_var_log_dir'\n")
+	builder.WriteString("  fi\n")
+	builder.WriteString("}\n")
+	// Try the configured candidate files first.
 	builder.WriteString("read_file_logs() {\n")
 	for _, file := range files {
 		builder.WriteString("  if [ -f '")
@@ -241,25 +318,42 @@ func logScript(tailArg string, files []string, journalCommand string) string {
 		builder.WriteString(" '")
 		builder.WriteString(file)
 		builder.WriteString("'; return 0; fi\n")
-		builder.WriteString("    echo 'MCHARBOR_NOTICE=permission_denied'\n")
+		builder.WriteString("    emit_diag 'permission_denied'\n")
 		builder.WriteString("  fi\n")
 	}
 	builder.WriteString("  return 1\n")
 	builder.WriteString("}\n")
+	// Dynamic fallback: pick the largest *.log file under /host/var/log
+	// when the configured candidates are missing (common on minimal
+	// images and some Docker Desktop VMs).
+	builder.WriteString("read_largest_log() {\n")
+	builder.WriteString("  candidate=$(ls -S /host/var/log/*.log 2>/dev/null | head -n 1)\n")
+	builder.WriteString("  if [ -n \"$candidate\" ] && [ -r \"$candidate\" ]; then\n")
+	builder.WriteString("    emit_diag \"largest_log_fallback:${candidate##*/}\"\n")
+	builder.WriteString("    tail -n ")
+		builder.WriteString(tailArg)
+		builder.WriteString(" \"$candidate\"\n")
+	builder.WriteString("    return 0\n")
+	builder.WriteString("  fi\n")
+	builder.WriteString("  return 1\n")
+	builder.WriteString("}\n")
+	// Try journalctl last — it's the most universally available log
+	// source on systemd-based hosts.
 	builder.WriteString("read_journal_logs() {\n")
 	builder.WriteString("  if [ -x /host/bin/journalctl ] || [ -x /host/usr/bin/journalctl ]; then\n")
 	builder.WriteString("    output=$(chroot /host sh -lc '")
 	builder.WriteString(journalCommand)
 	builder.WriteString("' 2>&1)\n")
 	builder.WriteString("    status=$?\n")
-	builder.WriteString("    if [ $status -ne 0 ]; then echo 'MCHARBOR_NOTICE=journalctl_failed'; fi\n")
+	builder.WriteString("    if [ $status -ne 0 ]; then emit_diag 'journalctl_failed'; fi\n")
 	builder.WriteString("    printf '%s\\n' \"$output\"\n")
 	builder.WriteString("    return 0\n")
 	builder.WriteString("  fi\n")
-	builder.WriteString("  echo 'MCHARBOR_NOTICE=no_supported_log_source'\n")
-	builder.WriteString("  return 0\n")
+	builder.WriteString("  emit_diag 'no_journalctl'\n")
+	builder.WriteString("  return 1\n")
 	builder.WriteString("}\n")
-	builder.WriteString("read_file_logs || read_journal_logs\n")
+	builder.WriteString("list_available\n")
+	builder.WriteString("read_file_logs || read_largest_log || read_journal_logs\n")
 	return builder.String()
 }
 

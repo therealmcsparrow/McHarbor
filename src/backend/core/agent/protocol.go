@@ -57,6 +57,26 @@ const (
 	// Agent-side container backup and restore
 	MsgBackupRun     = "backup_run"     // Server->Agent: create archive locally and upload it
 	MsgBackupRestore = "backup_restore" // Server->Agent: download archive locally and restore entries
+
+	// Host metrics and prune (agent reports /proc data and runs docker prune locally)
+	MsgHostStatsRequest  = "host_stats_request"  // Server->Agent: collect host stats
+	MsgHostStatsResponse = "host_stats_response" // Agent->Server: host stats snapshot
+	MsgPruneRequest      = "prune_request"       // Server->Agent: run docker prune
+	MsgPruneResponse     = "prune_response"      // Agent->Server: prune result
+
+	// Host terminal (interactive shell on the remote host, streams over WS)
+	MsgHostTerminalStart  = "host_terminal_start"  // Server->Agent: start a shell session
+	MsgHostTerminalInput  = "host_terminal_input"  // Server->Agent: stdin chunk
+	MsgHostTerminalOutput = "host_terminal_output" // Agent->Server: stdout chunk
+	MsgHostTerminalResize = "host_terminal_resize" // Server->Agent: TTY resize
+	MsgHostTerminalEnd    = "host_terminal_end"    // Bidirectional: session ended
+
+	// Host log streaming (bounded journal/file snapshot over WS)
+	MsgHostLogRequest = "host_log_request" // Server->Agent: read host logs
+	MsgHostLogChunk   = "host_log_chunk"   // Agent->Server: log line chunk
+	MsgHostLogEnd     = "host_log_end"     // Agent->Server: log stream complete
+
+	// Host power actions removed for stability; see commit removing host power.
 )
 
 // WSMessage is the envelope for all WebSocket messages.
@@ -64,17 +84,25 @@ type WSMessage struct {
 	Type string `json:"type"`
 	ID   string `json:"id,omitempty"` // Request ID for multiplexing
 	// Payload fields (only populated per message type)
-	Auth         *AuthPayload       `json:"auth,omitempty"`
-	AuthResult   *AuthResultPayload `json:"authResult,omitempty"`
-	HTTPRequest  *WSHTTPRequest     `json:"httpRequest,omitempty"`
-	HTTPResponse *WSHTTPResponse    `json:"httpResponse,omitempty"`
-	StreamStart  *WSStreamStart     `json:"streamStart,omitempty"`
-	StreamChunk  *WSStreamChunk     `json:"streamChunk,omitempty"`
-	ExecStart    *ExecStartPayload  `json:"execStart,omitempty"`
-	ExecResize   *ExecResizePayload `json:"execResize,omitempty"`
-	Compose      *ComposePayload    `json:"compose,omitempty"`
-	Transfer     *TransferPayload   `json:"transfer,omitempty"`
-	Backup       *BackupPayload     `json:"backup,omitempty"`
+	Auth             *AuthPayload                `json:"auth,omitempty"`
+	AuthResult       *AuthResultPayload          `json:"authResult,omitempty"`
+	HTTPRequest      *WSHTTPRequest              `json:"httpRequest,omitempty"`
+	HTTPResponse     *WSHTTPResponse             `json:"httpResponse,omitempty"`
+	StreamStart      *WSStreamStart              `json:"streamStart,omitempty"`
+	StreamChunk      *WSStreamChunk              `json:"streamChunk,omitempty"`
+	ExecStart        *ExecStartPayload           `json:"execStart,omitempty"`
+	ExecResize       *ExecResizePayload          `json:"execResize,omitempty"`
+	Compose          *ComposePayload             `json:"compose,omitempty"`
+	Transfer         *TransferPayload            `json:"transfer,omitempty"`
+	Backup           *BackupPayload              `json:"backup,omitempty"`
+	HostStats        *HostStatsPayload           `json:"hostStats,omitempty"`
+	Prune            *PrunePayload               `json:"prune,omitempty"`
+	HostTerminal     *HostTerminalStartPayload   `json:"hostTerminal,omitempty"`
+	HostTerminalRes  *HostTerminalResizePayload  `json:"hostTerminalResize,omitempty"`
+	HostTerminalEnd  *HostTerminalEndPayload     `json:"hostTerminalEnd,omitempty"`
+	HostLogRequest   *HostLogRequestPayload      `json:"hostLogRequest,omitempty"`
+	HostLogChunk     *HostLogChunkPayload        `json:"hostLogChunk,omitempty"`
+	HostLogEnd       *HostLogEndPayload          `json:"hostLogEnd,omitempty"`
 }
 
 // ComposePayload carries an agent-side docker compose command.
@@ -175,6 +203,68 @@ type ExecResizePayload struct {
 	ExecID string `json:"execId"`
 	Cols   uint   `json:"cols"`
 	Rows   uint   `json:"rows"`
+}
+
+// HostStatsPayload carries a host-stats snapshot from the agent. Fields
+// mirror the Linux readHostStats + readRootFSUsage outputs in the server.
+type HostStatsPayload struct {
+	CPUPercent float64 `json:"cpuPercent"`
+	MemUsed    int64   `json:"memUsed"`
+	Load1      float64 `json:"load1"`
+	Load5      float64 `json:"load5"`
+	Load15     float64 `json:"load15"`
+	Uptime     int64   `json:"uptime"`
+	FSTotal    int64   `json:"fsTotal"`
+	FSUsed     int64   `json:"fsUsed"`
+	Supported  bool    `json:"supported"`
+	Error      string  `json:"error,omitempty"`
+}
+
+// PrunePayload carries a prune request (Server->Agent) or result (Agent->Server).
+type PrunePayload struct {
+	Type           string `json:"type"`
+	Volumes        bool   `json:"volumes,omitempty"`
+	ItemsDeleted   int64  `json:"itemsDeleted,omitempty"`
+	SpaceReclaimed int64  `json:"spaceReclaimed,omitempty"`
+	Success        bool   `json:"success,omitempty"`
+	Error          string `json:"error,omitempty"`
+}
+
+// HostTerminalStartPayload requests the agent to start an interactive shell.
+// Cols/Rows default to 80x24 when omitted.
+type HostTerminalStartPayload struct {
+	Cols uint `json:"cols,omitempty"`
+	Rows uint `json:"rows,omitempty"`
+}
+
+// HostTerminalResizePayload updates the TTY size for an active shell session.
+type HostTerminalResizePayload struct {
+	ExecID string `json:"execId"`
+	Cols   uint   `json:"cols"`
+	Rows   uint   `json:"rows"`
+}
+
+// HostTerminalEndPayload notifies the agent that the session is over.
+type HostTerminalEndPayload struct {
+	ExecID string `json:"execId"`
+}
+
+// HostLogRequestPayload describes a host-log read request.
+type HostLogRequestPayload struct {
+	Source string `json:"source"`
+	Tail   int    `json:"tail"`
+}
+
+// HostLogChunkPayload carries a single line of host-log output streamed from
+// the agent to the server.
+type HostLogChunkPayload struct {
+	Line string `json:"line"`
+}
+
+// HostLogEndPayload signals that the host-log stream is complete and carries
+// any non-fatal notices collected during the read.
+type HostLogEndPayload struct {
+	Notices []string `json:"notices,omitempty"`
 }
 
 // AuthPayload is sent by the agent during the handshake.

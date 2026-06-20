@@ -25,6 +25,7 @@ func Mount(app *router.AppDeps) {
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermEnvironmentsManage)).Put("/", h.HandleUpdate)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermEnvironmentsManage)).Delete("/", h.HandleDelete)
 				r.With(rbac.RequirePermission(app.RBACService, rbac.PermEnvironmentsManage)).Post("/test", h.HandleTestConnection)
+				r.With(rbac.RequirePermission(app.RBACService, rbac.PermEnvironmentsView)).Get("/topology", h.HandleTopology)
 			})
 		})
 	})

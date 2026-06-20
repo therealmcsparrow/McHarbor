@@ -27,7 +27,17 @@ type EnvironmentInfo = {
   highlightContainerChangesEnabled: boolean;
   dockerDiskUsageNotificationsEnabled: boolean;
   dockerDiskUsageThresholdPercent: number;
+  dockerDiskUsageUseGlobalDefault: boolean;
   timezone: string;
+  logRetentionDays: number;
+  containerPruneEnabled: boolean;
+  containerPruneStoppedDays: number;
+  imagePruneDanglingOnly: boolean;
+  autoUpdateEnabled: boolean;
+  autoUpdateWindowStart: string;
+  autoUpdateWindowEnd: string;
+  autoUpdateDays: string;
+  metricRetentionHours: number;
   agentStatus?: string;
   agentHostname?: string;
   agentOs?: string;

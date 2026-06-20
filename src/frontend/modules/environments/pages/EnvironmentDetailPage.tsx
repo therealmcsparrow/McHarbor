@@ -13,9 +13,16 @@ import { EnvironmentActivityTab } from '../components/EnvironmentActivityTab';
 import { EnvironmentAutomationTab } from '../components/EnvironmentAutomationTab';
 import { EnvironmentDetailHeader } from '../components/EnvironmentDetailHeader';
 import { EnvironmentOverviewPanel } from '../components/EnvironmentOverviewPanel';
-import { useEnvironmentDetailState } from '../hooks/useEnvironmentDetailState';
+import { EnvironmentRetentionTab } from '../components/EnvironmentRetentionTab';
+import { useEnvironmentDetailState, type AutoUpdateDay } from '../hooks/useEnvironmentDetailState';
+import { useGlobalDiskThresholdPercent } from '../hooks/useGlobalDiskThreshold';
 import { useRegenerateToken, useUpdateEnvironment } from '../hooks/useEnvironmentActions';
 import { useEnvironment, useEnvironmentHostMetrics, useEnvironmentMetrics } from '../hooks/useEnvironments';
+import { EnvironmentDockerTab } from '../components/EnvironmentDockerTab';
+import { EnvironmentHostLogsTab } from '../components/EnvironmentHostLogsTab';
+import { EnvironmentHostTab } from '../components/EnvironmentHostTab';
+import { EnvironmentHostTerminalTab } from '../components/EnvironmentHostTerminalTab';
+import { EnvironmentProcessesTab } from '../components/EnvironmentProcessesTab';
 import { normalizeTimezone } from '../timezones';
 
 export default function EnvironmentDetailPage() {
@@ -28,6 +35,7 @@ export default function EnvironmentDetailPage() {
   const { data: hostMetrics } = useEnvironmentHostMetrics(id);
   const regenToken = useRegenerateToken();
   const updateEnvironment = useUpdateEnvironment();
+  const globalDiskThreshold = useGlobalDiskThresholdPercent();
   const setHeaderActive = useHeaderSlot((store) => store.setActive);
   const state = useEnvironmentDetailState(env);
 
@@ -56,15 +64,44 @@ export default function EnvironmentDetailPage() {
     );
   }
 
-  const showSaveAction = state.activeTab === 'activity' || state.activeTab === 'automation';
+  const showSaveAction = state.activeTab === 'activity' || state.activeTab === 'automation' || state.activeTab === 'retention';
   const saveDisabled =
     updateEnvironment.isPending ||
     (state.activeTab === 'activity'
       ? !state.activityIsDirty
       : state.activeTab === 'automation'
         ? !state.automationIsDirty
-        : true);
+        : state.activeTab === 'retention'
+          ? !state.retentionIsDirty
+          : true);
   const saveLabel = updateEnvironment.isPending ? tc('actions.saving') : tc('actions.save');
+
+  const activeTabPayload = (() => {
+    if (state.activeTab === 'activity') {
+      return {
+        trackContainerEventsEnabled: state.trackContainerEventsEnabled,
+        collectContainerMetricsEnabled: state.collectContainerMetricsEnabled,
+        highlightContainerChangesEnabled: state.highlightContainerChangesEnabled,
+        dockerDiskUsageNotificationsEnabled: state.dockerDiskUsageNotificationsEnabled,
+        dockerDiskUsageThresholdPercent: state.normalizedThreshold,
+        dockerDiskUsageUseGlobalDefault: state.dockerDiskUsageUseGlobalDefault,
+      };
+    }
+    if (state.activeTab === 'automation') {
+      return {
+        scheduledUpdateCheckEnabled: state.scheduledUpdateCheckEnabled,
+        automaticImagePruningEnabled: state.automaticImagePruningEnabled,
+        imagePruneDanglingOnly: state.imagePruneDanglingOnly,
+        timezone: normalizeTimezone(state.timezone),
+      };
+    }
+    return {
+      logRetentionDays: state.normalizedLogRetention,
+      containerPruneEnabled: state.containerPruneEnabled,
+      containerPruneStoppedDays: state.normalizedContainerPruneDays,
+      metricRetentionHours: state.normalizedMetricHours,
+    };
+  })();
 
   return (
     <div className="space-y-6 p-5">
@@ -78,24 +115,7 @@ export default function EnvironmentDetailPage() {
               saveLabel={showSaveAction ? saveLabel : undefined}
               onSave={
                 showSaveAction
-                  ? () =>
-                      updateEnvironment.mutate({
-                        id: env.id,
-                        data:
-                          state.activeTab === 'activity'
-                            ? {
-                                trackContainerEventsEnabled: state.trackContainerEventsEnabled,
-                                collectContainerMetricsEnabled: state.collectContainerMetricsEnabled,
-                                highlightContainerChangesEnabled: state.highlightContainerChangesEnabled,
-                                dockerDiskUsageNotificationsEnabled: state.dockerDiskUsageNotificationsEnabled,
-                                dockerDiskUsageThresholdPercent: state.normalizedThreshold,
-                              }
-                            : {
-                                scheduledUpdateCheckEnabled: state.scheduledUpdateCheckEnabled,
-                                automaticImagePruningEnabled: state.automaticImagePruningEnabled,
-                                timezone: normalizeTimezone(state.timezone),
-                              },
-                      })
+                  ? () => updateEnvironment.mutate({ id: env.id, data: activeTabPayload })
                   : undefined
               }
               saveDisabled={saveDisabled}
@@ -110,6 +130,12 @@ export default function EnvironmentDetailPage() {
           <TabsTrigger value="overview">{t('detail.tabs.overview')}</TabsTrigger>
           <TabsTrigger value="activity">{t('detail.tabs.activity')}</TabsTrigger>
           <TabsTrigger value="automation">{t('detail.tabs.automation')}</TabsTrigger>
+          <TabsTrigger value="retention">{t('detail.tabs.retention')}</TabsTrigger>
+          <TabsTrigger value="host">{t('detail.tabs.host')}</TabsTrigger>
+          <TabsTrigger value="docker">{t('detail.tabs.docker')}</TabsTrigger>
+          <TabsTrigger value="processes">{t('detail.tabs.processes')}</TabsTrigger>
+          <TabsTrigger value="terminal">{t('detail.tabs.terminal')}</TabsTrigger>
+          <TabsTrigger value="logs">{t('detail.tabs.logs')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -137,12 +163,15 @@ export default function EnvironmentDetailPage() {
             highlightContainerChangesEnabled={state.highlightContainerChangesEnabled}
             dockerDiskUsageNotificationsEnabled={state.dockerDiskUsageNotificationsEnabled}
             dockerDiskUsageThresholdPercent={state.dockerDiskUsageThresholdPercent}
+            dockerDiskUsageUseGlobalDefault={state.dockerDiskUsageUseGlobalDefault}
+            globalDiskThresholdPercent={globalDiskThreshold.data ?? 80}
             isSaving={updateEnvironment.isPending}
             onTrackContainerEventsChange={state.setTrackContainerEventsEnabled}
             onCollectContainerMetricsChange={state.setCollectContainerMetricsEnabled}
             onHighlightContainerChangesChange={state.setHighlightContainerChangesEnabled}
             onDockerDiskUsageNotificationsChange={state.setDockerDiskUsageNotificationsEnabled}
             onDockerDiskUsageThresholdChange={state.setDockerDiskUsageThresholdPercent}
+            onDockerDiskUsageUseGlobalDefaultChange={state.setDockerDiskUsageUseGlobalDefault}
           />
         </TabsContent>
         <TabsContent value="automation">
@@ -150,12 +179,59 @@ export default function EnvironmentDetailPage() {
             env={env}
             scheduledUpdateCheckEnabled={state.scheduledUpdateCheckEnabled}
             automaticImagePruningEnabled={state.automaticImagePruningEnabled}
+            imagePruneDanglingOnly={state.imagePruneDanglingOnly}
             timezone={state.timezone}
             isSaving={updateEnvironment.isPending}
             onScheduledUpdateCheckChange={state.setScheduledUpdateCheckEnabled}
             onAutomaticImagePruningChange={state.setAutomaticImagePruningEnabled}
+            onImagePruneDanglingOnlyChange={state.setImagePruneDanglingOnly}
             onTimezoneChange={state.setTimezone}
           />
+        </TabsContent>
+        <TabsContent value="retention">
+          <EnvironmentRetentionTab
+            env={env}
+            logRetentionDays={state.logRetentionDays}
+            containerPruneEnabled={state.containerPruneEnabled}
+            containerPruneStoppedDays={state.containerPruneStoppedDays}
+            autoUpdateEnabled={state.autoUpdateEnabled}
+            autoUpdateWindowStart={state.autoUpdateWindowStart}
+            autoUpdateWindowEnd={state.autoUpdateWindowEnd}
+            autoUpdateDaysSelected={state.autoUpdateDaysSelected}
+            metricRetentionHours={state.metricRetentionHours}
+            isSaving={updateEnvironment.isPending}
+            onLogRetentionChange={state.setLogRetentionDays}
+            onContainerPruneEnabledChange={state.setContainerPruneEnabled}
+            onContainerPruneStoppedDaysChange={state.setContainerPruneStoppedDays}
+            onAutoUpdateEnabledChange={state.setAutoUpdateEnabled}
+            onAutoUpdateWindowStartChange={state.setAutoUpdateWindowStart}
+            onAutoUpdateWindowEndChange={state.setAutoUpdateWindowEnd}
+            onAutoUpdateDayToggle={(day) => {
+              const next = new Set(state.autoUpdateDaysSelected);
+              if (next.has(day as AutoUpdateDay)) {
+                next.delete(day as AutoUpdateDay);
+              } else {
+                next.add(day as AutoUpdateDay);
+              }
+              state.setAutoUpdateDaysSelected(next);
+            }}
+            onMetricRetentionChange={state.setMetricRetentionHours}
+          />
+        </TabsContent>
+        <TabsContent value="host">
+          <EnvironmentHostTab envId={env.id} env={env} />
+        </TabsContent>
+        <TabsContent value="docker">
+          <EnvironmentDockerTab envId={env.id} />
+        </TabsContent>
+        <TabsContent value="processes">
+          <EnvironmentProcessesTab envId={env.id} />
+        </TabsContent>
+        <TabsContent value="terminal">
+          <EnvironmentHostTerminalTab envId={env.id} />
+        </TabsContent>
+        <TabsContent value="logs">
+          <EnvironmentHostLogsTab envId={env.id} />
         </TabsContent>
       </Tabs>
 

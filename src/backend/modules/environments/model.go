@@ -3,6 +3,33 @@
 
 package environments
 
+// TopologyNode is a single node in an environment's topology graph. Nodes
+// can represent containers, networks, or volumes.
+type TopologyNode struct {
+	ID         string `json:"id"`
+	Kind       string `json:"kind"` // "container" | "network" | "volume"
+	Label      string `json:"label"`
+	State      string `json:"state,omitempty"`
+	StackName  string `json:"stackName,omitempty"`
+	Subnet     string `json:"subnet,omitempty"`
+	Mountpoint string `json:"mountpoint,omitempty"`
+}
+
+// TopologyEdge is a connection between two nodes. "container-network" and
+// "container-volume" are the supported kinds.
+type TopologyEdge struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+	Kind string `json:"kind"`
+}
+
+// TopologyResponse is the full topology graph for a single environment.
+type TopologyResponse struct {
+	EnvID string         `json:"envId"`
+	Nodes []TopologyNode `json:"nodes"`
+	Edges []TopologyEdge `json:"edges"`
+}
+
 // Environment represents a container environment/host connection stored in the DB.
 type Environment struct {
 	ID               string  `json:"id"`
@@ -45,7 +72,17 @@ type Environment struct {
 	HighlightContainerChangesEnabled    bool    `json:"highlightContainerChangesEnabled"`
 	DockerDiskUsageNotificationsEnabled bool    `json:"dockerDiskUsageNotificationsEnabled"`
 	DockerDiskUsageThresholdPercent     int     `json:"dockerDiskUsageThresholdPercent"`
+	DockerDiskUsageUseGlobalDefault     bool    `json:"dockerDiskUsageUseGlobalDefault"`
 	Timezone                            string  `json:"timezone"`
+	LogRetentionDays                    int     `json:"logRetentionDays"`
+	ContainerPruneEnabled               bool    `json:"containerPruneEnabled"`
+	ContainerPruneStoppedDays           int     `json:"containerPruneStoppedDays"`
+	ImagePruneDanglingOnly              bool    `json:"imagePruneDanglingOnly"`
+	AutoUpdateEnabled                   bool    `json:"autoUpdateEnabled"`
+	AutoUpdateWindowStart               string  `json:"autoUpdateWindowStart"`
+	AutoUpdateWindowEnd                 string  `json:"autoUpdateWindowEnd"`
+	AutoUpdateDays                      string  `json:"autoUpdateDays"`
+	MetricRetentionHours                int     `json:"metricRetentionHours"`
 	CreatedAt                           string  `json:"createdAt"`
 	UpdatedAt                           string  `json:"updatedAt"`
 }
@@ -104,7 +141,17 @@ type UpdateRequest struct {
 	HighlightContainerChangesEnabled    *bool   `json:"highlightContainerChangesEnabled,omitempty"`
 	DockerDiskUsageNotificationsEnabled *bool   `json:"dockerDiskUsageNotificationsEnabled,omitempty"`
 	DockerDiskUsageThresholdPercent     *int    `json:"dockerDiskUsageThresholdPercent,omitempty"`
+	DockerDiskUsageUseGlobalDefault     *bool   `json:"dockerDiskUsageUseGlobalDefault,omitempty"`
 	Timezone                            *string `json:"timezone,omitempty"`
+	LogRetentionDays                    *int    `json:"logRetentionDays,omitempty"`
+	ContainerPruneEnabled               *bool   `json:"containerPruneEnabled,omitempty"`
+	ContainerPruneStoppedDays           *int    `json:"containerPruneStoppedDays,omitempty"`
+	ImagePruneDanglingOnly              *bool   `json:"imagePruneDanglingOnly,omitempty"`
+	AutoUpdateEnabled                   *bool   `json:"autoUpdateEnabled,omitempty"`
+	AutoUpdateWindowStart               *string `json:"autoUpdateWindowStart,omitempty"`
+	AutoUpdateWindowEnd                 *string `json:"autoUpdateWindowEnd,omitempty"`
+	AutoUpdateDays                      *string `json:"autoUpdateDays,omitempty"`
+	MetricRetentionHours                *int    `json:"metricRetentionHours,omitempty"`
 }
 
 // DetectedSocket represents an auto-detected Docker or Podman socket.

@@ -134,10 +134,19 @@
     "chartTx": "Émission",
     "chartRead": "Lire",
     "chartWrite": "Écrire",
+    "network": "Réseau",
+    "networkUnavailable": "Pas encore d'échantillons réseau",
+    "engineFooter": "Docker Engine v{{version}} · {{hostname}}",
     "tabs": {
       "overview": "Aperçu",
       "activity": "Activité",
-      "automation": "Automation"
+      "automation": "Automation",
+      "retention": "Rétention",
+      "host": "Hôte",
+      "docker": "Docker",
+      "processes": "Processus",
+"terminal": "Terminal",
+      "logs": "Logs"
     },
     "activity": {
       "title": "Paramètres d'activité",
@@ -152,6 +161,7 @@
       "diskUsageNotificationsDescription": "Envoyez une notification dans l'application lorsque le stockage Docker dépasse le seuil configuré pour cet environnement.",
       "diskUsageThresholdLabel": "Seuil d'utilisation du disque",
       "diskUsageThresholdHint": "Saisissez un pourcentage compris entre 1 et 100.",
+      "diskUsageUseGlobalDefaultLabel": "Utiliser la valeur par défaut globale ({{value}}%)",
       "diskCapacityNote": "Les alertes de seuil utilisent la capacité du pilote de stockage Docker signalée par le moteur lorsqu'elle est disponible.",
       "diskUsageExceededTitle": "Seuil d'utilisation du disque {{name}} dépassé",
       "diskUsageExceededDescription": "Le stockage Docker est à la capacité {{percent}}% of (seuil : {{threshold}} %, utilisation actuelle : {{total}}).",
@@ -171,12 +181,222 @@
       "automaticImagePruningTitle": "Taille automatique des images",
       "automaticImagePruningDescription": "Supprimez automatiquement les images Docker inutilisées chaque jour à 03h00 dans le fuseau horaire de cet environnement pour libérer de l'espace disque.",
       "automaticImagePruningHint": "Fonctionne quotidiennement à 03h00 en utilisant le fuseau horaire ci-dessous",
+      "imagePruneDanglingOnlyTitle": "Élaguer uniquement les images pendantes",
+      "imagePruneDanglingOnlyDescription": "Lorsque activé, seules les images pendantes (sans étiquette) sont supprimées. Désactivez pour également supprimer les images étiquetées inutilisées.",
       "prunePreviewLabel": "Aperçu de la taille automatique de l'image",
       "timezoneLabel": "Fuseau horaire",
       "timezoneDescription": "Utilisé pour planifier les mises à jour automatiques, les synchronisations git et l'élagage des images.",
       "kubernetesNote": "Les vérifications de mise à jour et l'élagage des images s'appliquent aux environnements Docker. Vous pouvez toujours définir le fuseau horaire pour la planification.",
       "statusOn": "ON",
       "statusOff": "OFF"
+    },
+    "retention": {
+      "title": "Rétention et élagage",
+      "description": "Configurez la rétention des journaux, l'élagage automatique des conteneurs, la fenêtre de maintenance des mises à jour automatiques et la rétention des métriques pour cet environnement.",
+      "kubernetesNote": "La rétention et l'élagage s'appliquent aux environnements Docker. La fenêtre de mise à jour automatique est informative et utilisée par l'automatisation future.",
+      "logRetentionTitle": "Rétention des journaux de conteneur",
+      "logRetentionDescription": "Combien de temps l'historique des journaux de conteneur est conservé avant d'être élagué.",
+      "logRetentionLabel": "Période de rétention",
+      "logRetentionHint": "Définissez 0 pour conserver les journaux pour toujours. Plage : 0 à 3650 jours.",
+      "containerPruneTitle": "Élagage automatique des conteneurs",
+      "containerPruneDescription": "Supprimez automatiquement les conteneurs arrêtés qui le sont depuis le nombre de jours configuré.",
+      "containerPruneStoppedLabel": "Jours arrêtés avant élagage",
+      "containerPruneStoppedHint": "Plage : 1 à 3650 jours.",
+      "autoUpdateTitle": "Fenêtre de maintenance des mises à jour automatiques",
+      "autoUpdateDescription": "Restreignez les mises à jour automatiques des images de conteneur à une fenêtre horaire et des jours spécifiques de la semaine.",
+      "autoUpdateWindowStartLabel": "Début de la fenêtre",
+      "autoUpdateWindowEndLabel": "Fin de la fenêtre",
+      "autoUpdateDaysLabel": "Jours actifs",
+      "metricRetentionTitle": "Rétention des métriques",
+      "metricRetentionDescription": "Combien de temps les métriques de conteneur et d'hôte collectées sont conservées avant d'être élaguées.",
+      "metricRetentionLabel": "Période de rétention",
+      "metricRetentionHint": "Définissez 0 pour conserver les métriques pour toujours. Plage : 0 à 8760 heures (1 an).",
+      "daysUnit": "jours",
+      "hoursUnit": "heures",
+      "statusOn": "ON",
+      "statusOff": "OFF",
+      "statusActive": "ACTIF",
+      "statusForever": "POUR TOUJOURS",
+      "daysShort": {
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam",
+        "sun": "Dim"
+      }
+    },
+    "host": {
+      "title": "Hôte",
+      "description": "Vue des ressources en direct pour {{hostname}}",
+      "loadError": "Échec du chargement des métriques de l'hôte.",
+      "agentLimitedNotice": "Cet environnement est connecté via un agent distant. Les métriques de l'hôte en direct et les actions d'élagage ne sont pas disponibles ; seules les statistiques Docker sont affichées.",
+      "refreshed": "Mis à jour {{value}}",
+      "secondsAgo": "il y a {{count}}s",
+      "retry": "Réessayer",
+      "stats": {
+        "cpu": "CPU",
+        "memory": "Mémoire",
+        "uptime": "Disponibilité",
+        "dockerVersion": "Version de Docker",
+        "load": "Charge {{value}}",
+        "cores": "{{count}} cœurs",
+        "unavailable": "Non disponible"
+      },
+      "disk": {
+        "title": "Utilisation du disque Docker",
+        "images": "Images",
+        "containers": "Conteneurs",
+        "volumes": "Volumes",
+        "buildCache": "Cache de build"
+      },
+      "hostFs": {
+        "title": "Système de fichiers de l'hôte",
+        "path": "Montage : {{path}}",
+        "unavailable": "L'utilisation du système de fichiers de l'hôte n'est pas disponible pour cet environnement."
+      },
+      "prune": {
+        "title": "Élaguer",
+        "description": "Libérez de l'espace disque en supprimant les ressources Docker inutilisées. Destructif — confirmez chaque action.",
+        "agentLimited": "L'élagage n'est pas disponible pour les environnements d'agent : le daemon Docker sur l'hôte distant n'est pas directement accessible.",
+        "destructiveTag": "Destructif",
+        "confirm": "Élaguer",
+        "system": {
+          "label": "Système (conteneurs, images, réseaux)",
+          "title": "Élaguer le système",
+          "description": "Supprime tous les conteneurs arrêtés, les images inutilisées et les réseaux inutilisés. Les volumes nommés ne sont pas touchés.",
+          "withVolumesLabel": "Système + volumes (destructif)",
+          "withVolumesDescription": "Supprime les conteneurs arrêtés, les images inutilisées, les réseaux inutilisés ET les volumes nommés inutilisés. Les données des volumes nommés non utilisés par aucun conteneur seront définitivement supprimées."
+        },
+        "builder": {
+          "label": "Cache du builder",
+          "title": "Élaguer le cache du builder",
+          "description": "Supprime le cache de build Docker."
+        },
+        "volumes": {
+          "label": "Volumes (destructif)",
+          "title": "Élaguer les volumes",
+          "description": "Supprime tous les volumes nommés inutilisés. Les données des volumes nommés inutilisés seront définitivement supprimées."
+        },
+        "images": {
+          "label": "Images",
+          "title": "Élaguer les images",
+          "description": "Supprime toutes les images pendantes et inutilisées."
+        },
+        "containers": {
+          "label": "Conteneurs arrêtés",
+          "title": "Élaguer les conteneurs arrêtés",
+          "description": "Supprime tous les conteneurs arrêtés."
+        },
+        "networks": {
+          "label": "Réseaux",
+          "title": "Élaguer les réseaux",
+          "description": "Supprime tous les réseaux inutilisés."
+        }
+      }
+    },
+    "docker": {
+      "title": "Moteur Docker",
+      "description": "Informations détaillées sur le daemon Docker exécuté dans cet environnement.",
+      "unavailable": "Les informations du moteur Docker ne sont pas disponibles pour cet environnement.",
+      "server": "Serveur",
+      "version": "Version",
+      "apiVersion": "Version de l'API",
+      "minApiVersion": "Version minimale de l'API",
+      "gitCommit": "Commit Git",
+      "goVersion": "Version de Go",
+      "os": "OS",
+      "architecture": "Architecture",
+      "kernelVersion": "Kernel",
+      "hostname": "Nom d'hôte",
+      "serverId": "ID du serveur",
+      "resources": "Ressources",
+      "cpus": "CPUs",
+      "memory": "Mémoire",
+      "counts": "Compteurs",
+      "containers": "Conteneurs",
+      "containersRunning": "En cours",
+      "containersPaused": "En pause",
+      "containersStopped": "Arrêtés",
+      "images": "Images",
+      "storage": "Stockage",
+      "storageDriver": "Pilote de stockage",
+      "dockerRootDir": "Racine Docker",
+      "loggingDriver": "Pilote de logs",
+      "runtime": "Runtime",
+      "cgroupDriver": "Pilote cgroup",
+      "cgroupVersion": "Version cgroup",
+      "defaultRuntime": "Runtime par défaut",
+      "runtimes": "Runtimes",
+      "isolation": "Isolation",
+      "security": "Sécurité",
+      "plugins": "Plugins",
+      "volumePlugins": "Plugins de volume",
+      "networkPlugins": "Plugins réseau",
+      "logPlugins": "Plugins de log",
+      "swarm": "Swarm",
+      "status": "Statut",
+      "swarmActive": "Actif",
+      "swarmInactive": "Inactif",
+      "swarmNodeId": "ID de nœud",
+      "swarmManagers": "Managers",
+      "swarmNodes": "Nœuds",
+      "labels": "Étiquettes"
+    },
+    "processes": {
+      "title": "Processus des conteneurs",
+      "description": "Utilisation des ressources en direct (CPU, mémoire, réseau, I/O bloc) des conteneurs en cours d'exécution dans cet environnement.",
+      "searchPlaceholder": "Rechercher des processus...",
+      "empty": "Aucune métrique de processus en cours disponible.",
+      "columns": {
+        "name": "Nom",
+        "cpu": "CPU",
+        "memory": "Mémoire",
+        "pids": "PIDs",
+        "network": "RX / TX",
+        "block": "Lire / Écrire"
+      }
+    },
+    "hostTerminal": {
+      "title": "Terminal de l'hôte",
+      "description": "Shell interactif sur l'hôte distant via l'agent (ou via un conteneur privilégié pour les environnements locaux).",
+      "connect": "Connecter",
+      "connecting": "Connexion...",
+      "disconnect": "Déconnecter",
+      "connected": "Connecté",
+      "disconnected": "Déconnecté",
+      "warning": "Cette session a un accès complet au niveau de l'hôte. N'exécutez des commandes que si vous en comprenez l'impact.",
+      "connectError": "Impossible de se connecter au terminal de l'hôte."
+    },
+    "hostLogs": {
+      "title": "Journaux de l'hôte",
+      "description": "Instantanés limités des journaux système, noyau, authentification et daemon Docker de l'hôte de cet environnement.",
+      "sourceLabel": "Source du journal",
+      "tailLabel": "Nombre de lignes",
+      "refresh": "Actualiser",
+      "empty": "Aucune ligne de journal retournée.",
+      "unavailable": "Les journaux de l'hôte ne sont pas disponibles pour cet environnement.",
+      "sources": {
+        "system": "Système",
+        "kernel": "Noyau",
+        "auth": "Authentification",
+        "docker": "Docker"
+      },
+      "notices": {
+        "generic": "La source du journal a renvoyé un avis non fatal.",
+        "permission_denied": "Un fichier journal de l'hôte existe mais McHarbor n'a pas la permission de le lire. Une source alternative a été tentée.",
+        "no_supported_log_source": "Aucun fichier journal lisible ni source journal compatible trouvé pour cet hôte."
+      }
+    },
+    "hostLogPreview": {
+      "title": "Lignes de journal récentes",
+      "description": "Dernières lignes du journal système, noyau, authentification ou daemon Docker de cet hôte. Ouvrez l'onglet Logs pour la vue complète.",
+      "openFull": "Ouvrir les logs complets",
+      "loading": "Lecture des journaux...",
+      "empty": "Aucune ligne de journal disponible sur l'hôte. Essayez une autre source ou vérifiez le répertoire des journaux de l'hôte.",
+      "lineCount": "{{count}} lignes",
+      "tailNote": "Affichage des {{tail}} dernières lignes"
     }
   },
   "agentToken": {

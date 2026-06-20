@@ -135,10 +135,19 @@
     "chartTx": "Tx",
     "chartRead": "Lezen",
     "chartWrite": "Schrijven",
+    "network": "Netwerk",
+    "networkUnavailable": "Nog geen netwerkmonsters",
+    "engineFooter": "Docker Engine v{{version}} · {{hostname}}",
     "tabs": {
       "overview": "Overzicht",
       "activity": "Activiteit",
-      "automation": "Automatisering"
+      "automation": "Automatisering",
+      "retention": "Retentie",
+      "host": "Host",
+      "docker": "Docker",
+      "processes": "Processen",
+"terminal": "Terminal",
+      "logs": "Logs"
     },
     "activity": {
       "title": "Activiteitsinstellingen",
@@ -153,6 +162,7 @@
       "diskUsageNotificationsDescription": "Stuur een melding in de app wanneer Docker-opslag in deze omgeving boven de ingestelde drempel komt.",
       "diskUsageThresholdLabel": "Drempel voor schijfgebruik",
       "diskUsageThresholdHint": "Voer een percentage tussen 1 en 100 in.",
+      "diskUsageUseGlobalDefaultLabel": "Globale standaard gebruiken ({{value}}%)",
       "diskCapacityNote": "Drempelmeldingen gebruiken de door de engine gerapporteerde opslagcapaciteit van de Docker-driver wanneer die beschikbaar is.",
       "diskUsageExceededTitle": "Drempel voor schijfgebruik overschreden in {{name}}",
       "diskUsageExceededDescription": "Docker-opslag zit op {{percent}}% van de capaciteit (drempel: {{threshold}}%, huidig gebruik: {{total}}).",
@@ -172,12 +182,222 @@
       "automaticImagePruningTitle": "Automatische image pruning",
       "automaticImagePruningDescription": "Verwijder automatisch ongebruikte Docker-images elke dag om 03:00 in de tijdzone van deze omgeving om schijfruimte vrij te maken.",
       "automaticImagePruningHint": "Draait dagelijks om 03:00 met de tijdzone hieronder",
+      "imagePruneDanglingOnlyTitle": "Alleen zwevende images verwijderen",
+      "imagePruneDanglingOnlyDescription": "Indien ingeschakeld worden alleen zwevende (ongetagde) images verwijderd. Schakel uit om ook ongebruikte getagde images te verwijderen.",
       "prunePreviewLabel": "Preview automatische image-prune",
       "timezoneLabel": "Tijdzone",
       "timezoneDescription": "Gebruikt voor het plannen van auto-updates, git-syncs en image pruning.",
       "kubernetesNote": "Updatecontroles en image pruning gelden voor Docker-omgevingen. Je kunt de tijdzone nog steeds instellen voor planning.",
       "statusOn": "AAN",
       "statusOff": "UIT"
+    },
+    "retention": {
+      "title": "Retentie & opschonen",
+      "description": "Configureer logretentie, automatische container-pruning, het auto-update onderhoudsvenster en metriekretentie voor deze omgeving.",
+      "kubernetesNote": "Retentie en pruning gelden voor Docker-omgevingen. Het auto-update venster is informatief en wordt door toekomstige automatisering gebruikt.",
+      "logRetentionTitle": "Containerlogretentie",
+      "logRetentionDescription": "Hoe lang containerloghistorie wordt bewaard voordat deze wordt opgeschoond.",
+      "logRetentionLabel": "Bewaartermijn",
+      "logRetentionHint": "Zet op 0 om logs voor altijd te bewaren. Bereik: 0 tot 3650 dagen.",
+      "containerPruneTitle": "Automatische container-pruning",
+      "containerPruneDescription": "Verwijder automatisch gestopte containers die het ingestelde aantal dagen zijn gestopt.",
+      "containerPruneStoppedLabel": "Dagen gestopt voor prune",
+      "containerPruneStoppedHint": "Bereik: 1 tot 3650 dagen.",
+      "autoUpdateTitle": "Auto-update onderhoudsvenster",
+      "autoUpdateDescription": "Beperk automatische container-image-updates tot een specifiek tijdsvenster en dagen van de week.",
+      "autoUpdateWindowStartLabel": "Vensterstart",
+      "autoUpdateWindowEndLabel": "Venstereinde",
+      "autoUpdateDaysLabel": "Actieve dagen",
+      "metricRetentionTitle": "Metriekretentie",
+      "metricRetentionDescription": "Hoe lang verzamelde container- en hostmetrieken worden bewaard voordat ze worden opgeschoond.",
+      "metricRetentionLabel": "Bewaartermijn",
+      "metricRetentionHint": "Zet op 0 om metrieken voor altijd te bewaren. Bereik: 0 tot 8760 uur (1 jaar).",
+      "daysUnit": "dagen",
+      "hoursUnit": "uren",
+      "statusOn": "AAN",
+      "statusOff": "UIT",
+      "statusActive": "ACTIEF",
+      "statusForever": "VOOR ALTIJD",
+      "daysShort": {
+        "mon": "Ma",
+        "tue": "Di",
+        "wed": "Wo",
+        "thu": "Do",
+        "fri": "Vr",
+        "sat": "Za",
+        "sun": "Zo"
+      }
+    },
+    "host": {
+      "title": "Host",
+      "description": "Live resource-overzicht voor {{hostname}}",
+      "loadError": "Hoststatistieken laden mislukt.",
+      "agentLimitedNotice": "Deze omgeving is verbonden via een externe agent. Live hoststatistieken en prune-acties zijn niet beschikbaar; alleen Docker-statistieken worden getoond.",
+      "refreshed": "Bijgewerkt {{value}}",
+      "secondsAgo": "{{count}}s geleden",
+      "retry": "Opnieuw proberen",
+      "stats": {
+        "cpu": "CPU",
+        "memory": "Geheugen",
+        "uptime": "Uptime",
+        "dockerVersion": "Docker-versie",
+        "load": "Load {{value}}",
+        "cores": "{{count}} cores",
+        "unavailable": "Niet beschikbaar"
+      },
+      "disk": {
+        "title": "Docker-schijfgebruik",
+        "images": "Images",
+        "containers": "Containers",
+        "volumes": "Volumes",
+        "buildCache": "Build-cache"
+      },
+      "hostFs": {
+        "title": "Hostbestandssysteem",
+        "path": "Mount: {{path}}",
+        "unavailable": "Hostbestandssysteemgebruik is niet beschikbaar voor deze omgeving."
+      },
+      "prune": {
+        "title": "Prune",
+        "description": "Maak schijfruimte vrij door ongebruikte Docker-resources te verwijderen. Destructief — bevestig elke actie.",
+        "agentLimited": "Prune is niet beschikbaar voor agent-omgevingen: de Docker-daemon op de externe host is niet direct bereikbaar.",
+        "destructiveTag": "Destructief",
+        "confirm": "Prune",
+        "system": {
+          "label": "Systeem (containers, images, netwerken)",
+          "title": "Systeem-prune",
+          "description": "Verwijder alle gestopte containers, ongebruikte images en ongebruikte netwerken. Benoemde volumes blijven onaangeraakt.",
+          "withVolumesLabel": "Systeem + volumes (destructief)",
+          "withVolumesDescription": "Verwijder gestopte containers, ongebruikte images, ongebruikte netwerken EN ongebruikte benoemde volumes. Data in benoemde volumes die niet door een container worden gebruikt, wordt permanent verwijderd."
+        },
+        "builder": {
+          "label": "Builder-cache",
+          "title": "Builder-cache prune",
+          "description": "Verwijder de Docker build-cache."
+        },
+        "volumes": {
+          "label": "Volumes (destructief)",
+          "title": "Volumes-prune",
+          "description": "Verwijder alle ongebruikte benoemde volumes. Data in ongebruikte benoemde volumes wordt permanent verwijderd."
+        },
+        "images": {
+          "label": "Images",
+          "title": "Images-prune",
+          "description": "Verwijder alle zwevende en ongebruikte images."
+        },
+        "containers": {
+          "label": "Gestopte containers",
+          "title": "Gestopte containers prune",
+          "description": "Verwijder alle gestopte containers."
+        },
+        "networks": {
+          "label": "Netwerken",
+          "title": "Netwerken-prune",
+          "description": "Verwijder alle ongebruikte netwerken."
+        }
+      }
+    },
+    "docker": {
+      "title": "Docker-engine",
+      "description": "Gedetailleerde informatie over de Docker-daemon die in deze omgeving draait.",
+      "unavailable": "Docker-engine-informatie is niet beschikbaar voor deze omgeving.",
+      "server": "Server",
+      "version": "Versie",
+      "apiVersion": "API-versie",
+      "minApiVersion": "Min API-versie",
+      "gitCommit": "Git-commit",
+      "goVersion": "Go-versie",
+      "os": "OS",
+      "architecture": "Architectuur",
+      "kernelVersion": "Kernel",
+      "hostname": "Hostnaam",
+      "serverId": "Server-ID",
+      "resources": "Resources",
+      "cpus": "CPU's",
+      "memory": "Geheugen",
+      "counts": "Aantallen",
+      "containers": "Containers",
+      "containersRunning": "Draaiend",
+      "containersPaused": "Gepauzeerd",
+      "containersStopped": "Gestopt",
+      "images": "Images",
+      "storage": "Opslag",
+      "storageDriver": "Opslagdriver",
+      "dockerRootDir": "Docker-root",
+      "loggingDriver": "Loggingdriver",
+      "runtime": "Runtime",
+      "cgroupDriver": "cgroup-driver",
+      "cgroupVersion": "cgroup-versie",
+      "defaultRuntime": "Standaardruntime",
+      "runtimes": "Runtimes",
+      "isolation": "Isolatie",
+      "security": "Beveiliging",
+      "plugins": "Plugins",
+      "volumePlugins": "Volume-plugins",
+      "networkPlugins": "Netwerk-plugins",
+      "logPlugins": "Log-plugins",
+      "swarm": "Swarm",
+      "status": "Status",
+      "swarmActive": "Actief",
+      "swarmInactive": "Inactief",
+      "swarmNodeId": "Node-ID",
+      "swarmManagers": "Managers",
+      "swarmNodes": "Nodes",
+      "labels": "Labels"
+    },
+    "processes": {
+      "title": "Containerprocessen",
+      "description": "Live resourcegebruik (CPU, geheugen, netwerk, block I/O) van draaiende containers in deze omgeving.",
+      "searchPlaceholder": "Processen zoeken...",
+      "empty": "Geen draaiende processen met statistieken beschikbaar.",
+      "columns": {
+        "name": "Naam",
+        "cpu": "CPU",
+        "memory": "Geheugen",
+        "pids": "PIDs",
+        "network": "RX / TX",
+        "block": "Lezen / Schrijven"
+      }
+    },
+    "hostTerminal": {
+      "title": "Hostterminal",
+      "description": "Interactieve shell op de externe host via de agent (of via privileged container voor lokale omgevingen).",
+      "connect": "Verbinden",
+      "connecting": "Verbinden...",
+      "disconnect": "Verbreken",
+      "connected": "Verbonden",
+      "disconnected": "Niet verbonden",
+      "warning": "Deze sessie heeft volledige toegang op host-niveau. Voer alleen opdrachten uit als je de impact begrijpt.",
+      "connectError": "Kan geen verbinding maken met de hostterminal."
+    },
+    "hostLogs": {
+      "title": "Hostlogboeken",
+      "description": "Beperkte momentopnamen van systeem-, kernel-, authenticatie- en Docker-daemonlogboeken van de host van deze omgeving.",
+      "sourceLabel": "Logbron",
+      "tailLabel": "Aantal regels",
+      "refresh": "Vernieuwen",
+      "empty": "Geen logregels ontvangen.",
+      "unavailable": "Hostlogboeken zijn niet beschikbaar voor deze omgeving.",
+      "sources": {
+        "system": "Systeem",
+        "kernel": "Kernel",
+        "auth": "Authenticatie",
+        "docker": "Docker"
+      },
+      "notices": {
+        "generic": "De logbron gaf een niet-fatale melding.",
+        "permission_denied": "Een hostlogbestand bestaat maar McHarbor heeft geen leesrechten. Er is een alternatieve bron geprobeerd.",
+        "no_supported_log_source": "Geen leesbaar logbestand of ondersteunde journal-bron gevonden voor deze host."
+      }
+    },
+    "hostLogPreview": {
+      "title": "Recente logregels",
+      "description": "Laatste regels uit de systeem-, kernel-, authenticatie- of Docker-daemon-log van deze host. Open het Logs-tabblad voor de volledige weergave.",
+      "openFull": "Volledige Logs openen",
+      "loading": "Logboeken lezen...",
+      "empty": "Geen logregels beschikbaar op de host. Probeer een andere bron of controleer de logmap van de host.",
+      "lineCount": "{{count}} regels",
+      "tailNote": "Toont de laatste {{tail}} regels"
     }
   },
   "agentToken": {

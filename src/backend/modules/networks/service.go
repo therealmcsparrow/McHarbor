@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/client"
@@ -34,7 +35,9 @@ func (s *Service) getClient(envID string) (*client.Client, error) {
 	return c, nil
 }
 
-// List returns all networks.
+// List returns all networks. The Docker REST API does not populate the
+// `Containers` field in the list response, so we cross-reference a single
+// container list to count how many containers are attached to each network.
 func (s *Service) List(ctx context.Context, envID string) ([]NetworkSummary, error) {
 	cli, err := s.getClient(envID)
 	if err != nil {
@@ -49,6 +52,13 @@ func (s *Service) List(ctx context.Context, envID string) ([]NetworkSummary, err
 		return nil, fmt.Errorf("listing networks: %w", err)
 	}
 
+	usage, err := s.containerUsageByNetworkName(ctx, cli)
+	if err != nil {
+		// Best-effort: a failure here should not prevent the network list
+		// from rendering. Counts will simply be 0.
+		usage = map[string]int{}
+	}
+
 	result := make([]NetworkSummary, 0, len(networks))
 	for _, n := range networks {
 		result = append(result, NetworkSummary{
@@ -59,7 +69,7 @@ func (s *Service) List(ctx context.Context, envID string) ([]NetworkSummary, err
 			Internal:   n.Internal,
 			Attachable: n.Attachable,
 			IPAM:       n.IPAM,
-			Containers: len(n.Containers),
+			Containers: usage[n.Name],
 			Options:    n.Options,
 			Labels:     n.Labels,
 			Created:    n.Created.Format("2006-01-02T15:04:05Z"),
@@ -67,6 +77,27 @@ func (s *Service) List(ctx context.Context, envID string) ([]NetworkSummary, err
 	}
 
 	return result, nil
+}
+
+// containerUsageByNetworkName counts how many containers are attached to each
+// network, keyed by network name. Containers with multiple network attachments
+// contribute once per network.
+func (s *Service) containerUsageByNetworkName(ctx context.Context, cli *client.Client) (map[string]int, error) {
+	containers, err := cli.ContainerList(ctx, container.ListOptions{All: true})
+	if err != nil {
+		return nil, fmt.Errorf("listing containers for network usage: %w", err)
+	}
+
+	usage := make(map[string]int)
+	for _, c := range containers {
+		if c.NetworkSettings == nil {
+			continue
+		}
+		for netName := range c.NetworkSettings.Networks {
+			usage[netName]++
+		}
+	}
+	return usage, nil
 }
 
 // Create creates a new network.

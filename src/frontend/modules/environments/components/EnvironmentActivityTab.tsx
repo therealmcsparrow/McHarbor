@@ -77,12 +77,15 @@ type EnvironmentActivityTabProps = {
   highlightContainerChangesEnabled: boolean;
   dockerDiskUsageNotificationsEnabled: boolean;
   dockerDiskUsageThresholdPercent: string;
+  dockerDiskUsageUseGlobalDefault: boolean;
+  globalDiskThresholdPercent: number;
   isSaving: boolean;
   onTrackContainerEventsChange: (checked: boolean) => void;
   onCollectContainerMetricsChange: (checked: boolean) => void;
   onHighlightContainerChangesChange: (checked: boolean) => void;
   onDockerDiskUsageNotificationsChange: (checked: boolean) => void;
   onDockerDiskUsageThresholdChange: (value: string) => void;
+  onDockerDiskUsageUseGlobalDefaultChange: (checked: boolean) => void;
 };
 
 export function EnvironmentActivityTab({
@@ -92,12 +95,15 @@ export function EnvironmentActivityTab({
   highlightContainerChangesEnabled,
   dockerDiskUsageNotificationsEnabled,
   dockerDiskUsageThresholdPercent,
+  dockerDiskUsageUseGlobalDefault,
+  globalDiskThresholdPercent,
   isSaving,
   onTrackContainerEventsChange,
   onCollectContainerMetricsChange,
   onHighlightContainerChangesChange,
   onDockerDiskUsageNotificationsChange,
   onDockerDiskUsageThresholdChange,
+  onDockerDiskUsageUseGlobalDefaultChange,
 }: EnvironmentActivityTabProps) {
   const { t } = useTranslation('environments');
   const testEnvironment = useTestEnvironment();
@@ -175,14 +181,28 @@ export function EnvironmentActivityTab({
                 type="number"
                 min={1}
                 max={100}
-                value={dockerDiskUsageThresholdPercent}
-                disabled={!isDocker || !dockerDiskUsageNotificationsEnabled || isSaving}
+                value={
+                  dockerDiskUsageUseGlobalDefault
+                    ? String(globalDiskThresholdPercent)
+                    : dockerDiskUsageThresholdPercent
+                }
+                disabled={!isDocker || !dockerDiskUsageNotificationsEnabled || dockerDiskUsageUseGlobalDefault || isSaving}
                 onChange={(event) => onDockerDiskUsageThresholdChange(event.target.value)}
                 onBlur={() => onDockerDiskUsageThresholdChange(String(normalizedThreshold))}
               />
               <span className="text-sm font-medium text-muted-foreground">%</span>
             </div>
             <p className="text-xs text-muted-foreground">{t('detail.activity.diskUsageThresholdHint')}</p>
+            <div className="flex items-center gap-3 pt-1">
+              <Switch
+                checked={dockerDiskUsageUseGlobalDefault}
+                disabled={!isDocker || !dockerDiskUsageNotificationsEnabled || isSaving}
+                onCheckedChange={onDockerDiskUsageUseGlobalDefaultChange}
+              />
+              <span className="text-xs text-muted-foreground">
+                {t('detail.activity.diskUsageUseGlobalDefaultLabel', { value: globalDiskThresholdPercent })}
+              </span>
+            </div>
             <p className="text-xs text-muted-foreground/80">{t('detail.activity.diskCapacityNote')}</p>
           </div>
         </SettingRow>

@@ -91,6 +91,7 @@
     "unpaused": "Container hervat",
     "killed": "Container beëindigd",
     "removed": "Container verwijderd",
+    "autohealUpdated": "Auto-heal voorkeur bijgewerkt",
     "created": "Container aangemaakt",
     "recreated": "Container opnieuw aangemaakt",
     "updated": "Container bijgewerkt",
@@ -120,6 +121,16 @@
     "recreateWarning": "Dit zal de container herstarten. Alle gegevens in het geheugen gaan verloren.",
     "recreateConfirm": "Opnieuw aanmaken",
     "changedFields": "Gewijzigde velden:"
+  },
+  "autoheal": {
+    "title": "Auto-heal",
+    "enable": "Auto-heal bij healthcheck-falen",
+    "enableDesc": "Herstart de container wanneer de Docker healthcheck 'unhealthy' rapporteert. Cooldown tussen herstarts: 30s, 1m, 2m, daarna 5m. De eerste heal gebeurt pas nadat de container minstens één keer healthy is geweest.",
+    "restartCount": "{{count}} herstart(s) door auto-heal",
+    "wasHealthy": "Is healthy geweest",
+    "neverHealthy": "Nog nooit healthy geweest (heal wordt overgeslagen tot eerste succes)",
+    "lastHeal": "Laatste heal",
+    "footnote": "De container moet een Docker healthcheck hebben. Voorkeur wordt in processgeheugen bewaard; bij recreate wordt deze gereset. Elke heal wordt audit-gelogd en stuurt een in-app notificatie."
   },
   "badges": {
     "standalone": "standalone"
@@ -565,6 +576,17 @@
     "removeImageDesc": "De Docker-image verwijderen die door deze container wordt gebruikt",
     "removeStack": "Stack verwijderen",
     "removeStackDesc": "De Compose-stack verwijderen uit McHarbor",
+    "removeNetwork": "Netwerk verwijderen",
+    "removeNetworkDesc": "Het door de gebruiker gedefinieerde netwerk verwijderen dat wees wordt",
+    "removeNetworkCount": "{{count}} netwerken verwijderen",
+    "removing": "Verwijderen..."
+  },
+  "bulkRemoveDialog": {
+    "title": "Containers verwijderen",
+    "description": "Dit zal <bold>{{count}}</bold> containers permanent verwijderen.",
+    "containers": "Containers",
+    "andXMore": "en nog {{count}}",
+    "removeNetworkDesc": "Door de gebruiker gedefinieerde netwerken verwijderen die wees worden door de geselecteerde containers",
     "removing": "Verwijderen..."
   },
   "moveDialog": {

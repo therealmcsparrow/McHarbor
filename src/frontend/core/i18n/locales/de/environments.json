@@ -135,10 +135,19 @@
     "chartTx": "Tx",
     "chartRead": "Lesen",
     "chartWrite": "Schreiben",
+    "network": "Netzwerk",
+    "networkUnavailable": "Noch keine Netzwerk-Stichproben",
+    "engineFooter": "Docker Engine v{{version}} · {{hostname}}",
     "tabs": {
       "overview": "Ubersicht",
       "activity": "Aktivitat",
-      "automation": "Automatisierung"
+      "automation": "Automatisierung",
+      "retention": "Aufbewahrung",
+      "host": "Host",
+      "docker": "Docker",
+      "processes": "Prozesse",
+"terminal": "Terminal",
+      "logs": "Logs"
     },
     "activity": {
       "title": "Aktivitatseinstellungen",
@@ -153,6 +162,7 @@
       "diskUsageNotificationsDescription": "Eine In-App-Benachrichtigung senden, wenn der Docker-Speicher dieser Umgebung den konfigurierten Schwellenwert uberschreitet.",
       "diskUsageThresholdLabel": "Schwellenwert fur Speicherverbrauch",
       "diskUsageThresholdHint": "Gib einen Prozentwert zwischen 1 und 100 ein.",
+      "diskUsageUseGlobalDefaultLabel": "Globale Standardeinstellung verwenden ({{value}}%)",
       "diskCapacityNote": "Schwellenwertwarnungen verwenden die vom Docker-Engine gemeldete Kapazitat des Storage-Treibers, wenn sie verfugbar ist.",
       "diskUsageExceededTitle": "Schwellenwert fur Speicherverbrauch in {{name}} uberschritten",
       "diskUsageExceededDescription": "Der Docker-Speicher liegt bei {{percent}}% der Kapazitat (Schwellenwert: {{threshold}}%, aktuelle Nutzung: {{total}}).",
@@ -172,12 +182,222 @@
       "automaticImagePruningTitle": "Automatische Image-Bereinigung",
       "automaticImagePruningDescription": "Entferne ungenutzte Docker-Images jeden Tag um 03:00 in der Zeitzone dieser Umgebung, um Speicherplatz freizugeben.",
       "automaticImagePruningHint": "Laeuft taeglich um 03:00 mit der unten eingestellten Zeitzone",
+      "imagePruneDanglingOnlyTitle": "Nur verwaiste Images bereinigen",
+      "imagePruneDanglingOnlyDescription": "Wenn aktiviert, werden nur verwaise (ungetaggte) Images entfernt. Deaktivieren, um auch ungenutzte getaggte Images zu entfernen.",
       "prunePreviewLabel": "Vorschau fuer automatisches Image-Pruning",
       "timezoneLabel": "Zeitzone",
       "timezoneDescription": "Wird fur die Planung von Auto-Updates, Git-Synchronisierungen und Image-Bereinigung verwendet.",
       "kubernetesNote": "Update-Prufungen und Image-Bereinigung gelten fur Docker-Umgebungen. Die Zeitzone kann trotzdem fur die Planung festgelegt werden.",
       "statusOn": "AN",
       "statusOff": "AUS"
+    },
+    "retention": {
+      "title": "Aufbewahrung & Bereinigung",
+      "description": "Konfiguriere Logaufbewahrung, automatische Container-Bereinigung, das Auto-Update-Wartungsfenster und Metrikaufbewahrung fur diese Umgebung.",
+      "kubernetesNote": "Aufbewahrung und Bereinigung gelten fur Docker-Umgebungen. Das Auto-Update-Fenster ist informativ und wird von kunftiger Automatisierung verwendet.",
+      "logRetentionTitle": "Container-Logaufbewahrung",
+      "logRetentionDescription": "Wie lange Container-Logverlauf aufbewahrt wird, bevor er bereinigt wird.",
+      "logRetentionLabel": "Aufbewahrungszeitraum",
+      "logRetentionHint": "Auf 0 setzen, um Logs fur immer aufzubewahren. Bereich: 0 bis 3650 Tage.",
+      "containerPruneTitle": "Automatische Container-Bereinigung",
+      "containerPruneDescription": "Automatisch gestoppte Container entfernen, die seit der konfigurierten Anzahl von Tagen gestoppt sind.",
+      "containerPruneStoppedLabel": "Tage gestoppt vor Bereinigung",
+      "containerPruneStoppedHint": "Bereich: 1 bis 3650 Tage.",
+      "autoUpdateTitle": "Auto-Update-Wartungsfenster",
+      "autoUpdateDescription": "Beschraenke automatische Container-Image-Updates auf ein bestimmtes Zeitfenster und Wochentage.",
+      "autoUpdateWindowStartLabel": "Fensterstart",
+      "autoUpdateWindowEndLabel": "Fensterende",
+      "autoUpdateDaysLabel": "Aktive Tage",
+      "metricRetentionTitle": "Metrikaufbewahrung",
+      "metricRetentionDescription": "Wie lange gesammelte Container- und Hostmetriken aufbewahrt werden, bevor sie bereinigt werden.",
+      "metricRetentionLabel": "Aufbewahrungszeitraum",
+      "metricRetentionHint": "Auf 0 setzen, um Metriken fuer immer aufzubewahren. Bereich: 0 bis 8760 Stunden (1 Jahr).",
+      "daysUnit": "Tage",
+      "hoursUnit": "Stunden",
+      "statusOn": "AN",
+      "statusOff": "AUS",
+      "statusActive": "AKTIV",
+      "statusForever": "FUER IMMER",
+      "daysShort": {
+        "mon": "Mo",
+        "tue": "Di",
+        "wed": "Mi",
+        "thu": "Do",
+        "fri": "Fr",
+        "sat": "Sa",
+        "sun": "So"
+      }
+    },
+    "host": {
+      "title": "Host",
+      "description": "Live-Ressourcenansicht fur {{hostname}}",
+      "loadError": "Host-Metriken konnten nicht geladen werden.",
+      "agentLimitedNotice": "Diese Umgebung ist uber einen Remote-Agent verbunden. Live-Host-Metriken und Prune-Aktionen sind nicht verfugbar; nur Docker-Statistiken werden angezeigt.",
+      "refreshed": "Aktualisiert {{value}}",
+      "secondsAgo": "vor {{count}}s",
+      "retry": "Wiederholen",
+      "stats": {
+        "cpu": "CPU",
+        "memory": "Speicher",
+        "uptime": "Laufzeit",
+        "dockerVersion": "Docker-Version",
+        "load": "Load {{value}}",
+        "cores": "{{count}} Kerne",
+        "unavailable": "Nicht verfugbar"
+      },
+      "disk": {
+        "title": "Docker-Speichernutzung",
+        "images": "Images",
+        "containers": "Container",
+        "volumes": "Volumes",
+        "buildCache": "Build-Cache"
+      },
+      "hostFs": {
+        "title": "Host-Dateisystem",
+        "path": "Mount: {{path}}",
+        "unavailable": "Host-Dateisystemnutzung ist fur diese Umgebung nicht verfugbar."
+      },
+      "prune": {
+        "title": "Bereinigen",
+        "description": "Geben Sie Speicherplatz frei, indem Sie ungenutzte Docker-Ressourcen entfernen. Destruktiv — jede Aktion bestatigen.",
+        "agentLimited": "Bereinigen ist fur Agent-Umgebungen nicht verfugbar: der Docker-Daemon auf dem Remote-Host ist nicht direkt erreichbar.",
+        "destructiveTag": "Destruktiv",
+        "confirm": "Bereinigen",
+        "system": {
+          "label": "System (Container, Images, Netzwerke)",
+          "title": "System bereinigen",
+          "description": "Entfernt alle gestoppten Container, ungenutzten Images und ungenutzten Netzwerke. Benannte Volumes werden nicht angetastet.",
+          "withVolumesLabel": "System + Volumes (destruktiv)",
+          "withVolumesDescription": "Entfernt gestoppte Container, ungenutzte Images, ungenutzte Netzwerke UND ungenutzte benannte Volumes. Daten in benannten Volumes, die von keinem Container verwendet werden, werden dauerhaft geloscht."
+        },
+        "builder": {
+          "label": "Builder-Cache",
+          "title": "Builder-Cache bereinigen",
+          "description": "Entfernt den Docker-Build-Cache."
+        },
+        "volumes": {
+          "label": "Volumes (destruktiv)",
+          "title": "Volumes bereinigen",
+          "description": "Entfernt alle ungenutzten benannten Volumes. Daten in ungenutzten benannten Volumes werden dauerhaft geloscht."
+        },
+        "images": {
+          "label": "Images",
+          "title": "Images bereinigen",
+          "description": "Entfernt alle verwaisten und ungenutzten Images."
+        },
+        "containers": {
+          "label": "Gestoppte Container",
+          "title": "Gestoppte Container bereinigen",
+          "description": "Entfernt alle gestoppten Container."
+        },
+        "networks": {
+          "label": "Netzwerke",
+          "title": "Netzwerke bereinigen",
+          "description": "Entfernt alle ungenutzten Netzwerke."
+        }
+      }
+    },
+    "docker": {
+      "title": "Docker-Engine",
+      "description": "Detaillierte Informationen uber den Docker-Daemon, der in dieser Umgebung lauft.",
+      "unavailable": "Docker-Engine-Informationen sind fur diese Umgebung nicht verfugbar.",
+      "server": "Server",
+      "version": "Version",
+      "apiVersion": "API-Version",
+      "minApiVersion": "Min API-Version",
+      "gitCommit": "Git-Commit",
+      "goVersion": "Go-Version",
+      "os": "OS",
+      "architecture": "Architektur",
+      "kernelVersion": "Kernel",
+      "hostname": "Hostname",
+      "serverId": "Server-ID",
+      "resources": "Ressourcen",
+      "cpus": "CPUs",
+      "memory": "Speicher",
+      "counts": "Anzahlen",
+      "containers": "Container",
+      "containersRunning": "Laufend",
+      "containersPaused": "Pausiert",
+      "containersStopped": "Gestoppt",
+      "images": "Images",
+      "storage": "Speicher",
+      "storageDriver": "Storage-Treiber",
+      "dockerRootDir": "Docker-Root",
+      "loggingDriver": "Logging-Treiber",
+      "runtime": "Runtime",
+      "cgroupDriver": "cgroup-Treiber",
+      "cgroupVersion": "cgroup-Version",
+      "defaultRuntime": "Standard-Runtime",
+      "runtimes": "Runtimes",
+      "isolation": "Isolation",
+      "security": "Sicherheit",
+      "plugins": "Plugins",
+      "volumePlugins": "Volume-Plugins",
+      "networkPlugins": "Netzwerk-Plugins",
+      "logPlugins": "Log-Plugins",
+      "swarm": "Swarm",
+      "status": "Status",
+      "swarmActive": "Aktiv",
+      "swarmInactive": "Inaktiv",
+      "swarmNodeId": "Node-ID",
+      "swarmManagers": "Manager",
+      "swarmNodes": "Nodes",
+      "labels": "Labels"
+    },
+    "processes": {
+      "title": "Container-Prozesse",
+      "description": "Live-Ressourcennutzung (CPU, Speicher, Netzwerk, Block-I/O) laufender Container in dieser Umgebung.",
+      "searchPlaceholder": "Prozesse suchen...",
+      "empty": "Keine laufenden Prozessmetriken verfugbar.",
+      "columns": {
+        "name": "Name",
+        "cpu": "CPU",
+        "memory": "Speicher",
+        "pids": "PIDs",
+        "network": "RX / TX",
+        "block": "Lesen / Schreiben"
+      }
+    },
+    "hostTerminal": {
+      "title": "Host-Terminal",
+      "description": "Interaktive Shell auf dem Remote-Host uber den Agent (oder uber einen privilegierten Container fur lokale Umgebungen).",
+      "connect": "Verbinden",
+      "connecting": "Verbinde...",
+      "disconnect": "Trennen",
+      "connected": "Verbunden",
+      "disconnected": "Getrennt",
+      "warning": "Diese Sitzung hat vollen Host-Zugriff. Fuhren Sie Befehle nur aus, wenn Sie die Auswirkungen verstehen.",
+      "connectError": "Verbindung zum Host-Terminal fehlgeschlagen."
+    },
+    "hostLogs": {
+      "title": "Host-Protokolle",
+      "description": "Begrenzte Snapshots von System-, Kernel-, Authentifizierungs- und Docker-Daemon-Protokollen des Hosts dieser Umgebung.",
+      "sourceLabel": "Protokollquelle",
+      "tailLabel": "Zeilenanzahl",
+      "refresh": "Aktualisieren",
+      "empty": "Keine Protokollzeilen zuruckgegeben.",
+      "unavailable": "Host-Protokolle sind fur diese Umgebung nicht verfugbar.",
+      "sources": {
+        "system": "System",
+        "kernel": "Kernel",
+        "auth": "Authentifizierung",
+        "docker": "Docker"
+      },
+      "notices": {
+        "generic": "Die Protokollquelle gab eine nicht-fatale Meldung zuruck.",
+        "permission_denied": "Eine Host-Protokolldatei existiert, aber McHarbor hat keine Leseberechtigung. Eine alternative Quelle wurde versucht.",
+        "no_supported_log_source": "Keine lesbare Protokolldatei oder unterstutzte Journal-Quelle fur diesen Host gefunden."
+      }
+    },
+    "hostLogPreview": {
+      "title": "Letzte Protokollzeilen",
+      "description": "Die letzten Zeilen aus dem System-, Kernel-, Authentifizierungs- oder Docker-Daemon-Protokoll dieses Hosts. Offne den Logs-Tab fur die vollstandige Ansicht.",
+      "openFull": "Vollstandige Logs offnen",
+      "loading": "Lese Protokolle...",
+      "empty": "Keine Protokollzeilen auf dem Host verfugbar. Versuche eine andere Quelle oder uberprufe das Protokollverzeichnis des Hosts.",
+      "lineCount": "{{count}} Zeilen",
+      "tailNote": "Zeigt die letzten {{tail}} Zeilen"
     }
   },
   "agentToken": {

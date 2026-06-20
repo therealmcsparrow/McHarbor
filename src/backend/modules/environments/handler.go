@@ -181,6 +181,53 @@ func (h *Handler) HandleUpdate(w http.ResponseWriter, r *http.Request) {
 			*req.DockerDiskUsageThresholdPercent = 100
 		}
 	}
+	if req.LogRetentionDays != nil {
+		switch {
+		case *req.LogRetentionDays < 0:
+			*req.LogRetentionDays = 0
+		case *req.LogRetentionDays > 3650:
+			response.BadRequestCode(w, r, i18n.ErrEnvInvalidLogRetention)
+			return
+		}
+	}
+	if req.ContainerPruneStoppedDays != nil {
+		switch {
+		case *req.ContainerPruneStoppedDays < 1:
+			*req.ContainerPruneStoppedDays = 1
+		case *req.ContainerPruneStoppedDays > 3650:
+			response.BadRequestCode(w, r, i18n.ErrEnvInvalidContainerPrune)
+			return
+		}
+	}
+	if req.MetricRetentionHours != nil {
+		switch {
+		case *req.MetricRetentionHours < 0:
+			*req.MetricRetentionHours = 0
+		case *req.MetricRetentionHours > 8760:
+			response.BadRequestCode(w, r, i18n.ErrEnvInvalidMetricRetention)
+			return
+		}
+	}
+	if req.AutoUpdateWindowStart != nil {
+		if !isValidClockTime(*req.AutoUpdateWindowStart) {
+			response.BadRequestCode(w, r, i18n.ErrEnvInvalidAutoUpdate)
+			return
+		}
+	}
+	if req.AutoUpdateWindowEnd != nil {
+		if !isValidClockTime(*req.AutoUpdateWindowEnd) {
+			response.BadRequestCode(w, r, i18n.ErrEnvInvalidAutoUpdate)
+			return
+		}
+	}
+	if req.AutoUpdateDays != nil {
+		normalized, ok := normalizeAutoUpdateDays(*req.AutoUpdateDays)
+		if !ok {
+			response.BadRequestCode(w, r, i18n.ErrEnvInvalidAutoUpdateDays)
+			return
+		}
+		*req.AutoUpdateDays = normalized
+	}
 
 	env, err := h.service.Update(id, req)
 	if err != nil {
@@ -265,4 +312,41 @@ func (h *Handler) HandleDetectSocket(w http.ResponseWriter, r *http.Request) {
 
 	sockets := h.service.DetectSocket()
 	response.OK(w, sockets)
+}
+
+// isValidClockTime reports whether value matches a 24-hour HH:MM clock time.
+func isValidClockTime(value string) bool {
+	_, err := time.Parse("15:04", strings.TrimSpace(value))
+	return err == nil
+}
+
+// normalizeAutoUpdateDays validates and normalizes the comma-separated days-of-week list.
+// It returns a canonical lowercase, deduplicated, ordered list ("mon,tue,...,sun") or false when invalid.
+func normalizeAutoUpdateDays(value string) (string, bool) {
+	allowed := map[string]struct{}{
+		"mon": {}, "tue": {}, "wed": {}, "thu": {}, "fri": {}, "sat": {}, "sun": {},
+	}
+	order := []string{"mon", "tue", "wed", "thu", "fri", "sat", "sun"}
+	seen := make(map[string]struct{}, 7)
+	parts := strings.Split(strings.ToLower(strings.TrimSpace(value)), ",")
+	for _, part := range parts {
+		day := strings.TrimSpace(part)
+		if day == "" {
+			continue
+		}
+		if _, ok := allowed[day]; !ok {
+			return "", false
+		}
+		seen[day] = struct{}{}
+	}
+	if len(seen) == 0 {
+		return "", false
+	}
+	normalized := make([]string, 0, len(seen))
+	for _, day := range order {
+		if _, ok := seen[day]; ok {
+			normalized = append(normalized, day)
+		}
+	}
+	return strings.Join(normalized, ","), true
 }

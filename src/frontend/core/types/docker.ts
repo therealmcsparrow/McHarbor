@@ -260,7 +260,7 @@ export type NetworkInfo = {
   };
   Internal: boolean;
   Attachable: boolean;
-  Containers: Record<
+  Containers: number | Record<
     string,
     {
       Name: string;
@@ -332,6 +332,12 @@ export type DockerSystemInfo = {
 export type HostInfo = {
   ncpu: number;
   memTotal: number;
+  memUsed: number;
+  memPercent: number;
+  cpuPercent: number;
+  load1: number;
+  load5: number;
+  load15: number;
   serverVersion: string;
   os: string;
   architecture: string;
@@ -349,9 +355,41 @@ export type DiskUsage = {
   total: number;
 };
 
+export type HostFSUsage = {
+  path: string;
+  total: number;
+  used: number;
+  percent: number;
+};
+
 export type HostMetrics = {
   host: HostInfo;
   disk: DiskUsage;
+  hostFs: HostFSUsage;
+  agentLimit: boolean;
+};
+
+export type PruneType = 'system' | 'builder' | 'volumes' | 'images' | 'containers' | 'networks';
+
+export type PruneRequest = {
+  type: PruneType;
+  volumes?: boolean;
+  confirm: boolean;
+};
+
+export type PruneResult = {
+  type: PruneType;
+  itemsDeleted: number;
+  spaceReclaimed: number;
+};
+
+export type AutohealPreference = {
+  containerId: string;
+  containerName: string;
+  enabled: boolean;
+  lastHealAt?: string;
+  restartCount: number;
+  wasEverHealthy: boolean;
 };
 
 export type ContainerMetric = {

@@ -145,6 +145,12 @@ const (
 	PermScansManage Permission = "scans.manage"
 )
 
+// --- Host ---
+const (
+	PermHostView   Permission = "host.view"
+	PermHostManage Permission = "host.manage"
+)
+
 // AllPermissions is the complete list of permissions for UI display.
 var AllPermissions = []Permission{
 	PermContainersView, PermContainersManage, PermContainersDelete,
@@ -170,4 +176,5 @@ var AllPermissions = []Permission{
 	PermK8sServicesView, PermK8sServicesManage, PermK8sServicesDelete,
 	PermNamespacesView,
 	PermScansView, PermScansManage,
+	PermHostView, PermHostManage,
 }

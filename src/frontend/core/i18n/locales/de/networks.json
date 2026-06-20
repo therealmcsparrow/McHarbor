@@ -19,7 +19,14 @@
   },
   "badges": {
     "yes": "Ja",
-    "no": "Nein"
+    "no": "Nein",
+    "used": "Verwendet",
+    "unused": "Unbenutzt"
+  },
+  "filters": {
+    "all": "Alle",
+    "used": "Verwendet",
+    "unused": "Unbenutzt"
   },
   "create": {
     "title": "Netzwerk erstellen",
@@ -67,6 +74,16 @@
   "confirm": {
     "removeTitle": "Netzwerk entfernen",
     "removeDescription": "Dies entfernt dieses Netzwerk dauerhaft."
+  },
+  "bulkRemoveDialog": {
+    "title": "Netzwerke entfernen",
+    "description": "Dies wird <bold>{{count}}</bold> Netzwerke dauerhaft entfernen.",
+    "networks": "Netzwerke",
+    "andXMore": "und {{count}} weitere",
+    "inUse": "in Verwendung",
+    "inUseWarning": "{{count}} ausgewählte(s) Netzwerk(e) sind noch mit laufenden Containern verbunden. Das Entfernen schlägt für diese fehl, sofern die Container nicht zuerst gestoppt oder getrennt werden.",
+    "forceLabel": "Ich verstehe und möchte das Entfernen trotzdem versuchen",
+    "removing": "Wird entfernt..."
   },
   "actions": {
     "edit": "Bearbeiten",

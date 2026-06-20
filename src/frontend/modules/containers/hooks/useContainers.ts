@@ -391,6 +391,7 @@ type RemoveContainerOptions = {
   removeVolumes: boolean;
   removeImage: boolean;
   removeStack: boolean;
+  removeNetwork?: boolean;
 };
 
 export function useRemoveContainer() {
@@ -409,6 +410,7 @@ export function useRemoveContainer() {
       queryClient.invalidateQueries({ queryKey: ['container'] });
       queryClient.invalidateQueries({ queryKey: ['stacks'] });
       queryClient.invalidateQueries({ queryKey: ['images'] });
+      queryClient.invalidateQueries({ queryKey: ['networks'] });
     },
   });
 }

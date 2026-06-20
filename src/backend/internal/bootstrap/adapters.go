@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 	"github.com/therealmcsparrow/mcharbor/modules/alerts"
@@ -250,9 +251,9 @@ func (a alertSystemInfoSource) SystemInfo(ctx context.Context, envID string) (*a
 }
 
 // NewAlertsEngineDeps builds the alert-engine adapters from the Docker-backed modules.
-func NewAlertsEngineDeps(db *sql.DB, dockerPool *docker.ClientPool) alerts.EngineDeps {
+func NewAlertsEngineDeps(db *sql.DB, dockerPool *docker.ClientPool, agentPool *coreagent.AgentPool) alerts.EngineDeps {
 	return alerts.EngineDeps{
-		Metrics:    alertMetricsSource{svc: metrics.NewService(dockerPool)},
+		Metrics:    alertMetricsSource{svc: metrics.NewServiceWithAgent(dockerPool, agentPool)},
 		Containers: alertContainerSource{svc: containers.NewService(dockerPool, db, "")},
 		SystemInfo: alertSystemInfoSource{svc: dockerinfo.NewService(dockerPool)},
 	}

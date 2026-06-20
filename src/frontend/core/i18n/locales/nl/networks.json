@@ -19,7 +19,14 @@
   },
   "badges": {
     "yes": "Ja",
-    "no": "Nee"
+    "no": "Nee",
+    "used": "Gebruikt",
+    "unused": "Ongebruikt"
+  },
+  "filters": {
+    "all": "Alle",
+    "used": "Gebruikt",
+    "unused": "Ongebruikt"
   },
   "create": {
     "title": "Netwerk aanmaken",
@@ -67,6 +74,16 @@
   "confirm": {
     "removeTitle": "Netwerk verwijderen",
     "removeDescription": "Dit verwijdert dit netwerk permanent."
+  },
+  "bulkRemoveDialog": {
+    "title": "Netwerken verwijderen",
+    "description": "Dit zal <bold>{{count}}</bold> netwerken permanent verwijderen.",
+    "networks": "Netwerken",
+    "andXMore": "en nog {{count}}",
+    "inUse": "in gebruik",
+    "inUseWarning": "{{count}} geselecteerde netwerk(en) zijn nog gekoppeld aan draaiende containers. Verwijderen zal voor diegene mislukken tenzij containers eerst worden gestopt of ontkoppeld.",
+    "forceLabel": "Ik begrijp het en wil de verwijdering toch proberen",
+    "removing": "Verwijderen..."
   },
   "actions": {
     "edit": "Bewerken",

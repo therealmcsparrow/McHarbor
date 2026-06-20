@@ -324,6 +324,11 @@ func (h *Handler) HandleRemoveExtended(w http.ResponseWriter, r *http.Request) {
 	}
 	auditName := normalizeContainerName(info.Name, id)
 
+	// Discover networks that would be orphaned (only this container attached) so
+	// we can offer to remove them together with the container. Best-effort:
+	// network inspection failures must not block container removal.
+	orphanCandidates, _ := h.svc.FindOrphanedNetworks(r.Context(), envID, id, info)
+
 	// Remove the container
 	if err := h.svc.Remove(r.Context(), envID, id, req.Force, req.RemoveVolumes); err != nil {
 		if writeProtectedError(w, r, err) {
@@ -357,6 +362,29 @@ func (h *Handler) HandleRemoveExtended(w http.ResponseWriter, r *http.Request) {
 			h.app.Logger.Warn("remove stack after container removal failed", "stack", stackName, "error", err)
 		} else {
 			result.StackRemoved = true
+		}
+	}
+
+	// Optionally remove networks that became orphaned by this container removal
+	if req.RemoveNetwork && len(orphanCandidates) > 0 {
+		for _, n := range orphanCandidates {
+			if err := h.svc.RemoveNetwork(r.Context(), envID, n.ID); err != nil {
+				h.app.Logger.Warn("remove network after container removal failed", "env", envID, "network", n.Name, "error", err)
+				result.NetworksFailed = append(result.NetworksFailed, FailedNetworkRemoval{
+					ID:     n.ID,
+					Name:   n.Name,
+					Reason: err.Error(),
+				})
+				continue
+			}
+			result.NetworksRemoved = append(result.NetworksRemoved, RemovedNetwork{ID: n.ID, Name: n.Name})
+			h.app.AuditLog.Log(r, audit.Entry{
+				Action:        "delete",
+				EntityType:    "network",
+				EntityID:      n.ID,
+				EntityName:    n.Name,
+				EnvironmentID: envID,
+			})
 		}
 	}
 

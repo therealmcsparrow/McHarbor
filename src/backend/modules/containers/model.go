@@ -210,13 +210,29 @@ type RemoveExtendedRequest struct {
 	RemoveVolumes bool `json:"removeVolumes"`
 	RemoveImage   bool `json:"removeImage"`
 	RemoveStack   bool `json:"removeStack"`
+	RemoveNetwork bool `json:"removeNetwork"`
+}
+
+// RemovedNetwork reports a network that was removed together with the container.
+type RemovedNetwork struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// FailedNetworkRemoval reports a network that could not be removed after the container was removed.
+type FailedNetworkRemoval struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Reason string `json:"reason"`
 }
 
 // RemoveExtendedResult reports which resources were removed.
 type RemoveExtendedResult struct {
-	ContainerRemoved bool `json:"containerRemoved"`
-	ImageRemoved     bool `json:"imageRemoved"`
-	StackRemoved     bool `json:"stackRemoved"`
+	ContainerRemoved   bool                `json:"containerRemoved"`
+	ImageRemoved       bool                `json:"imageRemoved"`
+	StackRemoved       bool                `json:"stackRemoved"`
+	NetworksRemoved    []RemovedNetwork    `json:"networksRemoved"`
+	NetworksFailed     []FailedNetworkRemoval `json:"networksFailed"`
 }
 
 // MoveContainerPlanRequest is the JSON body for POST /containers/{id}/move/plan.

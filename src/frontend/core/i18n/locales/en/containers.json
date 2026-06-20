@@ -91,6 +91,7 @@
     "unpaused": "Container unpaused",
     "killed": "Container killed",
     "removed": "Container removed",
+    "autohealUpdated": "Auto-heal preference updated",
     "created": "Container created",
     "recreated": "Container recreated",
     "updated": "Container updated",
@@ -120,6 +121,16 @@
     "recreateWarning": "This will restart the container. Any in-memory state will be lost.",
     "recreateConfirm": "Recreate",
     "changedFields": "Changed fields:"
+  },
+  "autoheal": {
+    "title": "Auto-heal",
+    "enable": "Auto-heal on healthcheck failure",
+    "enableDesc": "Restart the container when its Docker healthcheck reports unhealthy. Cooldown between restarts: 30s, 1m, 2m, then 5m. The first heal only happens after the container has been healthy at least once.",
+    "restartCount": "{{count}} restart(s) by auto-heal",
+    "wasHealthy": "Has been healthy",
+    "neverHealthy": "Never been healthy (heal will skip until first success)",
+    "lastHeal": "Last heal",
+    "footnote": "The container must define a Docker healthcheck. Preference is held in process memory; recreating the container resets it. Every heal is audit-logged and emits an in-app notification."
   },
   "badges": {
     "standalone": "standalone"
@@ -565,6 +576,17 @@
     "removeImageDesc": "Delete the Docker image used by this container",
     "removeStack": "Remove stack",
     "removeStackDesc": "Remove the Compose stack from McHarbor",
+    "removeNetwork": "Remove network",
+    "removeNetworkDesc": "Remove the user-defined network that becomes orphaned",
+    "removeNetworkCount": "Remove {{count}} networks",
+    "removing": "Removing..."
+  },
+  "bulkRemoveDialog": {
+    "title": "Remove Containers",
+    "description": "This will permanently remove <bold>{{count}}</bold> containers.",
+    "containers": "Containers",
+    "andXMore": "and {{count}} more",
+    "removeNetworkDesc": "Remove user-defined networks that become orphaned by the selected containers",
     "removing": "Removing..."
   },
   "moveDialog": {

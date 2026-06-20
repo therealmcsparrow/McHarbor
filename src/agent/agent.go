@@ -21,7 +21,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-const agentVersion = "1.5.4"
+const agentVersion = "1.6.0"
 
 // Agent handles the WebSocket connection to the McHarbor server.
 type Agent struct {
@@ -625,6 +625,63 @@ func (a *Agent) Connect(ctx context.Context) error {
 				a.runBackupRestore(transferCtx, conn, payload)
 			}(*msg.Backup)
 
+		case MsgHostStatsRequest:
+			a.handleHostStatsRequest(ctx, conn, msg.ID)
+
+		case MsgPruneRequest:
+			if msg.Prune == nil {
+				continue
+			}
+			pruneCtx, pruneCancel := context.WithTimeout(ctx, 5*time.Minute)
+			go func(id string, payload PrunePayload) {
+				defer pruneCancel()
+				a.handlePruneRequest(pruneCtx, conn, id, payload)
+			}(msg.ID, *msg.Prune)
+
+		case MsgHostTerminalStart:
+			if msg.HostTerminal == nil {
+				msg.HostTerminal = &HostTerminalStartPayload{}
+			}
+			a.handleHostTerminalStart(ctx, conn, msg.ID, *msg.HostTerminal)
+
+		case MsgHostTerminalInput:
+			if msg.StreamChunk == nil {
+				continue
+			}
+			execID := parseExecIDFromHeader(msg.StreamChunk.Data)
+			if execID == "" {
+				continue
+			}
+			headerLen := len(execIDHeaderPrefix) + len(execID) + 1
+			if len(msg.StreamChunk.Data) < headerLen {
+				continue
+			}
+			if err := writeHostTerminalInput(execID, msg.StreamChunk.Data[headerLen:]); err != nil {
+				a.logger.Debug("host terminal input write failed", "id", execID, "error", err)
+			}
+
+		case MsgHostTerminalResize:
+			if msg.HostTerminalRes == nil {
+				continue
+			}
+			if err := resizeHostTerminal(msg.HostTerminalRes.ExecID, msg.HostTerminalRes.Cols, msg.HostTerminalRes.Rows); err != nil {
+				a.logger.Debug("host terminal resize failed", "id", msg.HostTerminalRes.ExecID, "error", err)
+			}
+
+		case MsgHostTerminalEnd:
+			if msg.HostTerminalEnd == nil {
+				continue
+			}
+			closeHostTerminal(msg.HostTerminalEnd.ExecID)
+
+		case MsgHostLogRequest:
+			if msg.HostLogRequest == nil {
+				msg.HostLogRequest = &HostLogRequestPayload{Source: "system", Tail: 200}
+			}
+			go func(reqID string, payload HostLogRequestPayload) {
+				a.handleHostLogRequest(ctx, conn, reqID, payload)
+			}(msg.ID, *msg.HostLogRequest)
+
 		case MsgTransferCancel:
 			if msg.Transfer == nil {
 				continue
@@ -997,4 +1054,57 @@ func (a *Agent) resolveServerURL(value string) (string, error) {
 	base.RawQuery = ""
 	base.Fragment = ""
 	return base.ResolveReference(parsed).String(), nil
+}
+
+// handleHostStatsRequest reads /proc and returns a HostStatsPayload over the
+// WebSocket. The server uses this to populate the Host tab on environments
+// connected through the agent.
+func (a *Agent) handleHostStatsRequest(ctx context.Context, conn *websocket.Conn, id string) {
+	stats, ok := readHostStats()
+	if !ok {
+		_ = writeHostStatsResponse(ctx, conn, id, HostStatsPayload{
+			Supported: false,
+			Error:     "host stats are not supported on this platform",
+		})
+		return
+	}
+	_ = writeHostStatsResponse(ctx, conn, id, stats)
+}
+
+// handlePruneRequest runs a docker prune on the local socket and returns
+// the result over the WebSocket. Mirrors the server-side handler so the
+// server can run prune operations against agent environments.
+func (a *Agent) handlePruneRequest(ctx context.Context, conn *websocket.Conn, id string, payload PrunePayload) {
+	result, err := a.proxy.Prune(ctx, payload)
+	if err != nil {
+		a.logger.Warn("agent prune failed", "type", payload.Type, "volumes", payload.Volumes, "error", err)
+		_ = writePruneResponse(ctx, conn, id, PrunePayload{
+			Type:    payload.Type,
+			Volumes: payload.Volumes,
+			Success: false,
+			Error:   err.Error(),
+		})
+		return
+	}
+	_ = writePruneResponse(ctx, conn, id, result)
+}
+
+func writeHostStatsResponse(ctx context.Context, conn *websocket.Conn, id string, payload HostStatsPayload) error {
+	writeMu.Lock()
+	defer writeMu.Unlock()
+	return conn.WriteJSON(WSMessage{
+		Type:      MsgHostStatsResponse,
+		ID:        id,
+		HostStats: &payload,
+	})
+}
+
+func writePruneResponse(ctx context.Context, conn *websocket.Conn, id string, payload PrunePayload) error {
+	writeMu.Lock()
+	defer writeMu.Unlock()
+	return conn.WriteJSON(WSMessage{
+		Type:  MsgPruneResponse,
+		ID:    id,
+		Prune: &payload,
+	})
 }

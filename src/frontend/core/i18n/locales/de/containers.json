@@ -91,6 +91,7 @@
     "unpaused": "Container fortgesetzt",
     "killed": "Container beendet",
     "removed": "Container entfernt",
+    "autohealUpdated": "Auto-Heal-Einstellung aktualisiert",
     "created": "Container erstellt",
     "recreated": "Container neu erstellt",
     "updated": "Container aktualisiert",
@@ -120,6 +121,16 @@
     "recreateWarning": "Dies wird den Container neustarten. Alle In-Memory-Daten gehen verloren.",
     "recreateConfirm": "Neu erstellen",
     "changedFields": "Geänderte Felder:"
+  },
+  "autoheal": {
+    "title": "Auto-Heal",
+    "enable": "Auto-Heal bei Healthcheck-Fehler",
+    "enableDesc": "Container neu starten, sobald der Docker-Healthcheck 'unhealthy' meldet. Cooldown zwischen Neustarts: 30s, 1m, 2m, dann 5m. Der erste Heal erfolgt erst, nachdem der Container mindestens einmal healthy war.",
+    "restartCount": "{{count}} Neustart(s) durch Auto-Heal",
+    "wasHealthy": "War bereits healthy",
+    "neverHealthy": "Noch nie healthy gewesen (Heal wird bis zum ersten Erfolg übersprungen)",
+    "lastHeal": "Letzter Heal",
+    "footnote": "Der Container muss einen Docker-Healthcheck definieren. Die Einstellung wird im Prozessspeicher gehalten; beim Recreate wird sie zurückgesetzt. Jeder Heal wird im Audit-Log erfasst und erzeugt eine In-App-Benachrichtigung."
   },
   "badges": {
     "standalone": "eigenständig"
@@ -565,6 +576,17 @@
     "removeImageDesc": "Das Docker-Image löschen, das von diesem Container verwendet wird",
     "removeStack": "Stack entfernen",
     "removeStackDesc": "Den Compose-Stack aus McHarbor entfernen",
+    "removeNetwork": "Netzwerk entfernen",
+    "removeNetworkDesc": "Das benutzerdefinierte Netzwerk entfernen, das verwaist wird",
+    "removeNetworkCount": "{{count}} Netzwerke entfernen",
+    "removing": "Wird entfernt..."
+  },
+  "bulkRemoveDialog": {
+    "title": "Container entfernen",
+    "description": "Dies wird <bold>{{count}}</bold> Container dauerhaft entfernen.",
+    "containers": "Container",
+    "andXMore": "und {{count}} weitere",
+    "removeNetworkDesc": "Benutzerdefinierte Netzwerke entfernen, die durch die ausgewählten Container verwaist werden",
     "removing": "Wird entfernt..."
   },
   "moveDialog": {

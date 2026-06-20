@@ -2,6 +2,27 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.6.0] - 2026-06-16
+
+### Added
+- Added a first-class **Host** page (`/host`) with live CPU%, used memory, 1/5/15 minute load, host filesystem usage, Docker disk breakdown (images, containers, volumes, build cache), and a Prune panel with per-resource actions (system, builder, volumes, images, containers, networks) plus an explicit "System + volumes" destructive option. Live metrics come from `/proc/stat` + `/proc/meminfo` + `/proc/loadavg` and `statfs(2)` on Linux; the Docker SDK's `ImagesPrune` / `ContainersPrune` / `NetworksPrune` / `VolumesPrune` / `BuildCachePrune` are used individually to emulate `docker system prune` (the Go SDK does not expose it as a single call). `Volumes=true` is the explicit opt-in for system prune that also removes named volumes; the response is audit-logged and the host, containers, images, volumes, and networks queries are invalidated.
+- Added per-resource RBAC: `host.view` and `host.manage` permissions gate `GET /metrics/host*` and `POST /metrics/host/prune` respectively. `agentLimit` is reported on the host response so the UI can show a clear state when the environment is connected through a remote agent (where live host metrics and prune are not available).
+- Added an amber notice on the Host page when the current environment is agent-connected, so operators don't see a misleading "all zeros" state for a remote machine.
+- Added **Auto-heal** (autoheal-by-RunTip42-style) for containers with a Docker healthcheck. Operators enable it per container from the new "Auto-heal" card in the container Settings tab. A background engine polls every 30s, identifies containers whose healthcheck reports `unhealthy`, and restarts them with exponential cooldown (30s → 1m → 2m → 5m). Two safety guards are mandatory: the first heal only happens after the container has been healthy at least once (no loops for misconfigured healthchecks), and the cooldown is enforced between restarts. Every heal is audit-logged and fires an in-app warning notification. Endpoints: `GET /api/autoheal/preference/{id}` and `POST /api/autoheal/preference/{id}` (body `{ enabled }`). Gated by the existing `containers.manage` permission. Engine starts/stops alongside the alerts engine in `main.go`.
+
+## [1.5.5] - 2026-06-16
+
+### Added
+- Added **Used / Unused** visibility to the Networks page: each network card and the table `Containers` column now show a status badge (success = used, secondary = unused) and a new segmented **All / Used / Unused** filter (with live counts) drives both card and table views. The unused badge highlights networks that can be pruned.
+- Added a **Remove network** option to the container remove dialog. When a user-defined network would become orphaned by the container removal (it has exactly that one container attached and is not `bridge`/`host`/`none`), the dialog now offers to remove it as part of the same operation, and reports per-network success and failure in the response.
+- Added a full-options **bulk remove dialog** for multi-selected containers. Selecting several containers and clicking **Remove** now opens a dialog that mirrors the single-container options: Remove volumes, Remove image, Remove stack, and Remove network. The bulk loop runs each removal sequentially, sends the proper `force: true` request body, and lets `useRemoveContainer` keep the networks, containers, images, and stacks queries in sync.
+
+### Fixed
+- Fixed the network list endpoint always reporting `Containers: 0`: the Docker REST API `GET /networks` does not populate the `Containers` field (only `GET /networks/{id}` does), so the previous list response showed every network as unused. The networks service now cross-references a single `ContainerList` (`All: true`) call to compute an accurate per-network container count in the list response.
+- Fixed bulk container delete silently doing nothing. `useContainerAction` was posting to `/containers/{id}/remove` with no body, but `HandleRemoveExtended` calls `response.DecodeBody` which fails on the empty request — so the request was rejected with `ErrInvalidBody` and no container was removed. Bulk removal now goes through the proper `useRemoveContainer` mutation (which posts the correct body with `force: true`).
+- Fixed bulk network delete doing the same thing: the batch action's `onClick` loop called `setConfirmTarget(row.Id)` for every selected row, so only the last network survived and the single `ConfirmDialog` only removed that one. Bulk network removal now opens a dedicated `BulkRemoveNetworkDialog` that lists all selected networks (with in-use markers and a warning) and calls `useRemoveNetwork.mutateAsync(id)` per network sequentially; per-network failures are surfaced via the mutation's error toast and the loop continues.
+- `useRemoveContainer` now also invalidates the `networks` query after success, so a removed-and-now-orphaned network disappears from the Networks page without a manual refresh.
+
 ## [1.5.4] - 2026-06-13
 
 ### Changed
@@ -9,9 +30,6 @@ All notable changes to McHarbor are documented in this file.
 - Migrated the project agent configuration from the legacy `.agents/` (Claude Code format) to the opencode-native `.opencode/` layout: 5 subagents now live at `.opencode/agent/<name>.md`, 19 skills at `.opencode/skills/<name>/SKILL.md`, 5 rules at `.opencode/rules/*.md`, and 4 legacy bash hooks at `.opencode/hooks/*.sh` (preserved for reference; their protection logic is now encoded in `opencode.json` `permission` rules).
 - Wired the migrated configuration in `opencode.json`: `instructions` array now points at `AGENTS.md` plus the 5 rule files, `skills.paths` points at `.opencode/skills`, and the `permission` block carries the merged bash, read, edit, and webfetch rules previously held in `.agents/settings.json` and `.agents/settings.local.json`.
 - Removed the legacy `.agents/` directory (CLAUDE.md, settings.json, settings.local.json, agents/, skills/, rules/, hooks/).
-
-### Fixed
-- Fixed `opencode.json` `permission.webfetch` to use a flat action (`"ask"`) instead of a per-domain object map; the opencode schema only allows a flat action for `webfetch` (and `websearch`, `todowrite`, `question`, `doom_loop`). Restart opencode for the corrected config to load.
 
 ## [1.5.3] - 2026-06-12
 

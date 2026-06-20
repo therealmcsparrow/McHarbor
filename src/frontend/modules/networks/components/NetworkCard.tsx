@@ -4,6 +4,7 @@
 import { useTranslation } from 'react-i18next';
 import { IconTrash, IconPencil } from '@tabler/icons-react';
 import type { NetworkInfo } from '@core/types/docker';
+import { getNetworkContainerCount, isNetworkInUse } from '@core/utils/network';
 import { Card, CardContent, CardFooter } from '@resources/components/ui/Card';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
@@ -19,11 +20,8 @@ type NetworkCardProps = {
 export function NetworkCard({ network, onClick, onRemove }: NetworkCardProps) {
   const { t } = useTranslation('networks');
 
-  const containerCount = typeof network.Containers === 'number'
-    ? network.Containers
-    : network.Containers
-      ? Object.keys(network.Containers).length
-      : 0;
+  const containerCount = getNetworkContainerCount(network);
+  const inUse = isNetworkInUse(network);
 
   return (
     <Card
@@ -33,9 +31,17 @@ export function NetworkCard({ network, onClick, onRemove }: NetworkCardProps) {
       <CardContent className="flex-1 space-y-3 p-4">
         <div className="flex items-start justify-between gap-2">
           <span className="min-w-0 truncate font-medium text-sm">{network.Name}</span>
-          <Badge variant="default" className="shrink-0 text-[10px] px-2 py-0.5">
-            {network.Driver}
-          </Badge>
+          <div className="flex shrink-0 items-center gap-1">
+            <Badge
+              variant={inUse ? 'success' : 'secondary'}
+              className="text-[10px] px-2 py-0.5"
+            >
+              {inUse ? t('badges.used') : t('badges.unused')}
+            </Badge>
+            <Badge variant="default" className="text-[10px] px-2 py-0.5">
+              {network.Driver}
+            </Badge>
+          </div>
         </div>
 
         <div className="space-y-1 text-xs text-muted-foreground">
@@ -49,7 +55,7 @@ export function NetworkCard({ network, onClick, onRemove }: NetworkCardProps) {
           </div>
           <div className="flex items-center justify-between">
             <span>{t('columns.containers')}</span>
-            <span className="tabular-nums">{containerCount}</span>
+            <span className="tabular-nums text-foreground">{containerCount}</span>
           </div>
           {network.Internal && (
             <div className="flex items-center justify-between">

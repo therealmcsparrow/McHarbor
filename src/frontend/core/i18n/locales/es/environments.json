@@ -134,10 +134,19 @@
     "chartTx": "tx",
     "chartRead": "Leer",
     "chartWrite": "Escribir",
+    "network": "Red",
+    "networkUnavailable": "Aún no hay muestras de red",
+    "engineFooter": "Docker Engine v{{version}} · {{hostname}}",
     "tabs": {
       "overview": "Descripción general",
       "activity": "Actividad",
-      "automation": "Automatización"
+      "automation": "Automatización",
+      "retention": "Retención",
+      "host": "Host",
+      "docker": "Docker",
+      "processes": "Procesos",
+"terminal": "Terminal",
+      "logs": "Logs"
     },
     "activity": {
       "title": "Configuración de actividad",
@@ -152,6 +161,7 @@
       "diskUsageNotificationsDescription": "Envíe una notificación en la aplicación cuando el almacenamiento Docker cruce el umbral configurado para este entorno.",
       "diskUsageThresholdLabel": "Umbral de uso del disco",
       "diskUsageThresholdHint": "Introduzca un porcentaje entre 1 y 100.",
+      "diskUsageUseGlobalDefaultLabel": "Usar valor predeterminado global ({{value}}%)",
       "diskCapacityNote": "Las alertas de umbral utilizan la capacidad del controlador de almacenamiento Docker informada por el motor cuando está disponible.",
       "diskUsageExceededTitle": "Se superó el umbral de uso del disco {{name}}",
       "diskUsageExceededDescription": "El almacenamiento Docker tiene una capacidad {{percent}}% of (umbral: {{threshold}}%, uso actual: {{total}}).",
@@ -171,12 +181,222 @@
       "automaticImagePruningTitle": "Poda automática de imágenes",
       "automaticImagePruningDescription": "Elimine automáticamente las imágenes Docker no utilizadas todos los días a las 03:00 en la zona horaria de este entorno para liberar espacio en el disco.",
       "automaticImagePruningHint": "Funciona todos los días a las 03:00 usando la zona horaria a continuación",
+      "imagePruneDanglingOnlyTitle": "Podar solo imágenes colgantes",
+      "imagePruneDanglingOnlyDescription": "Cuando está habilitado, solo se eliminan las imágenes colgantes (sin etiquetar). Desactívelo para eliminar también las imágenes etiquetadas sin uso.",
       "prunePreviewLabel": "Vista previa de poda automática de imágenes",
       "timezoneLabel": "Zona horaria",
       "timezoneDescription": "Se utiliza para programar actualizaciones automáticas, sincronizaciones de git y poda de imágenes.",
       "kubernetesNote": "Las comprobaciones de actualización y la poda de imágenes se aplican a los entornos Docker. Aún puedes configurar la zona horaria para la programación.",
       "statusOn": "ON",
       "statusOff": "OFF"
+    },
+    "retention": {
+      "title": "Retención y poda",
+      "description": "Configure la retención de registros, la poda automática de contenedores, la ventana de mantenimiento de auto-actualización y la retención de métricas para este entorno.",
+      "kubernetesNote": "La retención y la poda se aplican a los entornos Docker. La ventana de auto-actualización es informativa y la utiliza la automatización futura.",
+      "logRetentionTitle": "Retención de registros de contenedores",
+      "logRetentionDescription": "Cuánto tiempo se conserva el historial de registros del contenedor antes de ser podado.",
+      "logRetentionLabel": "Período de retención",
+      "logRetentionHint": "Establezca 0 para conservar los registros para siempre. Rango: 0 a 3650 días.",
+      "containerPruneTitle": "Poda automática de contenedores",
+      "containerPruneDescription": "Elimine automáticamente los contenedores detenidos que hayan estado detenidos durante el número configurado de días.",
+      "containerPruneStoppedLabel": "Días detenidos antes de la poda",
+      "containerPruneStoppedHint": "Rango: 1 a 3650 días.",
+      "autoUpdateTitle": "Ventana de mantenimiento de auto-actualización",
+      "autoUpdateDescription": "Restrinja las actualizaciones automáticas de imágenes de contenedores a una ventana de tiempo y días específicos de la semana.",
+      "autoUpdateWindowStartLabel": "Inicio de la ventana",
+      "autoUpdateWindowEndLabel": "Fin de la ventana",
+      "autoUpdateDaysLabel": "Días activos",
+      "metricRetentionTitle": "Retención de métricas",
+      "metricRetentionDescription": "Cuánto tiempo se conservan las métricas de contenedor y host recopiladas antes de ser podadas.",
+      "metricRetentionLabel": "Período de retención",
+      "metricRetentionHint": "Establezca 0 para conservar las métricas para siempre. Rango: 0 a 8760 horas (1 año).",
+      "daysUnit": "días",
+      "hoursUnit": "horas",
+      "statusOn": "ON",
+      "statusOff": "OFF",
+      "statusActive": "ACTIVO",
+      "statusForever": "PARA SIEMPRE",
+      "daysShort": {
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb",
+        "sun": "Dom"
+      }
+    },
+    "host": {
+      "title": "Host",
+      "description": "Vista de recursos en vivo para {{hostname}}",
+      "loadError": "Error al cargar las métricas del host.",
+      "agentLimitedNotice": "Este entorno está conectado a través de un agente remoto. Las métricas del host en vivo y las acciones de poda no están disponibles; solo se muestran las estadísticas de Docker.",
+      "refreshed": "Actualizado {{value}}",
+      "secondsAgo": "hace {{count}}s",
+      "retry": "Reintentar",
+      "stats": {
+        "cpu": "CPU",
+        "memory": "Memoria",
+        "uptime": "Tiempo activo",
+        "dockerVersion": "Versión de Docker",
+        "load": "Carga {{value}}",
+        "cores": "{{count}} núcleos",
+        "unavailable": "No disponible"
+      },
+      "disk": {
+        "title": "Uso de disco de Docker",
+        "images": "Imágenes",
+        "containers": "Contenedores",
+        "volumes": "Volúmenes",
+        "buildCache": "Caché de compilación"
+      },
+      "hostFs": {
+        "title": "Sistema de archivos del host",
+        "path": "Montaje: {{path}}",
+        "unavailable": "El uso del sistema de archivos del host no está disponible para este entorno."
+      },
+      "prune": {
+        "title": "Poda",
+        "description": "Libere espacio en disco eliminando recursos de Docker no utilizados. Destructivo — confirme cada acción.",
+        "agentLimited": "La poda no está disponible para entornos de agente: el daemon de Docker en el host remoto no es directamente accesible.",
+        "destructiveTag": "Destructivo",
+        "confirm": "Podar",
+        "system": {
+          "label": "Sistema (contenedores, imágenes, redes)",
+          "title": "Podar sistema",
+          "description": "Elimina todos los contenedores detenidos, imágenes no utilizadas y redes no utilizadas. Los volúmenes con nombre no se tocan.",
+          "withVolumesLabel": "Sistema + volúmenes (destructivo)",
+          "withVolumesDescription": "Elimina contenedores detenidos, imágenes no utilizadas, redes no utilizadas Y volúmenes con nombre no utilizados. Los datos en volúmenes con nombre que no sean utilizados por ningún contenedor se eliminarán permanentemente."
+        },
+        "builder": {
+          "label": "Caché del builder",
+          "title": "Podar caché del builder",
+          "description": "Elimina la caché de compilación de Docker."
+        },
+        "volumes": {
+          "label": "Volúmenes (destructivo)",
+          "title": "Podar volúmenes",
+          "description": "Elimina todos los volúmenes con nombre no utilizados. Los datos en volúmenes con nombre no utilizados se eliminarán permanentemente."
+        },
+        "images": {
+          "label": "Imágenes",
+          "title": "Podar imágenes",
+          "description": "Elimina todas las imágenes colgantes y no utilizadas."
+        },
+        "containers": {
+          "label": "Contenedores detenidos",
+          "title": "Podar contenedores detenidos",
+          "description": "Elimina todos los contenedores detenidos."
+        },
+        "networks": {
+          "label": "Redes",
+          "title": "Podar redes",
+          "description": "Elimina todas las redes no utilizadas."
+        }
+      }
+    },
+    "docker": {
+      "title": "Motor Docker",
+      "description": "Información detallada sobre el daemon de Docker que se ejecuta en este entorno.",
+      "unavailable": "La información del motor Docker no está disponible para este entorno.",
+      "server": "Servidor",
+      "version": "Versión",
+      "apiVersion": "Versión de API",
+      "minApiVersion": "Versión mínima de API",
+      "gitCommit": "Commit de Git",
+      "goVersion": "Versión de Go",
+      "os": "SO",
+      "architecture": "Arquitectura",
+      "kernelVersion": "Kernel",
+      "hostname": "Nombre de host",
+      "serverId": "ID del servidor",
+      "resources": "Recursos",
+      "cpus": "CPUs",
+      "memory": "Memoria",
+      "counts": "Conteos",
+      "containers": "Contenedores",
+      "containersRunning": "En ejecución",
+      "containersPaused": "Pausados",
+      "containersStopped": "Detenidos",
+      "images": "Imágenes",
+      "storage": "Almacenamiento",
+      "storageDriver": "Driver de almacenamiento",
+      "dockerRootDir": "Raíz de Docker",
+      "loggingDriver": "Driver de logs",
+      "runtime": "Runtime",
+      "cgroupDriver": "Driver de cgroup",
+      "cgroupVersion": "Versión de cgroup",
+      "defaultRuntime": "Runtime por defecto",
+      "runtimes": "Runtimes",
+      "isolation": "Aislamiento",
+      "security": "Seguridad",
+      "plugins": "Plugins",
+      "volumePlugins": "Plugins de volumen",
+      "networkPlugins": "Plugins de red",
+      "logPlugins": "Plugins de log",
+      "swarm": "Swarm",
+      "status": "Estado",
+      "swarmActive": "Activo",
+      "swarmInactive": "Inactivo",
+      "swarmNodeId": "ID de nodo",
+      "swarmManagers": "Managers",
+      "swarmNodes": "Nodos",
+      "labels": "Etiquetas"
+    },
+    "processes": {
+      "title": "Procesos de contenedores",
+      "description": "Uso de recursos en vivo (CPU, memoria, red, I/O de bloque) de los contenedores en ejecución en este entorno.",
+      "searchPlaceholder": "Buscar procesos...",
+      "empty": "No hay métricas de procesos en ejecución disponibles.",
+      "columns": {
+        "name": "Nombre",
+        "cpu": "CPU",
+        "memory": "Memoria",
+        "pids": "PIDs",
+        "network": "RX / TX",
+        "block": "Leer / Escribir"
+      }
+    },
+    "hostTerminal": {
+      "title": "Terminal del host",
+      "description": "Shell interactivo en el host remoto a través del agente (o mediante contenedor privilegiado para entornos locales).",
+      "connect": "Conectar",
+      "connecting": "Conectando...",
+      "disconnect": "Desconectar",
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "warning": "Esta sesión tiene acceso completo a nivel del host. Ejecute comandos solo cuando entienda el impacto.",
+      "connectError": "No se pudo conectar al terminal del host."
+    },
+    "hostLogs": {
+      "title": "Registros del host",
+      "description": "Instantáneas limitadas de los registros del sistema, kernel, autenticación y daemon de Docker del host de este entorno.",
+      "sourceLabel": "Fuente de registro",
+      "tailLabel": "Número de líneas",
+      "refresh": "Actualizar",
+      "empty": "No se devolvieron líneas de registro.",
+      "unavailable": "Los registros del host no están disponibles para este entorno.",
+      "sources": {
+        "system": "Sistema",
+        "kernel": "Kernel",
+        "auth": "Autenticación",
+        "docker": "Docker"
+      },
+      "notices": {
+        "generic": "La fuente de registro devolvió un aviso no fatal.",
+        "permission_denied": "Existe un archivo de registro del host pero McHarbor no tiene permiso para leerlo. Se intentó una fuente alternativa.",
+        "no_supported_log_source": "No se encontró un archivo de registro legible ni una fuente de journal compatible para este host."
+      }
+    },
+    "hostLogPreview": {
+      "title": "Líneas de registro recientes",
+      "description": "Últimas líneas del registro del sistema, kernel, autenticación o daemon Docker de este host. Abra la pestaña Logs para la vista completa.",
+      "openFull": "Abrir Logs completos",
+      "loading": "Leyendo registros...",
+      "empty": "No hay líneas de registro disponibles en el host. Pruebe con otra fuente o verifique el directorio de registros del host.",
+      "lineCount": "{{count}} líneas",
+      "tailNote": "Mostrando las últimas {{tail}} líneas"
     }
   },
   "agentToken": {

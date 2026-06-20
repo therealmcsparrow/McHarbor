@@ -105,3 +105,60 @@ jobs:
             ${{ steps.meta.outputs.labels }}
             org.opencontainers.image.version=${{ steps.version.outputs.agent_version }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
+
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [publish-mcharbor, publish-agent]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from commit message
+        id: version
+        shell: bash
+        run: |
+          commit_msg="$(git log -1 --pretty=%s HEAD)"
+          echo "Commit message: $commit_msg"
+          if [[ "$commit_msg" =~ ^Release\ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+            version="${BASH_REMATCH[1]}"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "tag=v$version" >> "$GITHUB_OUTPUT"
+            echo "Release detected: $version"
+          else
+            echo "version=" >> "$GITHUB_OUTPUT"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            echo "No release version detected; skipping GitHub release."
+          fi
+
+      - name: Create GitHub release
+        if: steps.version.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          version="${{ steps.version.outputs.version }}"
+          tag="${{ steps.version.outputs.tag }}"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; skipping."
+            exit 0
+          fi
+
+          notes="$(awk -v ver="## [${version}]" '
+            $0 ~ ver {flag=1; next}
+            flag && /^## \[/ {flag=0}
+            flag {print}
+          ' CHANGELOG.md)"
+
+          if [[ -z "$notes" ]]; then
+            notes="Release $version"
+          fi
+
+          gh release create "$tag" \
+            --title "Release $version" \
+            --notes "$notes" \
+            --target main

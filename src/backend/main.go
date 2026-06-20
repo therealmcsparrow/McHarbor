@@ -79,6 +79,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/activity"
 	"github.com/therealmcsparrow/mcharbor/modules/alerts"
 	"github.com/therealmcsparrow/mcharbor/modules/appstore"
+	"github.com/therealmcsparrow/mcharbor/modules/autoheal"
 	modAudit "github.com/therealmcsparrow/mcharbor/modules/audit"
 	"github.com/therealmcsparrow/mcharbor/modules/blueprints"
 	customnodes "github.com/therealmcsparrow/mcharbor/modules/custom_nodes"
@@ -212,7 +213,7 @@ func main() {
 	defer activityCollector.Stop()
 
 	// Start alerts engine
-	alertsEngine := alerts.NewEngine(database, enc, logger, bootstrap.NewAlertsEngineDeps(database, dockerPool))
+	alertsEngine := alerts.NewEngine(database, enc, logger, bootstrap.NewAlertsEngineDeps(database, dockerPool, agentPool))
 	alertsEngine.Start()
 	defer alertsEngine.Stop()
 
@@ -221,6 +222,14 @@ func main() {
 
 	// Init audit logger
 	auditLog := audit.NewLogger(database)
+
+	// Start auto-heal engine. The service is shared with the HTTP
+	// handlers so the in-memory preference state survives the lifetime
+	// of the process.
+	autohealSvc := autoheal.NewService(dockerPool, database)
+	autohealEngine := autoheal.NewEngine(database, enc, logger, autohealSvc, auditLog)
+	autohealEngine.Start()
+	defer autohealEngine.Stop()
 
 	// Build app dependencies
 	app := router.NewAppDeps(cfg, database, dockerPool, k8sPool, agentPool, authSvc, rbacSvc, auditLog, enc, backupCrypto, logger)
@@ -265,6 +274,7 @@ func main() {
 	activity.Mount(app)
 	modAudit.Mount(app)
 	alerts.Mount(app)
+	autoheal.Mount(app)
 	blueprints.Mount(app)
 	git.Mount(app)
 	webhooks.Mount(app)

@@ -8,12 +8,16 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import type { NetworkInfo } from '@core/types/docker';
 import type { BatchAction } from '@resources/components/DataGrid';
+import { getNetworkContainerCount } from '@core/utils/network';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@resources/components/ui/Tooltip';
 import { truncateId } from '@resources/utils/format';
 
-export function useNetworksPageConfig(onRemove: (networkId: string) => void) {
+export function useNetworksPageConfig(
+  onRemove: (networkId: string) => void,
+  onRemoveSelected?: (rows: NetworkInfo[]) => void,
+) {
   const navigate = useNavigate();
   const { t } = useTranslation('networks');
   const { t: tc } = useTranslation('common');
@@ -66,9 +70,19 @@ export function useNetworksPageConfig(onRemove: (networkId: string) => void) {
         header: t('columns.containers'),
         size: 90,
         cell: ({ row }) => {
-          const containers = row.original.Containers;
-          const count = typeof containers === 'number' ? containers : containers ? Object.keys(containers).length : 0;
-          return <span className="text-xs tabular-nums text-muted-foreground">{count}</span>;
+          const count = getNetworkContainerCount(row.original);
+          const inUse = count > 0;
+          return (
+            <div className="flex items-center gap-2">
+              <span className="text-xs tabular-nums text-foreground">{count}</span>
+              <Badge
+                variant={inUse ? 'success' : 'secondary'}
+                className="px-1.5 py-0 text-[10px]"
+              >
+                {inUse ? t('badges.used') : t('badges.unused')}
+              </Badge>
+            </div>
+          );
         },
       },
       {
@@ -122,15 +136,10 @@ export function useNetworksPageConfig(onRemove: (networkId: string) => void) {
         label: tc('batch.remove'),
         icon: IconTrash,
         variant: 'destructive',
-        confirm: true,
-        onClick: (rows) => {
-          for (const row of rows as NetworkInfo[]) {
-            onRemove(row.Id);
-          }
-        },
+        onClick: (rows) => onRemoveSelected?.(rows as NetworkInfo[]),
       },
     ],
-    [onRemove, tc],
+    [onRemoveSelected, tc],
   );
 
   return { columns, batchActions };

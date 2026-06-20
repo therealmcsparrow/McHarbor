@@ -2490,3 +2490,92 @@ func (s *Service) CheckImageUpdates(ctx context.Context, envID string, container
 	wg.Wait()
 	return results, nil
 }
+
+// builtInDockerNetworks lists Docker's automatic networks that should never be auto-removed.
+var builtInDockerNetworks = map[string]struct{}{
+	"bridge": {},
+	"host":   {},
+	"none":   {},
+}
+
+// OrphanedNetwork reports a user-defined network that will have no containers
+// attached once the given container is removed.
+type OrphanedNetwork struct {
+	ID   string
+	Name string
+}
+
+// FindOrphanedNetworks inspects the container's network attachments and returns
+// the user-defined networks that would be empty after this container is removed.
+// A network is considered orphaned when it is user-defined (not in
+// builtInDockerNetworks) and currently has exactly one attached container,
+// and that container is the one being inspected.
+func (s *Service) FindOrphanedNetworks(ctx context.Context, envID, containerID string, info types.ContainerJSON) ([]OrphanedNetwork, error) {
+	if info.NetworkSettings == nil || len(info.NetworkSettings.Networks) == 0 {
+		return nil, nil
+	}
+
+	cli, err := s.getClient(envID)
+	if err != nil {
+		return nil, err
+	}
+
+	orphans := make([]OrphanedNetwork, 0)
+	seen := make(map[string]struct{})
+
+	for netName := range info.NetworkSettings.Networks {
+		if _, isBuiltIn := builtInDockerNetworks[netName]; isBuiltIn {
+			continue
+		}
+		if _, dup := seen[netName]; dup {
+			continue
+		}
+		seen[netName] = struct{}{}
+
+		inspCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+		net, err := cli.NetworkInspect(inspCtx, netName, networkTypes.InspectOptions{})
+		cancel()
+		if err != nil {
+			// Skip networks we cannot inspect — best effort.
+			continue
+		}
+		if len(net.Containers) != 1 {
+			continue
+		}
+		onlyID, ok := soleKey(net.Containers)
+		if !ok || onlyID != containerID {
+			continue
+		}
+		orphans = append(orphans, OrphanedNetwork{ID: net.ID, Name: net.Name})
+	}
+
+	return orphans, nil
+}
+
+// soleKey returns the single key of m when m has exactly one entry.
+func soleKey(m map[string]networkTypes.EndpointResource) (string, bool) {
+	if len(m) != 1 {
+		return "", false
+	}
+	for k := range m {
+		return k, true
+	}
+	return "", false
+}
+
+// RemoveNetwork removes a Docker network by ID or name. It returns an error
+// when the network is still in use or the daemon refuses removal.
+func (s *Service) RemoveNetwork(ctx context.Context, envID, networkID string) error {
+	cli, err := s.getClient(envID)
+	if err != nil {
+		return err
+	}
+
+	rmCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	if err := cli.NetworkRemove(rmCtx, networkID); err != nil {
+		return fmt.Errorf("removing network %s: %w", networkID, err)
+	}
+	return nil
+}

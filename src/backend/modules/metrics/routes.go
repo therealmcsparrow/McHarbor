@@ -6,6 +6,7 @@ package metrics
 import (
 	"github.com/go-chi/chi/v5"
 
+	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
@@ -15,9 +16,10 @@ func Mount(app *router.AppDeps) {
 
 	app.RegisterProtectedRoutes(func(r chi.Router) {
 		r.Route("/metrics", func(r chi.Router) {
-			r.Get("/host", h.HandleHostInfo)
-			r.Get("/containers", h.HandleContainerStats)
-			r.Get("/containers/{id}/stream", h.HandleContainerStatsStream)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermHostView)).Get("/host", h.HandleHostInfo)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermHostView)).Get("/containers", h.HandleContainerStats)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermHostView)).Get("/containers/{id}/stream", h.HandleContainerStatsStream)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermHostManage)).Post("/host/prune", h.HandleHostPrune)
 		})
 	})
 }

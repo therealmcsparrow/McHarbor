@@ -25,6 +25,7 @@ const staticNamespaces = [
   'security',
   'docker',
   'system',
+  'host',
 ] as const;
 
 type StaticNamespace = (typeof staticNamespaces)[number];

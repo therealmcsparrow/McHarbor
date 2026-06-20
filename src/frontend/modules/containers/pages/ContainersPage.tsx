@@ -13,6 +13,7 @@ import { useCurrentEnvironmentActivitySettings } from '@resources/hooks/useCurre
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useEnvironmentUploadActive } from '@resources/stores/upload-activity';
 import { canRunContainerUpdateOperation, isProtectedContainer } from '@core/utils/protection';
+import { BulkRemoveContainerDialog } from '../components/BulkRemoveContainerDialog';
 import { ContainerCardGrid } from '../components/ContainerCardGrid';
 import { ContainerUtilityDialogs } from '../components/ContainerUtilityDialogs';
 import { ContainersPageActions } from '../components/ContainersPageActions';
@@ -53,6 +54,7 @@ export default function ContainersPage() {
   const [takeOverTarget, setTakeOverTarget] = useState<ContainerInfo | null>(null);
   const [reinstallAllConfirmOpen, setReinstallAllConfirmOpen] = useState(false);
   const [pruneConfirmOpen, setPruneConfirmOpen] = useState(false);
+  const [bulkRemoveTargets, setBulkRemoveTargets] = useState<ContainerInfo[]>([]);
 
   const updateAvailableIDs = new Set(
     updateResults ? [...updateResults.values()].filter((result) => result.updateAvailable).map((result) => result.containerId) : [],
@@ -120,6 +122,7 @@ export default function ContainersPage() {
     action,
     onUpdateSelected: (rows) => runContainerOperation('update', rows.map(toTarget)),
     onReinstallSelected: (rows) => runContainerOperation('reinstall', rows.map(toTarget)),
+    onRemoveSelected: (rows) => setBulkRemoveTargets(rows),
   });
 
   return (
@@ -219,6 +222,12 @@ export default function ContainersPage() {
         setLogsTarget={setLogsTarget}
         setTakeOverTarget={setTakeOverTarget}
         t={t}
+      />
+
+      <BulkRemoveContainerDialog
+        containers={bulkRemoveTargets}
+        open={bulkRemoveTargets.length > 0}
+        onOpenChange={(open) => !open && setBulkRemoveTargets([])}
       />
 
       <ConfirmDialog

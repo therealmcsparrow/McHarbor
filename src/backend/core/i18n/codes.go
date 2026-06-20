@@ -177,19 +177,24 @@ const (
 
 // --- Environments ---
 const (
-	ErrEnvNotFound            MsgCode = "err.env.not_found"
-	ErrEnvListFailed          MsgCode = "err.env.list_failed"
-	ErrEnvCreateFailed        MsgCode = "err.env.create_failed"
-	ErrEnvUpdateFailed        MsgCode = "err.env.update_failed"
-	ErrEnvRemoveFailed        MsgCode = "err.env.remove_failed"
-	ErrEnvNameRequired        MsgCode = "err.env.name_required"
-	ErrEnvConnRequired        MsgCode = "err.env.connection_required"
-	ErrEnvConnFailed          MsgCode = "err.env.connection_failed"
-	ErrEnvInvalidOrchestrator MsgCode = "err.env.invalid_orchestrator"
-	ErrEnvInvalidConnType     MsgCode = "err.env.invalid_connection_type"
-	ErrEnvInvalidTimezone     MsgCode = "err.env.invalid_timezone"
-	MsgEnvCreated             MsgCode = "msg.env.created"
-	MsgEnvRemoved             MsgCode = "msg.env.removed"
+	ErrEnvNotFound               MsgCode = "err.env.not_found"
+	ErrEnvListFailed             MsgCode = "err.env.list_failed"
+	ErrEnvCreateFailed           MsgCode = "err.env.create_failed"
+	ErrEnvUpdateFailed           MsgCode = "err.env.update_failed"
+	ErrEnvRemoveFailed           MsgCode = "err.env.remove_failed"
+	ErrEnvNameRequired           MsgCode = "err.env.name_required"
+	ErrEnvConnRequired           MsgCode = "err.env.connection_required"
+	ErrEnvConnFailed             MsgCode = "err.env.connection_failed"
+	ErrEnvInvalidOrchestrator    MsgCode = "err.env.invalid_orchestrator"
+	ErrEnvInvalidConnType        MsgCode = "err.env.invalid_connection_type"
+	ErrEnvInvalidTimezone        MsgCode = "err.env.invalid_timezone"
+	ErrEnvInvalidLogRetention    MsgCode = "err.env.invalid_log_retention"
+	ErrEnvInvalidContainerPrune  MsgCode = "err.env.invalid_container_prune_days"
+	ErrEnvInvalidMetricRetention MsgCode = "err.env.invalid_metric_retention"
+	ErrEnvInvalidAutoUpdate      MsgCode = "err.env.invalid_auto_update_window"
+	ErrEnvInvalidAutoUpdateDays  MsgCode = "err.env.invalid_auto_update_days"
+	MsgEnvCreated                MsgCode = "msg.env.created"
+	MsgEnvRemoved                MsgCode = "msg.env.removed"
 )
 
 // --- Terminal ---

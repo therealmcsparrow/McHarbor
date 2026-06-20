@@ -50,7 +50,7 @@ tests/
 tmp/
 .tmp/
 *.tsbuildinfo
-
+roadmap.md
 
 # Marketing
 # The standalone website is excluded from the app build context, but the site

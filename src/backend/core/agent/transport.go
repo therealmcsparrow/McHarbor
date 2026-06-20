@@ -77,6 +77,264 @@ func (t *AgentTransport) RunCompose(ctx context.Context, payload ComposePayload)
 	}
 }
 
+// HostStatsSupported reports whether the connected agent understands the
+// host_stats_request message. Agents older than 1.6.0 do not.
+func (t *AgentTransport) HostStatsSupported() bool {
+	return t.conn.SupportsFeature("1.6.0")
+}
+
+// PruneSupported reports whether the connected agent understands the
+// prune_request message. Agents older than 1.7.0 do not.
+func (t *AgentTransport) PruneSupported() bool {
+	return t.conn.SupportsFeature("1.7.0")
+}
+
+// HostTerminalSupported reports whether the connected agent understands
+// the host_terminal_* messages. Agents older than 1.8.0 do not.
+func (t *AgentTransport) HostTerminalSupported() bool {
+	return t.conn.SupportsFeature("1.8.0")
+}
+
+// WriteJSON forwards a JSON message to the connected agent.
+func (t *AgentTransport) WriteJSON(v interface{}) error {
+	return t.conn.WriteJSON(v)
+}
+
+// HostLogsSupported reports whether the connected agent understands the
+// host_log_* messages. Agents older than 1.8.0 do not.
+func (t *AgentTransport) HostLogsSupported() bool {
+	return t.conn.SupportsFeature("1.8.0")
+}
+
+// HostTerminalChannel exposes the in-flight host terminal waiter map for
+// server code that bridges browser WebSockets to agent-backed shells.
+func (t *AgentTransport) HostTerminalChannel() *HostTerminalChannel {
+	return &HostTerminalChannel{waiters: t.hostTerminalWaiters, mu: t.mu}
+}
+
+// HostTerminalChannel is a thread-safe wrapper around the waiter map used
+// for host terminal sessions.
+type HostTerminalChannel struct {
+	mu      sync.Mutex
+	waiters map[string]chan *WSMessage
+}
+
+// Set registers a waiter for the given request id.
+func (h *HostTerminalChannel) Set(reqID string, ch chan *WSMessage) {
+	h.mu.Lock()
+	h.waiters[reqID] = ch
+	h.mu.Unlock()
+}
+
+// Pop removes and returns the waiter for the given request id.
+func (h *HostTerminalChannel) Pop(reqID string) chan *WSMessage {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	ch, ok := h.waiters[reqID]
+	if ok {
+		delete(h.waiters, reqID)
+	}
+	return ch
+}
+
+// HostStats asks the agent to read /proc on the remote host and returns the
+// resulting HostStatsPayload. Returns ok=false when the agent is not
+// connected or does not support the feature.
+func (t *AgentTransport) HostStats(ctx context.Context) (HostStatsPayload, bool, error) {
+	if !t.HostStatsSupported() {
+		return HostStatsPayload{}, false, fmt.Errorf("agent does not support host stats (requires 1.7.0+)")
+	}
+	reqID := xid.New().String()
+	ch := make(chan *WSMessage, 1)
+
+	t.mu.Lock()
+	t.hostStatsWaiters[reqID] = ch
+	t.mu.Unlock()
+	defer func() {
+		t.mu.Lock()
+		delete(t.hostStatsWaiters, reqID)
+		t.mu.Unlock()
+	}()
+
+	if err := t.conn.WriteJSON(WSMessage{Type: MsgHostStatsRequest, ID: reqID}); err != nil {
+		return HostStatsPayload{}, false, fmt.Errorf("sending host stats request to agent: %w", err)
+	}
+
+	select {
+	case <-ctx.Done():
+		return HostStatsPayload{}, false, ctx.Err()
+	case msg := <-ch:
+		if msg == nil || msg.HostStats == nil {
+			return HostStatsPayload{}, false, fmt.Errorf("empty host stats response from agent")
+		}
+		return *msg.HostStats, msg.HostStats.Supported, nil
+	case <-t.done:
+		return HostStatsPayload{}, false, fmt.Errorf("agent transport closed")
+	}
+}
+
+// Prune asks the agent to run a Docker prune operation locally and returns
+// the result. Returns an error when the agent is not connected, does not
+// support the feature, or the prune itself failed.
+func (t *AgentTransport) Prune(ctx context.Context, payload PrunePayload) (*PrunePayload, error) {
+	if !t.PruneSupported() {
+		return nil, fmt.Errorf("agent does not support prune (requires 1.7.0+)")
+	}
+	reqID := xid.New().String()
+	ch := make(chan *WSMessage, 1)
+
+	t.mu.Lock()
+	t.pruneWaiters[reqID] = ch
+	t.mu.Unlock()
+	defer func() {
+		t.mu.Lock()
+		delete(t.pruneWaiters, reqID)
+		t.mu.Unlock()
+	}()
+
+	if err := t.conn.WriteJSON(WSMessage{
+		Type:  MsgPruneRequest,
+		ID:    reqID,
+		Prune: &payload,
+	}); err != nil {
+		return nil, fmt.Errorf("sending prune request to agent: %w", err)
+	}
+
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case msg := <-ch:
+		if msg == nil || msg.Prune == nil {
+			return nil, fmt.Errorf("empty prune response from agent")
+		}
+		if !msg.Prune.Success {
+			return msg.Prune, fmt.Errorf("%s", strings.TrimSpace(msg.Prune.Error))
+		}
+		return msg.Prune, nil
+	case <-t.done:
+		return nil, fmt.Errorf("agent transport closed")
+	}
+}
+
+// HostLogs asks the agent to read host logs and returns the result as a
+// stream of lines plus any non-fatal notices. Requires agent 1.8.0+.
+func (t *AgentTransport) HostLogs(ctx context.Context, payload HostLogRequestPayload) (*HostLogStream, error) {
+	if !t.HostLogsSupported() {
+		return nil, fmt.Errorf("agent does not support host logs (requires 1.8.0+)")
+	}
+	reqID := xid.New().String()
+	ch := make(chan *WSMessage, 256)
+
+	t.mu.Lock()
+	t.hostLogWaiters[reqID] = ch
+	t.mu.Unlock()
+	defer func() {
+		t.mu.Lock()
+		delete(t.hostLogWaiters, reqID)
+		t.mu.Unlock()
+	}()
+
+	if err := t.conn.WriteJSON(WSMessage{
+		Type:            MsgHostLogRequest,
+		ID:              reqID,
+		HostLogRequest:  &payload,
+	}); err != nil {
+		return nil, fmt.Errorf("sending host log request to agent: %w", err)
+	}
+
+	stream := &HostLogStream{Lines: make(chan string, 256)}
+	stream.errCh = make(chan error, 1)
+	go func() {
+		defer close(stream.Lines)
+		for {
+			select {
+			case <-ctx.Done():
+				stream.errCh <- ctx.Err()
+				return
+			case <-t.done:
+				stream.errCh <- fmt.Errorf("agent transport closed")
+				return
+			case msg, ok := <-ch:
+				if !ok {
+					stream.errCh <- fmt.Errorf("host log channel closed")
+					return
+				}
+				if msg.HostLogChunk != nil {
+					select {
+					case stream.Lines <- msg.HostLogChunk.Line:
+					case <-ctx.Done():
+						stream.errCh <- ctx.Err()
+						return
+					}
+				}
+				if msg.HostLogEnd != nil {
+					stream.Notices = msg.HostLogEnd.Notices
+					return
+				}
+			}
+		}
+	}()
+	return stream, nil
+}
+
+// HostLogStream carries a stream of host log lines plus a list of non-fatal
+// notices collected during the read.
+type HostLogStream struct {
+	Lines   chan string
+	Notices []string
+	errCh   chan error
+}
+
+// Err returns the terminal error of a host log stream (after Lines is
+// closed). nil when the stream completed successfully.
+func (s *HostLogStream) Err() error {
+	select {
+	case err := <-s.errCh:
+		return err
+	default:
+		return nil
+	}
+}
+
+// HostTerminalSendInput forwards stdin data to an active PTY-backed shell.
+// The data is prefixed with the exec id header so the agent can route it
+// to the correct session.
+func (t *AgentTransport) HostTerminalSendInput(execID string, data []byte) error {
+	if !t.HostTerminalSupported() {
+		return fmt.Errorf("agent does not support host terminal (requires 1.8.0+)")
+	}
+	prefix := []byte("MCHARBOR_EXEC_ID=" + execID + "\n")
+	combined := make([]byte, 0, len(prefix)+len(data))
+	combined = append(combined, prefix...)
+	combined = append(combined, data...)
+	return t.conn.WriteJSON(WSMessage{
+		Type:        MsgHostTerminalInput,
+		StreamChunk: &WSStreamChunk{Data: combined},
+	})
+}
+
+// HostTerminalSendResize forwards a TTY resize for an active shell.
+func (t *AgentTransport) HostTerminalSendResize(execID string, cols, rows uint) error {
+	if !t.HostTerminalSupported() {
+		return fmt.Errorf("agent does not support host terminal (requires 1.8.0+)")
+	}
+	return t.conn.WriteJSON(WSMessage{
+		Type:             MsgHostTerminalResize,
+		HostTerminalRes:  &HostTerminalResizePayload{ExecID: execID, Cols: cols, Rows: rows},
+	})
+}
+
+// HostTerminalSendEnd closes an active shell session.
+func (t *AgentTransport) HostTerminalSendEnd(execID string) error {
+	if !t.HostTerminalSupported() {
+		return fmt.Errorf("agent does not support host terminal (requires 1.8.0+)")
+	}
+	return t.conn.WriteJSON(WSMessage{
+		Type:             MsgHostTerminalEnd,
+		HostTerminalEnd:  &HostTerminalEndPayload{ExecID: execID},
+	})
+}
+
 // AgentTransport implements http.RoundTripper by proxying HTTP requests
 // over a WebSocket connection to a remote agent.
 type AgentTransport struct {
@@ -85,7 +343,11 @@ type AgentTransport struct {
 	pending             map[string]*pendingReq
 	execSessions        map[string]*ExecSession
 	composeWaiters      map[string]chan *WSMessage
-	transferWaiters     map[string]chan *WSMessage
+	hostStatsWaiters    map[string]chan *WSMessage
+	pruneWaiters        map[string]chan *WSMessage
+hostLogWaiters      map[string]chan *WSMessage
+		hostTerminalWaiters map[string]chan *WSMessage
+		transferWaiters     map[string]chan *WSMessage
 	transferDiagnostics map[string]*TransferAuthDiagnostic
 	transferReceivers   map[string]*TransferReceiverMarker
 	mu                  sync.Mutex
@@ -101,6 +363,10 @@ func NewAgentTransport(conn *AgentConnection, db *sql.DB, logger *slog.Logger) *
 		pending:             make(map[string]*pendingReq),
 		execSessions:        make(map[string]*ExecSession),
 		composeWaiters:      make(map[string]chan *WSMessage),
+		hostStatsWaiters:    make(map[string]chan *WSMessage),
+		pruneWaiters:        make(map[string]chan *WSMessage),
+		hostLogWaiters:      make(map[string]chan *WSMessage),
+		hostTerminalWaiters: make(map[string]chan *WSMessage),
 		transferWaiters:     make(map[string]chan *WSMessage),
 		transferDiagnostics: make(map[string]*TransferAuthDiagnostic),
 		transferReceivers:   make(map[string]*TransferReceiverMarker),
@@ -851,6 +1117,67 @@ func (t *AgentTransport) ReadLoop() error {
 				case ch <- &msg:
 				default:
 					t.logger.Warn("agent compose result dropped", "id", msg.ID)
+				}
+			}
+
+		case MsgHostStatsResponse:
+			if msg.HostStats == nil {
+				continue
+			}
+			t.mu.Lock()
+			ch := t.hostStatsWaiters[msg.ID]
+			t.mu.Unlock()
+			if ch != nil {
+				select {
+				case ch <- &msg:
+				default:
+					t.logger.Warn("agent host stats response dropped", "id", msg.ID)
+				}
+			}
+
+		case MsgPruneResponse:
+			if msg.Prune == nil {
+				continue
+			}
+			t.mu.Lock()
+			ch := t.pruneWaiters[msg.ID]
+			t.mu.Unlock()
+			if ch != nil {
+				select {
+				case ch <- &msg:
+				default:
+					t.logger.Warn("agent prune response dropped", "id", msg.ID)
+				}
+			}
+
+		case MsgHostLogChunk, MsgHostLogEnd:
+			if msg.HostLogChunk == nil && msg.HostLogEnd == nil {
+				continue
+			}
+			t.mu.Lock()
+			ch := t.hostLogWaiters[msg.ID]
+			t.mu.Unlock()
+			if ch != nil {
+				select {
+				case ch <- &msg:
+				default:
+					t.logger.Warn("agent host log chunk dropped", "id", msg.ID)
+				}
+			}
+
+		case MsgHostTerminalOutput, MsgHostTerminalEnd:
+			if msg.StreamChunk == nil && msg.Type != MsgHostTerminalEnd {
+				continue
+			}
+			t.mu.Lock()
+			ch := t.hostTerminalWaiters[msg.ID]
+			t.mu.Unlock()
+			if ch != nil {
+				// Use a buffered send so we never block the read loop.
+				select {
+				case ch <- &msg:
+				default:
+					t.logger.Warn("agent host terminal message dropped", "id", msg.ID, "type", msg.Type)
 				}
 			}
 

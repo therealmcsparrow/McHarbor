@@ -158,6 +158,61 @@ func (p *AgentPool) IsConnected(envID string) bool {
 	return ok
 }
 
+// Transport returns the agent transport for the given environment, or nil
+// when no agent is connected.
+func (p *AgentPool) Transport(envID string) *AgentTransport {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	conn, ok := p.conns[envID]
+	if !ok {
+		return nil
+	}
+	return conn.Transport
+}
+
+// SupportsFeature reports whether the connected agent version meets or
+// exceeds the required minimum (semver-like). Used by the metrics module to
+// decide whether to ask the agent for host stats or fall back to the
+// "unavailable" state.
+func (ac *AgentConnection) SupportsFeature(minimum string) bool {
+	ac.mu.Lock()
+	v := ac.Version
+	ac.mu.Unlock()
+	return agentAtLeast(v, minimum)
+}
+
+// agentAtLeast compares two dotted-triple version strings and reports
+// whether a is >= b. Equal-length components are compared numerically;
+// missing components are treated as 0.
+func agentAtLeast(a, minimum string) bool {
+	a = strings.TrimPrefix(strings.TrimSpace(a), "v")
+	minimum = strings.TrimPrefix(strings.TrimSpace(minimum), "v")
+	aParts := strings.Split(a, ".")
+	mParts := strings.Split(minimum, ".")
+	for i := 0; i < 3; i++ {
+		ap := versionPart(aParts, i)
+		mp := versionPart(mParts, i)
+		if ap > mp {
+			return true
+		}
+		if ap < mp {
+			return false
+		}
+	}
+	return true
+}
+
+func versionPart(parts []string, idx int) int {
+	if idx >= len(parts) {
+		return 0
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(parts[idx]))
+	if err != nil {
+		return 0
+	}
+	return n
+}
+
 // List returns info about all connected agents.
 func (p *AgentPool) List() []AgentConnection {
 	p.mu.RLock()
