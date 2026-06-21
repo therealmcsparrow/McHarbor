@@ -24,7 +24,6 @@ const staticNamespaces = [
   'terminal',
   'security',
   'docker',
-  'system',
   'host',
 ] as const;
 

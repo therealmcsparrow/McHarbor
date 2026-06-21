@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQuery } from '@tanstack/react-query';
 import {
   IconBook,
   IconBrandDocker,
@@ -17,7 +18,7 @@ import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useHostMetrics } from '@modules/dashboard/hooks/useHostMetrics';
-import { useSystemInfo } from '@modules/system/hooks/useSystemInfo';
+import { api } from '@core/api/client';
 
 const ARCH_LABELS: Record<string, string> = {
   x86_64: 'x64',
@@ -62,7 +63,11 @@ export function Footer() {
   const { t, i18n } = useTranslation('common');
   const now = useClock();
   const { data: metrics } = useHostMetrics();
-  const { data: info } = useSystemInfo();
+  const { data: info } = useQuery({
+    queryKey: ['about'],
+    queryFn: () => api.get<{ version: string }>('/about').then((r) => r.data),
+    staleTime: 60_000,
+  });
   const environments = useEnvironmentStore((s) => s.environments);
   const currentId = useEnvironmentStore((s) => s.currentId);
   const env = environments.find((e) => e.id === currentId);

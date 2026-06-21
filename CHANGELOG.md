@@ -2,6 +2,14 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.6.1] - 2026-06-21
+
+### Changed
+- Bumped McHarbor and the remote agent to `1.6.1`.
+
+### Removed
+- Removed the **System** menu from the sidebar. The application version, runtime info (platform, Go version), and dependency counts shown there were a subset of what **Settings → About** already provides (full backend and frontend dependency lists, plus update checking). The Settings → About tab is now the single place for application diagnostics. Removed the `/system` route, the `frontend/modules/system/` module (pages, components, hooks, types), the `system` i18n namespace and locale files, and the `nav.system` translation key. The footer version display now reads `/api/about` directly instead of the removed `useSystemInfo` hook. The backend `system` module is retained because its `/api/system/os-logs`, `/api/system/os-terminal/ws`, and `/api/system/os-updates/*` endpoints are used by the Environments module for host logs, host terminal, and host updates.
+
 ## [1.6.0] - 2026-06-16
 
 ### Added

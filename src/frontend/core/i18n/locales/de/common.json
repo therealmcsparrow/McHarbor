@@ -18,7 +18,6 @@
     "audit": "Audit",
     "settings": "Einstellungen",
     "notifications": "Benachrichtigungen",
-    "system": "System",
     "pods": "Pods",
     "deployments": "Deployments",
     "services": "Services",
