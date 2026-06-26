@@ -1,39 +1,39 @@
 {
-  "slug": "stirling-pdf",
-  "name": "Stirling PDF",
-  "description": "Local web tools for PDF conversion, editing, OCR, and signing.",
-  "category": "Documents",
-  "image": "frooodle/s-pdf:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/stirling-pdf.svg",
-  "website": "https://www.stirlingpdf.com",
-  "docsUrl": "https://docs.stirlingpdf.com",
-  "ports": [
-    {
-      "host": 8082,
-      "container": 8080,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/stirling-pdf/trainingData",
-      "container": "/usr/share/tessdata"
-    },
-    {
-      "host": "/opt/appdata/stirling-pdf/configs",
-      "container": "/configs"
-    },
-    {
-      "host": "/opt/appdata/stirling-pdf/customFiles",
-      "container": "/customFiles"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "stirling-pdf",
+    "name":  "Stirling PDF",
+    "description":  "Local web tools for PDF conversion, editing, OCR, and signing.",
+    "category":  "Documents",
+    "image":  "frooodle/s-pdf:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/stirling-pdf.png",
+    "website":  "https://www.stirlingpdf.com",
+    "docsUrl":  "https://docs.stirlingpdf.com",
+    "ports":  [
+                  {
+                      "host":  8082,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/stirling-pdf/trainingData",
+                        "container":  "/usr/share/tessdata"
+                    },
+                    {
+                        "host":  "/opt/appdata/stirling-pdf/configs",
+                        "container":  "/configs"
+                    },
+                    {
+                        "host":  "/opt/appdata/stirling-pdf/customFiles",
+                        "container":  "/customFiles"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

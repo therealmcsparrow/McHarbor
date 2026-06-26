@@ -1,0 +1,40 @@
+{
+    "slug":  "quickwit",
+    "name":  "Quickwit",
+    "description":  "Cloud-native distributed log search engine built for petabyte-scale log analytics.",
+    "category":  "Monitoring",
+    "image":  "quickwit/quickwit:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/quickwit.png",
+    "website":  "https://quickwit.io",
+    "docsUrl":  "https://quickwit.io/docs/",
+    "ports":  [
+                  {
+                      "host":  7280,
+                      "container":  7280,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/quickwit/config",
+                        "container":  "/quickwit/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/quickwit/data",
+                        "container":  "/quickwit/qwdata"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "QW_CONFIG",
+                        "default":  "/quickwit/config/quickwit.yaml",
+                        "description":  "Path to Quickwit config"
+                    }
+                ],
+    "version":  "latest"
+}

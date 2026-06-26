@@ -1,54 +1,54 @@
 {
-  "slug": "lldap",
-  "name": "LLDAP",
-  "description": "Lightweight LDAP server for homelab authentication.",
-  "category": "Security",
-  "image": "lldap/lldap:stable",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/lldap.svg",
-  "website": "https://github.com/lldap/lldap",
-  "docsUrl": "https://github.com/lldap/lldap",
-  "ports": [
-    {
-      "host": 17170,
-      "container": 17170,
-      "protocol": "tcp"
-    },
-    {
-      "host": 3890,
-      "container": 3890,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/lldap/data",
-      "container": "/data"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    },
-    {
-      "key": "LLDAP_JWT_SECRET",
-      "default": "change-me",
-      "description": "JWT secret",
-      "secret": true
-    },
-    {
-      "key": "LLDAP_KEY_SEED",
-      "default": "change-me",
-      "description": "Private key seed",
-      "secret": true
-    },
-    {
-      "key": "LLDAP_LDAP_USER_PASS",
-      "default": "change-me",
-      "description": "Admin password",
-      "secret": true
-    }
-  ],
-  "version": "latest"
+    "slug":  "lldap",
+    "name":  "LLDAP",
+    "description":  "Lightweight LDAP server for homelab authentication.",
+    "category":  "Security",
+    "image":  "lldap/lldap:stable",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lldap.png",
+    "website":  "https://github.com/lldap/lldap",
+    "docsUrl":  "https://github.com/lldap/lldap",
+    "ports":  [
+                  {
+                      "host":  17170,
+                      "container":  17170,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3890,
+                      "container":  3890,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lldap/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LLDAP_JWT_SECRET",
+                        "default":  "change-me",
+                        "description":  "JWT secret",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "LLDAP_KEY_SEED",
+                        "default":  "change-me",
+                        "description":  "Private key seed",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "LLDAP_LDAP_USER_PASS",
+                        "default":  "change-me",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
 }

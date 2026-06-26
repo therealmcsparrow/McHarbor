@@ -10,7 +10,7 @@ type AgentCopyBlockProps = {
   copyKey: string;
   copiedKey: string | null;
   ariaLabel: string;
-  onCopy: (value: string, key: string) => void;
+  onCopy: (value: string, key: string, label: string) => void;
   note?: string;
 };
 
@@ -34,7 +34,7 @@ export function AgentCopyBlock({
           variant="ghost"
           size="icon"
           className="absolute right-1 top-1"
-          onClick={() => onCopy(value, copyKey)}
+          onClick={() => onCopy(value, copyKey, label)}
           aria-label={ariaLabel}
         >
           {copiedKey === copyKey ? (

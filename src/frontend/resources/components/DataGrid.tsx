@@ -15,12 +15,13 @@ import {
 } from '@tanstack/react-table';
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconArrowsSort, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { IconArrowsSort, IconChevronLeft, IconChevronRight, IconX } from '@tabler/icons-react';
 import { cn } from '@resources/utils/cn';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { Button } from '@resources/components/ui/Button';
 import { Checkbox } from '@resources/components/ui/Checkbox';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 
 function createSafeGlobalFilter<T>(): FilterFn<T> {
   return (row, _columnId, filterValue) => {
@@ -42,6 +43,7 @@ function createSafeGlobalFilter<T>(): FilterFn<T> {
 export type BatchAction = {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
+  iconClassName?: string;
   variant?: 'default' | 'destructive';
   onClick: (selectedRows: unknown[]) => void;
   confirm?: boolean;
@@ -62,6 +64,7 @@ type DataGridProps<T> = {
   batchActions?: BatchAction[];
   getRowId?: (row: T) => string;
   getRowClassName?: (row: T) => string | undefined;
+  isRowDisabled?: (row: T) => boolean;
   toolbarActions?: React.ReactNode;
 };
 
@@ -80,6 +83,7 @@ export function DataGrid<T>({
   batchActions,
   getRowId,
   getRowClassName,
+  isRowDisabled,
   toolbarActions,
 }: DataGridProps<T>) {
   const { t } = useTranslation('common');
@@ -117,10 +121,22 @@ export function DataGrid<T>({
     (updaterOrValue: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => {
       setRowSelection((prev) => {
         const next = typeof updaterOrValue === 'function' ? updaterOrValue(prev) : updaterOrValue;
+        if (isRowDisabled) {
+          const allowed = new Set(
+            data
+              .filter((row) => !isRowDisabled(row))
+              .map((row, index) => (getRowId ? getRowId(row) : String(index)))
+          );
+          for (const rowId of Object.keys(next)) {
+            if (!allowed.has(rowId)) {
+              delete (next as RowSelectionState)[rowId];
+            }
+          }
+        }
         return next;
       });
     },
-    [],
+    [data, getRowId, isRowDisabled],
   );
 
   const table = useReactTable({
@@ -162,7 +178,7 @@ export function DataGrid<T>({
   return (
     <div className="space-y-4">
       {/* Search + Batch Toolbar */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
         {searchKey && (
           <input
             type="text"
@@ -172,23 +188,29 @@ export function DataGrid<T>({
             className="py-1s px-2 block w-full max-w-sm bg-card border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-primary"
           />
         )}
-        {toolbarActions && (
-          <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:justify-end">
-            {toolbarActions}
-          </div>
-        )}
         {selectable && selectedCount > 0 && batchActions && batchActions.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:justify-end">
-            <span className="text-xs font-medium text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-xs font-medium text-muted-foreground">
               {t('batch.selected', { count: selectedCount })}
             </span>
             {batchActions.map((action) => {
               const Icon = action.icon;
-              return (
+              const isDestructive = action.variant === 'destructive';
+              const iconClasses = cn(
+                'h-4 w-4',
+                action.iconClassName,
+                isDestructive && !action.iconClassName && 'text-destructive'
+              );
+              const button = (
                 <Button
                   key={action.label}
-                  variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
-                  size="sm"
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    'size-8',
+                    isDestructive && 'hover:bg-destructive/10 hover:text-destructive'
+                  )}
+                  aria-label={action.label}
                   onClick={() => {
                     if (action.confirm) {
                       setConfirmAction(action);
@@ -197,11 +219,35 @@ export function DataGrid<T>({
                     }
                   }}
                 >
-                  {Icon && <Icon className="h-3.5 w-3.5" />}
-                  {action.label}
+                  {Icon && <Icon className={iconClasses} />}
                 </Button>
               );
+              return (
+                <Tooltip key={action.label}>
+                  <TooltipTrigger asChild>{button}</TooltipTrigger>
+                  <TooltipContent>{action.label}</TooltipContent>
+                </Tooltip>
+              );
             })}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-muted-foreground hover:text-foreground"
+                  aria-label={t('batch.clearSelection')}
+                  onClick={() => setRowSelection({})}
+                >
+                  <IconX className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('batch.clearSelection')}</TooltipContent>
+            </Tooltip>
+          </div>
+        )}
+        {toolbarActions && (
+          <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:justify-end">
+            {toolbarActions}
           </div>
         )}
       </div>
@@ -282,6 +328,7 @@ export function DataGrid<T>({
                     <td className="w-10 px-2 py-1" onClick={(e) => e.stopPropagation()}>
                       <Checkbox
                         checked={row.getIsSelected()}
+                        disabled={isRowDisabled?.(row.original)}
                         onCheckedChange={(checked) => row.toggleSelected(!!checked)}
                         aria-label="Select row"
                       />

@@ -1,0 +1,42 @@
+{
+    "slug":  "activemq",
+    "name":  "ActiveMQ Classic",
+    "description":  "Open-source Java-based message broker supporting JMS, AMQP, MQTT, and OpenWire protocols.",
+    "category":  "Databases",
+    "image":  "apache/activemq-classic:latest",
+    "logo":  "https://icon.horse/icon/activemq.apache.org",
+    "website":  "https://activemq.apache.org",
+    "docsUrl":  "https://activemq.apache.org/components/classic/documentation",
+    "ports":  [
+                  {
+                      "host":  61616,
+                      "container":  61616,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8161,
+                      "container":  8161,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/activemq/data",
+                        "container":  "/data/activemq"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "ACTIVEMQ_USER",
+                        "default":  "admin",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "ACTIVEMQ_PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

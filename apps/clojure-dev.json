@@ -1,0 +1,31 @@
+{
+    "slug":  "clojure-dev",
+    "name":  "Clojure",
+    "description":  "Clojure with Leiningen on Temurin 21, modern Lisp dialect for the JVM with persistent data structures.",
+    "category":  "Developer Tools",
+    "image":  "clojure:temurin-21-lein",
+    "logo":  "https://icon.horse/icon/clojure.org",
+    "website":  "https://clojure.org",
+    "docsUrl":  "https://clojure.org/guides/getting_started",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/clojure-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "temurin-21-lein"
+}

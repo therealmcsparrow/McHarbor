@@ -1,0 +1,73 @@
+{
+  "slug": "budibase",
+  "name": "Budibase",
+  "description": "Low-code platform for building internal tools, business apps, and workflows fast.",
+  "category": "Developer Tools",
+  "image": "budibase/budibase:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/budibase.png",
+  "website": "https://budibase.com",
+  "docsUrl": "https://docs.budibase.com/docs/docker",
+  "ports": [
+    {
+      "host": 10000,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/budibase/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "BB_ADMIN_USER_EMAIL",
+      "default": "",
+      "description": "Initial admin email",
+      "secret": false
+    },
+    {
+      "key": "BB_ADMIN_USER_PASSWORD",
+      "default": "",
+      "description": "Initial admin password",
+      "secret": true
+    },
+    {
+      "key": "JWT_SECRET",
+      "default": "",
+      "description": "JWT signing secret",
+      "secret": true
+    },
+    {
+      "key": "MINIO_ACCESS_KEY",
+      "default": "",
+      "description": "MinIO access key",
+      "secret": true
+    },
+    {
+      "key": "MINIO_SECRET_KEY",
+      "default": "",
+      "description": "MinIO secret key",
+      "secret": true
+    },
+    {
+      "key": "COUCH_DB_USER",
+      "default": "budibase",
+      "description": "CouchDB user"
+    },
+    {
+      "key": "COUCH_DB_PASSWORD",
+      "default": "",
+      "description": "CouchDB password",
+      "secret": true
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

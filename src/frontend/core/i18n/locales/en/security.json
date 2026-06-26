@@ -118,6 +118,7 @@
     "revokeKey": "Revoke",
     "revokeKeyConfirm": "Are you sure you want to revoke this API key? It will no longer be usable.",
     "copyKey": "Copy Key",
+    "copyFailed": "Could not copy to clipboard",
     "keyCopied": "API key copied to clipboard",
     "keyWarning": "Make sure to copy this key now. You won't be able to see it again.",
     "noKeys": "No API keys created yet",

@@ -1,0 +1,31 @@
+{
+  "slug": "php-dev",
+  "name": "PHP-FPM 8.3",
+  "description": "PHP-FPM 8.3 on Alpine, FastCGI Process Manager for serving PHP behind a web server.",
+  "category": "Developer Tools",
+  "image": "php:8.3-fpm-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/php.png",
+  "website": "https://www.php.net",
+  "docsUrl": "https://www.php.net/manual/en/",
+  "ports": [
+    {
+      "host": 9000,
+      "container": 9000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/php-dev/app",
+      "container": "/var/www/html"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "8.3-fpm-alpine"
+}

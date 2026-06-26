@@ -1,0 +1,42 @@
+{
+  "slug": "django-dev",
+  "name": "Django",
+  "description": "Django on Python 3.12 slim, batteries-included Python web framework with admin and ORM.",
+  "category": "Developer Tools",
+  "image": "python:3.12-slim",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/django.png",
+  "website": "https://www.djangoproject.com",
+  "docsUrl": "https://docs.djangoproject.com",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/django-dev/app",
+      "container": "/usr/src/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "DJANGO_SETTINGS_MODULE",
+      "default": "app.settings",
+      "description": "Path to Django settings module"
+    },
+    {
+      "key": "DJANGO_SECRET_KEY",
+      "default": "",
+      "description": "Django secret key",
+      "secret": true
+    }
+  ],
+  "version": "3.12-slim"
+}

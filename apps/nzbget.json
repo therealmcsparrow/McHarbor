@@ -1,49 +1,49 @@
 {
-  "slug": "nzbget",
-  "name": "NZBGet",
-  "description": "Efficient Usenet downloader with a web interface.",
-  "category": "Media",
-  "image": "lscr.io/linuxserver/nzbget:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/nzbget.svg",
-  "website": "https://docs.linuxserver.io/images/docker-nzbget/",
-  "docsUrl": "https://docs.linuxserver.io/images/docker-nzbget/",
-  "ports": [
-    {
-      "host": 6789,
-      "container": 6789,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/nzbget/config",
-      "container": "/config"
-    },
-    {
-      "host": "/srv/media",
-      "container": "/media"
-    },
-    {
-      "host": "/srv/downloads",
-      "container": "/downloads"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PUID",
-      "default": "1000",
-      "description": "User ID"
-    },
-    {
-      "key": "PGID",
-      "default": "1000",
-      "description": "Group ID"
-    },
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "nzbget",
+    "name":  "NZBGet",
+    "description":  "Efficient Usenet downloader with a web interface.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/nzbget:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nzbget.png",
+    "website":  "https://docs.linuxserver.io/images/docker-nzbget/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-nzbget/",
+    "ports":  [
+                  {
+                      "host":  6789,
+                      "container":  6789,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nzbget/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    },
+                    {
+                        "host":  "/srv/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

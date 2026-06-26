@@ -1,0 +1,37 @@
+{
+    "slug":  "docker-socket-proxy",
+    "name":  "Docker Socket Proxy",
+    "description":  "Tecnativa Docker Socket Proxy exposes filtered Docker API over TCP.",
+    "category":  "Developer Tools",
+    "image":  "tecnativa/docker-socket-proxy:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/Tecnativa/docker-socket-proxy",
+    "docsUrl":  "https://github.com/Tecnativa/docker-socket-proxy/blob/main/README.md",
+    "ports":  [
+                  {
+                      "host":  2375,
+                      "container":  2375,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CONTAINERS",
+                        "default":  "1",
+                        "description":  "Allow container operations"
+                    }
+                ],
+    "version":  "latest"
+}

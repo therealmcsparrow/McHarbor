@@ -476,7 +476,16 @@
     "restore": "Restore backup",
     "restoring": "Restoring...",
     "restoreTitle": "Restore backup?",
+    "restoringTitle": "Restoring backup…",
+    "restoreCompleteTitle": "Restore complete",
+    "restoreFailedTitle": "Restore failed",
     "restoreDescription": "This restores the backup archive to the original container. Existing files in the container or mounted paths may be overwritten.",
+    "restoringHeading": "Restoring your backup…",
+    "restoreCompleteHeading": "Restore completed",
+    "restoreFailedHeading": "Restore failed",
+    "restoreCompleteHint": "The container has been restored from the backup. You can close this dialog.",
+    "closeRestore": "Close",
+    "startedAt": "Started {{value}}",
     "restoreSecretTitle": "Enter backup secret key",
     "restoreSecretDescription": "This backup was encrypted with a different key than the current McHarbor backup key. Enter the original secret key to restore it.",
     "restoreSecretPlaceholder": "Backup encryption key",
@@ -501,7 +510,8 @@
     "status": {
       "running": "Running",
       "success": "Success",
-      "failure": "Failed"
+      "failure": "Failed",
+      "cancelled": "Cancelled"
     },
     "progress": {
       "queued": "Waiting to start backup.",
@@ -539,11 +549,16 @@
     "deleteScheduleDescription": "This removes the schedule. Existing backup archives are not deleted.",
     "deleteRunTitle": "Delete backup?",
     "deleteRunDescription": "This permanently deletes the backup run and its local archive file when present. This action cannot be undone.",
+    "cancelRun": "Cancel",
+    "cancelRunConfirm": "Cancel backup",
+    "cancelRunTitle": "Cancel running backup?",
+    "cancelRunDescription": "The running backup will be stopped. Any in-progress Docker, agent, or storage operations will be aborted. The backup run will be marked as cancelled and can then be deleted.",
     "toast": {
       "started": "Backup started",
       "scheduleCreated": "Backup schedule saved",
       "scheduleDeleted": "Backup schedule deleted",
       "runDeleted": "Backup deleted",
+      "runCancelled": "Backup cancelled",
       "restoreStarted": "Restore started",
       "restored": "Backup restored"
     }

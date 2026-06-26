@@ -1,0 +1,36 @@
+{
+    "slug":  "owncast",
+    "name":  "Owncast",
+    "description":  "Self-hosted live video streaming and chat server for your community.",
+    "category":  "Media",
+    "image":  "owncast/owncast:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/owncast.png",
+    "website":  "https://owncast.online",
+    "docsUrl":  "https://owncast.online/docs/installation/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1935,
+                      "container":  1935,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/owncast/config",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

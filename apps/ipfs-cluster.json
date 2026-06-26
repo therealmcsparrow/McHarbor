@@ -1,0 +1,53 @@
+{
+    "slug":  "ipfs-cluster",
+    "name":  "IPFS Cluster",
+    "description":  "Coordinator for pinning and replicating content across IPFS daemons.",
+    "category":  "Networking",
+    "image":  "ipfs/ipfs-cluster:latest",
+    "logo":  "https://icon.horse/icon/cluster.ipfs.io",
+    "website":  "https://cluster.ipfs.io",
+    "docsUrl":  "https://ipfscluster.io/documentation",
+    "ports":  [
+                  {
+                      "host":  9094,
+                      "container":  9094,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9095,
+                      "container":  9095,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9096,
+                      "container":  9096,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ipfs-cluster/data",
+                        "container":  "/data/ipfs-cluster"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "CLUSTER_PEERNAME",
+                        "default":  "cluster0",
+                        "description":  "Peer name"
+                    },
+                    {
+                        "key":  "CLUSTER_SECRET",
+                        "default":  "change-me-32-chars",
+                        "description":  "Shared cluster secret",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

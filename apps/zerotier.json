@@ -1,0 +1,32 @@
+{
+  "slug": "zerotier",
+  "name": "ZeroTier",
+  "description": "Peer-to-peer mesh VPN with software-defined networking for any device.",
+  "category": "Networking",
+  "image": "zerotier/zerotier:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/zerotier.png",
+  "website": "https://www.zerotier.com",
+  "docsUrl": "https://docs.zerotier.com",
+  "ports": [
+    {
+      "host": 9993,
+      "container": 9993,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/zerotier/identity",
+      "container": "/var/lib/zerotier-one"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "64MB",
+  "version": "latest"
+}

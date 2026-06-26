@@ -1,0 +1,47 @@
+{
+    "slug":  "healthchecks",
+    "name":  "Healthchecks",
+    "description":  "Cron job monitoring and alerting. Get notified when scheduled jobs fail or run late.",
+    "category":  "Monitoring",
+    "image":  "healthchecks/healthchecks:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/healthchecks.png",
+    "website":  "https://healthchecks.io",
+    "docsUrl":  "https://github.com/healthchecks/healthchecks",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/healthchecks/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DB",
+                        "default":  "sqlite",
+                        "description":  "Database backend (sqlite/postgres)"
+                    },
+                    {
+                        "key":  "SECRET_KEY",
+                        "default":  "",
+                        "description":  "Django secret key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ALLOWED_HOSTS",
+                        "default":  "*",
+                        "description":  "Allowed hosts (comma-separated)"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,31 +1,31 @@
 {
-  "slug": "wizarr",
-  "name": "Wizarr",
-  "description": "Invitation and onboarding portal for Jellyfin, Plex, and media services.",
-  "category": "Media",
-  "image": "ghcr.io/wizarrrr/wizarr:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/wizarr.svg",
-  "website": "https://wizarr.dev",
-  "docsUrl": "https://docs.wizarr.dev",
-  "ports": [
-    {
-      "host": 5690,
-      "container": 5690,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/wizarr/data",
-      "container": "/data/database"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "wizarr",
+    "name":  "Wizarr",
+    "description":  "Invitation and onboarding portal for Jellyfin, Plex, and media services.",
+    "category":  "Media",
+    "image":  "ghcr.io/wizarrrr/wizarr:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/wizarr.png",
+    "website":  "https://wizarr.dev",
+    "docsUrl":  "https://docs.wizarr.dev",
+    "ports":  [
+                  {
+                      "host":  5690,
+                      "container":  5690,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/wizarr/data",
+                        "container":  "/data/database"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

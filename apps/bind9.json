@@ -1,0 +1,49 @@
+{
+  "slug": "bind9",
+  "name": "BIND 9",
+  "description": "Most widely used DNS software on the Internet, supporting authoritative and recursive resolution.",
+  "category": "Networking",
+  "image": "ubuntu/bind9:latest",
+  "logo": "https://www.isc.org/wp-content/uploads/2017/10/isc-logo-200x200.png",
+  "website": "https://www.isc.org/bind/",
+  "docsUrl": "https://hub.docker.com/r/ubuntu/bind9",
+  "ports": [
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "tcp"
+    },
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/bind9/config",
+      "container": "/etc/bind"
+    },
+    {
+      "host": "/opt/appdata/bind9/cache",
+      "container": "/var/cache/bind"
+    },
+    {
+      "host": "/opt/appdata/bind9/lib",
+      "container": "/var/lib/bind"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "BIND9_USER",
+      "default": "root",
+      "description": "User to run BIND as"
+    }
+  ],
+  "version": "latest"
+}

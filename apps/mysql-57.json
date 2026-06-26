@@ -1,0 +1,37 @@
+{
+    "slug":  "mysql-57",
+    "name":  "MySQL 5.7",
+    "description":  "Legacy MySQL 5.7 server for legacy application compatibility.",
+    "category":  "Databases",
+    "image":  "mysql:5.7",
+    "logo":  "https://icon.horse/icon/www.mysql.com",
+    "website":  "https://www.mysql.com",
+    "docsUrl":  "https://dev.mysql.com/doc/refman/5.7/en/",
+    "ports":  [
+                  {
+                      "host":  3306,
+                      "container":  3306,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mysql-57/data",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MYSQL_ROOT_PASSWORD",
+                        "default":  "",
+                        "description":  "Root password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "MYSQL_DATABASE",
+                        "default":  "mydb",
+                        "description":  "Default database name"
+                    }
+                ],
+    "version":  "5.7"
+}

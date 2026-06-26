@@ -1,0 +1,42 @@
+{
+    "slug":  "cockroachdb",
+    "name":  "CockroachDB",
+    "description":  "Distributed SQL database with strong consistency, horizontal scalability, and survivability.",
+    "category":  "Databases",
+    "image":  "cockroachdb/cockroach:latest",
+    "logo":  "https://icon.horse/icon/www.cockroachlabs.com",
+    "website":  "https://www.cockroachlabs.com",
+    "docsUrl":  "https://www.cockroachlabs.com/docs/",
+    "ports":  [
+                  {
+                      "host":  26257,
+                      "container":  26257,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cockroachdb/data",
+                        "container":  "/cockroach/cockroach-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "COCKROACH_USER",
+                        "default":  "root",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "COCKROACH_PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

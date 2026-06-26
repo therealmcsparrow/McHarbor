@@ -1,0 +1,52 @@
+{
+    "slug":  "drone-runner-docker",
+    "name":  "Drone Runner Docker",
+    "description":  "Docker-based pipeline runner for Drone CI that spawns each step in a container.",
+    "category":  "Developer Tools",
+    "image":  "drone/drone-runner-docker:latest",
+    "logo":  "https://icon.horse/icon/www.drone.io",
+    "website":  "https://www.drone.io",
+    "docsUrl":  "https://docs.drone.io/runner/docker/overview/",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DRONE_RPC_PROTO",
+                        "default":  "http",
+                        "description":  "Protocol to connect to Drone server"
+                    },
+                    {
+                        "key":  "DRONE_RPC_HOST",
+                        "default":  "drone",
+                        "description":  "Drone server hostname"
+                    },
+                    {
+                        "key":  "DRONE_RPC_SECRET",
+                        "default":  "",
+                        "description":  "Shared secret with Drone server",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DRONE_RUNNER_CAPACITY",
+                        "default":  "2",
+                        "description":  "Maximum concurrent pipelines"
+                    }
+                ],
+    "version":  "latest"
+}

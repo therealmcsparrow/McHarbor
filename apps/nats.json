@@ -1,0 +1,36 @@
+{
+    "slug":  "nats",
+    "name":  "NATS",
+    "description":  "Lightweight, high-performance cloud-native messaging system with at-most/at-least once delivery.",
+    "category":  "Databases",
+    "image":  "nats:2-alpine",
+    "logo":  "https://icon.horse/icon/nats.io",
+    "website":  "https://nats.io",
+    "docsUrl":  "https://docs.nats.io",
+    "ports":  [
+                  {
+                      "host":  4222,
+                      "container":  4222,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8222,
+                      "container":  8222,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nats/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "2-alpine"
+}

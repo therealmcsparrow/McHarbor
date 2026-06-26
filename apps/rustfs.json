@@ -1,0 +1,51 @@
+{
+  "slug": "rustfs",
+  "name": "RustFS",
+  "description": "High-performance S3-compatible distributed object storage written in Rust.",
+  "category": "Photos & Files",
+  "image": "rustfs/rustfs:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rustfs.png",
+  "website": "https://github.com/rustfs/rustfs",
+  "docsUrl": "https://github.com/rustfs/rustfs/blob/main/README.md",
+  "ports": [
+    {
+      "host": 9000,
+      "container": 9000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9001,
+      "container": 9001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/rustfs/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/rustfs/config",
+      "container": "/root/.rustfs"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "RUSTFS_ACCESS_KEY",
+      "default": "rustfsadmin",
+      "description": "S3 access key"
+    },
+    {
+      "key": "RUSTFS_SECRET_KEY",
+      "default": "",
+      "description": "S3 secret key",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

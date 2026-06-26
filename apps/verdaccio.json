@@ -1,0 +1,50 @@
+{
+    "slug":  "verdaccio",
+    "name":  "Verdaccio",
+    "description":  "Lightweight private npm proxy registry with a web UI.",
+    "category":  "Developer Tools",
+    "image":  "verdaccio/verdaccio:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/verdaccio.png",
+    "website":  "https://verdaccio.org",
+    "docsUrl":  "https://verdaccio.org/docs/installation-docker",
+    "ports":  [
+                  {
+                      "host":  4873,
+                      "container":  4873,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/verdaccio/conf",
+                        "container":  "/verdaccio/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/verdaccio/storage",
+                        "container":  "/verdaccio/storage"
+                    },
+                    {
+                        "host":  "/opt/appdata/verdaccio/plugins",
+                        "container":  "/verdaccio/plugins"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "VERDACCIO_USER_NAME",
+                        "default":  "",
+                        "description":  "Initial username"
+                    },
+                    {
+                        "key":  "VERDACCIO_USER_PASSWORD",
+                        "default":  "",
+                        "description":  "Initial user password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,41 @@
+{
+  "slug": "tile-server-gl",
+  "name": "TileServer GL",
+  "description": "Vector and raster tile server with GL-JS rendering for self-hosted interactive maps from MBTiles.",
+  "category": "Databases",
+  "image": "maptiler/tileserver-gl:latest",
+  "logo": "https://tileserver.readthedocs.io/en/latest/_static/logo.svg",
+  "website": "https://tileserver.readthedocs.io",
+  "docsUrl": "https://tileserver.readthedocs.io/en/latest/installation.html",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/tile-server-gl/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "HOST",
+      "default": "0.0.0.0",
+      "description": "Bind address"
+    },
+    {
+      "key": "PORT",
+      "default": "8080",
+      "description": "Listen port"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

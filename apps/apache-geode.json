@@ -1,0 +1,46 @@
+{
+  "slug": "apache-geode",
+  "name": "Apache Geode",
+  "description": "Distributed in-memory data store with strong consistency for transactional workloads.",
+  "category": "Databases",
+  "image": "apachegeode/geode:latest",
+  "logo": "https://geode.apache.org/img/ApacheGeode_logo.svg",
+  "website": "https://geode.apache.org",
+  "docsUrl": "https://geode.apache.org/docs/",
+  "ports": [
+    {
+      "host": 7070,
+      "container": 7070,
+      "protocol": "tcp"
+    },
+    {
+      "host": 10334,
+      "container": 10334,
+      "protocol": "tcp"
+    },
+    {
+      "host": 40404,
+      "container": 40404,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/apache-geode/data",
+      "container": "/geode"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "GEODE_LOCATOR_HOST",
+      "default": "geode-locator",
+      "description": "Locator hostname"
+    },
+    {
+      "key": "GEODE_LOCATOR_PORT",
+      "default": "10334",
+      "description": "Locator port"
+    }
+  ],
+  "version": "latest"
+}

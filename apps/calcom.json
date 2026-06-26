@@ -1,0 +1,65 @@
+{
+    "slug":  "calcom",
+    "name":  "Cal.com",
+    "description":  "Open-source scheduling and appointment booking platform with team features.",
+    "category":  "Productivity",
+    "image":  "calcom/cal.com:latest",
+    "logo":  "https://icon.horse/icon/cal.com",
+    "website":  "https://cal.com",
+    "docsUrl":  "https://cal.com/docs/self-hosting/installation",
+    "ports":  [
+                  {
+                      "host":  3006,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/calcom/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NEXT_PUBLIC_WEBAPP_URL",
+                        "default":  "http://localhost:3006",
+                        "description":  "Public webapp URL"
+                    },
+                    {
+                        "key":  "NEXTAUTH_SECRET",
+                        "default":  "change-me",
+                        "description":  "NextAuth secret",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "CALENDSO_ENCRYPTION_KEY",
+                        "default":  "change-me",
+                        "description":  "Calendar encryption key (32 chars)",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POSTGRES_USER",
+                        "default":  "calcom",
+                        "description":  "Postgres user"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Postgres password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POSTGRES_DB",
+                        "default":  "calcom",
+                        "description":  "Postgres database name"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

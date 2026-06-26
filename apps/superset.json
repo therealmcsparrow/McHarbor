@@ -1,0 +1,62 @@
+{
+  "slug": "superset",
+  "name": "Apache Superset",
+  "description": "Modern, enterprise-ready data exploration and visualization platform for dashboards and charts.",
+  "category": "Databases",
+  "image": "apache/superset:latest",
+  "logo": "https://superset.apache.org/img/superset-logo-horiz.svg",
+  "website": "https://superset.apache.org",
+  "docsUrl": "https://superset.apache.org/docs/installation/installing-superset-using-docker-compose",
+  "ports": [
+    {
+      "host": 8088,
+      "container": 8088,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/superset/data",
+      "container": "/app/superset_home"
+    },
+    {
+      "host": "/opt/appdata/superset/config",
+      "container": "/etc/superset"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "SUPERSET_SECRET_KEY",
+      "default": "",
+      "description": "Flask secret key for sessions",
+      "secret": true
+    },
+    {
+      "key": "DATABASE_URL",
+      "default": "postgresql://superset:superset@postgres:5432/superset",
+      "description": "Metadata database connection"
+    },
+    {
+      "key": "SUPERSET_ADMIN_USERNAME",
+      "default": "admin",
+      "description": "Bootstrap admin username"
+    },
+    {
+      "key": "SUPERSET_ADMIN_PASSWORD",
+      "default": "admin",
+      "description": "Bootstrap admin password",
+      "secret": true
+    },
+    {
+      "key": "SUPERSET_ADMIN_EMAIL",
+      "default": "admin@superset.local",
+      "description": "Bootstrap admin email"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

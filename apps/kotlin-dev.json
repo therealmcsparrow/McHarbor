@@ -1,0 +1,36 @@
+{
+  "slug": "kotlin-dev",
+  "name": "Kotlin",
+  "description": "Zenika Kotlin on Alpine, concise JVM-targeted language with null safety and modern features.",
+  "category": "Developer Tools",
+  "image": "zenika/alpine-kotlin:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kotlin.png",
+  "website": "https://kotlinlang.org",
+  "docsUrl": "https://kotlinlang.org/docs/home.html",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kotlin-dev/app",
+      "container": "/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "JAVA_HOME",
+      "default": "/usr/lib/jvm/default-jvm",
+      "description": "Java installation directory"
+    }
+  ],
+  "version": "latest"
+}

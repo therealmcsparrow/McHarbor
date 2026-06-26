@@ -1,36 +1,36 @@
 {
-  "slug": "librephotos",
-  "name": "LibrePhotos",
-  "description": "Self-hosted photo management service with object and face recognition.",
-  "category": "Photos & Files",
-  "image": "reallibrephotos/librephotos:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/librephotos.svg",
-  "website": "https://docs.librephotos.com",
-  "docsUrl": "https://docs.librephotos.com",
-  "ports": [
-    {
-      "host": 3000,
-      "container": 3000,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/librephotos/data",
-      "container": "/data"
-    },
-    {
-      "host": "/srv/photos",
-      "container": "/data/protected_media"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "minMemory": "2GB",
-  "version": "latest"
+    "slug":  "librephotos",
+    "name":  "LibrePhotos",
+    "description":  "Self-hosted photo management service with object and face recognition.",
+    "category":  "Photos \u0026 Files",
+    "image":  "reallibrephotos/librephotos:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/librephotos.png",
+    "website":  "https://docs.librephotos.com",
+    "docsUrl":  "https://docs.librephotos.com",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/librephotos/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/srv/photos",
+                        "container":  "/data/protected_media"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
 }

@@ -1,0 +1,38 @@
+{
+    "slug":  "swagger-ui",
+    "name":  "Swagger UI",
+    "description":  "Interactive documentation for OpenAPI specifications served in the browser.",
+    "category":  "Developer Tools",
+    "image":  "swaggerapi/swagger-ui:latest",
+    "logo":  "https://icon.horse/icon/swagger.io",
+    "website":  "https://swagger.io",
+    "docsUrl":  "https://swagger.io/docs/specification/about/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SWAGGER_JSON",
+                        "default":  "/api/openapi.json",
+                        "description":  "Path or URL to the OpenAPI spec"
+                    },
+                    {
+                        "key":  "BASE_URL",
+                        "default":  "/swagger",
+                        "description":  "Base URL under which Swagger UI is served"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,49 @@
+{
+    "slug":  "lazylibrarian",
+    "name":  "LazyLibrarian",
+    "description":  "Self-hosted ebook and audiobook library manager that automates searching, downloading, and metadata.",
+    "category":  "Productivity",
+    "image":  "linuxserver/lazylibrarian:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lazylibrarian.png",
+    "website":  "https://lazylibrarian.gitlab.io",
+    "docsUrl":  "https://hub.docker.com/r/linuxserver/lazylibrarian",
+    "ports":  [
+                  {
+                      "host":  5299,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lazylibrarian/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/lazylibrarian/downloads",
+                        "container":  "/downloads"
+                    },
+                    {
+                        "host":  "/opt/appdata/lazylibrarian/books",
+                        "container":  "/books"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID for file permissions"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID for file permissions"
+                    }
+                ],
+    "version":  "latest"
+}

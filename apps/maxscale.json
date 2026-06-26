@@ -1,0 +1,42 @@
+{
+    "slug":  "maxscale",
+    "name":  "MariaDB MaxScale",
+    "description":  "Database proxy for MariaDB with load balancing, query routing, and high availability.",
+    "category":  "Databases",
+    "image":  "mariadb/maxscale:latest",
+    "logo":  "https://icon.horse/icon/mariadb.com",
+    "website":  "https://mariadb.com/products/maxscale",
+    "docsUrl":  "https://mariadb.com/kb/en/maxscale/",
+    "ports":  [
+                  {
+                      "host":  8981,
+                      "container":  8981,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3306,
+                      "container":  3306,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/maxscale/config",
+                        "container":  "/etc/maxscale.cnf.d"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MXS_USER",
+                        "default":  "admin",
+                        "description":  "MaxScale admin user"
+                    },
+                    {
+                        "key":  "MXS_PASSWORD",
+                        "default":  "",
+                        "description":  "MaxScale admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

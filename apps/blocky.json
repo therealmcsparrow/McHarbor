@@ -1,36 +1,36 @@
 {
-  "slug": "blocky",
-  "name": "Blocky",
-  "description": "DNS proxy and ad-blocking resolver for home networks.",
-  "category": "Networking",
-  "image": "spx01/blocky:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/blocky.svg",
-  "website": "https://0xerr0r.github.io/blocky",
-  "docsUrl": "https://0xerr0r.github.io/blocky",
-  "ports": [
-    {
-      "host": 53,
-      "container": 53,
-      "protocol": "udp"
-    },
-    {
-      "host": 4000,
-      "container": 4000,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/blocky/config.yml",
-      "container": "/app/config.yml"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "blocky",
+    "name":  "Blocky",
+    "description":  "DNS proxy and ad-blocking resolver for home networks.",
+    "category":  "Networking",
+    "image":  "spx01/blocky:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/blocky.png",
+    "website":  "https://0xerr0r.github.io/blocky",
+    "docsUrl":  "https://0xerr0r.github.io/blocky",
+    "ports":  [
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  4000,
+                      "container":  4000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/blocky/config.yml",
+                        "container":  "/app/config.yml"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

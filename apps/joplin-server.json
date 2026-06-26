@@ -1,0 +1,63 @@
+{
+  "slug": "joplin-server",
+  "name": "Joplin Server",
+  "description": "Sync server for Joplin, the cross-platform note-taking and to-do application.",
+  "category": "Documents",
+  "image": "joplin/server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/joplin.png",
+  "website": "https://joplinapp.org",
+  "docsUrl": "https://github.com/laurent22/joplin/tree/dev/packages/server",
+  "ports": [
+    {
+      "host": 22300,
+      "container": 22300,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/joplin-server/data",
+      "container": "/home/joplin/packages/server/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "APP_BASE_URL",
+      "default": "http://localhost:22300",
+      "description": "Public base URL"
+    },
+    {
+      "key": "POSTGRES_HOST",
+      "default": "joplin-server-db",
+      "description": "Database host"
+    },
+    {
+      "key": "POSTGRES_DATABASE",
+      "default": "joplindb",
+      "description": "Database name"
+    },
+    {
+      "key": "POSTGRES_USER",
+      "default": "joplin",
+      "description": "Database user"
+    },
+    {
+      "key": "POSTGRES_PASSWORD",
+      "default": "change-me",
+      "description": "Database password",
+      "secret": true
+    },
+    {
+      "key": "POSTGRES_PORT",
+      "default": "5432",
+      "description": "Database port"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest"
+}

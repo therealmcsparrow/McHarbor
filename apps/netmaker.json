@@ -1,0 +1,56 @@
+{
+  "slug": "netmaker",
+  "name": "Netmaker",
+  "description": "WireGuard-based mesh VPN platform for fast and secure site-to-site networking.",
+  "category": "Networking",
+  "image": "gravitl/netmaker:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/netmaker.png",
+  "website": "https://netmaker.org",
+  "docsUrl": "https://docs.netmaker.org",
+  "ports": [
+    {
+      "host": 8081,
+      "container": 8081,
+      "protocol": "tcp"
+    },
+    {
+      "host": 51821,
+      "container": 51821,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/netmaker/config",
+      "container": "/root/config"
+    },
+    {
+      "host": "/opt/appdata/netmaker/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "SERVER_NAME",
+      "default": "netmaker.example.com",
+      "description": "Public server name"
+    },
+    {
+      "key": "COREDNS_ADDR",
+      "default": "",
+      "description": "CoreDNS service address"
+    },
+    {
+      "key": "DATABASE",
+      "default": "sqlite",
+      "description": "Database backend"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest"
+}

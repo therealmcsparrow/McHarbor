@@ -1,0 +1,36 @@
+{
+    "slug":  "vespa",
+    "name":  "Vespa",
+    "description":  "Open-source platform for large-scale real-time vector and text search with ML models.",
+    "category":  "Databases",
+    "image":  "vespaengine/vespa:latest",
+    "logo":  "https://icon.horse/icon/vespa.ai",
+    "website":  "https://vespa.ai",
+    "docsUrl":  "https://docs.vespa.ai",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  19071,
+                      "container":  19071,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vespa/data",
+                        "container":  "/opt/vespa/var"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

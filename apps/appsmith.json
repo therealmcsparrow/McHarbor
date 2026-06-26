@@ -1,0 +1,41 @@
+{
+    "slug":  "appsmith",
+    "name":  "Appsmith",
+    "description":  "Open-source low-code platform for building internal tools, dashboards, and admin panels.",
+    "category":  "Developer Tools",
+    "image":  "appsmith/appsmith-ce:latest",
+    "logo":  "https://icon.horse/icon/www.appsmith.com",
+    "website":  "https://www.appsmith.com",
+    "docsUrl":  "https://docs.appsmith.com/getting-started/setup/installation-guides/docker",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/appsmith/config",
+                        "container":  "/appsmith-stacks"
+                    },
+                    {
+                        "host":  "/opt/appdata/appsmith/data",
+                        "container":  "/appsmith-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "APPSMITH_DISABLE_TELEMETRY",
+                        "default":  "true",
+                        "description":  "Disable anonymous telemetry"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

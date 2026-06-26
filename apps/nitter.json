@@ -1,0 +1,40 @@
+{
+    "slug":  "nitter",
+    "name":  "Nitter",
+    "description":  "Privacy-focused alternative Twitter front-end that serves public timelines without JavaScript, ads, or tracking.",
+    "category":  "Communications",
+    "image":  "zedeus/nitter:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nitter.png",
+    "website":  "https://nitter.net",
+    "docsUrl":  "https://github.com/zedeus/nitter#readme",
+    "ports":  [
+                  {
+                      "host":  8085,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nitter/config",
+                        "container":  "/src/nitter.conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/nitter/data",
+                        "container":  "/src/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NITTER_TITLE",
+                        "default":  "Nitter",
+                        "description":  "Site title displayed in the header"
+                    }
+                ],
+    "version":  "latest"
+}

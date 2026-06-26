@@ -1,0 +1,49 @@
+{
+  "slug": "activepieces",
+  "name": "Activepieces",
+  "description": "Open-source no-code business automation platform. Build flows with a visual editor.",
+  "category": "Productivity",
+  "image": "activepieces/activepieces:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/activepieces.png",
+  "website": "https://www.activepieces.com",
+  "docsUrl": "https://www.activepieces.com/docs",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/activepieces/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "AP_FRONTEND_URL",
+      "default": "http://localhost:80",
+      "description": "Public URL of the frontend (for OAuth callbacks)"
+    },
+    {
+      "key": "AP_ENCRYPTION_KEY",
+      "default": "",
+      "description": "32+ char encryption key for credentials",
+      "secret": true
+    },
+    {
+      "key": "AP_JWT_SECRET",
+      "default": "",
+      "description": "JWT signing secret",
+      "secret": true
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

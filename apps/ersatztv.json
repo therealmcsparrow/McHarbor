@@ -1,0 +1,35 @@
+{
+    "slug":  "ersatztv",
+    "name":  "ErsatzTV",
+    "description":  "IPTV server with custom channels built from your media library using ffmpeg.",
+    "category":  "Media",
+    "image":  "jasongdove/ersatztv:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ersatztv.png",
+    "website":  "https://ersatztv.org",
+    "docsUrl":  "https://ersatztv.org/docs/installation",
+    "ports":  [
+                  {
+                      "host":  8404,
+                      "container":  8404,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ersatztv/config",
+                        "container":  "/root/.local/share/ersatztv"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

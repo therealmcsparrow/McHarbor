@@ -1,0 +1,35 @@
+{
+  "slug": "prometheus-dev",
+  "name": "Prometheus Dev",
+  "description": "Prometheus monitoring system for collecting metrics during local development.",
+  "category": "Developer Tools",
+  "image": "prom/prometheus:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prometheus.png",
+  "website": "https://prometheus.io",
+  "docsUrl": "https://prometheus.io/docs/prometheus/latest/installation/",
+  "ports": [
+    {
+      "host": 9090,
+      "container": 9090,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/prometheus-dev/config",
+      "container": "/etc/prometheus"
+    },
+    {
+      "host": "/opt/appdata/prometheus-dev/data",
+      "container": "/prometheus"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

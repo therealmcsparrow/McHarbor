@@ -1,0 +1,36 @@
+{
+    "slug":  "private-gpt",
+    "name":  "PrivateGPT",
+    "description":  "Production-ready, privacy-first LLM chat with document ingestion. No data ever leaves your machine.",
+    "category":  "AI \u0026 Voice",
+    "image":  "zylonai/private-gpt:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/zylon-ai/private-gpt",
+    "docsUrl":  "https://docs.privategpt.dev",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/private-gpt/data",
+                        "container":  "/app/private_gpt/settings.yaml"
+                    },
+                    {
+                        "host":  "/opt/appdata/private-gpt/ingest",
+                        "container":  "/ingest"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

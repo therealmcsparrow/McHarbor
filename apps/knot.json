@@ -1,0 +1,36 @@
+{
+  "slug": "knot",
+  "name": "Knot Resolver",
+  "description": "Modern, fast, and programmable DNS resolver with caching and DNSSEC validation.",
+  "category": "Networking",
+  "image": "cznic/knot-resolver:latest",
+  "logo": "https://www.knot-resolver.cz/assets/img/logo.svg",
+  "website": "https://www.knot-resolver.cz",
+  "docsUrl": "https://www.knot-resolver.cz/documentation/",
+  "ports": [
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "tcp"
+    },
+    {
+      "host": 53,
+      "container": 53,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/knot/config",
+      "container": "/etc/kresd"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

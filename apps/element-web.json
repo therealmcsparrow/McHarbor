@@ -1,0 +1,28 @@
+{
+    "slug":  "element-web",
+    "name":  "Element Web",
+    "description":  "Secure and private Matrix-based messenger with end-to-end encryption and VoIP.",
+    "category":  "Communications",
+    "image":  "vectorim/element-web:latest",
+    "logo":  "https://icon.horse/icon/element.io",
+    "website":  "https://element.io",
+    "docsUrl":  "https://element.io/help",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

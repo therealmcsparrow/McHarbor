@@ -1,0 +1,39 @@
+{
+    "slug":  "libreoffice-online",
+    "name":  "LibreOffice Online",
+    "description":  "LibreOffice Online for viewing and editing office documents in the browser.",
+    "category":  "Documents",
+    "image":  "libreoffice/online:latest",
+    "logo":  "https://icon.horse/icon/www.libreoffice.org",
+    "website":  "https://www.libreoffice.org",
+    "docsUrl":  "https://github.com/LibreOffice/online",
+    "ports":  [
+                  {
+                      "host":  9981,
+                      "container":  9980,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DONT_GEN_SSL_CERT",
+                        "default":  "1",
+                        "description":  "Disable self-signed SSL generation"
+                    },
+                    {
+                        "key":  "extra_params",
+                        "default":  "--o:ssl.enable=false --o:ssl.termination=true",
+                        "description":  "Extra startup parameters"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

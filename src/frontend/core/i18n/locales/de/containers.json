@@ -476,7 +476,16 @@
     "restore": "Backup wiederherstellen",
     "restoring": "Wird wiederhergestellt...",
     "restoreTitle": "Backup wiederherstellen?",
+    "restoringTitle": "Backup wird wiederhergestellt…",
+    "restoreCompleteTitle": "Wiederherstellung abgeschlossen",
+    "restoreFailedTitle": "Wiederherstellung fehlgeschlagen",
     "restoreDescription": "Dies stellt das Backup-Archiv im urspruenglichen Container wieder her. Vorhandene Dateien im Container oder in Mount-Pfaden koennen ueberschrieben werden.",
+    "restoringHeading": "Backup wird wiederhergestellt…",
+    "restoreCompleteHeading": "Wiederherstellung abgeschlossen",
+    "restoreFailedHeading": "Wiederherstellung fehlgeschlagen",
+    "restoreCompleteHint": "Der Container wurde aus dem Backup wiederhergestellt. Du kannst diesen Dialog schließen.",
+    "closeRestore": "Schließen",
+    "startedAt": "Gestartet {{value}}",
     "restoreSecretTitle": "Backup-Geheimschluessel eingeben",
     "restoreSecretDescription": "Dieses Backup wurde mit einem anderen Schluessel als dem aktuellen McHarbor-Backup-Schluessel verschluesselt. Geben Sie den urspruenglichen Geheimschluessel ein.",
     "restoreSecretPlaceholder": "Backup-Verschluesselungsschluessel",
@@ -501,7 +510,8 @@
     "status": {
       "running": "Laeuft",
       "success": "Erfolgreich",
-      "failure": "Fehlgeschlagen"
+      "failure": "Fehlgeschlagen",
+      "cancelled": "Abgebrochen"
     },
     "progress": {
       "queued": "Wartet auf den Start des Backups.",
@@ -539,11 +549,16 @@
     "deleteScheduleDescription": "Dies entfernt den Zeitplan. Bestehende Backup-Archive werden nicht geloescht.",
     "deleteRunTitle": "Backup loeschen?",
     "deleteRunDescription": "Dies loescht den Backup-Lauf und die lokale Archivdatei dauerhaft, sofern vorhanden. Diese Aktion kann nicht rueckgaengig gemacht werden.",
+    "cancelRun": "Abbrechen",
+    "cancelRunConfirm": "Backup abbrechen",
+    "cancelRunTitle": "Laufendes Backup abbrechen?",
+    "cancelRunDescription": "Das laufende Backup wird gestoppt. Laufende Docker-, Agent- oder Speicheroperationen werden abgebrochen. Das Backup wird als abgebrochen markiert und kann anschließend gelöscht werden.",
     "toast": {
       "started": "Backup gestartet",
       "scheduleCreated": "Backup-Zeitplan gespeichert",
       "scheduleDeleted": "Backup-Zeitplan geloescht",
       "runDeleted": "Backup geloescht",
+      "runCancelled": "Backup abgebrochen",
       "restoreStarted": "Wiederherstellung gestartet",
       "restored": "Backup wiederhergestellt"
     }

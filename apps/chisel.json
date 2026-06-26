@@ -1,0 +1,28 @@
+{
+    "slug":  "chisel",
+    "name":  "Chisel",
+    "description":  "Fast TCP/UDP tunnel transported over HTTP, secured via SSH.",
+    "category":  "Networking",
+    "image":  "jpillora/chisel:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/jpillora/chisel",
+    "docsUrl":  "https://github.com/jpillora/chisel",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,46 @@
+{
+    "slug":  "gitlab-runner",
+    "name":  "GitLab Runner",
+    "description":  "Agent that runs CI/CD jobs and sends results back to GitLab.",
+    "category":  "Developer Tools",
+    "image":  "gitlab/gitlab-runner:latest",
+    "logo":  "https://icon.horse/icon/docs.gitlab.com",
+    "website":  "https://docs.gitlab.com/runner/",
+    "docsUrl":  "https://docs.gitlab.com/runner/install/docker.html",
+    "ports":  [
+                  {
+                      "host":  9252,
+                      "container":  9252,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gitlab-runner/config",
+                        "container":  "/etc/gitlab-runner"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CI_SERVER_URL",
+                        "default":  "https://gitlab.com",
+                        "description":  "GitLab instance URL"
+                    },
+                    {
+                        "key":  "REGISTRATION_TOKEN",
+                        "default":  "",
+                        "description":  "Runner registration token from GitLab",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

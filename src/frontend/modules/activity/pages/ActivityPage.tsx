@@ -9,6 +9,8 @@ import { PageHeader } from '@resources/layout/PageHeader';
 import { Badge } from '@resources/components/ui/Badge';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { SearchFilterToolbar } from '@resources/components/SearchFilterToolbar';
+import { DateRangeFilter, DEFAULT_DATE_RANGE_VALUE, type DateRangeFilterValue } from '@resources/components/DateRangeFilter';
+import { useInfiniteScrollSentinel } from '@resources/hooks/useInfiniteScrollSentinel';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import {
   Dialog,
@@ -20,6 +22,7 @@ import {
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
 import { formatDate, truncateId } from '@resources/utils/format';
+import { resolveDateRange } from '@resources/utils/date-range';
 import { useSavedSearchFilters } from '@resources/hooks/useSavedSearchFilters';
 import { createSearchMatcher, matchesSearchFields, type SearchMode } from '@resources/utils/search-filter';
 import {
@@ -32,7 +35,19 @@ import { useEvents } from '../hooks/useEvents';
 
 export default function ActivityPage() {
   const { t } = useTranslation('common');
-  const { data: events = [], isLoading } = useEvents();
+  const [dateRange, setDateRange] = useState<DateRangeFilterValue>(DEFAULT_DATE_RANGE_VALUE);
+  const resolvedRange = useMemo(() => resolveDateRange(dateRange.preset, dateRange.custom), [dateRange]);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useEvents(resolvedRange);
+  const events = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data],
+  );
   const environments = useEnvironmentStore((s) => s.environments);
   const [selected, setSelected] = useState<ContainerEvent | null>(null);
   const [query, setQuery] = useState('');
@@ -58,6 +73,12 @@ export default function ActivityPage() {
         ]).matched),
     [envName, events, mode, query],
   );
+
+  const sentinelRef = useInfiniteScrollSentinel({
+    enabled: hasNextPage,
+    loading: isFetchingNextPage,
+    onIntersect: () => void fetchNextPage(),
+  });
 
   const handleSaveFilter = () => {
     const label = window.prompt(t('filters.savePrompt'));
@@ -91,7 +112,12 @@ export default function ActivityPage() {
         }}
         onSaveFilter={handleSaveFilter}
         onDeleteSavedFilter={savedFilters.deleteSelectedPreset}
-        extraControls={<div className="text-xs text-muted-foreground">{t('filters.matchCount', { count: filteredEvents.length })}</div>}
+        extraControls={
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
+            <div className="text-xs text-muted-foreground">{t('filters.matchCount', { count: filteredEvents.length })}</div>
+          </div>
+        }
       />
 
       {isLoading ? (
@@ -104,62 +130,73 @@ export default function ActivityPage() {
           <p>{query.trim() ? t('filters.noMatches') : t('activity.noEvents')}</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnTimestamp')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnEnvironment')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnAction')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnContainer')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnImage')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnExitCode')}</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">{t('activity.columnActions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEvents.map((event) => {
-                const meta = parseMeta(event.metadata);
-                const image = meta.image ?? null;
-                const exitCode = meta.exitCode ?? null;
+        <>
+          <div className="overflow-hidden rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnTimestamp')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnEnvironment')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnAction')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnContainer')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnImage')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnExitCode')}</th>
+                  <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">{t('activity.columnActions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredEvents.map((event) => {
+                  const meta = parseMeta(event.metadata);
+                  const image = meta.image ?? null;
+                  const exitCode = meta.exitCode ?? null;
 
-                return (
-                  <tr key={event.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
-                    <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(event.timestamp)}</td>
-                    <td className="px-4 py-2.5 text-foreground">{envName(event.environmentId)}</td>
-                    <td className="px-4 py-2.5">
-                      <Badge variant={ACTION_VARIANTS[event.action] ?? 'secondary'}>{event.action}</Badge>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-foreground truncate max-w-48">{event.containerName ?? truncateId(event.containerId)}</span>
-                        <span className="font-mono text-xs text-muted-foreground">{truncateId(event.containerId)}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground font-mono text-xs truncate max-w-48">{image ?? '-'}</td>
-                    <td className="px-4 py-2.5">
-                      {exitCode != null ? (
-                        <Badge variant={exitCode === '0' ? 'secondary' : 'destructive'}>{exitCode}</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-2.5 text-right">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon-sm" onClick={() => setSelected(event)} aria-label={t('activity.viewDetails')}>
-                            <IconEye className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{t('activity.viewDetails')}</TooltipContent>
-                      </Tooltip>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  return (
+                    <tr key={event.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
+                      <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(event.timestamp)}</td>
+                      <td className="px-4 py-2.5 text-foreground">{envName(event.environmentId)}</td>
+                      <td className="px-4 py-2.5">
+                        <Badge variant={ACTION_VARIANTS[event.action] ?? 'secondary'}>{event.action}</Badge>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground truncate max-w-48">{event.containerName ?? truncateId(event.containerId)}</span>
+                          <span className="font-mono text-xs text-muted-foreground">{truncateId(event.containerId)}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-muted-foreground font-mono text-xs truncate max-w-48">{image ?? '-'}</td>
+                      <td className="px-4 py-2.5">
+                        {exitCode != null ? (
+                          <Badge variant={exitCode === '0' ? 'secondary' : 'destructive'}>{exitCode}</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline" size="icon-sm" onClick={() => setSelected(event)} aria-label={t('activity.viewDetails')}>
+                              <IconEye className="size-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t('activity.viewDetails')}</TooltipContent>
+                        </Tooltip>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div ref={sentinelRef} className="flex h-12 items-center justify-center text-xs text-muted-foreground">
+            {isFetchingNextPage && (
+              <span className="flex items-center gap-2">
+                <Spinner size="sm" />
+                {t('common:list.loadingMore')}
+              </span>
+            )}
+            {!hasNextPage && !isFetchingNextPage && events.length > 0 && t('common:list.endOfList')}
+          </div>
+        </>
       )}
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
@@ -180,4 +217,3 @@ export default function ActivityPage() {
     </div>
   );
 }
-

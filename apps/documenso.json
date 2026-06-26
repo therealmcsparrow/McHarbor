@@ -1,0 +1,59 @@
+{
+  "slug": "documenso",
+  "name": "Documenso",
+  "description": "Open-source document signing platform with templates, teams, and audit trails.",
+  "category": "Documents",
+  "image": "documenso/documenso:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/documenso.png",
+  "website": "https://documenso.com",
+  "docsUrl": "https://docs.documenso.com",
+  "ports": [
+    {
+      "host": 3500,
+      "container": 3500,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/documenso/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "NEXTAUTH_SECRET",
+      "default": "change-me",
+      "description": "NextAuth secret",
+      "secret": true
+    },
+    {
+      "key": "NEXTAUTH_URL",
+      "default": "http://localhost:3500",
+      "description": "External URL"
+    },
+    {
+      "key": "POSTGRES_USER",
+      "default": "documenso",
+      "description": "Database user"
+    },
+    {
+      "key": "POSTGRES_PASSWORD",
+      "default": "change-me",
+      "description": "Database password",
+      "secret": true
+    },
+    {
+      "key": "POSTGRES_DB",
+      "default": "documenso",
+      "description": "Database name"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

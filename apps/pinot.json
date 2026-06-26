@@ -1,0 +1,41 @@
+{
+    "slug":  "pinot",
+    "name":  "Apache Pinot",
+    "description":  "Real-time distributed OLAP datastore for low-latency analytics on streaming data.",
+    "category":  "Databases",
+    "image":  "apachepinot/pinot:latest",
+    "logo":  "https://icon.horse/icon/pinot.apache.org",
+    "website":  "https://pinot.apache.org",
+    "docsUrl":  "https://docs.pinot.apache.org",
+    "ports":  [
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8099,
+                      "container":  8099,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7500,
+                      "container":  7500,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pinot/data",
+                        "container":  "/var/pinot"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

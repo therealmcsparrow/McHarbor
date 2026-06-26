@@ -1,0 +1,56 @@
+{
+  "slug": "rust",
+  "name": "Rust",
+  "description": "Dedicated Rust server for the open-world survival game with oxide mod support.",
+  "category": "Gaming",
+  "image": "didstopia/rust-server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rust.png",
+  "website": "https://rust.facepunch.com",
+  "docsUrl": "https://github.com/didstopia/rust-server",
+  "ports": [
+    {
+      "host": 28015,
+      "container": 28015,
+      "protocol": "tcp"
+    },
+    {
+      "host": 28016,
+      "container": 28016,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/rust/config",
+      "container": "/steamcmd/rust/server"
+    },
+    {
+      "host": "/opt/appdata/rust/oxide",
+      "container": "/steamcmd/rust/oxide"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "RUST_SERVER_NAME",
+      "default": "Rust Server",
+      "description": "Server hostname"
+    },
+    {
+      "key": "RUST_SERVER_SEED",
+      "default": "12345",
+      "description": "World map seed"
+    },
+    {
+      "key": "RUST_SERVER_MAXPLAYERS",
+      "default": "50",
+      "description": "Maximum players"
+    }
+  ],
+  "minMemory": "8GB",
+  "version": "latest"
+}

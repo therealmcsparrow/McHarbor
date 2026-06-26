@@ -1,0 +1,31 @@
+{
+    "slug":  "snmp-exporter",
+    "name":  "SNMP Exporter",
+    "description":  "Prometheus exporter for SNMP-enabled network devices, switches and routers.",
+    "category":  "Monitoring",
+    "image":  "prom/snmp-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/prometheus/snmp_exporter",
+    "docsUrl":  "https://github.com/prometheus/snmp_exporter#readme",
+    "ports":  [
+                  {
+                      "host":  9116,
+                      "container":  9116,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/snmp-exporter/config",
+                        "container":  "/etc/snmp_exporter"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

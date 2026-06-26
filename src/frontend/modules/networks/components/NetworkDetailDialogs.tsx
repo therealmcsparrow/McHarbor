@@ -1,13 +1,15 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import type { ContainerInfo } from '@core/types/docker';
+import type { ContainerInfo, NetworkInfo } from '@core/types/docker';
+import { isBuiltInNetwork } from '@core/utils/network';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { Select } from '@resources/components/ui/Select';
 
 type Translation = (key: string) => string;
 
 type NetworkDetailDialogsProps = {
+  network: NetworkInfo;
   removeDialogOpen: boolean;
   recreateDialogOpen: boolean;
   disconnectTarget: string | null;
@@ -31,6 +33,7 @@ type NetworkDetailDialogsProps = {
 };
 
 export function NetworkDetailDialogs({
+  network,
   removeDialogOpen,
   recreateDialogOpen,
   disconnectTarget,
@@ -52,13 +55,18 @@ export function NetworkDetailDialogs({
   onConfirmDisconnect,
   onConfirmConnect,
 }: NetworkDetailDialogsProps) {
+  const builtIn = isBuiltInNetwork(network);
+  const removeTitle = builtIn ? t('confirm.builtInRemoveTitle') : t('confirm.removeTitle');
+  const removeDescription = builtIn
+    ? t('confirm.builtInRemoveDescription')
+    : t('confirm.removeDescription');
   return (
     <>
       <ConfirmDialog
         open={removeDialogOpen}
         onOpenChange={onRemoveDialogChange}
-        title={t('confirm.removeTitle')}
-        description={t('confirm.removeDescription')}
+        title={removeTitle}
+        description={removeDescription}
         onConfirm={onConfirmRemove}
         loading={removePending}
       />

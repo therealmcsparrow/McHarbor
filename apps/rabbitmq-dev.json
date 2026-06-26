@@ -1,0 +1,47 @@
+{
+  "slug": "rabbitmq-dev",
+  "name": "RabbitMQ Dev",
+  "description": "RabbitMQ message broker with management UI on Alpine for local development.",
+  "category": "Developer Tools",
+  "image": "rabbitmq:3-management-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rabbitmq.png",
+  "website": "https://www.rabbitmq.com",
+  "docsUrl": "https://www.rabbitmq.com/docs/install-docker",
+  "ports": [
+    {
+      "host": 5672,
+      "container": 5672,
+      "protocol": "tcp"
+    },
+    {
+      "host": 15672,
+      "container": 15672,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/rabbitmq-dev/data",
+      "container": "/var/lib/rabbitmq"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "RABBITMQ_DEFAULT_USER",
+      "default": "guest",
+      "description": "Default admin username"
+    },
+    {
+      "key": "RABBITMQ_DEFAULT_PASS",
+      "default": "guest",
+      "description": "Default admin password",
+      "secret": true
+    }
+  ],
+  "version": "3-management-alpine"
+}

@@ -1,0 +1,44 @@
+{
+    "slug":  "mattermost",
+    "name":  "Mattermost",
+    "description":  "Self-hosted Slack alternative for team collaboration with channels, calls, and integrations.",
+    "category":  "Communications",
+    "image":  "mattermost/mattermost-team-edition:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mattermost.png",
+    "website":  "https://mattermost.com",
+    "docsUrl":  "https://docs.mattermost.com",
+    "ports":  [
+                  {
+                      "host":  8065,
+                      "container":  8065,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mattermost/config",
+                        "container":  "/mattermost/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/mattermost/data",
+                        "container":  "/mattermost/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/mattermost/logs",
+                        "container":  "/mattermost/logs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MM_SITE_URL",
+                        "default":  "http://localhost:8065",
+                        "description":  "Public site URL"
+                    }
+                ],
+    "version":  "latest"
+}

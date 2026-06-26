@@ -1,0 +1,48 @@
+{
+    "slug":  "dify",
+    "name":  "Dify",
+    "description":  "Open-source LLM app development platform combining BaaS and LLMOps for production AI apps.",
+    "category":  "AI \u0026 Voice",
+    "image":  "langgenius/dify-api:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/dify.svg",
+    "website":  "https://dify.ai",
+    "docsUrl":  "https://docs.dify.ai/getting-started/install-self-hosted/docker-compose",
+    "ports":  [
+                  {
+                      "host":  5001,
+                      "container":  5001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dify/api",
+                        "container":  "/app/api/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MODE",
+                        "default":  "api",
+                        "description":  "Service mode"
+                    },
+                    {
+                        "key":  "SECRET_KEY",
+                        "default":  "",
+                        "description":  "Application secret key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DB_DATABASE",
+                        "default":  "dify",
+                        "description":  "Postgres database name"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

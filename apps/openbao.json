@@ -1,0 +1,57 @@
+{
+  "slug": "openbao",
+  "name": "OpenBao",
+  "description": "Community-driven open-source fork of HashiCorp Vault for secrets management.",
+  "category": "Security",
+  "image": "openbao/openbao:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/openbao.png",
+  "website": "https://openbao.org",
+  "docsUrl": "https://openbao.org/docs",
+  "ports": [
+    {
+      "host": 8200,
+      "container": 8200,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8201,
+      "container": 8201,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/openbao/config",
+      "container": "/openbao/config"
+    },
+    {
+      "host": "/opt/appdata/openbao/data",
+      "container": "/openbao/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "BAO_DEV_ROOT_TOKEN_ID",
+      "default": "",
+      "description": "Dev mode root token",
+      "secret": true
+    },
+    {
+      "key": "BAO_DEV_LISTEN_ADDRESS",
+      "default": "0.0.0.0:8200",
+      "description": "Dev mode listen address"
+    },
+    {
+      "key": "BAO_LOCAL_CONFIG",
+      "default": "",
+      "description": "Inline HCL config"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest"
+}

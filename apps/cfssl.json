@@ -1,0 +1,32 @@
+{
+    "slug":  "cfssl",
+    "name":  "CFSSL",
+    "description":  "Cloudflare\u0027s PKI toolkit for signing, verifying, and bundling TLS certificates.",
+    "category":  "Security",
+    "image":  "cfssl/cfssl:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/cloudflare/cfssl",
+    "docsUrl":  "https://github.com/cloudflare/cfssl/wiki",
+    "ports":  [
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cfssl/cert",
+                        "container":  "/etc/cfssl"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "128MB",
+    "version":  "latest"
+}

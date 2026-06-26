@@ -1,0 +1,47 @@
+{
+    "slug":  "prefect",
+    "name":  "Prefect",
+    "description":  "Modern workflow orchestration for data pipelines with dynamic scheduling, retries, and observability.",
+    "category":  "Databases",
+    "image":  "prefecthq/prefect:latest",
+    "logo":  "https://icon.horse/icon/www.prefect.io",
+    "website":  "https://www.prefect.io",
+    "docsUrl":  "https://docs.prefect.io/latest/guides/self-hosted/",
+    "ports":  [
+                  {
+                      "host":  4200,
+                      "container":  4200,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/prefect/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PREFECT_HOME",
+                        "default":  "/data/.prefect",
+                        "description":  "Prefect home directory"
+                    },
+                    {
+                        "key":  "PREFECT_API_URL",
+                        "default":  "http://localhost:4200/api",
+                        "description":  "Prefect API URL"
+                    },
+                    {
+                        "key":  "PREFECT_SERVER_API_AUTH_STRING",
+                        "default":  "",
+                        "description":  "API auth string (leave empty to disable)",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,36 @@
+{
+    "slug":  "mockserver",
+    "name":  "MockServer",
+    "description":  "Easy mocking of HTTP and HTTPS services for integration testing.",
+    "category":  "Developer Tools",
+    "image":  "mockserver/mockserver:latest",
+    "logo":  "https://icon.horse/icon/www.mock-server.com",
+    "website":  "http://www.mock-server.com",
+    "docsUrl":  "https://www.mock-server.com/docker.html",
+    "ports":  [
+                  {
+                      "host":  1080,
+                      "container":  1080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mockserver/data",
+                        "container":  "/mockserver"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MOCKSERVER_LOG_LEVEL",
+                        "default":  "INFO",
+                        "description":  "Logging level"
+                    }
+                ],
+    "version":  "latest"
+}

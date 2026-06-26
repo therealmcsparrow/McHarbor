@@ -1,0 +1,50 @@
+{
+    "slug":  "zookeeper-dev",
+    "name":  "ZooKeeper Dev",
+    "description":  "Apache ZooKeeper coordination server for distributed system development.",
+    "category":  "Developer Tools",
+    "image":  "zookeeper:latest",
+    "logo":  "https://icon.horse/icon/zookeeper.apache.org",
+    "website":  "https://zookeeper.apache.org",
+    "docsUrl":  "https://hub.docker.com/_/zookeeper",
+    "ports":  [
+                  {
+                      "host":  2181,
+                      "container":  2181,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/zookeeper-dev/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/zookeeper-dev/datalog",
+                        "container":  "/datalog"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ZOOKEEPER_CLIENT_PORT",
+                        "default":  "2181",
+                        "description":  "Client port"
+                    },
+                    {
+                        "key":  "ZOOKEEPER_TICK_TIME",
+                        "default":  "2000",
+                        "description":  "Tick time in ms"
+                    }
+                ],
+    "version":  "latest"
+}

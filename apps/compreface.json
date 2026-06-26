@@ -1,0 +1,35 @@
+{
+    "slug":  "compreface",
+    "name":  "CompreFace",
+    "description":  "Face recognition API service with REST endpoints and a web UI dashboard.",
+    "category":  "Photos \u0026 Files",
+    "image":  "exadel/compreface:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/compreface.png",
+    "website":  "https://exadel.com/compreface",
+    "docsUrl":  "https://github.com/exadel-inc/CompreFace",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/compreface/config",
+                        "container":  "/app/configs"
+                    },
+                    {
+                        "host":  "/opt/appdata/compreface/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

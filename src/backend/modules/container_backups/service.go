@@ -5,6 +5,7 @@ package container_backups
 
 import (
 	"archive/tar"
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -15,12 +16,14 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/rs/xid"
 
@@ -49,6 +52,10 @@ var ErrBackupRestoreNoRestorableEntries = errors.New("backup archive has no rest
 // ErrBackupRunActive means a backup run cannot be deleted while it is still active.
 var ErrBackupRunActive = errors.New("backup run is still running")
 
+// ErrBackupRunNotCancellable means the run is not currently running and cannot
+// be cancelled.
+var ErrBackupRunNotCancellable = errors.New("backup run is not cancellable")
+
 // ErrBackupMigrationStorageNotLocal means the destination cannot receive local backup migrations.
 var ErrBackupMigrationStorageNotLocal = errors.New("backup migration storage location is not local")
 
@@ -58,7 +65,7 @@ var ErrBackupMigrationStorageDisabled = errors.New("backup migration storage loc
 const (
 	backupRunFinalizeTimeout     = 30 * time.Second
 	backupRunProgressTimeout     = 5 * time.Second
-	backupRunProgressStaleAfter  = 6 * time.Minute
+	backupRunProgressStaleAfter  = 2 * time.Minute
 	backupRunBackgroundTimeout   = 3 * time.Hour
 	restoreRunProgressStaleAfter = backupRunBackgroundTimeout + 10*time.Minute
 	defaultLocalStorageID        = "default-local-backup"
@@ -78,6 +85,10 @@ type Service struct {
 var safeArchiveName = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
 
 var activeBackupRuns sync.Map
+
+// runCancelers tracks cancel functions for in-flight backup and restore runs so
+// the user can cancel a long-running operation from the UI. Keys are run IDs.
+var runCancelers sync.Map
 
 // NewService creates a backup service.
 func NewService(database *sql.DB, pool *coredocker.ClientPool, dataDir string, backupCrypto *backupcrypto.Service, enc *encryption.Service, logger *slog.Logger) *Service {
@@ -153,6 +164,7 @@ func (s *Service) ListPlans(ctx context.Context, envID, containerID string) ([]B
 	query := `
 		SELECT id, name, environment_id, container_id, container_name, COALESCE(storage_location_id, ''),
 		       include_config, include_logs, include_filesystem, include_image, selected_mounts,
+		       log_tail_lines,
 		       COALESCE(cron, ''), enabled, retention_count, retention_days, COALESCE(last_run_at, ''), COALESCE(next_run_at, ''),
 		       created_at, updated_at
 		FROM container_backup_plans
@@ -219,10 +231,12 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 		INSERT INTO container_backup_plans (
 			id, name, environment_id, container_id, container_name, storage_location_id,
 			include_config, include_logs, include_filesystem, include_image, selected_mounts,
+			log_tail_lines,
 			cron, enabled, retention_count, retention_days, next_run_at, created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, name, envID, input.ContainerID, containerName, nullString(firstStorageLocationID(storageIDs)),
 		input.IncludeConfig, input.IncludeLogs, input.IncludeFilesystem, input.IncludeImage, string(selected),
+		input.LogTailLines,
 		nullString(input.Cron), input.Enabled, input.RetentionCount, input.RetentionDays, nullString(nextRun), now, now,
 	)
 	if err != nil {
@@ -239,6 +253,7 @@ func (s *Service) Plan(ctx context.Context, id string) (*BackupPlan, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, name, environment_id, container_id, container_name, COALESCE(storage_location_id, ''),
 		       include_config, include_logs, include_filesystem, include_image, selected_mounts,
+		       log_tail_lines,
 		       COALESCE(cron, ''), enabled, retention_count, retention_days, COALESCE(last_run_at, ''), COALESCE(next_run_at, ''),
 		       created_at, updated_at
 		FROM container_backup_plans
@@ -311,6 +326,11 @@ func (s *Service) UpdatePlan(ctx context.Context, id string, input UpdateBackupP
 	if input.IncludeImage != nil {
 		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET include_image = ?, updated_at = ? WHERE id = ?", *input.IncludeImage, now, id); err != nil {
 			return nil, fmt.Errorf("updating backup plan image flag: %w", err)
+		}
+	}
+	if input.LogTailLines != nil {
+		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET log_tail_lines = ?, updated_at = ? WHERE id = ?", *input.LogTailLines, now, id); err != nil {
+			return nil, fmt.Errorf("updating backup plan log tail lines: %w", err)
 		}
 	}
 	if input.SelectedMounts != nil {
@@ -700,7 +720,11 @@ func (s *Service) startBackgroundRun(plan *BackupPlan, runID string) {
 	planCopy := *plan
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), backupRunBackgroundTimeout)
-		defer cancel()
+		runCancelers.Store(runID, cancel)
+		defer func() {
+			cancel()
+			runCancelers.Delete(runID)
+		}()
 		if _, err := s.executeRun(ctx, &planCopy, runID); err != nil && s.logger != nil {
 			s.logger.Error("background container backup failed", "run", runID, "env", planCopy.EnvironmentID, "container", planCopy.ContainerID, "error", err)
 		}
@@ -723,6 +747,62 @@ func (s *Service) containerName(ctx context.Context, envID, containerID string) 
 		name = shortID(info.ID)
 	}
 	return name, nil
+}
+
+// resolveContainerForBackup inspects the container by id, falling back to
+// name lookup if the id has rotated (e.g. docker compose restart).
+//
+// Docker Compose typically assigns a fresh container id on every `docker
+// compose up`, which breaks plans that captured a previous id. The plan
+// stores both id and name; on inspect failure we list containers filtered
+// by name and use the live id for this run. The plan row itself is not
+// rewritten — next run will retry the lookup.
+func (s *Service) resolveContainerForBackup(ctx context.Context, opCtx context.Context, cli *client.Client, plan *BackupPlan, logger *slog.Logger) (types.ContainerJSON, string, error) {
+	info, err := cli.ContainerInspect(opCtx, plan.ContainerID)
+	if err == nil {
+		return info, plan.ContainerID, nil
+	}
+	if !isContainerNotFound(err) {
+		return types.ContainerJSON{}, plan.ContainerID, err
+	}
+	if plan.ContainerName == "" {
+		return types.ContainerJSON{}, plan.ContainerID, fmt.Errorf("inspecting container for backup: %w", err)
+	}
+	if logger != nil {
+		logger.Info(
+			"container backup: stored container id is stale, resolving by name",
+			"container_id", plan.ContainerID, "container_name", plan.ContainerName,
+		)
+	}
+	f := filters.NewArgs()
+	f.Add("name", plan.ContainerName)
+	list, listErr := cli.ContainerList(opCtx, container.ListOptions{All: true, Filters: f})
+	if listErr != nil {
+		return types.ContainerJSON{}, plan.ContainerID, fmt.Errorf("resolving container by name: %w", listErr)
+	}
+	for _, c := range list {
+		if strings.TrimPrefix(c.Names[0], "/") == plan.ContainerName {
+			info, inspectErr := cli.ContainerInspect(opCtx, c.ID)
+			if inspectErr != nil {
+				return types.ContainerJSON{}, plan.ContainerID, fmt.Errorf("inspecting resolved container: %w", inspectErr)
+			}
+			return info, c.ID, nil
+		}
+	}
+	return types.ContainerJSON{}, plan.ContainerID, fmt.Errorf("no container named %q found in environment", plan.ContainerName)
+}
+
+// isContainerNotFound returns true for Docker SDK errors that mean
+// "this container id no longer exists". Used to decide whether the
+// backup should fall back to a name-based lookup.
+func isContainerNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "No such container") ||
+		strings.Contains(msg, "not found") ||
+		strings.Contains(msg, "404")
 }
 
 func (s *Service) createRun(ctx context.Context, planID, envID, containerID string) (*BackupRun, error) {
@@ -1028,6 +1108,47 @@ func (s *Service) runByID(ctx context.Context, id string) (*BackupRun, error) {
 	return &run, nil
 }
 
+// HasRunningRunForPlan reports whether the plan currently has a backup
+// run with status 'running'. Used by the scheduler to skip duplicate
+// firings across process restarts or in-memory state loss.
+func (s *Service) HasRunningRunForPlan(ctx context.Context, planID string) (bool, error) {
+	var count int
+	err := s.db.QueryRowContext(ctx, `
+		SELECT COUNT(*)
+		FROM container_backup_runs
+		WHERE plan_id = ? AND status = 'running'`,
+		planID,
+	).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// WaitForRun blocks until the given run reaches a terminal state
+// (success, failure, or cancelled) or the context is cancelled. Used by
+// the scheduler so the in-memory "running" flag stays set for the full
+// duration of a background backup, while the actual archive and upload
+// work runs in a goroutine spawned by StartPlan.
+func (s *Service) WaitForRun(ctx context.Context, runID string) error {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+	for {
+		run, err := s.runByID(ctx, runID)
+		if err != nil {
+			return err
+		}
+		if run.Status != "running" {
+			return nil
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+		}
+	}
+}
+
 // DeleteRun deletes a finished or failed backup run and its local archive files.
 func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
 	run, err := s.runByID(ctx, id)
@@ -1062,6 +1183,68 @@ func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
 		return false, fmt.Errorf("deleting backup run: %w", err)
 	}
 	return db.RowsAffected(result) > 0, nil
+}
+
+// CancelRun marks a running backup or restore as cancelled. The run is
+// transitioned to a terminal "cancelled" state in the database and the
+// background goroutine's context is cancelled so any in-flight Docker or
+// storage call is aborted. The goroutine will eventually unwind and the
+// existing finishRun call is a no-op because the WHERE clause filters on
+// status = 'running'.
+func (s *Service) CancelRun(ctx context.Context, id string) (*BackupRun, error) {
+	run, err := s.runByID(ctx, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if run.Status != "running" {
+		return run, ErrBackupRunNotCancellable
+	}
+
+	now := time.Now().UTC()
+	startedAt, _ := time.Parse(time.RFC3339, run.StartedAt)
+	duration := now.Sub(startedAt).Milliseconds()
+	result, err := s.db.ExecContext(ctx, `
+		UPDATE container_backup_runs
+		SET status = 'cancelled',
+		    progress_stage = 'cancelled',
+		    progress_message = 'Cancelled by user',
+		    error = 'cancelled by user',
+		    progress_updated_at = ?,
+		    completed_at = ?,
+		    duration_ms = ?,
+		    updated_at = ?
+		WHERE id = ? AND status = 'running'`,
+		now.Format(time.RFC3339), now.Format(time.RFC3339), duration, now.Format(time.RFC3339), id)
+	if err != nil {
+		return nil, fmt.Errorf("cancelling backup run: %w", err)
+	}
+	if db.RowsAffected(result) == 0 {
+		// Another caller beat us to it (e.g. stale-run reaper). Re-read and
+		// return the current record.
+		return s.runByID(ctx, id)
+	}
+
+	if value, ok := runCancelers.LoadAndDelete(id); ok {
+		if cancel, isCancel := value.(context.CancelFunc); isCancel {
+			cancel()
+		}
+	}
+
+	if s.logger != nil {
+		s.logger.Info("container backup run cancelled by user", "run", id, "env", run.EnvironmentID, "container", run.ContainerID, "operation", run.Operation)
+	}
+
+	updated, err := s.runByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.pruneBackupPlanRuns(ctx, updated); err != nil && s.logger != nil {
+		s.logger.Warn("container backup retention pruning failed", "plan", updated.PlanID, "env", updated.EnvironmentID, "container", updated.ContainerID, "error", err)
+	}
+	return updated, nil
 }
 
 func (s *Service) annotateRunKeyRequirement(run *BackupRun) {
@@ -1305,7 +1488,11 @@ func (s *Service) startBackgroundRestore(restoreRunID, sourceRunID string, input
 		defer done()
 
 		ctx, cancel := context.WithTimeout(context.Background(), backupRunBackgroundTimeout)
-		defer cancel()
+		runCancelers.Store(restoreRunID, cancel)
+		defer func() {
+			cancel()
+			runCancelers.Delete(restoreRunID)
+		}()
 
 		sourceRun, err := s.runByID(ctx, sourceRunID)
 		if err == nil && sourceRun != nil {
@@ -1937,10 +2124,32 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 	opCtx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 	s.updateRunProgress(opCtx, runID, "inspecting", "")
-	info, err := cli.ContainerInspect(opCtx, plan.ContainerID)
+	info, resolvedID, err := s.resolveContainerForBackup(ctx, opCtx, cli, plan, s.logger)
 	if err != nil {
 		return archiveResult{}, fmt.Errorf("inspecting container for backup: %w", err)
 	}
+	if resolvedID != plan.ContainerID {
+		s.logger.Info(
+			"container backup: resolved stale container id to current id (Compose restart likely)",
+			"run", runID, "plan_id", plan.ID,
+			"old_id", plan.ContainerID, "new_id", resolvedID,
+		)
+		plan.ContainerID = resolvedID
+	}
+
+	// Pause the container for the duration of the archive so the writable
+	// layer, mount copies, and log read are point-in-time consistent.
+	// Pause is best-effort: some runtimes (Windows containers, certain
+	// custom runtimes) don't support it. If pause fails we log and
+	// proceed without it.
+	paused := pauseContainerForBackup(opCtx, cli, plan.ContainerID, s.logger)
+	defer func() {
+		// Use a fresh background context for unpause so we still
+		// recover the container if the opCtx was cancelled.
+		unpauseCtx, unpauseCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer unpauseCancel()
+		unpauseContainerAfterBackup(unpauseCtx, cli, plan.ContainerID, paused, s.logger)
+	}()
 
 	s.updateRunProgress(opCtx, runID, "preparing", "")
 	if err := os.MkdirAll(s.backupDir(), 0750); err != nil {
@@ -1985,6 +2194,41 @@ func (s *Service) writeArchive(ctx context.Context, plan *BackupPlan, runID stri
 	return archiveResult{path: archivePath, size: stat.Size(), encryption: metadata.Algorithm, keyID: metadata.KeyID}, nil
 }
 
+// pauseContainerForBackup pauses the container for snapshot consistency
+// during the backup. Returns true if the container is paused (and therefore
+// needs to be unpaused), false if pause was skipped or failed.
+func pauseContainerForBackup(ctx context.Context, cli *client.Client, containerID string, logger *slog.Logger) bool {
+	if err := cli.ContainerPause(ctx, containerID); err != nil {
+		if logger != nil {
+			logger.Warn("container backup: pause failed, proceeding without snapshot consistency",
+				"container", containerID, "error", err)
+		}
+		return false
+	}
+	if logger != nil {
+		logger.Info("container backup: container paused for snapshot consistency", "container", containerID)
+	}
+	return true
+}
+
+// unpauseContainerAfterBackup releases the container. If pause was skipped
+// (returns false) or the container is already running, this is a no-op.
+func unpauseContainerAfterBackup(ctx context.Context, cli *client.Client, containerID string, wasPaused bool, logger *slog.Logger) {
+	if !wasPaused {
+		return
+	}
+	if err := cli.ContainerUnpause(ctx, containerID); err != nil {
+		if logger != nil {
+			logger.Error("container backup: unpause failed, container may remain paused",
+				"container", containerID, "error", err)
+		}
+		return
+	}
+	if logger != nil {
+		logger.Info("container backup: container unpaused", "container", containerID)
+	}
+}
+
 func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, tw *tar.Writer, plan *BackupPlan, info types.ContainerJSON, runID string) error {
 	s.updateRunProgress(ctx, runID, "manifest", "")
 	manifest, err := json.MarshalIndent(map[string]any{
@@ -2011,7 +2255,12 @@ func (s *Service) writeArchiveEntries(ctx context.Context, cli *client.Client, t
 	}
 	if plan.IncludeLogs {
 		s.updateRunProgress(ctx, runID, "logs", "")
-		reader, err := cli.ContainerLogs(ctx, plan.ContainerID, container.LogsOptions{ShowStdout: true, ShowStderr: true, Timestamps: true, Tail: "all"})
+		tail := plan.LogTailLines
+		tailArg := "all"
+		if tail > 0 {
+			tailArg = strconv.Itoa(tail)
+		}
+		reader, err := cli.ContainerLogs(ctx, plan.ContainerID, container.LogsOptions{ShowStdout: true, ShowStderr: true, Timestamps: true, Tail: tailArg})
 		if err != nil {
 			return fmt.Errorf("reading container logs: %w", err)
 		}
@@ -2124,6 +2373,11 @@ func writeBytes(tw *tar.Writer, name string, data []byte) error {
 	return nil
 }
 
+// backupMemorySpoolLimit is the threshold below which a backup entry is
+// buffered in memory rather than spooled to disk. Logs and mount copies
+// usually fit under this; container filesystem exports do not.
+const backupMemorySpoolLimit = 64 * 1024 * 1024 // 64 MiB
+
 func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.ReadCloser, tempDir string, onProgress func()) error {
 	defer reader.Close()
 	done := make(chan struct{})
@@ -2136,6 +2390,34 @@ func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.Rea
 	}()
 	defer close(done)
 
+	// Fast path for entries that fit in memory: write the tar header and
+	// the entry data in one pass with no disk I/O. We cap at 64 MiB so a
+	// pathological export can't OOM the server.
+	buf := &bytes.Buffer{}
+	if _, err := io.Copy(buf, reader); err != nil {
+		return fmt.Errorf("spooling backup entry %s: %w", name, err)
+	}
+	size := int64(buf.Len())
+	if size <= backupMemorySpoolLimit {
+		if onProgress != nil {
+			onProgress()
+		}
+		if err := tw.WriteHeader(&tar.Header{Name: name, Mode: 0644, Size: size}); err != nil {
+			return fmt.Errorf("writing backup header %s: %w", name, err)
+		}
+		if _, err := tw.Write(buf.Bytes()); err != nil {
+			return fmt.Errorf("writing backup entry %s: %w", name, err)
+		}
+		return nil
+	}
+
+	// Large entry: spool to disk to know the byte count, then re-read into
+	// the encrypted tar. This is the previous behavior; kept because the
+	// archive/tar package requires the entry size in the header before the
+	// data is written, and we cannot determine the size without spooling.
+	if onProgress != nil {
+		onProgress()
+	}
 	if err := os.MkdirAll(tempDir, 0700); err != nil {
 		return fmt.Errorf("creating backup temp directory: %w", err)
 	}
@@ -2145,15 +2427,12 @@ func writeStream(ctx context.Context, tw *tar.Writer, name string, reader io.Rea
 	}
 	tmpName := tmp.Name()
 	defer os.Remove(tmpName)
-	progressWriter := &backupProgressWriter{writer: tmp, onProgress: onProgress}
-	size, copyErr := io.Copy(progressWriter, reader)
-	progressWriter.flush()
-	closeErr := tmp.Close()
-	if copyErr != nil {
-		return fmt.Errorf("spooling backup entry %s: %w", name, copyErr)
+	if _, err := tmp.Write(buf.Bytes()); err != nil {
+		tmp.Close()
+		return fmt.Errorf("spooling backup entry %s: %w", name, err)
 	}
-	if closeErr != nil {
-		return fmt.Errorf("closing backup temp entry %s: %w", name, closeErr)
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("closing backup temp entry %s: %w", name, err)
 	}
 	in, err := os.Open(tmpName)
 	if err != nil {
@@ -2325,7 +2604,7 @@ func scanPlan(scanner interface{ Scan(dest ...any) error }) (BackupPlan, error) 
 	if err := scanner.Scan(
 		&plan.ID, &plan.Name, &plan.EnvironmentID, &plan.ContainerID, &plan.ContainerName,
 		&plan.StorageLocationID, &plan.IncludeConfig, &plan.IncludeLogs, &plan.IncludeFilesystem,
-		&plan.IncludeImage, &selected, &plan.Cron, &plan.Enabled, &plan.RetentionCount,
+		&plan.IncludeImage, &selected, &plan.LogTailLines, &plan.Cron, &plan.Enabled, &plan.RetentionCount,
 		&plan.RetentionDays, &plan.LastRunAt, &plan.NextRunAt, &plan.CreatedAt, &plan.UpdatedAt,
 	); err != nil {
 		return BackupPlan{}, err

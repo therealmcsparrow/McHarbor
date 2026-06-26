@@ -1,0 +1,35 @@
+{
+    "slug":  "wiremock",
+    "name":  "WireMock",
+    "description":  "Programmable HTTP mock server for stubbing and verifying API responses.",
+    "category":  "Developer Tools",
+    "image":  "wiremock/wiremock:latest",
+    "logo":  "https://icon.horse/icon/wiremock.org",
+    "website":  "http://wiremock.org",
+    "docsUrl":  "https://wiremock.org/docs/docker/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/wiremock/mappings",
+                        "container":  "/home/wiremock/mappings"
+                    },
+                    {
+                        "host":  "/opt/appdata/wiremock/__files",
+                        "container":  "/home/wiremock/__files"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

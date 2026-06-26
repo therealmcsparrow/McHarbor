@@ -1,0 +1,55 @@
+{
+  "slug": "handbrake",
+  "name": "HandBrake",
+  "description": "Multi-platform video transcoder with a web-based GUI for batch conversions.",
+  "category": "Productivity",
+  "image": "jlesage/handbrake:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/handbrake.png",
+  "website": "https://handbrake.fr",
+  "docsUrl": "https://github.com/jlesage/docker-handbrake",
+  "ports": [
+    {
+      "host": 5800,
+      "container": 5800,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/handbrake/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/handbrake/watch",
+      "container": "/watch"
+    },
+    {
+      "host": "/opt/appdata/handbrake/output",
+      "container": "/output"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "AUTOMATED_CONVERSION_PRESET",
+      "default": "",
+      "description": "Preset used by the file-watcher auto conversion"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

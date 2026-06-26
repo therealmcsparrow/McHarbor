@@ -1,0 +1,35 @@
+{
+    "slug":  "emby",
+    "name":  "Emby",
+    "description":  "Free media server for streaming movies, TV shows, music, and photos.",
+    "category":  "Media",
+    "image":  "emby/embyserver:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/emby.png",
+    "website":  "https://emby.media",
+    "docsUrl":  "https://emby.media/community/index.php?/wiki/docker/",
+    "ports":  [
+                  {
+                      "host":  8096,
+                      "container":  8096,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/emby/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/emby/media",
+                        "container":  "/media"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

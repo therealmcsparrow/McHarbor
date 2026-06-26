@@ -1,35 +1,35 @@
 {
-  "slug": "komga",
-  "name": "Komga",
-  "description": "Media server for comics, manga, magazines, and books.",
-  "category": "Media",
-  "image": "gotson/komga:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/komga.svg",
-  "website": "https://komga.org",
-  "docsUrl": "https://komga.org/docs",
-  "ports": [
-    {
-      "host": 25600,
-      "container": 25600,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/komga/config",
-      "container": "/config"
-    },
-    {
-      "host": "/srv/books",
-      "container": "/data"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "komga",
+    "name":  "Komga",
+    "description":  "Media server for comics, manga, magazines, and books.",
+    "category":  "Media",
+    "image":  "gotson/komga:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/komga.png",
+    "website":  "https://komga.org",
+    "docsUrl":  "https://komga.org/docs",
+    "ports":  [
+                  {
+                      "host":  25600,
+                      "container":  25600,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/komga/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/books",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

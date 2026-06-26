@@ -1,0 +1,47 @@
+{
+    "slug":  "cassandra",
+    "name":  "Apache Cassandra",
+    "description":  "Highly scalable distributed wide-column NoSQL database designed for availability and scale.",
+    "category":  "Databases",
+    "image":  "cassandra:latest",
+    "logo":  "https://icon.horse/icon/cassandra.apache.org",
+    "website":  "https://cassandra.apache.org",
+    "docsUrl":  "https://cassandra.apache.org/doc/latest/",
+    "ports":  [
+                  {
+                      "host":  9042,
+                      "container":  9042,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7000,
+                      "container":  7000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7001,
+                      "container":  7001,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7199,
+                      "container":  7199,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cassandra/data",
+                        "container":  "/var/lib/cassandra"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "CASSANDRA_PASSWORD",
+                        "default":  "",
+                        "description":  "Cassandra password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

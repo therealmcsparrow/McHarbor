@@ -1,0 +1,26 @@
+{
+  "slug": "rss-proxy",
+  "name": "RSS Proxy",
+  "description": "RSS proxy server that lets you subscribe to RSS feeds behind CORS-blocked sources.",
+  "category": "Dashboards",
+  "image": "damoeb/rss-proxy:latest",
+  "logo": "https://raw.githubusercontent.com/damoeb/rss-proxy/master/logo.png",
+  "website": "https://github.com/damoeb/rss-proxy",
+  "docsUrl": "https://github.com/damoeb/rss-proxy",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

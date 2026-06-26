@@ -1,0 +1,78 @@
+{
+    "slug":  "mbin",
+    "name":  "Mbin",
+    "description":  "Federated content aggregator and microblogging server that combines threads, magazines, and microblogging via ActivityPub.",
+    "category":  "Web Apps",
+    "image":  "ghcr.io/mbinorg/mbin:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mbin.png",
+    "website":  "https://github.com/MbinOrg/mbin",
+    "docsUrl":  "https://docs.mbin.social",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mbin/media",
+                        "container":  "/srv/mbin/media"
+                    },
+                    {
+                        "host":  "/opt/appdata/mbin/var",
+                        "container":  "/srv/mbin/var"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "APP_ENV",
+                        "default":  "prod",
+                        "description":  "Application environment"
+                    },
+                    {
+                        "key":  "APP_SECRET",
+                        "default":  "change-me-app-secret",
+                        "description":  "Application secret",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DATABASE_URL",
+                        "default":  "postgresql://mbin:[email protected]:5432/mbin?serverVersion=15\u0026charset=utf8",
+                        "description":  "PostgreSQL connection string",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "REDIS_URL",
+                        "default":  "redis://mbin-redis:6379",
+                        "description":  "Redis URL"
+                    },
+                    {
+                        "key":  "MERCURE_URL",
+                        "default":  "http://mbin-mercure:3000/.well-known/mercure",
+                        "description":  "Mercure hub URL"
+                    },
+                    {
+                        "key":  "MERCURE_PUBLIC_URL",
+                        "default":  "http://localhost/.well-known/mercure",
+                        "description":  "Mercure public URL"
+                    },
+                    {
+                        "key":  "DOMAIN_NAME",
+                        "default":  "localhost",
+                        "description":  "Domain name"
+                    },
+                    {
+                        "key":  "KBIN_FEDERATION_ENABLED",
+                        "default":  "true",
+                        "description":  "Enable federation"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

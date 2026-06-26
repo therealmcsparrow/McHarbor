@@ -1,0 +1,41 @@
+{
+    "slug":  "rethinkdb",
+    "name":  "RethinkDB",
+    "description":  "Open-source real-time NoSQL database that pushes JSON queries to client applications.",
+    "category":  "Databases",
+    "image":  "rethinkdb:latest",
+    "logo":  "https://icon.horse/icon/rethinkdb.com",
+    "website":  "https://rethinkdb.com",
+    "docsUrl":  "https://rethinkdb.com/docs",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  28015,
+                      "container":  28015,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  29015,
+                      "container":  29015,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rethinkdb/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

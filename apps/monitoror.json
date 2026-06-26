@@ -1,0 +1,36 @@
+{
+    "slug":  "monitoror",
+    "name":  "Monitoror",
+    "description":  "Wallboard monitoring for the whole stack: HTTP, TCP, ping, DNS, Docker and more.",
+    "category":  "Monitoring",
+    "image":  "monitoror/monitoror:latest",
+    "logo":  "https://icon.horse/icon/monitoror.com",
+    "website":  "https://monitoror.com",
+    "docsUrl":  "https://github.com/monitoror/monitoror",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/monitoror/config",
+                        "container":  "/etc/monitoror"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MO_CONFIG",
+                        "default":  "/etc/monitoror/config.json",
+                        "description":  "Path to monitoror config"
+                    }
+                ],
+    "version":  "latest"
+}

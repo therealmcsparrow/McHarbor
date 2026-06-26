@@ -1,0 +1,56 @@
+{
+  "slug": "vault",
+  "name": "HashiCorp Vault",
+  "description": "Identity-based secrets management for tokens, passwords, certificates, and API keys.",
+  "category": "Security",
+  "image": "hashicorp/vault:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/vault.png",
+  "website": "https://www.vaultproject.io",
+  "docsUrl": "https://developer.hashicorp.com/vault/docs/platform/k8s",
+  "ports": [
+    {
+      "host": 8200,
+      "container": 8200,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/vault/config",
+      "container": "/vault/config"
+    },
+    {
+      "host": "/opt/appdata/vault/data",
+      "container": "/vault/data"
+    },
+    {
+      "host": "/opt/appdata/vault/logs",
+      "container": "/vault/logs"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "VAULT_DEV_ROOT_TOKEN_ID",
+      "default": "",
+      "description": "Dev mode root token (do not use in prod)",
+      "secret": true
+    },
+    {
+      "key": "VAULT_DEV_LISTEN_ADDRESS",
+      "default": "0.0.0.0:8200",
+      "description": "Dev mode listen address"
+    },
+    {
+      "key": "VAULT_LOCAL_CONFIG",
+      "default": "",
+      "description": "Inline JSON HCL config"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest"
+}

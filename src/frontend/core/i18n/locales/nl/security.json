@@ -118,6 +118,7 @@
     "revokeKey": "Intrekken",
     "revokeKeyConfirm": "Weet u zeker dat u deze API-sleutel wilt intrekken? Deze kan dan niet meer worden gebruikt.",
     "copyKey": "Sleutel kopiëren",
+    "copyFailed": "Kan niet naar klembord kopiëren",
     "keyCopied": "API-sleutel gekopieerd naar klembord",
     "keyWarning": "Kopieer deze sleutel nu. U kunt deze niet opnieuw bekijken.",
     "noKeys": "Nog geen API-sleutels aangemaakt",

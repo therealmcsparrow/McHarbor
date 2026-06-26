@@ -1,0 +1,41 @@
+{
+    "slug":  "zeek",
+    "name":  "Zeek",
+    "description":  "Powerful network analysis framework focused on security monitoring and traffic inspection.",
+    "category":  "Security",
+    "image":  "blacktop/zeek:latest",
+    "logo":  "https://icon.horse/icon/zeek.org",
+    "website":  "https://zeek.org",
+    "docsUrl":  "https://docs.zeek.org",
+    "ports":  [
+                  {
+                      "host":  47760,
+                      "container":  47760,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/zeek/logs",
+                        "container":  "/var/log/bro"
+                    },
+                    {
+                        "host":  "/opt/appdata/zeek/spool",
+                        "container":  "/var/spool/bro"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "ZEEK_INTERFACE",
+                        "default":  "eth0",
+                        "description":  "Capture interface"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

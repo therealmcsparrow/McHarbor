@@ -1,0 +1,32 @@
+{
+    "slug":  "whisper-cpp",
+    "name":  "Whisper.cpp",
+    "description":  "High-performance C++ port of OpenAI Whisper for CPU/GPU speech-to-text transcription.",
+    "category":  "AI \u0026 Voice",
+    "image":  "ghcr.io/ggml-org/whisper.cpp:main",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/ggerganov/whisper.cpp",
+    "docsUrl":  "https://github.com/ggerganov/whisper.cpp/tree/master/examples/server",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/whisper-cpp/models",
+                        "container":  "/models"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

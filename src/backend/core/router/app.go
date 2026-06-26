@@ -14,6 +14,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	"github.com/therealmcsparrow/mcharbor/core/config"
+	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	"github.com/therealmcsparrow/mcharbor/core/kubernetes"
@@ -33,6 +34,7 @@ type AppDeps struct {
 	Encryption     *encryption.Service
 	BackupCrypto   *backupcrypto.Service
 	Logger         *slog.Logger
+	Compact        *db.CompactManager
 	StaticDir      string
 
 	// Module mount functions (set during initialization)
@@ -42,10 +44,10 @@ type AppDeps struct {
 }
 
 // NewAppDeps creates a new AppDeps with all core services.
-func NewAppDeps(cfg *config.Config, db *sql.DB, dockerPool *docker.ClientPool, k8sPool *kubernetes.ClientPool, agentPool *agent.AgentPool, authSvc *auth.Service, rbacSvc *rbac.Service, auditLog *audit.Logger, enc *encryption.Service, backupCrypto *backupcrypto.Service, logger *slog.Logger) *AppDeps {
+func NewAppDeps(cfg *config.Config, database *sql.DB, dockerPool *docker.ClientPool, k8sPool *kubernetes.ClientPool, agentPool *agent.AgentPool, authSvc *auth.Service, rbacSvc *rbac.Service, auditLog *audit.Logger, enc *encryption.Service, backupCrypto *backupcrypto.Service, logger *slog.Logger) *AppDeps {
 	return &AppDeps{
 		Config:         cfg,
-		DB:             db,
+		DB:             database,
 		DockerPool:     dockerPool,
 		KubernetesPool: k8sPool,
 		AgentPool:      agentPool,
@@ -55,6 +57,7 @@ func NewAppDeps(cfg *config.Config, db *sql.DB, dockerPool *docker.ClientPool, k
 		Encryption:     enc,
 		BackupCrypto:   backupCrypto,
 		Logger:         logger,
+		Compact:        db.NewCompactManager(database, logger),
 		StaticDir:      "./static",
 	}
 }

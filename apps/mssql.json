@@ -1,0 +1,42 @@
+{
+    "slug":  "mssql",
+    "name":  "SQL Server 2022",
+    "description":  "Microsoft SQL Server 2022 developer edition for development.",
+    "category":  "Databases",
+    "image":  "mcr.microsoft.com/mssql/server:2022-latest",
+    "logo":  "https://icon.horse/icon/www.microsoft.com",
+    "website":  "https://www.microsoft.com/en-us/sql-server",
+    "docsUrl":  "https://learn.microsoft.com/en-us/sql/sql-server/",
+    "ports":  [
+                  {
+                      "host":  1433,
+                      "container":  1433,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mssql/data",
+                        "container":  "/var/opt/mssql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "ACCEPT_EULA",
+                        "default":  "Y",
+                        "description":  "Accept the SQL Server EULA (required)"
+                    },
+                    {
+                        "key":  "MSSQL_SA_PASSWORD",
+                        "default":  "",
+                        "description":  "SA password (must meet complexity requirements)",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "MSSQL_PID",
+                        "default":  "Developer",
+                        "description":  "SQL Server edition: Developer, Express, Standard, or Enterprise"
+                    }
+                ],
+    "version":  "2022-latest"
+}

@@ -3,7 +3,7 @@
 
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { IconArrowLeft, IconTrash, IconPencil, IconCheck, IconX, IconLoader2 } from '@tabler/icons-react';
+import { IconArrowLeft, IconTrash, IconPencil, IconCheck, IconX, IconLoader2, IconLock } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
@@ -14,22 +14,43 @@ type HeaderActionButtonProps = {
   onClick: () => void;
   icon: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 };
 
-function HeaderActionButton({ tooltip, onClick, icon, className = '' }: HeaderActionButtonProps) {
+function HeaderActionButton({
+  tooltip,
+  onClick,
+  icon,
+  className = '',
+  disabled = false,
+}: HeaderActionButtonProps) {
+  const button = (
+    <Button
+      variant="outline"
+      size="icon-sm"
+      aria-label={tooltip}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${className} ${disabled ? 'pointer-events-none opacity-40' : ''}`}
+    >
+      {icon}
+    </Button>
+  );
+  if (disabled) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span tabIndex={0} className="inline-flex">
+            {button}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>{tooltip}</TooltipContent>
+      </Tooltip>
+    );
+  }
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon-sm"
-          aria-label={tooltip}
-          onClick={onClick}
-          className={className}
-        >
-          {icon}
-        </Button>
-      </TooltipTrigger>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
       <TooltipContent>{tooltip}</TooltipContent>
     </Tooltip>
   );
@@ -40,6 +61,7 @@ type NetworkDetailHeaderProps = {
   id: string;
   driver: string;
   scope: string;
+  builtIn: boolean;
   editing: boolean;
   saving?: boolean;
   onEdit: () => void;
@@ -53,6 +75,7 @@ export function NetworkDetailHeader({
   id,
   driver,
   scope,
+  builtIn,
   editing,
   saving,
   onEdit,
@@ -83,7 +106,15 @@ export function NetworkDetailHeader({
         <div className="h-5 w-px bg-border" />
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-sm font-semibold text-foreground">{name}</h1>
+            <h1 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+              {builtIn && <IconLock className="size-3.5 text-muted-foreground" aria-hidden="true" />}
+              {name}
+            </h1>
+            {builtIn && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                {t('badges.builtIn')}
+              </Badge>
+            )}
             <Badge variant="default" className="text-[10px] px-1.5 py-0">
               {driver}
             </Badge>
@@ -121,17 +152,19 @@ export function NetworkDetailHeader({
         ) : (
           <>
             <HeaderActionButton
-              tooltip={t('actions.edit')}
+              tooltip={builtIn ? t('detail.builtInCannotEdit') : t('actions.edit')}
               onClick={onEdit}
               icon={<IconPencil className="size-3.5" />}
               className="text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/30"
+              disabled={builtIn}
             />
             <div className="h-5 w-px bg-border mx-0.5" />
             <HeaderActionButton
-              tooltip={t('actions.remove')}
+              tooltip={builtIn ? t('detail.builtInCannotRemove') : t('actions.remove')}
               onClick={onRemove}
               icon={<IconTrash className="size-3.5" />}
               className="text-red-500 hover:bg-red-500/10 hover:border-red-500/30"
+              disabled={builtIn}
             />
           </>
         )}

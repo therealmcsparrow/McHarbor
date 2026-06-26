@@ -1,0 +1,38 @@
+{
+    "slug":  "mc-router",
+    "name":  "MC-Router",
+    "description":  "Lightweight Minecraft proxy that routes players to backend servers based on hostname.",
+    "category":  "Gaming",
+    "image":  "itzg/mc-router:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/itzg/mc-router",
+    "docsUrl":  "https://github.com/itzg/mc-router/blob/master/README.md",
+    "ports":  [
+                  {
+                      "host":  25565,
+                      "container":  25565,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MC_ROUTER_API_HOST",
+                        "default":  "0.0.0.0:8080",
+                        "description":  "API listen address"
+                    }
+                ],
+    "version":  "latest"
+}

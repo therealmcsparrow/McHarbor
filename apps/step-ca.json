@@ -1,0 +1,48 @@
+{
+  "slug": "step-ca",
+  "name": "Step-CA",
+  "description": "Online certificate authority for issuing short-lived, automatically renewed X.509 certificates.",
+  "category": "Security",
+  "image": "smallstep/step-ca:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/step-ca.png",
+  "website": "https://smallstep.com/certificates",
+  "docsUrl": "https://smallstep.com/docs/step-ca",
+  "ports": [
+    {
+      "host": 9000,
+      "container": 9000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/step-ca/step",
+      "container": "/home/step"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "DOCKER_STEPCA_INIT_NAME",
+      "default": "Smallstep CA",
+      "description": "CA display name"
+    },
+    {
+      "key": "DOCKER_STEPCA_INIT_DNS_NAMES",
+      "default": "ca.example.com",
+      "description": "Comma-separated DNS names"
+    },
+    {
+      "key": "DOCKER_STEPCA_INIT_PASSWORD",
+      "default": "change-me",
+      "description": "CA key passphrase",
+      "secret": true
+    },
+    {
+      "key": "DOCKER_STEPCA_INIT_PROVISIONER_NAME",
+      "default": "admin",
+      "description": "Provisioner name"
+    }
+  ],
+  "minMemory": "256MB",
+  "version": "latest"
+}

@@ -1,0 +1,45 @@
+{
+    "slug":  "domoticz",
+    "name":  "Domoticz",
+    "description":  "Lightweight home automation system with web UI and broad device support.",
+    "category":  "Home Automation",
+    "image":  "domoticz/domoticz:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/domoticz.png",
+    "website":  "https://www.domoticz.com",
+    "docsUrl":  "https://www.domoticz.com/wiki/Domoticz_and_Docker",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6144,
+                      "container":  6144,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  1443,
+                      "container":  1443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/domoticz/config",
+                        "container":  "/opt/domoticz/userdata"
+                    },
+                    {
+                        "host":  "/opt/appdata/domoticz/scripts",
+                        "container":  "/opt/domoticz/scripts"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

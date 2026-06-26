@@ -4,6 +4,7 @@
 package networks
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -120,6 +121,11 @@ func (h *Handler) HandleRemove(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
 	if err := h.svc.Remove(r.Context(), envID, id); err != nil {
+		if errors.Is(err, ErrBuiltIn) {
+			h.app.Logger.Warn("refused to remove built-in network", "env", envID, "id", id, "error", err)
+			response.BadRequestCode(w, r, i18n.ErrNetworkBuiltIn)
+			return
+		}
 		h.app.Logger.Error("remove network failed", "env", envID, "id", id, "error", err)
 		response.InternalErrorCode(w, r, i18n.ErrNetworkRemoveFailed)
 		return

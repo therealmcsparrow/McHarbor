@@ -1,0 +1,63 @@
+{
+  "slug": "librechat",
+  "name": "LibreChat",
+  "description": "Multi-model AI chat platform with support for OpenAI, Anthropic, Bedrock, Ollama, and more.",
+  "category": "AI & Voice",
+  "image": "ghcr.io/danny-avila/librechat-dev:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/librechat.png",
+  "website": "https://www.librechat.ai",
+  "docsUrl": "https://www.librechat.ai/docs",
+  "ports": [
+    {
+      "host": 3080,
+      "container": 3080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/librechat/data",
+      "container": "/app/data"
+    },
+    {
+      "host": "/opt/appdata/librechat/uploads",
+      "container": "/app/uploads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "HOST",
+      "default": "0.0.0.0",
+      "description": "Bind address"
+    },
+    {
+      "key": "PORT",
+      "default": "3080",
+      "description": "Internal application port"
+    },
+    {
+      "key": "MONGO_URI",
+      "default": "mongodb://mongo:27017/LibreChat",
+      "description": "MongoDB connection string"
+    },
+    {
+      "key": "CREDS_KEY",
+      "default": "",
+      "description": "Encryption key for credentials (32-byte hex)",
+      "secret": true
+    },
+    {
+      "key": "CREDS_IV",
+      "default": "",
+      "description": "Encryption IV for credentials (16-byte hex)",
+      "secret": true
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

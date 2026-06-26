@@ -1,0 +1,31 @@
+{
+    "slug":  "blackbox-exporter",
+    "name":  "Blackbox Exporter",
+    "description":  "Prometheus blackbox probing for HTTP, HTTPS, DNS, TCP, ICMP and gRPC endpoints.",
+    "category":  "Monitoring",
+    "image":  "prom/blackbox-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/prometheus/blackbox_exporter",
+    "docsUrl":  "https://github.com/prometheus/blackbox_exporter#configuration",
+    "ports":  [
+                  {
+                      "host":  9115,
+                      "container":  9115,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/blackbox-exporter/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

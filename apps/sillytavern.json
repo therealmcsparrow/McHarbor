@@ -1,0 +1,36 @@
+{
+  "slug": "sillytavern",
+  "name": "SillyTavern",
+  "description": "Frontend for power users to interact with LLMs and roleplay characters with rich prompt control.",
+  "category": "AI & Voice",
+  "image": "ghcr.io/sillytavern/sillytavern:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sillytavern.png",
+  "website": "https://sillytavern.app",
+  "docsUrl": "https://docs.sillytavern.app",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/sillytavern/data",
+      "container": "/home/node/app/data"
+    },
+    {
+      "host": "/opt/appdata/sillytavern/plugins",
+      "container": "/home/node/app/plugins"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

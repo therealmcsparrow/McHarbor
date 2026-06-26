@@ -1,0 +1,35 @@
+{
+    "slug":  "nginx-dev",
+    "name":  "Nginx Dev",
+    "description":  "Nginx on Alpine for development, reverse proxy testing, and local routing.",
+    "category":  "Developer Tools",
+    "image":  "nginx:alpine",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nginx.png",
+    "website":  "https://nginx.org",
+    "docsUrl":  "https://nginx.org/en/docs/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nginx-dev/conf",
+                        "container":  "/etc/nginx/conf.d"
+                    },
+                    {
+                        "host":  "/opt/appdata/nginx-dev/html",
+                        "container":  "/usr/share/nginx/html"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "alpine"
+}

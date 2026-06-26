@@ -1,0 +1,56 @@
+{
+  "slug": "leantime",
+  "name": "Leantime",
+  "description": "Project management system designed for ADHD and non-project managers with ease of use.",
+  "category": "Productivity",
+  "image": "leantime/leantime:latest",
+  "logo": "https://leantime.io/favicon.ico",
+  "website": "https://leantime.io",
+  "docsUrl": "https://leantime.io/docs",
+  "ports": [
+    {
+      "host": 8596,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/leantime/data",
+      "container": "/var/www/html/data"
+    },
+    {
+      "host": "/opt/appdata/leantime/config",
+      "container": "/var/www/html/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "LEAN_DB_HOST",
+      "default": "mariadb",
+      "description": "Database host"
+    },
+    {
+      "key": "LEAN_DB_NAME",
+      "default": "leantime",
+      "description": "Database name"
+    },
+    {
+      "key": "LEAN_DB_USER",
+      "default": "leantime",
+      "description": "Database user"
+    },
+    {
+      "key": "LEAN_DB_PASSWORD",
+      "default": "",
+      "description": "Database password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

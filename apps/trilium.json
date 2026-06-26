@@ -1,0 +1,37 @@
+{
+  "slug": "trilium",
+  "name": "Trilium Notes",
+  "description": "Hierarchical note-taking application with rich text, scripting, and synchronization.",
+  "category": "Documents",
+  "image": "zadam/trilium:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/trilium.png",
+  "website": "https://github.com/zadam/trilium",
+  "docsUrl": "https://github.com/zadam/trilium/wiki/Docker-installation",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/trilium/data",
+      "container": "/home/node/trilium-data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "TRILIUM_NETWORK_HOSTNAME",
+      "default": "localhost",
+      "description": "Hostname for the Trilium server"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest"
+}

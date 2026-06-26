@@ -10,6 +10,8 @@ import { Badge } from '@resources/components/ui/Badge';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { Select } from '@resources/components/ui/Select';
 import { SearchFilterToolbar } from '@resources/components/SearchFilterToolbar';
+import { DateRangeFilter, DEFAULT_DATE_RANGE_VALUE, type DateRangeFilterValue } from '@resources/components/DateRangeFilter';
+import { useInfiniteScrollSentinel } from '@resources/hooks/useInfiniteScrollSentinel';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import {
   Dialog,
@@ -21,6 +23,7 @@ import {
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
 import { formatDate, truncateId } from '@resources/utils/format';
+import { resolveDateRange } from '@resources/utils/date-range';
 import { useSavedSearchFilters } from '@resources/hooks/useSavedSearchFilters';
 import { createSearchMatcher, matchesSearchFields, type SearchMode } from '@resources/utils/search-filter';
 import {
@@ -38,7 +41,19 @@ export default function AuditPage() {
   const [query, setQuery] = useState('');
   const [mode, setMode] = useState<SearchMode>('contains');
   const [selected, setSelected] = useState<AuditEntry | null>(null);
-  const { data: entries = [], isLoading } = useAuditLogs(actionFilter, entityTypeFilter);
+  const [dateRange, setDateRange] = useState<DateRangeFilterValue>(DEFAULT_DATE_RANGE_VALUE);
+  const resolvedRange = useMemo(() => resolveDateRange(dateRange.preset, dateRange.custom), [dateRange]);
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useAuditLogs(actionFilter, entityTypeFilter, resolvedRange);
+  const entries = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data],
+  );
   const matcher = useMemo(() => createSearchMatcher(query, mode), [mode, query]);
   const savedFilters = useSavedSearchFilters<{
     actionFilter: string;
@@ -87,6 +102,12 @@ export default function AuditPage() {
     [entries, envName, mode, query],
   );
 
+  const sentinelRef = useInfiniteScrollSentinel({
+    enabled: hasNextPage,
+    loading: isFetchingNextPage,
+    onIntersect: () => void fetchNextPage(),
+  });
+
   const handleSaveFilter = () => {
     const label = window.prompt(t('filters.savePrompt'));
     if (!label) {
@@ -123,6 +144,7 @@ export default function AuditPage() {
         onDeleteSavedFilter={savedFilters.deleteSelectedPreset}
         extraControls={
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <DateRangeFilter value={dateRange} onChange={setDateRange} />
             <Select value={actionFilter} onChange={setActionFilter} options={actionOptions} placeholder={t('audit.filterAction')} className="w-48" />
             <Select value={entityTypeFilter} onChange={setEntityTypeFilter} options={entityTypeOptions} placeholder={t('audit.filterEntityType')} className="w-48" />
             <div className="text-xs text-muted-foreground">{t('filters.matchCount', { count: filteredEntries.length })}</div>
@@ -140,50 +162,61 @@ export default function AuditPage() {
           <p>{query.trim() ? t('filters.noMatches') : t('audit.noEntries')}</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnTimestamp')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnUser')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnAction')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEntity')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEnvironment')}</th>
-                <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnDetails')}</th>
-                <th className="px-4 py-2.5 text-right font-medium text-muted-foreground" />
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEntries.map((entry) => (
-                <tr key={entry.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
-                  <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(entry.timestamp)}</td>
-                  <td className="px-4 py-2.5 font-medium text-foreground">{entry.username ?? '-'}</td>
-                  <td className="px-4 py-2.5">
-                    <Badge variant={ACTION_VARIANTS[entry.action] ?? 'secondary'}>{entry.action}</Badge>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-foreground truncate max-w-48">{entry.entityName ?? entry.entityType ?? '-'}</span>
-                      {entry.entityId && <span className="font-mono text-xs text-muted-foreground">{truncateId(entry.entityId)}</span>}
-                    </div>
-                  </td>
-                  <td className="px-4 py-2.5 text-muted-foreground">{envName(entry.environmentId)}</td>
-                  <td className="px-4 py-2.5 text-muted-foreground max-w-48 truncate">{entry.details ?? '-'}</td>
-                  <td className="px-4 py-2.5 text-right">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="outline" size="icon-sm" onClick={() => setSelected(entry)} aria-label={t('audit.viewDetails')}>
-                          <IconEye className="size-3.5" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>{t('audit.viewDetails')}</TooltipContent>
-                    </Tooltip>
-                  </td>
+        <>
+          <div className="overflow-hidden rounded-lg border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnTimestamp')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnUser')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnAction')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEntity')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEnvironment')}</th>
+                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnDetails')}</th>
+                  <th className="px-4 py-2.5 text-right font-medium text-muted-foreground" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredEntries.map((entry) => (
+                  <tr key={entry.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
+                    <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(entry.timestamp)}</td>
+                    <td className="px-4 py-2.5 font-medium text-foreground">{entry.username ?? '-'}</td>
+                    <td className="px-4 py-2.5">
+                      <Badge variant={ACTION_VARIANTS[entry.action] ?? 'secondary'}>{entry.action}</Badge>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex flex-col">
+                        <span className="font-medium text-foreground truncate max-w-48">{entry.entityName ?? entry.entityType ?? '-'}</span>
+                        {entry.entityId && <span className="font-mono text-xs text-muted-foreground">{truncateId(entry.entityId)}</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5 text-muted-foreground">{envName(entry.environmentId)}</td>
+                    <td className="px-4 py-2.5 text-muted-foreground max-w-48 truncate">{entry.details ?? '-'}</td>
+                    <td className="px-4 py-2.5 text-right">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="icon-sm" onClick={() => setSelected(entry)} aria-label={t('audit.viewDetails')}>
+                            <IconEye className="size-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{t('audit.viewDetails')}</TooltipContent>
+                      </Tooltip>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div ref={sentinelRef} className="flex h-12 items-center justify-center text-xs text-muted-foreground">
+            {isFetchingNextPage && (
+              <span className="flex items-center gap-2">
+                <Spinner size="sm" />
+                {t('common:list.loadingMore')}
+              </span>
+            )}
+            {!hasNextPage && !isFetchingNextPage && entries.length > 0 && t('common:list.endOfList')}
+          </div>
+        </>
       )}
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
@@ -204,4 +237,3 @@ export default function AuditPage() {
     </div>
   );
 }
-

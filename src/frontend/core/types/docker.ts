@@ -272,6 +272,7 @@ export type NetworkInfo = {
   >;
   Options: Record<string, string> | null;
   Labels: Record<string, string> | null;
+  BuiltIn?: boolean;
 };
 
 export type DockerInfo = {

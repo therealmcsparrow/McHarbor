@@ -1,0 +1,41 @@
+{
+    "slug":  "python-310-dev",
+    "name":  "Python 3.10",
+    "description":  "Python 3.10 slim image, stable interpreter with structural pattern matching and parenthesized context managers.",
+    "category":  "Developer Tools",
+    "image":  "python:3.10-slim",
+    "logo":  "https://icon.horse/icon/www.python.org",
+    "website":  "https://www.python.org",
+    "docsUrl":  "https://docs.python.org/3.10/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/python-310-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PYTHONDONTWRITEBYTECODE",
+                        "default":  "1",
+                        "description":  "Prevent Python from writing .pyc files"
+                    },
+                    {
+                        "key":  "PYTHONUNBUFFERED",
+                        "default":  "1",
+                        "description":  "Force stdout/stderr streams to be unbuffered"
+                    }
+                ],
+    "version":  "3.10-slim"
+}

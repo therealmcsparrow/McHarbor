@@ -1,0 +1,42 @@
+{
+    "slug":  "timescaledb",
+    "name":  "TimescaleDB",
+    "description":  "PostgreSQL scaled for time-series data with automatic partitioning and SQL compatibility.",
+    "category":  "Databases",
+    "image":  "timescale/timescaledb:latest-pg16",
+    "logo":  "https://icon.horse/icon/www.timescale.com",
+    "website":  "https://www.timescale.com",
+    "docsUrl":  "https://docs.timescale.com",
+    "ports":  [
+                  {
+                      "host":  5432,
+                      "container":  5432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/timescaledb/data",
+                        "container":  "/var/lib/postgresql/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "POSTGRES_USER",
+                        "default":  "postgres",
+                        "description":  "Database superuser name"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "",
+                        "description":  "Database superuser password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POSTGRES_DB",
+                        "default":  "timescale",
+                        "description":  "Default database name"
+                    }
+                ],
+    "version":  "latest-pg16"
+}

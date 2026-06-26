@@ -1,0 +1,42 @@
+{
+    "slug":  "talebook",
+    "name":  "Talebook",
+    "description":  "Self-hosted book library platform built on Calibre with a beautiful web UI, OPDS feed, and online reader.",
+    "category":  "Productivity",
+    "image":  "talebook/talebook:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/talebook/talebook",
+    "docsUrl":  "https://github.com/talebook/talebook/wiki",
+    "ports":  [
+                  {
+                      "host":  8580,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/talebook/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TALEBOOK_ADMIN",
+                        "default":  "admin",
+                        "description":  "Initial admin username"
+                    },
+                    {
+                        "key":  "TALEBOOK_PASS",
+                        "default":  "change-me",
+                        "description":  "Initial admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

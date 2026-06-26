@@ -1,0 +1,60 @@
+{
+  "slug": "cryptpad",
+  "name": "CryptPad",
+  "description": "Zero-knowledge encrypted collaboration suite for documents, sheets, slides, and more.",
+  "category": "Documents",
+  "image": "cryptpad/cryptpad:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/cryptpad.png",
+  "website": "https://cryptpad.org",
+  "docsUrl": "https://docs.cryptpad.org",
+  "ports": [
+    {
+      "host": 3001,
+      "container": 3000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 3002,
+      "container": 3001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/cryptpad/data",
+      "container": "/cryptpad/data"
+    },
+    {
+      "host": "/opt/appdata/cryptpad/blob",
+      "container": "/cryptpad/blob"
+    },
+    {
+      "host": "/opt/appdata/cryptpad/customize",
+      "container": "/cryptpad/customize"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "CPAD_MAIN_DOMAIN",
+      "default": "localhost",
+      "description": "Main domain hosting CryptPad"
+    },
+    {
+      "key": "CPAD_PROXY",
+      "default": "false",
+      "description": "Enable reverse proxy mode (set to true behind a reverse proxy)"
+    },
+    {
+      "key": "CPAD_HTTPS",
+      "default": "false",
+      "description": "Set true if serving over HTTPS directly"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

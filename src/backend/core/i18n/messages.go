@@ -102,6 +102,7 @@ var messagesEN = map[MsgCode]string{
 	ErrContainerBackupKeyMissing:         "Backup encryption key is not configured. Generate a key in Settings > Storage and mount it as the mcharbor_backup_key Docker secret.",
 	ErrContainerBackupRestoreKeyRequired: "This backup was encrypted with a different key. Enter the backup secret key to restore it.",
 	ErrContainerBackupRestoreKeyInvalid:  "The backup secret key could not decrypt this backup.",
+	ErrContainerBackupRunNotCancellable:   "The backup run is no longer running and cannot be cancelled.",
 	MsgContainerActionCompleted:          "Container action completed",
 	ErrContainerFileReadFailed:           "Failed to read file from container",
 	ErrContainerFileWriteFailed:          "Failed to write file to container",
@@ -156,6 +157,7 @@ var messagesEN = map[MsgCode]string{
 	ErrNetworkDisconnectFailed: "Failed to disconnect container from network",
 	ErrNetworkNameRequired:     "Network name is required",
 	ErrNetworkContainerReq:     "Container ID is required",
+	ErrNetworkBuiltIn:          "Built-in network cannot be modified or removed",
 	MsgNetworkCreated:          "Network created",
 	MsgNetworkRemoved:          "Network removed",
 	MsgNetworkConnected:        "Container connected to network",
@@ -296,6 +298,8 @@ var messagesEN = map[MsgCode]string{
 	ErrAgentSettingsInvalid:     "Invalid agent settings",
 	ErrRetentionSettingsInvalid: "Invalid retention settings",
 	MsgRetentionSettingsUpdated: "Retention settings updated",
+	MsgAuditLogPurged:           "Audit log cleared ({{count}} entries removed)",
+	MsgActivityLogPurged:        "Activity log cleared ({{count}} events removed)",
 
 	// Users
 	ErrUserNotFound:          "User not found",
@@ -684,6 +688,7 @@ var messagesNL = map[MsgCode]string{
 	ErrContainerBackupKeyMissing:         "Back-upversleutelingssleutel is niet geconfigureerd. Genereer een sleutel in Instellingen > Opslag en koppel deze als het Docker secret mcharbor_backup_key.",
 	ErrContainerBackupRestoreKeyRequired: "Deze back-up is versleuteld met een andere sleutel. Voer de geheime back-upsleutel in om deze te herstellen.",
 	ErrContainerBackupRestoreKeyInvalid:  "De geheime back-upsleutel kon deze back-up niet ontsleutelen.",
+	ErrContainerBackupRunNotCancellable:   "Deze back-up draait niet meer en kan niet meer worden geannuleerd.",
 	MsgContainerActionCompleted:          "Containeractie voltooid",
 	ErrContainerFileReadFailed:           "Kan bestand niet lezen uit container",
 	ErrContainerFileWriteFailed:          "Kan bestand niet schrijven naar container",
@@ -738,6 +743,7 @@ var messagesNL = map[MsgCode]string{
 	ErrNetworkDisconnectFailed: "Kan container niet loskoppelen van netwerk",
 	ErrNetworkNameRequired:     "Netwerknaam is vereist",
 	ErrNetworkContainerReq:     "Container-ID is vereist",
+	ErrNetworkBuiltIn:          "Ingebouwd netwerk kan niet worden gewijzigd of verwijderd",
 	MsgNetworkCreated:          "Netwerk aangemaakt",
 	MsgNetworkRemoved:          "Netwerk verwijderd",
 	MsgNetworkConnected:        "Container verbonden met netwerk",
@@ -878,6 +884,8 @@ var messagesNL = map[MsgCode]string{
 	ErrAgentSettingsInvalid:     "Ongeldige agent-instellingen",
 	ErrRetentionSettingsInvalid: "Ongeldige bewaarinstellingen",
 	MsgRetentionSettingsUpdated: "Bewaarinstellingen bijgewerkt",
+	MsgAuditLogPurged:           "Auditlogboek gewist ({{count}} items verwijderd)",
+	MsgActivityLogPurged:        "Activiteitenlog gewist ({{count}} events verwijderd)",
 
 	// Users
 	ErrUserNotFound:          "Gebruiker niet gevonden",
@@ -1266,6 +1274,7 @@ var messagesDE = map[MsgCode]string{
 	ErrContainerBackupKeyMissing:         "Backup-Verschluesselungsschluessel ist nicht konfiguriert. Generieren Sie einen Schluessel unter Einstellungen > Speicher und mounten Sie ihn als Docker Secret mcharbor_backup_key.",
 	ErrContainerBackupRestoreKeyRequired: "Dieses Backup wurde mit einem anderen Schluessel verschluesselt. Geben Sie den Backup-Geheimschluessel ein, um es wiederherzustellen.",
 	ErrContainerBackupRestoreKeyInvalid:  "Der Backup-Geheimschluessel konnte dieses Backup nicht entschluesseln.",
+	ErrContainerBackupRunNotCancellable:   "Der Backup-Lauf laeuft nicht mehr und kann nicht mehr abgebrochen werden.",
 	MsgContainerActionCompleted:          "Containeraktion abgeschlossen",
 	ErrContainerFileReadFailed:           "Datei konnte nicht aus dem Container gelesen werden",
 	ErrContainerFileWriteFailed:          "Datei konnte nicht in den Container geschrieben werden",
@@ -1320,6 +1329,7 @@ var messagesDE = map[MsgCode]string{
 	ErrNetworkDisconnectFailed: "Container konnte nicht vom Netzwerk getrennt werden",
 	ErrNetworkNameRequired:     "Netzwerkname ist erforderlich",
 	ErrNetworkContainerReq:     "Container-ID ist erforderlich",
+	ErrNetworkBuiltIn:          "Integriertes Netzwerk kann nicht geändert oder entfernt werden",
 	MsgNetworkCreated:          "Netzwerk erstellt",
 	MsgNetworkRemoved:          "Netzwerk entfernt",
 	MsgNetworkConnected:        "Container mit Netzwerk verbunden",
@@ -1460,6 +1470,8 @@ var messagesDE = map[MsgCode]string{
 	ErrAgentSettingsInvalid:     "Ungültige Agent-Einstellungen",
 	ErrRetentionSettingsInvalid: "Ungültige Aufbewahrungseinstellungen",
 	MsgRetentionSettingsUpdated: "Aufbewahrungseinstellungen aktualisiert",
+	MsgAuditLogPurged:           "Audit-Log gelöscht ({{count}} Einträge entfernt)",
+	MsgActivityLogPurged:        "Aktivitäts-Log gelöscht ({{count}} Ereignisse entfernt)",
 
 	// Users
 	ErrUserNotFound:          "Benutzer nicht gefunden",
@@ -1848,6 +1860,7 @@ var messagesES = map[MsgCode]string{
 	ErrContainerBackupKeyMissing:         "La clave de cifrado de copias no esta configurada. Genere una clave en Ajustes > Almacenamiento y montela como el secreto Docker mcharbor_backup_key.",
 	ErrContainerBackupRestoreKeyRequired: "Esta copia se cifro con una clave diferente. Introduzca la clave secreta de copia para restaurarla.",
 	ErrContainerBackupRestoreKeyInvalid:  "La clave secreta de copia no pudo descifrar esta copia.",
+	ErrContainerBackupRunNotCancellable:   "La ejecución de copia ya no está en curso y no se puede cancelar.",
 	ErrContainerFileReadFailed:           "No se pudo leer el archivo del contenedor",
 	ErrContainerFileWriteFailed:          "No se pudo escribir el archivo en el contenedor",
 	ErrContainerFileUploadFailed:         "No se pudo cargar el archivo al contenedor",
@@ -1901,6 +1914,7 @@ var messagesES = map[MsgCode]string{
 	ErrNetworkDisconnectFailed: "No se pudo desconectar el contenedor de la red",
 	ErrNetworkNameRequired:     "El nombre de la red es obligatorio.",
 	ErrNetworkContainerReq:     "Se requiere identificación del contenedor",
+	ErrNetworkBuiltIn:          "La red integrada no se puede modificar ni eliminar",
 	MsgNetworkCreated:          "Red creada",
 	MsgNetworkRemoved:          "Red eliminada",
 	MsgNetworkConnected:        "Contenedor conectado a la red",
@@ -2041,6 +2055,8 @@ var messagesES = map[MsgCode]string{
 	ErrAgentSettingsInvalid:     "Configuración de agente no válida",
 	ErrRetentionSettingsInvalid: "Configuración de retención no válida",
 	MsgRetentionSettingsUpdated: "Configuración de retención actualizada",
+	MsgAuditLogPurged:           "Registro de auditoría borrado ({{count}} entradas eliminadas)",
+	MsgActivityLogPurged:        "Registro de actividad borrado ({{count}} eventos eliminados)",
 
 	// Users
 	ErrUserNotFound:          "Usuario no encontrado",
@@ -2429,6 +2445,7 @@ var messagesFR = map[MsgCode]string{
 	ErrContainerBackupKeyMissing:         "La cle de chiffrement des sauvegardes n'est pas configuree. Generez une cle dans Parametres > Stockage et montez-la comme secret Docker mcharbor_backup_key.",
 	ErrContainerBackupRestoreKeyRequired: "Cette sauvegarde a ete chiffree avec une autre cle. Saisissez la cle secrete de sauvegarde pour la restaurer.",
 	ErrContainerBackupRestoreKeyInvalid:  "La cle secrete de sauvegarde n'a pas pu dechiffrer cette sauvegarde.",
+	ErrContainerBackupRunNotCancellable:   "L'exécution de la sauvegarde n'est plus en cours et ne peut pas être annulée.",
 	ErrContainerFileReadFailed:           "Échec de la lecture du fichier à partir du conteneur",
 	ErrContainerFileWriteFailed:          "Échec de l'écriture du fichier dans le conteneur",
 	ErrContainerFileUploadFailed:         "Échec du téléchargement du fichier vers le conteneur",
@@ -2482,6 +2499,7 @@ var messagesFR = map[MsgCode]string{
 	ErrNetworkDisconnectFailed: "Échec de la déconnexion du conteneur du réseau",
 	ErrNetworkNameRequired:     "Le nom du réseau est requis",
 	ErrNetworkContainerReq:     "L'ID du conteneur est requis",
+	ErrNetworkBuiltIn:          "Le réseau intégré ne peut pas être modifié ou supprimé",
 	MsgNetworkCreated:          "Réseau créé",
 	MsgNetworkRemoved:          "Réseau supprimé",
 	MsgNetworkConnected:        "Conteneur connecté au réseau",
@@ -2622,6 +2640,8 @@ var messagesFR = map[MsgCode]string{
 	ErrAgentSettingsInvalid:     "Paramètres d'agent non valides",
 	ErrRetentionSettingsInvalid: "Paramètres de conservation non valides",
 	MsgRetentionSettingsUpdated: "Paramètres de rétention mis à jour",
+	MsgAuditLogPurged:           "Journal d'audit effacé ({{count}} entrées supprimées)",
+	MsgActivityLogPurged:        "Journal d'activité effacé ({{count}} événements supprimés)",
 
 	// Users
 	ErrUserNotFound:          "Utilisateur introuvable",
@@ -3010,6 +3030,7 @@ var messagesPT = map[MsgCode]string{
 	ErrContainerBackupKeyMissing:         "A chave de criptografia de backups nao esta configurada. Gere uma chave em Configuracoes > Armazenamento e monte-a como o segredo Docker mcharbor_backup_key.",
 	ErrContainerBackupRestoreKeyRequired: "Este backup foi criptografado com uma chave diferente. Informe a chave secreta do backup para restaura-lo.",
 	ErrContainerBackupRestoreKeyInvalid:  "A chave secreta do backup nao conseguiu descriptografar este backup.",
+	ErrContainerBackupRunNotCancellable:   "A execução do backup não está mais em andamento e não pode ser cancelada.",
 	ErrContainerFileReadFailed:           "Falha ao ler o arquivo do contêiner",
 	ErrContainerFileWriteFailed:          "Falha ao gravar arquivo no contêiner",
 	ErrContainerFileUploadFailed:         "Falha ao fazer upload do arquivo para o contêiner",
@@ -3063,6 +3084,7 @@ var messagesPT = map[MsgCode]string{
 	ErrNetworkDisconnectFailed: "Falha ao desconectar o contêiner da rede",
 	ErrNetworkNameRequired:     "O nome da rede é obrigatório",
 	ErrNetworkContainerReq:     "O ID do contêiner é obrigatório",
+	ErrNetworkBuiltIn:          "A rede integrada não pode ser modificada ou removida",
 	MsgNetworkCreated:          "Rede criada",
 	MsgNetworkRemoved:          "Rede removida",
 	MsgNetworkConnected:        "Contêiner conectado à rede",
@@ -3203,6 +3225,8 @@ var messagesPT = map[MsgCode]string{
 	ErrAgentSettingsInvalid:     "Configurações de agente inválidas",
 	ErrRetentionSettingsInvalid: "Configurações de retenção inválidas",
 	MsgRetentionSettingsUpdated: "Configurações de retenção atualizadas",
+	MsgAuditLogPurged:           "Registro de auditoria limpo ({{count}} entradas removidas)",
+	MsgActivityLogPurged:        "Registro de atividade limpo ({{count}} eventos removidos)",
 
 	// Users
 	ErrUserNotFound:          "Usuário não encontrado",

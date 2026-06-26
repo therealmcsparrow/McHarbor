@@ -465,7 +465,16 @@
     "restore": "Restaurer la sauvegarde",
     "restoring": "Restauration...",
     "restoreTitle": "Restaurer la sauvegarde ?",
+    "restoringTitle": "Restauration en cours…",
+    "restoreCompleteTitle": "Restauration terminée",
+    "restoreFailedTitle": "Échec de la restauration",
     "restoreDescription": "Cela restaure l'archive de sauvegarde dans le conteneur d'origine. Les fichiers existants dans le conteneur ou les chemins montes peuvent etre remplaces.",
+    "restoringHeading": "Restauration de la sauvegarde…",
+    "restoreCompleteHeading": "Restauration terminée",
+    "restoreFailedHeading": "Échec de la restauration",
+    "restoreCompleteHint": "Le conteneur a été restauré depuis la sauvegarde. Vous pouvez fermer cette boîte de dialogue.",
+    "closeRestore": "Fermer",
+    "startedAt": "Démarré {{value}}",
     "restoreSecretTitle": "Saisir la cle secrete de sauvegarde",
     "restoreSecretDescription": "Cette sauvegarde a ete chiffree avec une cle differente de la cle de sauvegarde McHarbor actuelle. Saisissez la cle secrete d'origine.",
     "restoreSecretPlaceholder": "Cle de chiffrement de sauvegarde",
@@ -490,7 +499,8 @@
     "status": {
       "running": "Execution",
       "success": "Reussie",
-      "failure": "Echec"
+      "failure": "Echec",
+      "cancelled": "Annulee"
     },
     "progress": {
       "queued": "En attente du demarrage de la sauvegarde.",
@@ -528,11 +538,16 @@
     "deleteScheduleDescription": "Cela supprime la planification. Les archives existantes ne sont pas supprimees.",
     "deleteRunTitle": "Supprimer la sauvegarde ?",
     "deleteRunDescription": "Cela supprime definitivement l'execution de sauvegarde et le fichier d'archive local lorsqu'il existe. Cette action est irreversible.",
+    "cancelRun": "Annuler",
+    "cancelRunConfirm": "Annuler la sauvegarde",
+    "cancelRunTitle": "Annuler la sauvegarde en cours ?",
+    "cancelRunDescription": "La sauvegarde en cours sera arrêtée. Les opérations Docker, agent ou stockage en cours seront abandonnées. La sauvegarde sera marquée comme annulée et pourra ensuite être supprimée.",
     "toast": {
       "started": "Sauvegarde demarree",
       "scheduleCreated": "Planification de sauvegarde enregistree",
       "scheduleDeleted": "Planification de sauvegarde supprimee",
       "runDeleted": "Sauvegarde supprimee",
+      "runCancelled": "Sauvegarde annulee",
       "restoreStarted": "Restauration demarree",
       "restored": "Sauvegarde restauree"
     }

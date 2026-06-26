@@ -1,47 +1,47 @@
 {
-  "slug": "cadvisor",
-  "name": "cAdvisor",
-  "description": "Container resource usage and performance metrics exporter.",
-  "category": "Monitoring",
-  "image": "gcr.io/cadvisor/cadvisor:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/cadvisor.svg",
-  "website": "https://github.com/google/cadvisor",
-  "docsUrl": "https://github.com/google/cadvisor",
-  "ports": [
-    {
-      "host": 8080,
-      "container": 8080,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/",
-      "container": "/rootfs",
-      "readOnly": true
-    },
-    {
-      "host": "/var/run",
-      "container": "/var/run",
-      "readOnly": true
-    },
-    {
-      "host": "/sys",
-      "container": "/sys",
-      "readOnly": true
-    },
-    {
-      "host": "/var/lib/docker",
-      "container": "/var/lib/docker",
-      "readOnly": true
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "cadvisor",
+    "name":  "cAdvisor",
+    "description":  "Container resource usage and performance metrics exporter.",
+    "category":  "Monitoring",
+    "image":  "gcr.io/cadvisor/cadvisor:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/cadvisor.png",
+    "website":  "https://github.com/google/cadvisor",
+    "docsUrl":  "https://github.com/google/cadvisor",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/",
+                        "container":  "/rootfs",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/var/run",
+                        "container":  "/var/run",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/sys",
+                        "container":  "/sys",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/var/lib/docker",
+                        "container":  "/var/lib/docker",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

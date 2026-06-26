@@ -1,0 +1,41 @@
+{
+    "slug":  "authentik-proxy",
+    "name":  "Authentik Proxy",
+    "description":  "Forward-auth reverse proxy that gates apps behind Authentik SSO.",
+    "category":  "Security",
+    "image":  "ghcr.io/goauthentik/proxy:latest",
+    "logo":  "https://icon.horse/icon/goauthentik.io",
+    "website":  "https://goauthentik.io",
+    "docsUrl":  "https://docs.goauthentik.io/installation/proxy",
+    "ports":  [
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/authentik-proxy/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "AUTHENTIK_HOST",
+                        "default":  "https://authentik.example.com",
+                        "description":  "Authentik instance URL"
+                    },
+                    {
+                        "key":  "AUTHENTIK_INSECURE",
+                        "default":  "false",
+                        "description":  "Skip TLS verification (dev only)"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

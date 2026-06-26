@@ -1,0 +1,39 @@
+{
+    "slug":  "dify-web",
+    "name":  "Dify Web",
+    "description":  "Frontend for the Dify LLM app platform. Provides the visual workflow editor and chat UI.",
+    "category":  "AI \u0026 Voice",
+    "image":  "langgenius/dify-web:latest",
+    "logo":  "https://icon.horse/icon/dify.ai",
+    "website":  "https://dify.ai",
+    "docsUrl":  "https://docs.dify.ai/getting-started/install-self-hosted/docker-compose",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CONSOLE_API_URL",
+                        "default":  "http://api:5001",
+                        "description":  "Internal Dify API base URL"
+                    },
+                    {
+                        "key":  "APP_API_URL",
+                        "default":  "http://api:5001",
+                        "description":  "Internal Dify API base URL for apps"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

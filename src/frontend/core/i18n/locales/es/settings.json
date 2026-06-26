@@ -37,7 +37,14 @@
     "backupDays": "Retención de copias de seguridad (días)",
     "backupDaysDescription": "Número máximo de días para conservar copias de seguridad correctas por contenedor. Los archivos más antiguos se eliminan automáticamente. Establezca en 0 para conservar copias sin límite de antigüedad.",
     "backupCount": "Retención de copias de seguridad (cantidad)",
-    "backupCountDescription": "Número máximo de copias de seguridad correctas que se conservan por contenedor. Los archivos de copia más antiguos se eliminan automáticamente. Establezca en 0 para conservar todas las copias."
+    "backupCountDescription": "Número máximo de copias de seguridad correctas que se conservan por contenedor. Los archivos de copia más antiguos se eliminan automáticamente. Establezca en 0 para conservar todas las copias.",
+    "clearNow": "Limpiar ahora",
+    "clearNowHint": "Ejecutar la purga de retención ahora (entradas anteriores a {{days}} días)",
+    "clearAuditTitle": "¿Limpiar registro de auditoría?",
+    "clearAuditDescription": "Eliminar permanentemente todas las entradas del registro de auditoría anteriores a {{days}} días. El número de entradas eliminadas se mostrará después de la operación. Esta acción no se puede deshacer.",
+    "clearActivityTitle": "¿Limpiar registro de actividad?",
+    "clearActivityDescription": "Eliminar permanentemente todos los eventos de actividad anteriores a {{days}} días. El número de eventos eliminados se mostrará después de la operación. Esta acción no se puede deshacer.",
+    "keepForever": "Establezca la retención en un número positivo para habilitar la limpieza."
   },
   "auth": {
     "description": "Configure proveedores de autenticación y ajustes de sesión.",
@@ -809,9 +816,14 @@
     "policyUpdated": "Actualizar política actualizada",
     "policyDeleted": "Política de actualización eliminada",
     "retentionUpdated": "Configuración de retención actualizada",
+    "auditLogPurged": "Registro de auditoría borrado ({{count}} entradas)",
+    "activityLogPurged": "Registro de actividad borrado ({{count}} eventos)",
+    "auditLogPurgedVacuuming": "Registro de auditoría borrado ({{count}} entradas). Compactando la base de datos en segundo plano...",
+    "activityLogPurgedVacuuming": "Registro de actividad borrado ({{count}} eventos). Compactando la base de datos en segundo plano...",
     "backupKeyGenerated": "Clave de cifrado de copias generada",
     "backupKeyCopied": "Clave de cifrado de copias copiada",
     "backupKeySetupCopied": "Comando de preparacion de copias copiado",
+    "copyFailed": "No se pudo copiar al portapapeles",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
     "storageBackupsMigrated": "Copias migradas: {{migrated}} copiadas, {{skipped}} omitidas, {{failed}} fallidas",
     "storageBackupsMigrationFailed": "Error al migrar las copias"

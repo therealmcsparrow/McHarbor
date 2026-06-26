@@ -1,0 +1,36 @@
+{
+    "slug":  "otel-collector",
+    "name":  "OpenTelemetry Collector",
+    "description":  "Vendor-agnostic OpenTelemetry Collector for receiving, processing and exporting telemetry data.",
+    "category":  "Monitoring",
+    "image":  "otel/opentelemetry-collector:latest",
+    "logo":  "https://icon.horse/icon/opentelemetry.io",
+    "website":  "https://opentelemetry.io",
+    "docsUrl":  "https://opentelemetry.io/docs/collector/",
+    "ports":  [
+                  {
+                      "host":  4317,
+                      "container":  4317,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4318,
+                      "container":  4318,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/otel-collector/config",
+                        "container":  "/etc/otelcol"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

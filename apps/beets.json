@@ -1,0 +1,49 @@
+{
+    "slug":  "beets",
+    "name":  "Beets",
+    "description":  "Music library manager that catalogs, tags, and renames audio files automatically.",
+    "category":  "Media",
+    "image":  "linuxserver/beets:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/beets.png",
+    "website":  "https://beets.io",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-beets",
+    "ports":  [
+                  {
+                      "host":  8337,
+                      "container":  8337,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/beets/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/beets/music",
+                        "container":  "/music"
+                    },
+                    {
+                        "host":  "/opt/appdata/beets/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "latest"
+}

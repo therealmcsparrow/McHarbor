@@ -1,0 +1,31 @@
+{
+    "slug":  "esphome-web",
+    "name":  "ESPHome Web",
+    "description":  "ESPHome device manager and dashboard with YAML configuration and OTA updates.",
+    "category":  "Home Automation",
+    "image":  "esphome/esphome:latest",
+    "logo":  "https://icon.horse/icon/esphome.io",
+    "website":  "https://esphome.io",
+    "docsUrl":  "https://esphome.io/guides/getting_started_command_line.html",
+    "ports":  [
+                  {
+                      "host":  6052,
+                      "container":  6052,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/esphome-web/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

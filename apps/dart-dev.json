@@ -1,0 +1,31 @@
+{
+  "slug": "dart-dev",
+  "name": "Dart",
+  "description": "Dart stable SDK, client-optimized language for building fast apps on any platform.",
+  "category": "Developer Tools",
+  "image": "dart:stable",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/dart.png",
+  "website": "https://dart.dev",
+  "docsUrl": "https://dart.dev/guides",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/dart-dev/app",
+      "container": "/usr/src/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "stable"
+}

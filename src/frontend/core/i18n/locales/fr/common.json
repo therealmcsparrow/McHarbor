@@ -184,7 +184,8 @@
     "reinstallSelected": "Réinstaller la sélection",
     "confirmTitle": "Confirmer l'action par lots",
     "confirmDescription": "Etes-vous sûr de vouloir les articles {{action}} {{count}} ?",
-    "confirmPruneDescription": "Supprimez les ressources inutilisées qui ne sont plus référencées."
+    "confirmPruneDescription": "Supprimez les ressources inutilisées qui ne sont plus référencées.",
+    "clearSelection": "Effacer la selection"
   },
   "errors": {
     "somethingWentWrong": "Quelque chose s'est mal passé",
@@ -283,6 +284,11 @@
     "running": "{{count}} en cours d'exécution",
     "services": "Service {{count}}"
   },
+  "list": {
+    "loadingMore": "Chargement supplémentaire...",
+    "endOfList": "Fin de la liste",
+    "loadMore": "Charger plus"
+  },
   "logs": {
     "title": "Journaux",
     "description": "Afficher la sortie du journal du conteneur",
@@ -340,6 +346,30 @@
     "detailsTitle": "Détails de l'entrée d'audit",
     "viewDetails": "Afficher les détails",
     "local": "Locale"
+  },
+  "dateRange": {
+    "label": "Plage de dates",
+    "title": "Période",
+    "allTime": "Toute la période",
+    "reset": "Réinitialiser",
+    "close": "Fermer",
+    "from": "De",
+    "to": "À",
+    "presetAll": "Toute la période",
+    "presetLast15Minutes": "15 dernières minutes",
+    "presetLast1Hour": "Dernière heure",
+    "presetLast24Hours": "Dernières 24 heures",
+    "presetToday": "Aujourd'hui",
+    "presetYesterday": "Hier",
+    "presetThisWeek": "Cette semaine",
+    "presetLastWeek": "Semaine dernière",
+    "presetLast7Days": "7 derniers jours",
+    "presetThisMonth": "Ce mois-ci",
+    "presetLastMonth": "Mois dernier",
+    "presetLast30Days": "30 derniers jours",
+    "presetThisYear": "Cette année",
+    "presetLastYear": "Année dernière",
+    "presetCustom": "Plage personnalisée"
   },
   "blueprints": {
     "title": "Plans",
@@ -842,5 +872,13 @@
       "themeSystemDescription": "Suivez le r?glage du navigateur ou du syst?me d'exploitation.",
       "languageDescription": "Les changements de langue sont appliques immediatement et enregistres dans votre profil utilisateur."
     }
+  },
+  "clipboard": {
+    "manualCopyTitle": "Copier manuellement",
+    "manualCopyDescription": "Votre navigateur bloque l'?criture automatique dans le presse-papiers car cette page est servie en HTTP non chiffr?. Utilisez le champ ci-dessous pour copier la valeur.",
+    "manualCopyHint": "Le texte est d?j? s?lectionn? : appuyez sur Ctrl+C (Cmd+C sur macOS) pour le copier.",
+    "selectAndCopy": "S?lectionner et copier",
+    "copied": "Copi?",
+    "close": "Fermer"
   }
 }

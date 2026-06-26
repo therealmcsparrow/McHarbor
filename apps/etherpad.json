@@ -1,0 +1,64 @@
+{
+  "slug": "etherpad",
+  "name": "Etherpad",
+  "description": "Real-time collaborative text editor with plugins, exports, and rich formatting.",
+  "category": "Documents",
+  "image": "etherpad/etherpad:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/etherpad.png",
+  "website": "https://etherpad.org",
+  "docsUrl": "https://github.com/ether/etherpad-lite",
+  "ports": [
+    {
+      "host": 9001,
+      "container": 9001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/etherpad/data",
+      "container": "/opt/etherpad-lite/var"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "ADMIN_PASSWORD",
+      "default": "change-me",
+      "description": "Admin password",
+      "secret": true
+    },
+    {
+      "key": "DB_TYPE",
+      "default": "sqlite",
+      "description": "Database type (sqlite or postgres)"
+    },
+    {
+      "key": "DB_HOST",
+      "default": "etherpad-db",
+      "description": "Database host (when DB_TYPE=postgres)"
+    },
+    {
+      "key": "DB_USER",
+      "default": "etherpad",
+      "description": "Database user"
+    },
+    {
+      "key": "DB_PASS",
+      "default": "change-me",
+      "description": "Database password",
+      "secret": true
+    },
+    {
+      "key": "DB_NAME",
+      "default": "etherpad",
+      "description": "Database name"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

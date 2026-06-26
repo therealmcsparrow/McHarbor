@@ -1,0 +1,37 @@
+{
+    "slug":  "cassandra-reaper",
+    "name":  "Cassandra Reaper",
+    "description":  "Centralized management UI for Cassandra repairs, backups, and cluster operations.",
+    "category":  "Databases",
+    "image":  "thelastpickle/cassandra-reaper:latest",
+    "logo":  "https://icon.horse/icon/cassandra-reaper.io",
+    "website":  "http://cassandra-reaper.io",
+    "docsUrl":  "http://cassandra-reaper.io/docs/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cassandra-reaper/data",
+                        "container":  "/var/lib/cassandra-reaper"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "REAPER_AUTH_USER",
+                        "default":  "admin",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "REAPER_AUTH_PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

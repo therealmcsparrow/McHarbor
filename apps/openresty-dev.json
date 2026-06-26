@@ -1,0 +1,35 @@
+{
+    "slug":  "openresty-dev",
+    "name":  "OpenResty Dev",
+    "description":  "OpenResty full-fledged web platform with Nginx and LuaJIT for development.",
+    "category":  "Developer Tools",
+    "image":  "openresty/openresty:alpine",
+    "logo":  "https://icon.horse/icon/openresty.org",
+    "website":  "https://openresty.org",
+    "docsUrl":  "https://openresty.org/en/docker.html",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/openresty-dev/conf",
+                        "container":  "/usr/local/openresty/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/openresty-dev/logs",
+                        "container":  "/usr/local/openresty/nginx/logs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "alpine"
+}

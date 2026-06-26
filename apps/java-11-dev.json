@@ -1,0 +1,36 @@
+{
+    "slug":  "java-11-dev",
+    "name":  "Java JDK 11",
+    "description":  "Eclipse Temurin 11 JDK on Alpine, legacy long-term support Java for maintained enterprise applications.",
+    "category":  "Developer Tools",
+    "image":  "eclipse-temurin:11-jdk-alpine",
+    "logo":  "https://icon.horse/icon/adoptium.net",
+    "website":  "https://adoptium.net",
+    "docsUrl":  "https://adoptium.net/docs",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/java-11-dev/app",
+                        "container":  "/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JAVA_HOME",
+                        "default":  "/opt/java/openjdk",
+                        "description":  "Java installation directory"
+                    }
+                ],
+    "version":  "11-jdk-alpine"
+}

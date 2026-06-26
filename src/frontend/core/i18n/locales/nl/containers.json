@@ -476,7 +476,16 @@
     "restore": "Back-up herstellen",
     "restoring": "Herstellen...",
     "restoreTitle": "Back-up herstellen?",
+    "restoringTitle": "Back-up herstellen…",
+    "restoreCompleteTitle": "Herstel voltooid",
+    "restoreFailedTitle": "Herstel mislukt",
     "restoreDescription": "Dit zet het back-uparchief terug in de oorspronkelijke container. Bestaande bestanden in de container of mountpaden kunnen worden overschreven.",
+    "restoringHeading": "Back-up wordt hersteld…",
+    "restoreCompleteHeading": "Herstel voltooid",
+    "restoreFailedHeading": "Herstel mislukt",
+    "restoreCompleteHint": "De container is hersteld vanuit de back-up. Je kunt dit dialoogvenster sluiten.",
+    "closeRestore": "Sluiten",
+    "startedAt": "Gestart {{value}}",
     "restoreSecretTitle": "Back-upgeheime sleutel invoeren",
     "restoreSecretDescription": "Deze back-up is versleuteld met een andere sleutel dan de huidige McHarbor-back-upsleutel. Voer de oorspronkelijke geheime sleutel in.",
     "restoreSecretPlaceholder": "Back-upversleutelingssleutel",
@@ -501,7 +510,8 @@
     "status": {
       "running": "Actief",
       "success": "Gelukt",
-      "failure": "Mislukt"
+      "failure": "Mislukt",
+      "cancelled": "Geannuleerd"
     },
     "progress": {
       "queued": "Wacht op het starten van de back-up.",
@@ -539,11 +549,16 @@
     "deleteScheduleDescription": "Dit verwijdert het schema. Bestaande back-uparchieven worden niet verwijderd.",
     "deleteRunTitle": "Back-up verwijderen?",
     "deleteRunDescription": "Dit verwijdert de back-uprun en het lokale archiefbestand permanent wanneer aanwezig. Deze actie kan niet ongedaan worden gemaakt.",
+    "cancelRun": "Annuleren",
+    "cancelRunConfirm": "Back-up annuleren",
+    "cancelRunTitle": "Lopende back-up annuleren?",
+    "cancelRunDescription": "De lopende back-up wordt gestopt. Docker-, agent- of opslagbewerkingen die bezig zijn, worden afgebroken. De back-up wordt gemarkeerd als geannuleerd en kan daarna worden verwijderd.",
     "toast": {
       "started": "Back-up gestart",
       "scheduleCreated": "Back-upschema opgeslagen",
       "scheduleDeleted": "Back-upschema verwijderd",
       "runDeleted": "Back-up verwijderd",
+      "runCancelled": "Back-up geannuleerd",
       "restoreStarted": "Herstel gestart",
       "restored": "Back-up hersteld"
     }

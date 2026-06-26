@@ -1,0 +1,26 @@
+{
+  "slug": "standard-notes",
+  "name": "Standard Notes",
+  "description": "End-to-end encrypted notes platform with extended features for power users.",
+  "category": "Documents",
+  "image": "standardnotes/web:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/standard-notes.png",
+  "website": "https://standardnotes.com",
+  "docsUrl": "https://docs.standardnotes.com",
+  "ports": [
+    {
+      "host": 8099,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

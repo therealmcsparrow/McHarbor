@@ -1,0 +1,41 @@
+{
+    "slug":  "xtts-server",
+    "name":  "XTTS Server",
+    "description":  "Real-time voice cloning TTS server supporting 17 languages from Coqui\u0027s XTTS v2 model.",
+    "category":  "AI \u0026 Voice",
+    "image":  "ghcr.io/coqui-ai/xtts-streaming-server:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/coqui-ai/TTS",
+    "docsUrl":  "https://github.com/coqui-ai/TTS/tree/dev/docker",
+    "ports":  [
+                  {
+                      "host":  8020,
+                      "container":  8020,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/xtts-server/speakers",
+                        "container":  "/app/speakers"
+                    },
+                    {
+                        "host":  "/opt/appdata/xtts-server/output",
+                        "container":  "/app/output"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DEVICE",
+                        "default":  "cuda",
+                        "description":  "Compute device: cuda or cpu"
+                    }
+                ],
+    "minMemory":  "6GB",
+    "version":  "latest"
+}

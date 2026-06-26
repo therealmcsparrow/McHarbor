@@ -1,0 +1,37 @@
+{
+    "slug":  "mitmproxy",
+    "name":  "mitmproxy",
+    "description":  "Interactive HTTPS intercepting proxy for debugging, testing, and privacy audits.",
+    "category":  "Security",
+    "image":  "mitmproxy/mitmproxy:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/mitmproxy.svg",
+    "website":  "https://mitmproxy.org",
+    "docsUrl":  "https://docs.mitmproxy.org",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8081,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mitmproxy/config",
+                        "container":  "/home/mitmproxy/.mitmproxy"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "256MB",
+    "version":  "latest"
+}

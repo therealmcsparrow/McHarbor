@@ -32,6 +32,7 @@ func Mount(app *router.AppDeps) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersView)).Get("/runs", h.HandleListRuns)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersView)).Get("/runs/{runId}/download", h.HandleDownloadRun)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersView)).Post("/runs/{runId}/restore-options", h.HandleRestoreOptions)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/runs/{runId}/cancel", h.HandleCancelRun)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Delete("/runs/{runId}", h.HandleDeleteRun)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/runs/{runId}/restore", h.HandleRestoreRun)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Put("/{planId}", h.HandleUpdatePlan)

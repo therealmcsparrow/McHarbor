@@ -1,0 +1,26 @@
+{
+  "slug": "cyberchef",
+  "name": "CyberChef",
+  "description": "The Cyber Swiss Army Knife. Web-based tool for encoding, decoding, encryption, compression, and data analysis operations.",
+  "category": "Utilities",
+  "image": "ghcr.io/gchq/cyberchef:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/cyberchef.png",
+  "website": "https://github.com/gchq/CyberChef",
+  "docsUrl": "https://github.com/gchq/CyberChef/wiki",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

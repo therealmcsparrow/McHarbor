@@ -1,0 +1,40 @@
+{
+  "slug": "pulsar",
+  "name": "Apache Pulsar",
+  "description": "Cloud-native, distributed messaging and streaming platform with multi-tenancy and tiered storage.",
+  "category": "Databases",
+  "image": "apachepulsar/pulsar:latest",
+  "logo": "https://pulsar.apache.org/img/logo.svg",
+  "website": "https://pulsar.apache.org",
+  "docsUrl": "https://pulsar.apache.org/docs/en/standalone-docker/",
+  "ports": [
+    {
+      "host": 6650,
+      "container": 6650,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/pulsar/data",
+      "container": "/pulsar/data"
+    },
+    {
+      "host": "/opt/appdata/pulsar/conf",
+      "container": "/pulsar/conf"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,57 @@
+{
+    "slug":  "gerrit",
+    "name":  "Gerrit Code Review",
+    "description":  "Web-based team code collaboration and review tool built on Git.",
+    "category":  "Developer Tools",
+    "image":  "gerritcodereview/gerrit:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gerrit.png",
+    "website":  "https://www.gerritcodereview.org",
+    "docsUrl":  "https://gerrit-documentation.storage.googleapis.com/Documentation/index.html",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  29418,
+                      "container":  29418,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gerrit/git",
+                        "container":  "/var/gerrit/git"
+                    },
+                    {
+                        "host":  "/opt/appdata/gerrit/etc",
+                        "container":  "/var/gerrit/etc"
+                    },
+                    {
+                        "host":  "/opt/appdata/gerrit/db",
+                        "container":  "/var/gerrit/db"
+                    },
+                    {
+                        "host":  "/opt/appdata/gerrit/index",
+                        "container":  "/var/gerrit/index"
+                    },
+                    {
+                        "host":  "/opt/appdata/gerrit/cache",
+                        "container":  "/var/gerrit/cache"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CANONICAL_WEB_URL",
+                        "default":  "http://localhost:8080",
+                        "description":  "Canonical URL for Gerrit"
+                    }
+                ],
+    "version":  "latest"
+}

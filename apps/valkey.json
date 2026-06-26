@@ -1,0 +1,32 @@
+{
+  "slug": "valkey",
+  "name": "Valkey",
+  "description": "Open-source fork of Redis maintained by the Linux Foundation, fully Redis-compatible.",
+  "category": "Databases",
+  "image": "valkey/valkey:7-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/valkey.png",
+  "website": "https://valkey.io",
+  "docsUrl": "https://valkey.io/topics/",
+  "ports": [
+    {
+      "host": 6379,
+      "container": 6379,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/valkey/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "VALKEY_PASSWORD",
+      "default": "",
+      "description": "Server password (leave empty for no auth)",
+      "secret": true
+    }
+  ],
+  "version": "7-alpine"
+}

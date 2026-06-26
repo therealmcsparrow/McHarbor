@@ -1,0 +1,41 @@
+{
+    "slug":  "seaweedfs",
+    "name":  "SeaweedFS",
+    "description":  "Fast distributed file system for billions of files with S3 API and FUSE mount support.",
+    "category":  "Photos \u0026 Files",
+    "image":  "chrislusf/seaweedfs:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/seaweedfs.svg",
+    "website":  "https://github.com/chrislusf/seaweedfs",
+    "docsUrl":  "https://github.com/chrislusf/seaweedfs/wiki/Docker",
+    "ports":  [
+                  {
+                      "host":  8333,
+                      "container":  8333,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9333,
+                      "container":  9333,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/seaweedfs/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

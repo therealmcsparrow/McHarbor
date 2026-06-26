@@ -1,0 +1,42 @@
+{
+    "slug":  "rocket-chat",
+    "name":  "Rocket.Chat",
+    "description":  "Open-source team communication platform with channels, voice, video, and chatbots.",
+    "category":  "Communications",
+    "image":  "rocket.chat:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rocket-chat.png",
+    "website":  "https://www.rocket.chat",
+    "docsUrl":  "https://docs.rocket.chat",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rocket-chat/uploads",
+                        "container":  "/app/uploads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ROOT_URL",
+                        "default":  "http://localhost:3000",
+                        "description":  "Public URL of Rocket.Chat"
+                    },
+                    {
+                        "key":  "MONGO_URL",
+                        "default":  "mongodb://mongo:27017/rocketchat",
+                        "description":  "MongoDB connection string",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

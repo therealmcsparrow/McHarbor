@@ -1,0 +1,36 @@
+{
+    "slug":  "drawio",
+    "name":  "draw.io",
+    "description":  "Free, online diagram and flowchart editor. Create UML, ER, network, BPMN, and many other diagrams directly in the browser.",
+    "category":  "Productivity",
+    "image":  "jgraph/drawio:latest",
+    "logo":  "https://icon.horse/icon/www.drawio.com",
+    "website":  "https://www.drawio.com",
+    "docsUrl":  "https://www.drawio.com/doc",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/drawio/data",
+                        "container":  "/opt/drawio-config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

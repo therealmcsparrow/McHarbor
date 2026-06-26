@@ -1,49 +1,49 @@
 {
-  "slug": "transmission",
-  "name": "Transmission",
-  "description": "Lightweight BitTorrent client with a web interface.",
-  "category": "Media",
-  "image": "lscr.io/linuxserver/transmission:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/transmission.svg",
-  "website": "https://docs.linuxserver.io/images/docker-transmission/",
-  "docsUrl": "https://docs.linuxserver.io/images/docker-transmission/",
-  "ports": [
-    {
-      "host": 9091,
-      "container": 9091,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/transmission/config",
-      "container": "/config"
-    },
-    {
-      "host": "/srv/media",
-      "container": "/media"
-    },
-    {
-      "host": "/srv/downloads",
-      "container": "/downloads"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PUID",
-      "default": "1000",
-      "description": "User ID"
-    },
-    {
-      "key": "PGID",
-      "default": "1000",
-      "description": "Group ID"
-    },
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "transmission",
+    "name":  "Transmission",
+    "description":  "Lightweight BitTorrent client with a web interface.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/transmission:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/transmission.png",
+    "website":  "https://docs.linuxserver.io/images/docker-transmission/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-transmission/",
+    "ports":  [
+                  {
+                      "host":  9091,
+                      "container":  9091,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/transmission/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    },
+                    {
+                        "host":  "/srv/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

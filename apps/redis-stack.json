@@ -1,0 +1,36 @@
+{
+    "slug":  "redis-stack",
+    "name":  "Redis Stack",
+    "description":  "Redis with RediSearch, RedisJSON, RedisGraph, RedisBloom, and RedisTimeSeries modules.",
+    "category":  "Databases",
+    "image":  "redis/redis-stack:latest",
+    "logo":  "https://icon.horse/icon/redis.io",
+    "website":  "https://redis.io/docs/latest/develop/interact/search-and-query/",
+    "docsUrl":  "https://redis.io/docs/latest/develop/interact/search-and-query/",
+    "ports":  [
+                  {
+                      "host":  6379,
+                      "container":  6379,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8001,
+                      "container":  8001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/redis-stack/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

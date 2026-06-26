@@ -1,0 +1,35 @@
+{
+    "slug":  "ampache",
+    "name":  "Ampache",
+    "description":  "Web-based audio/video streaming server with Subsonic API support.",
+    "category":  "Media",
+    "image":  "ampache/ampache:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ampache.png",
+    "website":  "https://ampache.org",
+    "docsUrl":  "https://github.com/ampache/ampache/blob/master/docs/DOCKER.md",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ampache/data",
+                        "container":  "/var/www/html"
+                    },
+                    {
+                        "host":  "/opt/appdata/ampache/music",
+                        "container":  "/music"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

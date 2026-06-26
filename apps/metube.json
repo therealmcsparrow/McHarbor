@@ -1,0 +1,45 @@
+{
+    "slug":  "metube",
+    "name":  "MeTube",
+    "description":  "Web UI for yt-dlp with playlist, channel, and queue support.",
+    "category":  "Media",
+    "image":  "ghcr.io/alexta69/metube:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/metube.png",
+    "website":  "https://github.com/alexta69/metube",
+    "docsUrl":  "https://github.com/alexta69/metube#docker",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/metube/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/metube/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "latest"
+}

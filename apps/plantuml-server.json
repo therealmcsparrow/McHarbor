@@ -1,0 +1,31 @@
+{
+  "slug": "plantuml-server",
+  "name": "PlantUML Server",
+  "description": "Web server that generates UML diagrams (sequence, class, activity, state, component, deployment) from plain text descriptions.",
+  "category": "Productivity",
+  "image": "plantuml/plantuml-server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/plantuml.png",
+  "website": "https://plantuml.com",
+  "docsUrl": "https://plantuml.com/guide",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/plantuml-server/data",
+      "container": "/opt/plantuml-service"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

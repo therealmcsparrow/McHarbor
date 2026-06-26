@@ -31,18 +31,21 @@ export function getStackBatchActions({
     {
       label: tc('batch.updateSelected'),
       icon: IconArrowUp,
+      iconClassName: 'text-emerald-500',
       variant: 'default',
       onClick: (rows) => onUpdateSelected?.(rows as StackInfo[]),
     },
     {
       label: tc('batch.reinstallSelected'),
       icon: IconRotate,
+      iconClassName: 'text-blue-400',
       variant: 'default',
       onClick: (rows) => onReinstallSelected?.(rows as StackInfo[]),
     },
     {
       label: tc('batch.stop'),
       icon: IconPlayerStop,
+      iconClassName: 'text-amber-500',
       variant: 'default',
       onClick: (rows) => {
         for (const row of rows as StackInfo[]) {
@@ -54,6 +57,7 @@ export function getStackBatchActions({
     {
       label: tc('batch.restart'),
       icon: IconRotate,
+      iconClassName: 'text-blue-400',
       variant: 'default',
       onClick: (rows) => {
         for (const row of rows as StackInfo[]) {
@@ -65,6 +69,7 @@ export function getStackBatchActions({
     {
       label: tc('batch.down'),
       icon: IconArrowDown,
+      iconClassName: 'text-orange-400',
       variant: 'default',
       confirm: true,
       onClick: (rows) => {
@@ -77,6 +82,7 @@ export function getStackBatchActions({
     {
       label: tc('batch.remove'),
       icon: IconTrash,
+      iconClassName: 'text-destructive',
       variant: 'destructive',
       confirm: true,
       onClick: (rows) => {

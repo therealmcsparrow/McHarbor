@@ -1,0 +1,36 @@
+{
+    "slug":  "java-17-dev",
+    "name":  "Java JDK 17",
+    "description":  "Eclipse Temurin 17 JDK on Alpine, long-term support Java LTS with sealed classes and records.",
+    "category":  "Developer Tools",
+    "image":  "eclipse-temurin:17-jdk-alpine",
+    "logo":  "https://icon.horse/icon/adoptium.net",
+    "website":  "https://adoptium.net",
+    "docsUrl":  "https://adoptium.net/docs",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/java-17-dev/app",
+                        "container":  "/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "JAVA_HOME",
+                        "default":  "/opt/java/openjdk",
+                        "description":  "Java installation directory"
+                    }
+                ],
+    "version":  "17-jdk-alpine"
+}

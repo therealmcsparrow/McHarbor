@@ -1,0 +1,41 @@
+{
+    "slug":  "onedev",
+    "name":  "OneDev",
+    "description":  "Self-hosted Git server with built-in CI/CD, kanban, and code search.",
+    "category":  "Developer Tools",
+    "image":  "1dev/server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/onedev.png",
+    "website":  "https://onedev.io",
+    "docsUrl":  "https://docs.onedev.io/installation-guide",
+    "ports":  [
+                  {
+                      "host":  6610,
+                      "container":  6610,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6611,
+                      "container":  6611,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/onedev/data",
+                        "container":  "/var/lib/onedev"
+                    },
+                    {
+                        "host":  "/opt/appdata/onedev/backup",
+                        "container":  "/backup"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

@@ -1,0 +1,28 @@
+{
+    "slug":  "hoppscotch",
+    "name":  "Hoppscotch",
+    "description":  "Open-source API development ecosystem with a friendly web-based interface.",
+    "category":  "Developer Tools",
+    "image":  "hoppscotch/hoppscotch:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/hoppscotch.png",
+    "website":  "https://hoppscotch.io",
+    "docsUrl":  "https://docs.hoppscotch.io/documentation/getting-started/self-host",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

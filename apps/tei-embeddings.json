@@ -1,0 +1,43 @@
+{
+    "slug":  "tei-embeddings",
+    "name":  "Text Embeddings Inference",
+    "description":  "Hugging Face\u0027s blazing-fast embeddings inference server for sentence-transformers and dense models.",
+    "category":  "AI \u0026 Voice",
+    "image":  "ghcr.io/huggingface/text-embeddings-inference:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/huggingface/text-embeddings-inference",
+    "docsUrl":  "https://github.com/huggingface/text-embeddings-inference",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tei-embeddings/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MODEL_ID",
+                        "default":  "BAAI/bge-base-en-v1.5",
+                        "description":  "Hugging Face model identifier"
+                    },
+                    {
+                        "key":  "HF_TOKEN",
+                        "default":  "",
+                        "description":  "Hugging Face token for gated models",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

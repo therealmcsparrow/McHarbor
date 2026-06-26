@@ -1,0 +1,37 @@
+{
+    "slug":  "tidb",
+    "name":  "TiDB",
+    "description":  "Distributed MySQL-compatible database with horizontal scalability and strong consistency.",
+    "category":  "Databases",
+    "image":  "pingcap/tidb:latest",
+    "logo":  "https://icon.horse/icon/www.pingcap.com",
+    "website":  "https://www.pingcap.com",
+    "docsUrl":  "https://docs.pingcap.com/tidb/stable",
+    "ports":  [
+                  {
+                      "host":  4000,
+                      "container":  4000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  10080,
+                      "container":  10080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tidb/data",
+                        "container":  "/tmp/tidb"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MYSQL_ROOT_PASSWORD",
+                        "default":  "",
+                        "description":  "Root password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

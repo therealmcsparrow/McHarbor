@@ -1,0 +1,41 @@
+{
+  "slug": "argo-cd",
+  "name": "Argo CD",
+  "description": "Declarative, GitOps continuous delivery tool for Kubernetes with drift detection and visual app management.",
+  "category": "Databases",
+  "image": "quay.io/argoproj/argocd:latest",
+  "logo": "https://argo-cd.readthedocs.io/en/stable/assets/logo.png",
+  "website": "https://argo-cd.readthedocs.io",
+  "docsUrl": "https://argo-cd.readthedocs.io/en/stable/getting_started/",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/argo-cd/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "ARGOCD_SERVER_INSECURE",
+      "default": "true",
+      "description": "Run server without TLS (dev only)"
+    },
+    {
+      "key": "ARGOCD_SERVER_REPO_SERVER",
+      "default": "argocd-repo-server:8081",
+      "description": "Internal repo server address"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

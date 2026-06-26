@@ -1,0 +1,53 @@
+{
+    "slug":  "percona-xtradb",
+    "name":  "Percona XtraDB Cluster",
+    "description":  "High-availability MySQL cluster with synchronous replication and multi-master topology.",
+    "category":  "Databases",
+    "image":  "percona/percona-xtradb-cluster:8.0",
+    "logo":  "https://icon.horse/icon/www.percona.com",
+    "website":  "https://www.percona.com/software/mysql-database/percona-xtradb-cluster",
+    "docsUrl":  "https://docs.percona.com/percona-xtradb-cluster/8.0/",
+    "ports":  [
+                  {
+                      "host":  3306,
+                      "container":  3306,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4567,
+                      "container":  4567,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4568,
+                      "container":  4568,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/percona-xtradb/data",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MYSQL_ROOT_PASSWORD",
+                        "default":  "",
+                        "description":  "Root password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "CLUSTER_NAME",
+                        "default":  "pxc-cluster",
+                        "description":  "Name of the Galera cluster"
+                    },
+                    {
+                        "key":  "XTRABACKUP_PASSWORD",
+                        "default":  "",
+                        "description":  "Password for SST/IST authentication",
+                        "secret":  true
+                    }
+                ],
+    "version":  "8.0"
+}

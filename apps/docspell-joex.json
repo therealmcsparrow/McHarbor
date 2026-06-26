@@ -1,0 +1,41 @@
+{
+    "slug":  "docspell-joex",
+    "name":  "Docspell JOEX",
+    "description":  "Job executor component for Docspell, handling OCR and asynchronous processing tasks.",
+    "category":  "Documents",
+    "image":  "docspell/joex:latest",
+    "logo":  "https://icon.horse/icon/docspell.org",
+    "website":  "https://docspell.org",
+    "docsUrl":  "https://docspell.org/docs",
+    "ports":  [
+                  {
+                      "host":  7878,
+                      "container":  7878,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/docspell-joex/data",
+                        "container":  "/opt/docspell/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DOCSPELL_JOEX__SERVER__BASE_URL",
+                        "default":  "http://docspell-restserver:7880",
+                        "description":  "Docspell REST server URL"
+                    },
+                    {
+                        "key":  "DOCSPELL_JOEX__DB__URL",
+                        "default":  "jdbc:postgresql://docspell-db:5432/docspell",
+                        "description":  "Database JDBC URL"
+                    }
+                ],
+    "version":  "latest"
+}

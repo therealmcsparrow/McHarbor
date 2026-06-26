@@ -1,45 +1,45 @@
 {
-  "slug": "calibre-web",
-  "name": "Calibre-Web",
-  "description": "Web app for browsing, reading, and managing Calibre libraries.",
-  "category": "Media",
-  "image": "lscr.io/linuxserver/calibre-web:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/calibre-web.svg",
-  "website": "https://docs.linuxserver.io/images/docker-calibre-web/",
-  "docsUrl": "https://docs.linuxserver.io/images/docker-calibre-web/",
-  "ports": [
-    {
-      "host": 8083,
-      "container": 8083,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/calibre-web/config",
-      "container": "/config"
-    },
-    {
-      "host": "/srv/books",
-      "container": "/books"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PUID",
-      "default": "1000",
-      "description": "User ID"
-    },
-    {
-      "key": "PGID",
-      "default": "1000",
-      "description": "Group ID"
-    },
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "calibre-web",
+    "name":  "Calibre-Web",
+    "description":  "Web app for browsing, reading, and managing Calibre libraries.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/calibre-web:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/calibre-web.png",
+    "website":  "https://docs.linuxserver.io/images/docker-calibre-web/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-calibre-web/",
+    "ports":  [
+                  {
+                      "host":  8083,
+                      "container":  8083,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/calibre-web/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/books",
+                        "container":  "/books"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

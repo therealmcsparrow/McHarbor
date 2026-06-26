@@ -1,0 +1,37 @@
+{
+    "slug":  "milvus",
+    "name":  "Milvus",
+    "description":  "Open-source vector database built for scalable similarity search and AI applications.",
+    "category":  "Databases",
+    "image":  "milvusdb/milvus:latest",
+    "logo":  "https://icon.horse/icon/milvus.io",
+    "website":  "https://milvus.io",
+    "docsUrl":  "https://milvus.io/docs",
+    "ports":  [
+                  {
+                      "host":  19530,
+                      "container":  19530,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9091,
+                      "container":  9091,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/milvus/data",
+                        "container":  "/var/lib/milvus"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MILVUS_ROOT_PASSWORD",
+                        "default":  "",
+                        "description":  "Root password (recommended)",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

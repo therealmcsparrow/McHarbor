@@ -1,0 +1,28 @@
+{
+    "slug":  "memcached",
+    "name":  "Memcached",
+    "description":  "High-performance distributed memory object caching system for speeding up dynamic applications.",
+    "category":  "Databases",
+    "image":  "memcached:1.6-alpine",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/memcached.svg",
+    "website":  "https://memcached.org",
+    "docsUrl":  "https://github.com/memcached/memcached/wiki",
+    "ports":  [
+                  {
+                      "host":  11211,
+                      "container":  11211,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "1.6-alpine"
+}

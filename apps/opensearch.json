@@ -1,0 +1,42 @@
+{
+  "slug": "opensearch",
+  "name": "OpenSearch",
+  "description": "Community-driven fork of Elasticsearch for search, observability, and analytics workloads.",
+  "category": "Databases",
+  "image": "opensearchproject/opensearch:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/opensearch.png",
+  "website": "https://opensearch.org",
+  "docsUrl": "https://opensearch.org/docs/latest/",
+  "ports": [
+    {
+      "host": 9200,
+      "container": 9200,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9600,
+      "container": 9600,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/opensearch/data",
+      "container": "/usr/share/opensearch/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "discovery.type",
+      "default": "single-node",
+      "description": "Discovery mode (single-node for standalone)"
+    },
+    {
+      "key": "OPENSEARCH_INITIAL_ADMIN_PASSWORD",
+      "default": "",
+      "description": "Initial admin password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

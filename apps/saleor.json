@@ -1,0 +1,73 @@
+{
+    "slug":  "saleor",
+    "name":  "Saleor",
+    "description":  "GraphQL-first, headless e-commerce platform built with Python and React for high-performance online stores.",
+    "category":  "Web Apps",
+    "image":  "ghcr.io/saleor/saleor:latest",
+    "logo":  "https://icon.horse/icon/saleor.io",
+    "website":  "https://saleor.io",
+    "docsUrl":  "https://docs.saleor.io",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/saleor/media",
+                        "container":  "/app/media"
+                    },
+                    {
+                        "host":  "/opt/appdata/saleor/static",
+                        "container":  "/app/static"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "DATABASE_URL",
+                        "default":  "postgres://saleor:[email protected]:5432/saleor",
+                        "description":  "PostgreSQL connection string",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "REDIS_URL",
+                        "default":  "redis://saleor-redis:6379/0",
+                        "description":  "Redis connection string"
+                    },
+                    {
+                        "key":  "SECRET_KEY",
+                        "default":  "change-me-secret-key",
+                        "description":  "Django secret key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "ALLOWED_HOSTS",
+                        "default":  "*",
+                        "description":  "Allowed hosts"
+                    },
+                    {
+                        "key":  "DEBUG",
+                        "default":  "False",
+                        "description":  "Debug mode (False in production)"
+                    },
+                    {
+                        "key":  "EMAIL_URL",
+                        "default":  "smtp://user:[email protected]:587/?tls=True",
+                        "description":  "Email backend URL"
+                    },
+                    {
+                        "key":  "DEFAULT_FROM_EMAIL",
+                        "default":  "[email protected]",
+                        "description":  "Default from email"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

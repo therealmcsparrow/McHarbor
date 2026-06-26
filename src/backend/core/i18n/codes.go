@@ -76,6 +76,7 @@ const (
 	ErrContainerBackupKeyMissing         MsgCode = "err.container.backup_key_missing"
 	ErrContainerBackupRestoreKeyRequired MsgCode = "err.container.backup_restore_key_required"
 	ErrContainerBackupRestoreKeyInvalid  MsgCode = "err.container.backup_restore_key_invalid"
+	ErrContainerBackupRunNotCancellable   MsgCode = "err.container.backup_run_not_cancellable"
 	MsgContainerActionCompleted          MsgCode = "msg.container.action_completed"
 	ErrContainerFileReadFailed           MsgCode = "err.container.file_read_failed"
 	ErrContainerFileWriteFailed          MsgCode = "err.container.file_write_failed"
@@ -138,6 +139,7 @@ const (
 	ErrNetworkDisconnectFailed MsgCode = "err.network.disconnect_failed"
 	ErrNetworkNameRequired     MsgCode = "err.network.name_required"
 	ErrNetworkContainerReq     MsgCode = "err.network.container_required"
+	ErrNetworkBuiltIn          MsgCode = "err.network.builtin"
 	MsgNetworkCreated          MsgCode = "msg.network.created"
 	MsgNetworkRemoved          MsgCode = "msg.network.removed"
 	MsgNetworkConnected        MsgCode = "msg.network.connected"
@@ -302,6 +304,8 @@ const (
 	ErrAgentSettingsInvalid     MsgCode = "err.agent_settings.invalid"
 	ErrRetentionSettingsInvalid MsgCode = "err.retention_settings.invalid"
 	MsgRetentionSettingsUpdated MsgCode = "msg.retention_settings.updated"
+	MsgAuditLogPurged           MsgCode = "msg.audit_log.purged"
+	MsgActivityLogPurged        MsgCode = "msg.activity_log.purged"
 )
 
 // --- Users ---

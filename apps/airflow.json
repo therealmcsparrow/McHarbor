@@ -1,0 +1,66 @@
+{
+    "slug":  "airflow",
+    "name":  "Apache Airflow",
+    "description":  "Platform to programmatically author, schedule, and monitor complex data workflows as DAGs.",
+    "category":  "Databases",
+    "image":  "apache/airflow:latest",
+    "logo":  "https://icon.horse/icon/airflow.apache.org",
+    "website":  "https://airflow.apache.org",
+    "docsUrl":  "https://airflow.apache.org/docs/apache-airflow/stable/howto/docker-compose/index.html",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/airflow/dags",
+                        "container":  "/opt/airflow/dags"
+                    },
+                    {
+                        "host":  "/opt/appdata/airflow/logs",
+                        "container":  "/opt/airflow/logs"
+                    },
+                    {
+                        "host":  "/opt/appdata/airflow/plugins",
+                        "container":  "/opt/airflow/plugins"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "AIRFLOW__CORE__EXECUTOR",
+                        "default":  "LocalExecutor",
+                        "description":  "Airflow executor (LocalExecutor for single node)"
+                    },
+                    {
+                        "key":  "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN",
+                        "default":  "postgresql+psycopg2://airflow:airflow@postgres/airflow",
+                        "description":  "Metadata database connection string"
+                    },
+                    {
+                        "key":  "AIRFLOW__CORE__LOAD_EXAMPLES",
+                        "default":  "false",
+                        "description":  "Load example DAGs on first run"
+                    },
+                    {
+                        "key":  "AIRFLOW__CORE__FERNET_KEY",
+                        "default":  "",
+                        "description":  "Fernet key for credential encryption",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "AIRFLOW__WEBSERVER__SECRET_KEY",
+                        "default":  "",
+                        "description":  "Flask secret key for webserver",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

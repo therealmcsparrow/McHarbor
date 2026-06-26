@@ -1,0 +1,41 @@
+{
+    "slug":  "photoprism-stable",
+    "name":  "PhotoPrism Stable",
+    "description":  "AI-powered photo management for private collections (stable track).",
+    "category":  "Photos \u0026 Files",
+    "image":  "photoprism/photoprism:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/photoprism.png",
+    "website":  "https://www.photoprism.app",
+    "docsUrl":  "https://docs.photoprism.app",
+    "ports":  [
+                  {
+                      "host":  2342,
+                      "container":  2342,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/photoprism-stable/storage",
+                        "container":  "/photoprism/storage"
+                    },
+                    {
+                        "host":  "/srv/photos",
+                        "container":  "/photoprism/originals"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PHOTOPRISM_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Initial admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

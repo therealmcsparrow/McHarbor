@@ -1,0 +1,56 @@
+{
+    "slug":  "sonarqube",
+    "name":  "SonarQube Community",
+    "description":  "Continuous inspection of code quality and security for many languages.",
+    "category":  "Developer Tools",
+    "image":  "sonarqube:lts-community",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sonarqube.png",
+    "website":  "https://www.sonarsource.com",
+    "docsUrl":  "https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/intro/sonarqube-in-docker/",
+    "ports":  [
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sonarqube/data",
+                        "container":  "/opt/sonarqube/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/sonarqube/extensions",
+                        "container":  "/opt/sonarqube/extensions"
+                    },
+                    {
+                        "host":  "/opt/appdata/sonarqube/logs",
+                        "container":  "/opt/sonarqube/logs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SONAR_JDBC_USERNAME",
+                        "default":  "sonar",
+                        "description":  "Database username"
+                    },
+                    {
+                        "key":  "SONAR_JDBC_PASSWORD",
+                        "default":  "",
+                        "description":  "Database password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SONAR_JDBC_URL",
+                        "default":  "jdbc:h2:tcp://localhost:9092/sonar",
+                        "description":  "JDBC connection string"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "lts"
+}

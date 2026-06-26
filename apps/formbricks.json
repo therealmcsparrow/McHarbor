@@ -1,0 +1,49 @@
+{
+  "slug": "formbricks",
+  "name": "Formbricks",
+  "description": "Open-source experience management and survey platform for in-product feedback.",
+  "category": "Productivity",
+  "image": "formbricks/formbricks:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/formbricks.png",
+  "website": "https://formbricks.com",
+  "docsUrl": "https://formbricks.com/docs",
+  "ports": [
+    {
+      "host": 8608,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/formbricks/data",
+      "container": "/apps/web/uploads"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "DATABASE_URL",
+      "default": "postgresql://formbricks:formbricks@postgres:5432/formbricks",
+      "description": "PostgreSQL connection URL",
+      "secret": true
+    },
+    {
+      "key": "NEXTAUTH_SECRET",
+      "default": "",
+      "description": "NextAuth secret key",
+      "secret": true
+    },
+    {
+      "key": "ENCRYPTION_KEY",
+      "default": "",
+      "description": "Data encryption key",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

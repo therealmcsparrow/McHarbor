@@ -1,0 +1,32 @@
+{
+    "slug":  "marqo",
+    "name":  "Marqo",
+    "description":  "End-to-end vector search engine that combines storage, embeddings, and ranking out of the box.",
+    "category":  "Databases",
+    "image":  "marqoai/marqo:latest",
+    "logo":  "https://icon.horse/icon/marqo.ai",
+    "website":  "https://marqo.ai",
+    "docsUrl":  "https://docs.marqo.ai",
+    "ports":  [
+                  {
+                      "host":  8882,
+                      "container":  8882,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/marqo/data",
+                        "container":  "/opt/marqo"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MARQO_API_KEY",
+                        "default":  "",
+                        "description":  "API key for authentication (leave empty to disable)",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

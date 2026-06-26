@@ -1,0 +1,37 @@
+{
+    "slug":  "percona-server",
+    "name":  "Percona Server",
+    "description":  "Enterprise-grade MySQL-compatible database with enhanced performance and diagnostics.",
+    "category":  "Databases",
+    "image":  "percona/percona-server:8.0",
+    "logo":  "https://icon.horse/icon/www.percona.com",
+    "website":  "https://www.percona.com",
+    "docsUrl":  "https://docs.percona.com/percona-server/8.0/",
+    "ports":  [
+                  {
+                      "host":  3306,
+                      "container":  3306,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/percona-server/data",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MYSQL_ROOT_PASSWORD",
+                        "default":  "",
+                        "description":  "Root password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "MYSQL_DATABASE",
+                        "default":  "mydb",
+                        "description":  "Default database name"
+                    }
+                ],
+    "version":  "8.0"
+}

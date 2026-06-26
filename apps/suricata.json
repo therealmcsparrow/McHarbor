@@ -1,0 +1,45 @@
+{
+    "slug":  "suricata",
+    "name":  "Suricata",
+    "description":  "High-performance network IDS, IPS, and network security monitoring engine.",
+    "category":  "Security",
+    "image":  "jasonish/suricata:latest",
+    "logo":  "https://icon.horse/icon/suricata.io",
+    "website":  "https://suricata.io",
+    "docsUrl":  "https://docs.suricata.io",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/suricata/config",
+                        "container":  "/etc/suricata"
+                    },
+                    {
+                        "host":  "/opt/appdata/suricata/logs",
+                        "container":  "/var/log/suricata"
+                    },
+                    {
+                        "host":  "/opt/appdata/suricata/rules",
+                        "container":  "/var/lib/suricata/rules"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "INTERFACE",
+                        "default":  "eth0",
+                        "description":  "Capture interface"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

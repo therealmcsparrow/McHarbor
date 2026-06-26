@@ -1,0 +1,41 @@
+{
+  "slug": "go-dev",
+  "name": "Go 1.23",
+  "description": "Go 1.23 on Alpine Linux, statically typed compiled language with built-in concurrency.",
+  "category": "Developer Tools",
+  "image": "golang:1.23-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/go.png",
+  "website": "https://go.dev",
+  "docsUrl": "https://go.dev/doc/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/go-dev/app",
+      "container": "/go/src/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "GO111MODULE",
+      "default": "on",
+      "description": "Enable Go modules"
+    },
+    {
+      "key": "CGO_ENABLED",
+      "default": "0",
+      "description": "Disable CGO for static binaries"
+    }
+  ],
+  "version": "1.23-alpine"
+}

@@ -1,0 +1,41 @@
+{
+  "slug": "vite-dev",
+  "name": "Vite",
+  "description": "Vite dev server on Node 22 Alpine, instant hot module replacement for modern frontend frameworks.",
+  "category": "Developer Tools",
+  "image": "node:22-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/vite.png",
+  "website": "https://vitejs.dev",
+  "docsUrl": "https://vitejs.dev/guide/",
+  "ports": [
+    {
+      "host": 5173,
+      "container": 5173,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/vite-dev/app",
+      "container": "/usr/src/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "NODE_ENV",
+      "default": "development",
+      "description": "Node environment"
+    },
+    {
+      "key": "HOST",
+      "default": "0.0.0.0",
+      "description": "Bind address for dev server"
+    }
+  ],
+  "version": "22-alpine"
+}

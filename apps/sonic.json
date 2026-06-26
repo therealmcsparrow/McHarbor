@@ -1,0 +1,35 @@
+{
+    "slug":  "sonic",
+    "name":  "Sonic",
+    "description":  "Fast, lightweight, and schema-less search backend written in Rust.",
+    "category":  "Databases",
+    "image":  "valeriansaliou/sonic:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/valeriansaliou/sonic",
+    "docsUrl":  "https://github.com/valeriansaliou/sonic#readme",
+    "ports":  [
+                  {
+                      "host":  1491,
+                      "container":  1491,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sonic/config",
+                        "container":  "/etc/sonic"
+                    },
+                    {
+                        "host":  "/opt/appdata/sonic/data",
+                        "container":  "/var/lib/sonic/store"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

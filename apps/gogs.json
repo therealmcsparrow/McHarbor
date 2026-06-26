@@ -1,0 +1,36 @@
+{
+    "slug":  "gogs",
+    "name":  "Gogs",
+    "description":  "Painless, lightweight self-hosted Git service.",
+    "category":  "Developer Tools",
+    "image":  "gogs/gogs:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gogs.png",
+    "website":  "https://gogs.io",
+    "docsUrl":  "https://gogs.io/docs",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3022,
+                      "container":  22,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gogs/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

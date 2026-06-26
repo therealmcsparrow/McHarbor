@@ -1,0 +1,32 @@
+{
+    "slug":  "sonatype-nexus",
+    "name":  "Sonatype Nexus Repository",
+    "description":  "Universal artifact repository manager for binaries, containers, and build outputs.",
+    "category":  "Developer Tools",
+    "image":  "sonatype/nexus3:latest",
+    "logo":  "https://icon.horse/icon/www.sonatype.com",
+    "website":  "https://www.sonatype.com/products/nexus-repository",
+    "docsUrl":  "https://hub.docker.com/r/sonatype/nexus3/",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sonatype-nexus/data",
+                        "container":  "/nexus-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

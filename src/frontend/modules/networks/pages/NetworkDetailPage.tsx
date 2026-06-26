@@ -10,6 +10,7 @@ import {
   NetworkConnectedContainersSection,
   NetworkDetailPanels,
 } from '../components/NetworkDetailPanels';
+import { isBuiltInNetwork } from '@core/utils/network';
 import { useNetworkDetailState } from '../hooks/useNetworkDetailState';
 import { NetworkDetailHeader } from './NetworkDetailHeader';
 
@@ -27,6 +28,8 @@ export default function NetworkDetailPage() {
     return <div className="py-12 text-center text-muted-foreground">{t('detail.notFound')}</div>;
   }
 
+  const builtIn = isBuiltInNetwork(state.network);
+
   return (
     <div className="flex h-full flex-col gap-0">
       {document.getElementById('header-slot') &&
@@ -36,6 +39,7 @@ export default function NetworkDetailPage() {
             id={state.network.Id}
             driver={state.network.Driver}
             scope={state.network.Scope}
+            builtIn={builtIn}
             editing={state.editing}
             saving={state.saving}
             onEdit={state.startEditing}
@@ -76,6 +80,7 @@ export default function NetworkDetailPage() {
       </div>
 
       <NetworkDetailDialogs
+        network={state.network}
         removeDialogOpen={state.removeDialogOpen}
         recreateDialogOpen={state.recreateDialogOpen}
         disconnectTarget={state.disconnectTarget}

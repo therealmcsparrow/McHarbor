@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/rs/xid"
@@ -61,38 +62,141 @@ func (s *Service) uploadArchiveDestinations(ctx context.Context, plan *BackupPla
 		return fmt.Errorf("one or more backup storage locations were not found")
 	}
 
-	for _, location := range locations {
-		remotePath := backupStorageRemotePath(location, plan, runID)
-		destinationID, err := s.createRunDestination(ctx, runID, location, remotePath)
-		if err != nil {
-			return err
-		}
-		if !location.Enabled {
-			uploadErr := fmt.Errorf("backup storage location is disabled")
-			if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", uploadErr); markErr != nil && s.logger != nil {
-				s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
-			}
-			return fmt.Errorf("uploading backup destination %s: %w", location.Name, uploadErr)
-		}
+	// Each destination runs in its own goroutine so a slow OneDrive upload
+	// doesn't gate the local copy and vice versa. The run row gets marked
+	// `failure` if any destination fails, but the scratch copy stays on disk
+	// so the user can still download.
+	type destResult struct {
+		name  string
+		err   error
+	}
+	results := make(chan destResult, len(locations))
+	var wg sync.WaitGroup
 
-		s.updateRunProgress(ctx, runID, "uploading", "Uploading backup to "+location.Name+".")
-		uploadCtx, cancel := context.WithTimeout(ctx, backupUploadTimeout)
-		uploadedPath, uploadErr := s.uploadBackupToStorage(uploadCtx, runID, location, archive.path, remotePath, archive.size)
-		cancel()
-		if uploadErr != nil {
-			if s.logger != nil {
-				s.logger.Error("container backup storage upload failed", "run", runID, "storage", location.ID, "name", location.Name, "type", location.LocationType, "error", uploadErr)
+	for _, location := range locations {
+		location := location
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			results <- destResult{
+				name: location.Name,
+				err:  s.uploadToSingleDestination(ctx, runID, plan, location, archive),
 			}
-			if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", uploadErr); markErr != nil && s.logger != nil {
-				s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
-			}
-			return fmt.Errorf("uploading backup destination %s: %w", location.Name, uploadErr)
-		}
-		if err := s.finishRunDestination(ctx, destinationID, "success", uploadedPath, nil); err != nil {
-			return err
+		}()
+	}
+
+	wg.Wait()
+	close(results)
+
+	var firstErr error
+	for res := range results {
+		if res.err != nil && firstErr == nil {
+			firstErr = res.err
 		}
 	}
-	return nil
+	return firstErr
+}
+
+// uploadToSingleDestination uploads the archive to one storage location and
+// records per-destination status. Safe to call concurrently.
+//
+// Transient errors (network blip, 5xx response from Microsoft Graph) are
+// retried with exponential backoff: 2s, 8s, 32s. Permanent errors (auth
+// failure, missing destination, 4xx) fail immediately — retrying those
+// would just waste time and bandwidth.
+func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, plan *BackupPlan, location backupStorageDestination, archive archiveResult) error {
+	remotePath := backupStorageRemotePath(location, plan, runID)
+	destinationID, err := s.createRunDestination(ctx, runID, location, remotePath)
+	if err != nil {
+		return err
+	}
+	if !location.Enabled {
+		uploadErr := fmt.Errorf("backup storage location is disabled")
+		if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", uploadErr); markErr != nil && s.logger != nil {
+			s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
+		}
+		return fmt.Errorf("uploading backup destination %s: %w", location.Name, uploadErr)
+	}
+
+	s.updateRunProgress(ctx, runID, "uploading", "Uploading backup to "+location.Name+".")
+
+	const maxAttempts = 3
+	backoff := 2 * time.Second
+	var lastErr error
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		uploadCtx, cancel := context.WithTimeout(ctx, backupUploadTimeout)
+		uploadedPath, uploadErr := s.uploadBackupToStorageForDestination(uploadCtx, runID, destinationID, location, archive.path, remotePath, archive.size)
+		cancel()
+		if uploadErr == nil {
+			if err := s.finishRunDestination(ctx, destinationID, "success", uploadedPath, nil); err != nil {
+				return err
+			}
+			return nil
+		}
+		lastErr = uploadErr
+		if !isRetryableUploadError(uploadErr) {
+			break
+		}
+		if attempt < maxAttempts {
+			if s.logger != nil {
+				s.logger.Warn(
+					"container backup upload failed, will retry",
+					"run", runID, "storage", location.ID, "name", location.Name,
+					"attempt", attempt, "max", maxAttempts, "backoff", backoff.String(),
+					"error", uploadErr,
+				)
+			}
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff):
+			}
+			backoff *= 4
+		}
+	}
+
+	if s.logger != nil {
+		s.logger.Error("container backup storage upload failed", "run", runID, "storage", location.ID, "name", location.Name, "type", location.LocationType, "error", lastErr)
+	}
+	if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", lastErr); markErr != nil && s.logger != nil {
+		s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
+	}
+	return fmt.Errorf("uploading backup destination %s: %w", location.Name, lastErr)
+}
+
+// isRetryableUploadError returns true for transient failures that are
+// worth retrying. Permanent failures (auth, validation, missing
+// destination, 4xx client errors) are not retried.
+func isRetryableUploadError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	networkMarkers := []string{
+		"connection refused",
+		"connection reset",
+		"no such host",
+		"i/o timeout",
+		"TLS handshake timeout",
+		"unexpected EOF",
+		"broken pipe",
+		"connection closed",
+	}
+	for _, marker := range networkMarkers {
+		if strings.Contains(msg, marker) {
+			return true
+		}
+	}
+	// Microsoft Graph 5xx responses (server-side issues that may clear up)
+	for _, code := range []string{"returned status 500", "returned status 502", "returned status 503", "returned status 504", "returned status 429"} {
+		if strings.Contains(msg, code) {
+			return true
+		}
+	}
+	return false
 }
 
 type backupMigrationRun struct {
@@ -478,12 +582,31 @@ func (s *Service) finishRunDestination(ctx context.Context, id, status, remotePa
 	return nil
 }
 
+// updateDestinationProgress writes the running byte counter for one
+// destination row. Called by the upload progress callbacks; safe to
+// invoke often — the query is keyed on the destination id and updates
+// only two columns.
+func (s *Service) updateDestinationProgress(ctx context.Context, destinationID string, uploaded, total int64) {
+	if s.db == nil {
+		return
+	}
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	if _, err := s.db.ExecContext(queryCtx,
+		"UPDATE container_backup_run_destinations SET bytes_uploaded = ?, bytes_total = ?, updated_at = ? WHERE id = ?",
+		uploaded, total, time.Now().UTC().Format(time.RFC3339), destinationID,
+	); err != nil && s.logger != nil {
+		s.logger.Warn("container backup destination progress update failed", "destination", destinationID, "error", err)
+	}
+}
+
 func (s *Service) hydrateRunDestinations(ctx context.Context, run *BackupRun) error {
 	destinations := []BackupRunDestination{}
 
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, run_id, COALESCE(storage_location_id, ''), storage_location_name, location_type,
-		       status, remote_path, COALESCE(error, ''), COALESCE(uploaded_at, ''), created_at, updated_at
+		       status, remote_path, COALESCE(error, ''), COALESCE(uploaded_at, ''),
+		       bytes_uploaded, bytes_total, created_at, updated_at
 		FROM container_backup_run_destinations
 		WHERE run_id = ?
 		ORDER BY created_at ASC
@@ -497,8 +620,9 @@ func (s *Service) hydrateRunDestinations(ctx context.Context, run *BackupRun) er
 		var destination BackupRunDestination
 		if err := rows.Scan(
 			&destination.ID, &destination.RunID, &destination.StorageLocationID,
-			&destination.StorageLocationName, &destination.LocationType, &destination.Status,
-			&destination.Path, &destination.Error, &destination.UploadedAt,
+			&destination.StorageLocationName, &destination.LocationType,
+			&destination.Status, &destination.Path, &destination.Error, &destination.UploadedAt,
+			&destination.BytesUploaded, &destination.BytesTotal,
 			&destination.CreatedAt, &destination.UpdatedAt,
 		); err != nil {
 			return fmt.Errorf("scanning backup run destination: %w", err)
@@ -513,23 +637,37 @@ func (s *Service) hydrateRunDestinations(ctx context.Context, run *BackupRun) er
 }
 
 func (s *Service) uploadBackupToStorage(ctx context.Context, runID string, location backupStorageDestination, archivePath, remotePath string, size int64) (string, error) {
+	return s.uploadBackupToStorageForDestination(ctx, runID, "", location, archivePath, remotePath, size)
+}
+
+func (s *Service) uploadBackupToStorageForDestination(ctx context.Context, runID, destinationID string, location backupStorageDestination, archivePath, remotePath string, size int64) (string, error) {
 	switch location.LocationType {
 	case "local":
-		return s.uploadBackupToLocal(ctx, runID, location, archivePath, remotePath, size)
+		return s.uploadBackupToLocalWithDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
 	case "onedrive_personal", "onedrive_business", "sharepoint":
-		return s.uploadBackupToOneDrive(ctx, runID, location, archivePath, remotePath, size)
+		return s.uploadBackupToOneDriveWithDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
 	default:
 		return "", fmt.Errorf("storage location type %s is not supported for container backup upload", location.LocationType)
 	}
 }
 
 func (s *Service) uploadBackupToLocal(ctx context.Context, runID string, location backupStorageDestination, archivePath, targetPath string, size int64) (string, error) {
+	return s.uploadBackupToLocalWithDestination(ctx, runID, "", location, archivePath, targetPath, size)
+}
+
+// uploadBackupToLocalWithDestination is uploadBackupToLocal with an
+// attached destination id so the per-destination byte counter can be
+// updated in lockstep with the run-level progress message.
+func (s *Service) uploadBackupToLocalWithDestination(ctx context.Context, runID, destinationID string, location backupStorageDestination, archivePath, targetPath string, size int64) (string, error) {
 	targetPath, err := cleanLocalBackupPath(targetPath)
 	if err != nil {
 		return "", err
 	}
 	err = s.copyBackupFileAtomic(ctx, archivePath, targetPath, size, func(uploaded int64) {
 		s.updateRunProgress(ctx, runID, "uploading", backupUploadProgressMessage(location.Name, uploaded, size))
+		if destinationID != "" {
+			s.updateDestinationProgress(ctx, destinationID, uploaded, size)
+		}
 	})
 	if err != nil {
 		return "", err
@@ -590,6 +728,10 @@ func (s *Service) copyBackupFileAtomic(ctx context.Context, archivePath, targetP
 }
 
 func (s *Service) uploadBackupToOneDrive(ctx context.Context, runID string, location backupStorageDestination, archivePath, remotePath string, size int64) (string, error) {
+	return s.uploadBackupToOneDriveWithDestination(ctx, runID, "", location, archivePath, remotePath, size)
+}
+
+func (s *Service) uploadBackupToOneDriveWithDestination(ctx context.Context, runID, destinationID string, location backupStorageDestination, archivePath, remotePath string, size int64) (string, error) {
 	accessToken, err := s.microsoftAccessToken(ctx, location)
 	if err != nil {
 		return "", err
@@ -615,6 +757,9 @@ func (s *Service) uploadBackupToOneDrive(ctx context.Context, runID string, loca
 		}
 		uploaded := start + chunkSize
 		s.updateRunProgress(ctx, runID, "uploading", backupUploadProgressMessage(location.Name, uploaded, size))
+		if destinationID != "" {
+			s.updateDestinationProgress(ctx, destinationID, uploaded, size)
+		}
 	}
 	return remotePath, nil
 }

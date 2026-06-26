@@ -1,0 +1,40 @@
+{
+    "slug":  "roundcube",
+    "name":  "Roundcube",
+    "description":  "Open-source webmail client with a modern UI, PGP support, and rich plugin ecosystem.",
+    "category":  "Communications",
+    "image":  "roundcube/roundcubemail:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/roundcube.png",
+    "website":  "https://roundcube.net",
+    "docsUrl":  "https://github.com/roundcube/roundcubemail/wiki",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/roundcube/config",
+                        "container":  "/var/www/html/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/roundcube/data",
+                        "container":  "/var/www/html/logs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ROUNDCUBEMAIL_DEFAULT_HOST",
+                        "default":  "localhost",
+                        "description":  "Default IMAP host"
+                    }
+                ],
+    "version":  "latest"
+}

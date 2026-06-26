@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -29,9 +30,14 @@ func Open(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("opening database: %w", err)
 	}
 
-	// Set connection pool (SQLite is single-writer)
-	database.SetMaxOpenConns(1)
-	database.SetMaxIdleConns(1)
+	// Set connection pool. SQLite in WAL mode supports many concurrent
+	// readers alongside a single writer. Capping at 1 was causing the
+	// startup-time main thread (and any goroutine that ran a DB query
+	// at the same time) to deadlock whenever the DB was degraded or
+	// the connection held for any non-trivial duration.
+	database.SetMaxOpenConns(8)
+	database.SetMaxIdleConns(4)
+	database.SetConnMaxIdleTime(5 * time.Minute)
 
 	// Verify connection
 	if err := database.Ping(); err != nil {

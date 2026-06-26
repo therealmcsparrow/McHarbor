@@ -1,0 +1,38 @@
+{
+    "slug":  "elasticsearch-exporter",
+    "name":  "Elasticsearch Exporter",
+    "description":  "Prometheus exporter for Elasticsearch cluster, node, index and shard metrics.",
+    "category":  "Monitoring",
+    "image":  "quay.io/prometheuscommunity/elasticsearch-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/prometheus-community/elasticsearch_exporter",
+    "docsUrl":  "https://github.com/prometheus-community/elasticsearch_exporter#docker",
+    "ports":  [
+                  {
+                      "host":  9114,
+                      "container":  9114,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "es.uri",
+                        "default":  "http://elasticsearch:9200",
+                        "description":  "Elasticsearch URI"
+                    },
+                    {
+                        "key":  "es.all",
+                        "default":  "true",
+                        "description":  "Collect all metrics (cluster, indices, nodes)"
+                    }
+                ],
+    "version":  "latest"
+}

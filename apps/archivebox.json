@@ -1,0 +1,46 @@
+{
+  "slug": "archivebox",
+  "name": "ArchiveBox",
+  "description": "Self-hosted web archiving to save, organize, and browse snapshots of websites.",
+  "category": "Documents",
+  "image": "archivebox/archivebox:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/archivebox.png",
+  "website": "https://archivebox.io",
+  "docsUrl": "https://github.com/ArchiveBox/ArchiveBox/wiki/Docker",
+  "ports": [
+    {
+      "host": 8088,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/archivebox/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "ALLOWED_HOSTS",
+      "default": "*",
+      "description": "Comma-separated list of allowed hostnames"
+    },
+    {
+      "key": "PUBLIC_INDEX",
+      "default": "true",
+      "description": "Whether the index is publicly viewable"
+    },
+    {
+      "key": "PUBLIC_SNAPSHOTS",
+      "default": "true",
+      "description": "Whether snapshots are publicly viewable"
+    }
+  ],
+  "version": "latest"
+}

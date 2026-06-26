@@ -1,0 +1,31 @@
+{
+    "slug":  "apprise",
+    "name":  "Apprise",
+    "description":  "Universal notification API that pushes to dozens of notification services with one library.",
+    "category":  "Communications",
+    "image":  "caronc/apprise:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/apprise.png",
+    "website":  "https://github.com/caronc/apprise",
+    "docsUrl":  "https://github.com/caronc/apprise/wiki",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apprise/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

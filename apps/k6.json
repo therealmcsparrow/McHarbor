@@ -1,0 +1,36 @@
+{
+    "slug":  "k6",
+    "name":  "k6 Load Testing",
+    "description":  "Modern load testing tool from Grafana with a developer-friendly scripting API.",
+    "category":  "Developer Tools",
+    "image":  "grafana/k6:latest",
+    "logo":  "https://icon.horse/icon/k6.io",
+    "website":  "https://k6.io",
+    "docsUrl":  "https://k6.io/docs/getting-started/installation/",
+    "ports":  [
+                  {
+                      "host":  6565,
+                      "container":  6565,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/k6/scripts",
+                        "container":  "/scripts"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "K6_OUT",
+                        "default":  "",
+                        "description":  "Output sink URL (e.g. influxdb=http://...)"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,37 @@
+{
+    "slug":  "gotenberg",
+    "name":  "Gotenberg",
+    "description":  "Docker-powered API for converting HTML, Markdown, and Office documents to PDF.",
+    "category":  "Documents",
+    "image":  "gotenberg/gotenberg:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gotenberg.png",
+    "website":  "https://gotenberg.dev",
+    "docsUrl":  "https://gotenberg.dev/docs/install",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gotenberg/data",
+                        "container":  "/gotenberg"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DEFAULT_GOTENBERG_API_TIMEOUT",
+                        "default":  "30s",
+                        "description":  "Default conversion timeout"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

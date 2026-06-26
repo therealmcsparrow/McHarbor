@@ -1,0 +1,37 @@
+{
+  "slug": "koboldcpp",
+  "name": "KoboldCpp",
+  "description": "Self-contained, easy-to-use inference server for GGUF models with a built-in web UI.",
+  "category": "AI & Voice",
+  "image": "koboldai/koboldcpp:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/koboldcpp.png",
+  "website": "https://github.com/LostRuins/koboldcpp",
+  "docsUrl": "https://github.com/LostRuins/koboldcpp/blob/concedo/README.md",
+  "ports": [
+    {
+      "host": 5001,
+      "container": 5001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/koboldcpp/models",
+      "container": "/models"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "MODEL",
+      "default": "",
+      "description": "Filename of the GGUF model to load (in /models)"
+    }
+  ],
+  "minMemory": "4GB",
+  "version": "latest"
+}

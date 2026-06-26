@@ -1,51 +1,51 @@
 {
-  "slug": "rustdesk-server",
-  "name": "RustDesk Server",
-  "description": "Self-hosted relay and rendezvous server for RustDesk remote desktop.",
-  "category": "Networking",
-  "image": "rustdesk/rustdesk-server:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/rustdesk.svg",
-  "website": "https://rustdesk.com",
-  "docsUrl": "https://rustdesk.com/docs",
-  "ports": [
-    {
-      "host": 21115,
-      "container": 21115,
-      "protocol": "tcp"
-    },
-    {
-      "host": 21116,
-      "container": 21116,
-      "protocol": "tcp"
-    },
-    {
-      "host": 21117,
-      "container": 21117,
-      "protocol": "tcp"
-    },
-    {
-      "host": 21118,
-      "container": 21118,
-      "protocol": "tcp"
-    },
-    {
-      "host": 21119,
-      "container": 21119,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/rustdesk-server/data",
-      "container": "/data"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "rustdesk-server",
+    "name":  "RustDesk Server",
+    "description":  "Self-hosted relay and rendezvous server for RustDesk remote desktop.",
+    "category":  "Networking",
+    "image":  "rustdesk/rustdesk-server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rustdesk.png",
+    "website":  "https://rustdesk.com",
+    "docsUrl":  "https://rustdesk.com/docs",
+    "ports":  [
+                  {
+                      "host":  21115,
+                      "container":  21115,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  21116,
+                      "container":  21116,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  21117,
+                      "container":  21117,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  21118,
+                      "container":  21118,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  21119,
+                      "container":  21119,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rustdesk-server/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

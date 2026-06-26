@@ -1,0 +1,37 @@
+{
+    "slug":  "tarantool",
+    "name":  "Tarantool",
+    "description":  "In-memory database and Lua application server for high-performance data processing.",
+    "category":  "Databases",
+    "image":  "tarantool/tarantool:latest",
+    "logo":  "https://icon.horse/icon/www.tarantool.io",
+    "website":  "https://www.tarantool.io",
+    "docsUrl":  "https://www.tarantool.io/en/doc/latest/",
+    "ports":  [
+                  {
+                      "host":  3301,
+                      "container":  3301,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tarantool/data",
+                        "container":  "/var/lib/tarantool"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TARANTOOL_USER",
+                        "default":  "admin",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "TARANTOOL_PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

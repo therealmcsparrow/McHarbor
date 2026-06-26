@@ -1,0 +1,62 @@
+{
+  "slug": "temporal",
+  "name": "Temporal",
+  "description": "Durable execution platform for building reliable, long-running workflows at scale.",
+  "category": "Databases",
+  "image": "temporalio/temporal:latest",
+  "logo": "https://temporal.io/icons/icon-512x512.png",
+  "website": "https://temporal.io",
+  "docsUrl": "https://docs.temporal.io/self-hosted-guide",
+  "ports": [
+    {
+      "host": 7233,
+      "container": 7233,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8233,
+      "container": 8233,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/temporal/data",
+      "container": "/etc/temporal"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "DB",
+      "default": "postgres12",
+      "description": "Persistence driver plugin"
+    },
+    {
+      "key": "POSTGRES_USER",
+      "default": "temporal",
+      "description": "PostgreSQL user"
+    },
+    {
+      "key": "POSTGRES_PWD",
+      "default": "",
+      "description": "PostgreSQL password",
+      "secret": true
+    },
+    {
+      "key": "POSTGRES_SEEDS",
+      "default": "postgres",
+      "description": "PostgreSQL host"
+    },
+    {
+      "key": "POSTGRES_DB",
+      "default": "temporal",
+      "description": "PostgreSQL database"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,48 @@
+{
+    "slug":  "grafana-oncall",
+    "name":  "Grafana OnCall",
+    "description":  "Open-source on-call management and incident response integrated with Grafana alerts.",
+    "category":  "Monitoring",
+    "image":  "grafana/oncall:latest",
+    "logo":  "https://icon.horse/icon/grafana.com",
+    "website":  "https://grafana.com/docs/oncall",
+    "docsUrl":  "https://grafana.com/docs/oncall/latest/open-source/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/grafana-oncall/data",
+                        "container":  "/var/lib/oncall"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DJANGO_SECRET_KEY",
+                        "default":  "",
+                        "description":  "Django secret key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "MYSQL_HOST",
+                        "default":  "mysql",
+                        "description":  "MySQL host"
+                    },
+                    {
+                        "key":  "MYSQL_PASSWORD",
+                        "default":  "",
+                        "description":  "MySQL password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,36 @@
+{
+  "slug": "qgis-server",
+  "name": "QGIS Server",
+  "description": "Open-source geographic information system server providing WMS, WFS, and WCS services from QGIS projects.",
+  "category": "Databases",
+  "image": "qgis/qgis-server:latest",
+  "logo": "https://qgis.org/uploads/media/qgis-logo-7f19696c39.svg",
+  "website": "https://qgis.org",
+  "docsUrl": "https://docs.qgis.org/latest/en/docs/server_manual/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/qgis-server/projects",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "QGIS_PROJECT_FILE",
+      "default": "/data/default.qgs",
+      "description": "Default QGIS project file"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

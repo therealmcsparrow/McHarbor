@@ -1,0 +1,35 @@
+{
+    "slug":  "icecast",
+    "name":  "Icecast",
+    "description":  "Streaming media server for internet radio stations and audio broadcasts.",
+    "category":  "Media",
+    "image":  "moul/icecast:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/icecast.png",
+    "website":  "https://icecast.org",
+    "docsUrl":  "https://icecast.org/docs/icecast-2.5.0/",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/icecast/config",
+                        "container":  "/etc/icecast2"
+                    },
+                    {
+                        "host":  "/opt/appdata/icecast/logs",
+                        "container":  "/var/log/icecast2"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

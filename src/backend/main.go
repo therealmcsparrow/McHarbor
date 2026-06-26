@@ -244,6 +244,27 @@ func main() {
 	defer containerBackupCancel()
 	go containerBackupScheduler.Start(containerBackupCtx)
 
+	// Independent recovery loop: scans for backup runs that stopped
+	// updating progress (e.g. agent disconnect mid-backup) every 30s so
+	// the UI doesn't show stale "running" rows for minutes. Pairs with
+	// backupRunProgressStaleAfter which is now 2 minutes.
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-containerBackupCtx.Done():
+				return
+			case <-ticker.C:
+				recoveryCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+				if err := containerBackupSvc.RecoverAbandonedRuns(recoveryCtx, "", ""); err != nil {
+					logger.Warn("container backup recovery scan failed", "error", err)
+				}
+				cancel()
+			}
+		}
+	}()
+
 	// Register module routes
 	modAgent.Mount(app)
 	modAuth.Mount(app)

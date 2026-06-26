@@ -1,0 +1,41 @@
+{
+    "slug":  "autoheal",
+    "name":  "Docker Autoheal",
+    "description":  "Watches Docker containers and restarts any that report an unhealthy health-check status.",
+    "category":  "Monitoring",
+    "image":  "willfarrell/autoheal:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/willfarrell/docker-autoheal",
+    "docsUrl":  "https://github.com/willfarrell/docker-autoheal#readme",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "AUTOHEAL_CONTAINER_LABEL",
+                        "default":  "all",
+                        "description":  "Label filter for containers to monitor"
+                    },
+                    {
+                        "key":  "AUTOHEAL_INTERVAL",
+                        "default":  "5",
+                        "description":  "Check interval in seconds"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,43 @@
+{
+  "slug": "centrifugo",
+  "name": "Centrifugo",
+  "description": "Real-time messaging server with WebSocket, SSE, and HTTP streaming for chat and notifications.",
+  "category": "Productivity",
+  "image": "centrifugo/centrifugo:latest",
+  "logo": "https://centrifugal.dev/img/logo.svg",
+  "website": "https://centrifugal.dev",
+  "docsUrl": "https://centrifugal.dev/docs",
+  "ports": [
+    {
+      "host": 8604,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/centrifugo/config",
+      "container": "/centrifugo"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "CENTRIFUGO_TOKEN_HMAC_SECRET_KEY",
+      "default": "",
+      "description": "HMAC token signing secret",
+      "secret": true
+    },
+    {
+      "key": "CENTRIFUGO_API_KEY",
+      "default": "",
+      "description": "API key for admin API",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

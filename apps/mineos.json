@@ -1,0 +1,41 @@
+{
+  "slug": "mineos",
+  "name": "MineOS",
+  "description": "Web-based Minecraft server manager with built-in Java/Forge/Bukkit/Spigot support.",
+  "category": "Gaming",
+  "image": "hexparrot/mineos:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mineos.png",
+  "website": "https://minecraft.codeemo.com",
+  "docsUrl": "https://github.com/hexparrot/mineos-node",
+  "ports": [
+    {
+      "host": 8443,
+      "container": 8443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 25565,
+      "container": 25565,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mineos/config",
+      "container": "/var/games/minecraft"
+    },
+    {
+      "host": "/opt/appdata/mineos/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { IconLayoutGrid, IconLayoutList, IconPlus } from '@tabler/icons-react';
 import type { NetworkInfo } from '@core/types/docker';
-import { getNetworkContainerCount } from '@core/utils/network';
+import { getNetworkContainerCount, isBuiltInNetwork } from '@core/utils/network';
 import { DataGrid } from '@resources/components/DataGrid';
 import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { Button } from '@resources/components/ui/Button';
@@ -33,7 +33,7 @@ export default function NetworksPage() {
   const [usageFilter, setUsageFilter] = useState<UsageFilter>('all');
   const { columns, batchActions } = useNetworksPageConfig(
     setConfirmTarget,
-    setBulkRemoveNetworks,
+    (rows) => setBulkRemoveNetworks(rows.filter((n) => !isBuiltInNetwork(n))),
   );
 
   const filteredNetworks = useMemo(() => {
@@ -122,13 +122,21 @@ export default function NetworksPage() {
           selectable
           batchActions={batchActions}
           getRowId={(row) => row.Id}
+          isRowDisabled={(row) => isBuiltInNetwork(row)}
+          getRowClassName={(row) =>
+            isBuiltInNetwork(row) ? 'opacity-70' : undefined
+          }
         />
       ) : (
         <NetworkCardGrid
           networks={filteredNetworks}
           isLoading={isLoading}
           onClick={(network) => navigate(`/networks/${network.Id}`)}
-          onRemove={setConfirmTarget}
+          onRemove={(id) => {
+            const target = networks.find((n) => n.Id === id);
+            if (target && isBuiltInNetwork(target)) return;
+            setConfirmTarget(id);
+          }}
         />
       )}
 

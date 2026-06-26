@@ -1,0 +1,40 @@
+{
+    "slug":  "rsyslog",
+    "name":  "Rsyslog",
+    "description":  "Rocket-fast system and application log processing with a powerful configuration language.",
+    "category":  "Monitoring",
+    "image":  "rsyslog/rsyslog:latest",
+    "logo":  "https://icon.horse/icon/www.rsyslog.com",
+    "website":  "https://www.rsyslog.com",
+    "docsUrl":  "https://www.rsyslog.com/doc/",
+    "ports":  [
+                  {
+                      "host":  514,
+                      "container":  514,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  514,
+                      "container":  514,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rsyslog/config",
+                        "container":  "/etc/rsyslog.d"
+                    },
+                    {
+                        "host":  "/opt/appdata/rsyslog/data",
+                        "container":  "/var/log"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

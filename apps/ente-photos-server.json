@@ -1,0 +1,35 @@
+{
+    "slug":  "ente-photos-server",
+    "name":  "Ente Photos",
+    "description":  "End-to-end encrypted photo and video storage with cross-platform apps.",
+    "category":  "Photos \u0026 Files",
+    "image":  "ghcr.io/ente-io/server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ente-photos.png",
+    "website":  "https://ente.io",
+    "docsUrl":  "https://github.com/ente-io/ente/tree/main/server",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ente-photos-server/config",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/ente-photos-server/uploads",
+                        "container":  "/uploads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

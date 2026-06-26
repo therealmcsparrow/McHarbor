@@ -1,0 +1,41 @@
+{
+    "slug":  "haproxy",
+    "name":  "HAProxy",
+    "description":  "High-performance TCP and HTTP load balancer and reverse proxy.",
+    "category":  "Networking",
+    "image":  "haproxy:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/haproxy.png",
+    "website":  "https://www.haproxy.org",
+    "docsUrl":  "https://www.haproxy.org/documentation.html",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8404,
+                      "container":  8404,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/haproxy/config",
+                        "container":  "/usr/local/etc/haproxy"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,27 @@
+{
+    "slug":  "dive",
+    "name":  "Dive",
+    "description":  "Dive explores Docker image layers and reveals wasted space in container images.",
+    "category":  "Developer Tools",
+    "image":  "wagoodman/dive:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/wagoodman/dive",
+    "docsUrl":  "https://github.com/wagoodman/dive/blob/master/README.md",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

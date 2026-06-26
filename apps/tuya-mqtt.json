@@ -1,0 +1,53 @@
+{
+  "slug": "tuya-mqtt",
+  "name": "tuya-mqtt",
+  "description": "Bridge for Tuya smart devices to MQTT for local control without the Tuya cloud. Supports auto-discovery for Home Assistant.",
+  "category": "Home Automation",
+  "image": "gpajot/local-tuya:latest",
+  "logo": "https://icon.horse/icon/local-tuya.github.io",
+  "website": "https://github.com/gpajot/local-tuya",
+  "docsUrl": "https://github.com/gpajot/local-tuya#readme",
+  "ports": [
+    {
+      "host": 8883,
+      "container": 8883,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/tuya-mqtt/config",
+      "container": "/app/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "MQTT_HOST",
+      "default": "mosquitto",
+      "description": "MQTT broker host"
+    },
+    {
+      "key": "MQTT_PORT",
+      "default": "1883",
+      "description": "MQTT broker port"
+    },
+    {
+      "key": "MQTT_USERNAME",
+      "default": "",
+      "description": "MQTT broker username (leave empty for anonymous)"
+    },
+    {
+      "key": "MQTT_PASSWORD",
+      "default": "",
+      "description": "MQTT broker password",
+      "secret": true
+    }
+  ],
+  "minMemory": "256MB",
+  "version": "latest"
+}

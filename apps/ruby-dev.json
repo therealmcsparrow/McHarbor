@@ -1,0 +1,36 @@
+{
+  "slug": "ruby-dev",
+  "name": "Ruby 3.3",
+  "description": "Ruby 3.3 on Alpine Linux, dynamic open-source language focused on simplicity and productivity.",
+  "category": "Developer Tools",
+  "image": "ruby:3.3-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ruby.png",
+  "website": "https://www.ruby-lang.org",
+  "docsUrl": "https://www.ruby-lang.org/en/documentation/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/ruby-dev/app",
+      "container": "/usr/src/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "BUNDLE_PATH",
+      "default": "/usr/local/bundle",
+      "description": "Bundle install path"
+    }
+  ],
+  "version": "3.3-alpine"
+}

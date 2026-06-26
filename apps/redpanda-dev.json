@@ -1,0 +1,37 @@
+{
+    "slug":  "redpanda-dev",
+    "name":  "Redpanda Dev",
+    "description":  "Redpanda Kafka-compatible streaming platform for local development and testing.",
+    "category":  "Developer Tools",
+    "image":  "redpandadata/redpanda:latest",
+    "logo":  "https://icon.horse/icon/redpanda.com",
+    "website":  "https://redpanda.com",
+    "docsUrl":  "https://docs.redpanda.com/current/get-started/quick-start-docker/",
+    "ports":  [
+                  {
+                      "host":  9092,
+                      "container":  9092,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9644,
+                      "container":  9644,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/redpanda-dev/data",
+                        "container":  "/var/lib/redpanda/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

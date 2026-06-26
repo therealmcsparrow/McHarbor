@@ -1,0 +1,48 @@
+{
+  "slug": "mysql-dev",
+  "name": "MySQL 8 Dev",
+  "description": "MySQL 8 for development and testing.",
+  "category": "Databases",
+  "image": "mysql:8",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mysql.png",
+  "website": "https://www.mysql.com",
+  "docsUrl": "https://dev.mysql.com/doc/refman/8.0/en/",
+  "ports": [
+    {
+      "host": 3306,
+      "container": 3306,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mysql-dev/data",
+      "container": "/var/lib/mysql"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MYSQL_ROOT_PASSWORD",
+      "default": "",
+      "description": "Root password",
+      "secret": true
+    },
+    {
+      "key": "MYSQL_DATABASE",
+      "default": "dev",
+      "description": "Default database name"
+    },
+    {
+      "key": "MYSQL_USER",
+      "default": "dev",
+      "description": "Database user"
+    },
+    {
+      "key": "MYSQL_PASSWORD",
+      "default": "",
+      "description": "Database user password",
+      "secret": true
+    }
+  ],
+  "version": "8"
+}

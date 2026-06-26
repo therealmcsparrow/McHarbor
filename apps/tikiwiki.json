@@ -1,0 +1,57 @@
+{
+    "slug":  "tikiwiki",
+    "name":  "Tiki Wiki",
+    "description":  "All-in-one groupware with wiki, CMS, forums, blogs, and CRM features.",
+    "category":  "Documents",
+    "image":  "tikiwiki/tikiwiki:latest",
+    "logo":  "https://icon.horse/icon/tiki.org",
+    "website":  "https://tiki.org",
+    "docsUrl":  "https://hub.docker.com/r/tikiwiki/tikiwiki",
+    "ports":  [
+                  {
+                      "host":  8085,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tikiwiki/data",
+                        "container":  "/var/www/html/db"
+                    },
+                    {
+                        "host":  "/opt/appdata/tikiwiki/config",
+                        "container":  "/etc/tikiwiki"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TIKI_DB_HOST",
+                        "default":  "tikiwiki-db",
+                        "description":  "Database host"
+                    },
+                    {
+                        "key":  "TIKI_DB_USER",
+                        "default":  "tikiwiki",
+                        "description":  "Database user"
+                    },
+                    {
+                        "key":  "TIKI_DB_PASS",
+                        "default":  "change-me",
+                        "description":  "Database password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TIKI_DB_NAME",
+                        "default":  "tikiwiki",
+                        "description":  "Database name"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

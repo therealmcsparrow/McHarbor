@@ -1,0 +1,50 @@
+{
+  "slug": "rocketmq",
+  "name": "Apache RocketMQ",
+  "description": "Low-latency, high-throughput distributed message queue for transactional and streaming workloads.",
+  "category": "Databases",
+  "image": "apache/rocketmq:latest",
+  "logo": "https://rocketmq.apache.org/img/rmq-logo.svg",
+  "website": "https://rocketmq.apache.org",
+  "docsUrl": "https://rocketmq.apache.org/docs/quickStart/02quickstartWithDocker",
+  "ports": [
+    {
+      "host": 9876,
+      "container": 9876,
+      "protocol": "tcp"
+    },
+    {
+      "host": 10909,
+      "container": 10909,
+      "protocol": "tcp"
+    },
+    {
+      "host": 10911,
+      "container": 10911,
+      "protocol": "tcp"
+    },
+    {
+      "host": 10912,
+      "container": 10912,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/rocketmq/logs",
+      "container": "/home/rocketmq/logs"
+    },
+    {
+      "host": "/opt/appdata/rocketmq/store",
+      "container": "/home/rocketmq/store"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

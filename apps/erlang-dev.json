@@ -1,0 +1,31 @@
+{
+    "slug":  "erlang-dev",
+    "name":  "Erlang 26",
+    "description":  "Erlang 26 on Alpine, concurrent fault-tolerant language for distributed real-time systems.",
+    "category":  "Developer Tools",
+    "image":  "erlang:26-alpine",
+    "logo":  "https://icon.horse/icon/www.erlang.org",
+    "website":  "https://www.erlang.org",
+    "docsUrl":  "https://www.erlang.org/doc.html",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/erlang-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "26-alpine"
+}

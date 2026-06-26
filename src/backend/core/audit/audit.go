@@ -88,13 +88,26 @@ func (l *Logger) LogWithUser(r *http.Request, userID, username string, e Entry) 
 
 // Prune removes audit log entries older than the specified number of days.
 // If days is 0 or negative, no pruning is performed.
+//
+// The timestamp column is stored as RFC3339 ("2026-05-25T00:00:02Z"),
+// while datetime('now', '-N days') returns SQLite's native format
+// ("2026-05-25 00:00:00"). A direct string comparison breaks at the
+// date boundary because ' ' (0x20) sorts before 'T' (0x54), so the
+// cutoff always sorts less than anything stored on the same date and
+// nothing is ever deleted. Wrapping both sides in julianday() forces
+// SQLite to convert the RFC3339 timestamp to a numeric day count so
+// the comparison is chronological rather than lexicographic.
 func (l *Logger) Prune(days int) {
 	if days <= 0 {
 		return
 	}
-	_, err := l.db.Exec("DELETE FROM audit_logs WHERE timestamp < datetime('now', '-' || ? || ' days')", days)
+	result, err := l.db.Exec("DELETE FROM audit_logs WHERE julianday(timestamp) < julianday('now', '-' || ? || ' days')", days)
 	if err != nil {
 		slog.Error("failed to prune audit logs", "error", err)
+		return
+	}
+	if n, _ := result.RowsAffected(); n > 0 {
+		slog.Info("audit logs pruned", "days", days, "rows_deleted", n)
 	}
 }
 

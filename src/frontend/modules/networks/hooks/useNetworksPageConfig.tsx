@@ -8,7 +8,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import type { NetworkInfo } from '@core/types/docker';
 import type { BatchAction } from '@resources/components/DataGrid';
-import { getNetworkContainerCount } from '@core/utils/network';
+import { getNetworkContainerCount, isBuiltInNetwork } from '@core/utils/network';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@resources/components/ui/Tooltip';
@@ -28,7 +28,19 @@ export function useNetworksPageConfig(
         accessorKey: 'Name',
         header: t('columns.name'),
         meta: { flex: true },
-        cell: ({ row }) => <span className="font-medium">{row.original.Name}</span>,
+        cell: ({ row }) => {
+          const builtIn = isBuiltInNetwork(row.original);
+          return (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{row.original.Name}</span>
+              {builtIn && (
+                <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
+                  {t('badges.builtIn')}
+                </Badge>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'Id',
@@ -89,42 +101,64 @@ export function useNetworksPageConfig(
         id: 'actions',
         header: () => <span className="ml-auto">{t('columns.actions')}</span>,
         size: 100,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-end">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('actions.edit')}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    navigate(`/networks/${row.original.Id}`);
-                  }}
-                >
-                  <IconPencil className="h-3.5 w-3.5 text-primary" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t('actions.edit')}</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label={t('actions.remove')}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onRemove(row.original.Id);
-                  }}
-                >
-                  <IconTrash className="h-3.5 w-3.5 text-destructive" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t('actions.remove')}</TooltipContent>
-            </Tooltip>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const builtIn = isBuiltInNetwork(row.original);
+          return (
+            <div className="flex items-center justify-end">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t('actions.edit')}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      navigate(`/networks/${row.original.Id}`);
+                    }}
+                  >
+                    <IconPencil className="h-3.5 w-3.5 text-primary" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('actions.edit')}</TooltipContent>
+              </Tooltip>
+              {builtIn ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span tabIndex={0} className="inline-flex">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={t('actions.remove')}
+                        disabled
+                        className="pointer-events-none opacity-40"
+                      >
+                        <IconTrash className="h-3.5 w-3.5 text-destructive" />
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('toast.builtIn')}</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t('actions.remove')}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRemove(row.original.Id);
+                      }}
+                    >
+                      <IconTrash className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('actions.remove')}</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          );
+        },
       },
     ],
     [navigate, onRemove, t],

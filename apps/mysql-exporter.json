@@ -1,0 +1,34 @@
+{
+    "slug":  "mysql-exporter",
+    "name":  "MySQL Exporter",
+    "description":  "Prometheus exporter for MySQL server metrics, including InnoDB and replication stats.",
+    "category":  "Monitoring",
+    "image":  "prom/mysqld-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/prometheus/mysqld_exporter",
+    "docsUrl":  "https://github.com/prometheus/mysqld_exporter#docker",
+    "ports":  [
+                  {
+                      "host":  9104,
+                      "container":  9104,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DATA_SOURCE_NAME",
+                        "default":  "exporter:password@(mysql:3306)/",
+                        "description":  "MySQL DSN",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

@@ -37,7 +37,14 @@
     "backupDays": "Backup Retention (days)",
     "backupDaysDescription": "Maximum number of days to keep successful backups per container. Older backup archives are deleted automatically. Set to 0 to keep backups regardless of age.",
     "backupCount": "Backup Retention (count)",
-    "backupCountDescription": "Maximum number of successful backups to keep per container. Older backup archives are deleted automatically. Set to 0 to keep all backups."
+    "backupCountDescription": "Maximum number of successful backups to keep per container. Older backup archives are deleted automatically. Set to 0 to keep all backups.",
+    "clearNow": "Clear now",
+    "clearNowHint": "Run the retention purge now (entries older than {{days}} days)",
+    "clearAuditTitle": "Clear audit log?",
+    "clearAuditDescription": "Permanently delete all audit log entries older than {{days}} days. The deleted count will be shown after the operation. This cannot be undone.",
+    "clearActivityTitle": "Clear activity log?",
+    "clearActivityDescription": "Permanently delete all activity events older than {{days}} days. The deleted count will be shown after the operation. This cannot be undone.",
+    "keepForever": "Set retention to a positive number to enable clearing."
   },
   "auth": {
     "description": "Configure authentication providers and session settings.",
@@ -809,10 +816,15 @@
     "policyUpdated": "Update policy updated",
     "policyDeleted": "Update policy deleted",
     "retentionUpdated": "Retention settings updated",
+    "auditLogPurged": "Audit log cleared ({{count}} entries)",
+    "activityLogPurged": "Activity log cleared ({{count}} events)",
+    "auditLogPurgedVacuuming": "Audit log cleared ({{count}} entries). Compacting database in the background...",
+    "activityLogPurgedVacuuming": "Activity log cleared ({{count}} events). Compacting database in the background...",
     "backupKeyGenerated": "Backup encryption key generated",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
     "backupKeyCopied": "Backup encryption key copied",
     "backupKeySetupCopied": "Backup setup command copied",
+    "copyFailed": "Could not copy to clipboard",
     "storageBackupsMigrated": "Backups migrated: {{migrated}} copied, {{skipped}} skipped, {{failed}} failed",
     "storageBackupsMigrationFailed": "Backup migration failed"
   }

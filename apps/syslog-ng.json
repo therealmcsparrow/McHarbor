@@ -1,0 +1,40 @@
+{
+    "slug":  "syslog-ng",
+    "name":  "syslog-ng",
+    "description":  "Log management solution with syslog protocol parsing and flexible routing/filtering.",
+    "category":  "Monitoring",
+    "image":  "balabit/syslog-ng:latest",
+    "logo":  "https://icon.horse/icon/www.syslog-ng.com",
+    "website":  "https://www.syslog-ng.com",
+    "docsUrl":  "https://www.syslog-ng.com/technical-documents/doc/syslog-ng-open-source-edition/3.37/administration-guide/27",
+    "ports":  [
+                  {
+                      "host":  514,
+                      "container":  514,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  601,
+                      "container":  601,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/syslog-ng/config",
+                        "container":  "/etc/syslog-ng"
+                    },
+                    {
+                        "host":  "/opt/appdata/syslog-ng/data",
+                        "container":  "/var/lib/syslog-ng"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

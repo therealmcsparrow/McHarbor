@@ -1,0 +1,31 @@
+{
+  "slug": "rss-bridge",
+  "name": "RSS-Bridge",
+  "description": "Generates RSS/ATOM feeds for web sites that don't natively support them.",
+  "category": "Dashboards",
+  "image": "rssbridge/rss-bridge:latest",
+  "logo": "https://rss-bridge.github.io/rss-bridge/favicon.ico",
+  "website": "https://rss-bridge.github.io/rss-bridge/",
+  "docsUrl": "https://github.com/RSS-Bridge/rss-bridge",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/rss-bridge/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

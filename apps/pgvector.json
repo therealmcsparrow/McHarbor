@@ -1,0 +1,42 @@
+{
+    "slug":  "pgvector",
+    "name":  "pgvector",
+    "description":  "PostgreSQL with the pgvector extension for storing and searching vector embeddings.",
+    "category":  "Databases",
+    "image":  "pgvector/pgvector:pg16",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/pgvector/pgvector",
+    "docsUrl":  "https://github.com/pgvector/pgvector#readme",
+    "ports":  [
+                  {
+                      "host":  5432,
+                      "container":  5432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pgvector/data",
+                        "container":  "/var/lib/postgresql/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "POSTGRES_USER",
+                        "default":  "postgres",
+                        "description":  "Database superuser name"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "",
+                        "description":  "Database superuser password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POSTGRES_DB",
+                        "default":  "vectordb",
+                        "description":  "Default database name"
+                    }
+                ],
+    "version":  "pg16"
+}

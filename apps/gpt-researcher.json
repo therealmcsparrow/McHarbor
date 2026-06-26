@@ -1,0 +1,44 @@
+{
+    "slug":  "gpt-researcher",
+    "name":  "GPT Researcher",
+    "description":  "Autonomous agent that conducts deep web and document research using any LLM provider.",
+    "category":  "AI \u0026 Voice",
+    "image":  "ghcr.io/assafelovic/gpt-researcher:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/assafelovic/gpt-researcher",
+    "docsUrl":  "https://docs.gptr.dev",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gpt-researcher/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OPENAI_API_KEY",
+                        "default":  "",
+                        "description":  "OpenAI API key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TAVILY_API_KEY",
+                        "default":  "",
+                        "description":  "Tavily API key for web search",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

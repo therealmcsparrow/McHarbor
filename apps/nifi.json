@@ -1,0 +1,60 @@
+{
+  "slug": "nifi",
+  "name": "Apache NiFi",
+  "description": "Visual data flow programming tool for routing, transforming, and mediating between systems.",
+  "category": "Databases",
+  "image": "apache/nifi:latest",
+  "logo": "https://nifi.apache.org/logos/nifi-logo.png",
+  "website": "https://nifi.apache.org",
+  "docsUrl": "https://nifi.apache.org/docs/nifi-docs/getting-started.html",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8443,
+      "container": 8443,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/nifi/data",
+      "container": "/opt/nifi/nifi-current/data"
+    },
+    {
+      "host": "/opt/appdata/nifi/logs",
+      "container": "/opt/nifi/nifi-current/logs"
+    },
+    {
+      "host": "/opt/appdata/nifi/conf",
+      "container": "/opt/nifi/nifi-current/conf"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "NIFI_WEB_HTTP_PORT",
+      "default": "8080",
+      "description": "NiFi HTTP UI port"
+    },
+    {
+      "key": "SINGLE_USER_CREDENTIALS_USERNAME",
+      "default": "admin",
+      "description": "Single-user auth username"
+    },
+    {
+      "key": "SINGLE_USER_CREDENTIALS_PASSWORD",
+      "default": "",
+      "description": "Single-user auth password",
+      "secret": true
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

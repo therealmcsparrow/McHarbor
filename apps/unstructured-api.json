@@ -1,0 +1,38 @@
+{
+    "slug":  "unstructured-api",
+    "name":  "Unstructured API",
+    "description":  "Preprocess and structure documents (PDFs, DOCX, images) for downstream LLM pipelines.",
+    "category":  "AI \u0026 Voice",
+    "image":  "quay.io/unstructured-io/unstructured-api:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/Unstructured-IO/unstructured",
+    "docsUrl":  "https://docs.unstructured.io/open-source/ingestion-api/overview",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/unstructured-api/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "UNSTRUCTURED_API_KEY",
+                        "default":  "",
+                        "description":  "API key to gate the ingestion endpoint",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

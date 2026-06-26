@@ -1,0 +1,48 @@
+{
+    "slug":  "docmost",
+    "name":  "Docmost",
+    "description":  "Collaborative wiki and documentation tool with spaces, permissions, and real-time editing.",
+    "category":  "Documents",
+    "image":  "docmost/docmost:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/docmost.png",
+    "website":  "https://docmost.com",
+    "docsUrl":  "https://github.com/docmost/docmost",
+    "ports":  [
+                  {
+                      "host":  3002,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/docmost/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "APP_URL",
+                        "default":  "http://localhost:3002",
+                        "description":  "Application URL"
+                    },
+                    {
+                        "key":  "APP_SECRET",
+                        "default":  "change-me",
+                        "description":  "Application secret",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DATABASE_URL",
+                        "default":  "postgresql://docmost:change-me@docmost-db:5432/docmost",
+                        "description":  "Database connection URL"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

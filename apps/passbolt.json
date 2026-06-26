@@ -1,0 +1,62 @@
+{
+  "slug": "passbolt",
+  "name": "Passbolt",
+  "description": "Team-oriented password manager with end-to-end encryption and sharing.",
+  "category": "Security",
+  "image": "passbolt/passbolt:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/passbolt.png",
+  "website": "https://www.passbolt.com",
+  "docsUrl": "https://www.passbolt.com/docs/hosting",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/passbolt/config",
+      "container": "/etc/passbolt"
+    },
+    {
+      "host": "/opt/appdata/passbolt/backup",
+      "container": "/mnt/backup"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "APP_FULL_BASE_URL",
+      "default": "https://passbolt.example.com",
+      "description": "Public base URL"
+    },
+    {
+      "key": "DATASOURCES_DEFAULT_HOST",
+      "default": "passbolt-db",
+      "description": "Database host"
+    },
+    {
+      "key": "DATASOURCES_DEFAULT_PASSWORD",
+      "default": "change-me",
+      "description": "Database password",
+      "secret": true
+    },
+    {
+      "key": "EMAIL_DEFAULT_FROM",
+      "default": "passbolt@example.com",
+      "description": "Default sender email"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

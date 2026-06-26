@@ -1,0 +1,27 @@
+{
+    "slug":  "curl",
+    "name":  "cURL",
+    "description":  "cURL command-line tool and library for transferring data with URLs.",
+    "category":  "Utilities",
+    "image":  "curlimages/curl:latest",
+    "logo":  "https://icon.horse/icon/curl.se",
+    "website":  "https://curl.se",
+    "docsUrl":  "https://hub.docker.com/r/curlimages/curl",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/curl/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

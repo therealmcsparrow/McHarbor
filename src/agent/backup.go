@@ -5,15 +5,18 @@ package main
 
 import (
 	"archive/tar"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -73,6 +76,18 @@ func (a *Agent) runBackupArchiveAndUploads(ctx context.Context, conn *websocket.
 		}
 	}()
 
+	// Pause the container for snapshot consistency. Best-effort — some
+	// runtimes (Windows containers, custom runtimes) reject pause; we
+	// proceed without it in that case. The unpause uses a fresh
+	// background context so we still release the container if the
+	// caller's context was cancelled mid-backup.
+	paused := pauseAgentContainerForBackup(ctx, a.proxy, payload.ContainerID, a.logger)
+	defer func() {
+		unpauseCtx, unpauseCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer unpauseCancel()
+		unpauseAgentContainerAfterBackup(unpauseCtx, a.proxy, payload.ContainerID, paused, a.logger)
+	}()
+
 	if err := a.writeAgentBackupArchive(ctx, conn, tmp, cryptoSvc, payload); err != nil {
 		return 0, err
 	}
@@ -84,12 +99,75 @@ func (a *Agent) runBackupArchiveAndUploads(ctx context.Context, conn *websocket.
 		return 0, fmt.Errorf("stating temporary backup archive: %w", err)
 	}
 	size := stat.Size()
+
+	// Parallel uploads: each destination runs in its own goroutine so a
+	// slow OneDrive upload doesn't gate the local copy and vice versa.
+	type destResult struct {
+		name string
+		err  error
+	}
+	results := make(chan destResult, len(payload.StorageDestinations))
+	var wg sync.WaitGroup
 	for _, destination := range payload.StorageDestinations {
-		if err := a.uploadAgentBackupArchive(ctx, conn, tmp, size, payload.TransferID, destination); err != nil {
-			return size, err
+		destination := destination
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			results <- destResult{
+				name: destination.Name,
+				err:  a.uploadAgentBackupArchive(ctx, conn, tmp, size, payload.TransferID, destination),
+			}
+		}()
+	}
+	wg.Wait()
+	close(results)
+
+	var firstErr error
+	for res := range results {
+		if res.err != nil && firstErr == nil {
+			firstErr = res.err
 		}
 	}
+	if firstErr != nil {
+		return size, firstErr
+	}
 	return size, nil
+}
+
+// pauseAgentContainerForBackup asks the local Docker daemon to pause the
+// container for snapshot consistency. Returns true if the container is
+// paused (and therefore needs to be unpaused), false if pause was skipped
+// or failed.
+func pauseAgentContainerForBackup(ctx context.Context, proxy *Proxy, containerID string, logger *slog.Logger) bool {
+	if err := proxy.PauseContainer(ctx, containerID); err != nil {
+		if logger != nil {
+			logger.Warn("agent backup: pause failed, proceeding without snapshot consistency",
+				"container", containerID, "error", err)
+		}
+		return false
+	}
+	if logger != nil {
+		logger.Info("agent backup: container paused for snapshot consistency", "container", containerID)
+	}
+	return true
+}
+
+// unpauseAgentContainerAfterBackup releases the container. If pause was
+// skipped (returns false) this is a no-op.
+func unpauseAgentContainerAfterBackup(ctx context.Context, proxy *Proxy, containerID string, wasPaused bool, logger *slog.Logger) {
+	if !wasPaused {
+		return
+	}
+	if err := proxy.UnpauseContainer(ctx, containerID); err != nil {
+		if logger != nil {
+			logger.Error("agent backup: unpause failed, container may remain paused",
+				"container", containerID, "error", err)
+		}
+		return
+	}
+	if logger != nil {
+		logger.Info("agent backup: container unpaused", "container", containerID)
+	}
 }
 
 func (a *Agent) writeAgentBackupArchive(ctx context.Context, conn *websocket.Conn, writer io.Writer, cryptoSvc *backupCryptoService, payload BackupPayload) error {
@@ -219,8 +297,34 @@ func writeAgentBackupBytes(tw *agentBackupProgressWriter, name string, data []by
 	return err
 }
 
+// agentMemorySpoolLimit is the threshold below which a backup entry is
+// buffered in memory rather than spooled to disk. Logs and mount copies
+// usually fit under this; container filesystem exports do not.
+const agentMemorySpoolLimit = 64 * 1024 * 1024 // 64 MiB
+
 func writeAgentBackupStream(ctx context.Context, tw *agentBackupProgressWriter, name string, reader io.ReadCloser) error {
 	defer reader.Close()
+
+	// Fast path for entries that fit in memory: write the tar header and
+	// the entry data in one pass with no disk I/O.
+	buf := &bytes.Buffer{}
+	if _, err := copyAgentBackupWithContext(ctx, buf, reader); err != nil {
+		return fmt.Errorf("spooling backup entry %s: %w", name, err)
+	}
+	size := int64(buf.Len())
+	if size <= agentMemorySpoolLimit {
+		if err := tw.writeHeader(&tar.Header{Name: name, Mode: 0644, Size: size}); err != nil {
+			return err
+		}
+		if _, err := tw.Write(buf.Bytes()); err != nil {
+			return fmt.Errorf("writing backup entry %s: %w", name, err)
+		}
+		return nil
+	}
+
+	// Large entry: spool to disk to know the byte count, then re-read into
+	// the encrypted tar. archive/tar requires the entry size in the header
+	// before the data is written.
 	tmp, err := os.CreateTemp("", "mcharbor-agent-backup-entry-*.tar")
 	if err != nil {
 		return fmt.Errorf("creating backup entry temp file: %w", err)
@@ -230,17 +334,24 @@ func writeAgentBackupStream(ctx context.Context, tw *agentBackupProgressWriter, 
 		_ = tmp.Close()
 		_ = os.Remove(tmpPath)
 	}()
-	n, err := copyAgentBackupWithContext(ctx, tmp, reader)
-	if err != nil {
+	if _, err := tmp.Write(buf.Bytes()); err != nil {
 		return fmt.Errorf("spooling backup entry %s: %w", name, err)
 	}
-	if _, err := tmp.Seek(0, io.SeekStart); err != nil {
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("closing backup entry temp file: %w", err)
+	}
+	in, err := os.Open(tmpPath)
+	if err != nil {
+		return fmt.Errorf("opening backup entry temp file: %w", err)
+	}
+	defer in.Close()
+	if _, err := in.Seek(0, io.SeekStart); err != nil {
 		return fmt.Errorf("rewinding backup entry %s: %w", name, err)
 	}
-	if err := tw.writeHeader(&tar.Header{Name: name, Mode: 0644, Size: n}); err != nil {
+	if err := tw.writeHeader(&tar.Header{Name: name, Mode: 0644, Size: size}); err != nil {
 		return err
 	}
-	if _, err := copyAgentBackupWithContext(ctx, tw, tmp); err != nil {
+	if _, err := copyAgentBackupWithContext(ctx, tw, in); err != nil {
 		return fmt.Errorf("writing backup entry %s: %w", name, err)
 	}
 	return nil
@@ -266,40 +377,103 @@ func (w *agentBackupProgressWriter) Write(p []byte) (int, error) {
 }
 
 func (a *Agent) uploadAgentBackupArchive(ctx context.Context, conn *websocket.Conn, file *os.File, size int64, transferID string, destination BackupStorageDestination) error {
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
-		return fmt.Errorf("rewinding backup archive for upload: %w", err)
-	}
 	uploadURL, err := a.resolveServerURL(destination.UploadURL)
 	if err != nil {
 		return err
 	}
-	reader := &agentBackupProgressReader{
-		reader:     file,
-		conn:       conn,
-		transferID: transferID,
-		stage:      "uploading",
-		storageID:  destination.Name,
-		total:      size,
+
+	// Retry on transient errors (network blip, 5xx response) — 3 attempts
+	// total with exponential backoff 2s, 8s, 32s. The HTTP body is
+	// re-read from disk for each attempt because we already consumed it
+	// on the prior failure.
+	const maxAttempts = 3
+	backoff := 2 * time.Second
+	var lastErr error
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		if _, err := file.Seek(0, io.SeekStart); err != nil {
+			return fmt.Errorf("rewinding backup archive for upload: %w", err)
+		}
+		reader := &agentBackupProgressReader{
+			reader:     file,
+			conn:       conn,
+			transferID: transferID,
+			stage:      "uploading",
+			storageID:  destination.Name,
+			total:      size,
+		}
+		req, err := http.NewRequestWithContext(ctx, http.MethodPut, uploadURL, reader)
+		if err != nil {
+			return fmt.Errorf("building backup upload request: %w", err)
+		}
+		req.Header.Set("Authorization", "Bearer "+destination.Token)
+		req.Header.Set("Content-Type", "application/x-tar")
+		req.ContentLength = size
+		resp, err := http.DefaultClient.Do(req)
+		if err == nil {
+			defer resp.Body.Close()
+			if resp.StatusCode < 300 {
+				_, _ = io.Copy(io.Discard, resp.Body)
+				sendBackupProgress(conn, transferID, "uploading", destination.Name, size, size)
+				return nil
+			}
+			body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+			err = fmt.Errorf("backup upload to %s returned status %d: %s", destination.Name, resp.StatusCode, strings.TrimSpace(string(body)))
+		} else {
+			err = fmt.Errorf("uploading backup archive to %s: %w", destination.Name, err)
+		}
+		lastErr = err
+		if !isRetryableAgentUploadError(err) {
+			break
+		}
+		if attempt < maxAttempts {
+			a.logger.Warn(
+				"agent backup upload failed, will retry",
+				"destination", destination.Name, "attempt", attempt, "max", maxAttempts,
+				"backoff", backoff.String(), "error", err,
+			)
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(backoff):
+			}
+			backoff *= 4
+		}
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, uploadURL, reader)
-	if err != nil {
-		return fmt.Errorf("building backup upload request: %w", err)
+	return lastErr
+}
+
+// isRetryableAgentUploadError mirrors the server-side heuristic: only
+// transient network and 5xx errors are retried. 4xx (auth, validation)
+// are permanent.
+func isRetryableAgentUploadError(err error) bool {
+	if err == nil {
+		return false
 	}
-	req.Header.Set("Authorization", "Bearer "+destination.Token)
-	req.Header.Set("Content-Type", "application/x-tar")
-	req.ContentLength = size
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("uploading backup archive to %s: %w", destination.Name, err)
+	msg := err.Error()
+	networkMarkers := []string{
+		"connection refused",
+		"connection reset",
+		"no such host",
+		"i/o timeout",
+		"TLS handshake timeout",
+		"unexpected EOF",
+		"broken pipe",
+		"connection closed",
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return fmt.Errorf("backup upload to %s returned status %d: %s", destination.Name, resp.StatusCode, strings.TrimSpace(string(body)))
+	for _, marker := range networkMarkers {
+		if strings.Contains(msg, marker) {
+			return true
+		}
 	}
-	_, _ = io.Copy(io.Discard, resp.Body)
-	sendBackupProgress(conn, transferID, "uploading", destination.Name, size, size)
-	return nil
+	for _, code := range []string{"status 500", "status 502", "status 503", "status 504", "status 429"} {
+		if strings.Contains(msg, code) {
+			return true
+		}
+	}
+	return false
 }
 
 func (a *Agent) runBackupRestore(ctx context.Context, conn *websocket.Conn, payload BackupPayload) {

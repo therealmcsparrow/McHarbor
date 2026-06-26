@@ -184,7 +184,8 @@
     "reinstallSelected": "Selectie opnieuw installeren",
     "confirmTitle": "Batchactie bevestigen",
     "confirmDescription": "Weet u zeker dat u {{count}} items wilt {{action}}?",
-    "confirmPruneDescription": "Verwijder ongebruikte resources die niet meer worden gebruikt."
+    "confirmPruneDescription": "Verwijder ongebruikte resources die niet meer worden gebruikt.",
+    "clearSelection": "Selectie wissen"
   },
   "errors": {
     "somethingWentWrong": "Er ging iets mis",
@@ -283,6 +284,11 @@
     "running": "{{count}} actief",
     "services": "{{count}} svc"
   },
+  "list": {
+    "loadingMore": "Meer laden...",
+    "endOfList": "Einde van de lijst",
+    "loadMore": "Meer laden"
+  },
   "logs": {
     "title": "Logboeken",
     "description": "Bekijk container loguitvoer",
@@ -340,6 +346,30 @@
     "detailsTitle": "Audititem details",
     "viewDetails": "Details bekijken",
     "local": "Lokaal"
+  },
+  "dateRange": {
+    "label": "Datumbereik",
+    "title": "Tijdsbereik",
+    "allTime": "Alle tijden",
+    "reset": "Resetten",
+    "close": "Sluiten",
+    "from": "Van",
+    "to": "Tot",
+    "presetAll": "Alle tijden",
+    "presetLast15Minutes": "Laatste 15 minuten",
+    "presetLast1Hour": "Laatste uur",
+    "presetLast24Hours": "Laatste 24 uur",
+    "presetToday": "Vandaag",
+    "presetYesterday": "Gisteren",
+    "presetThisWeek": "Deze week",
+    "presetLastWeek": "Vorige week",
+    "presetLast7Days": "Laatste 7 dagen",
+    "presetThisMonth": "Deze maand",
+    "presetLastMonth": "Vorige maand",
+    "presetLast30Days": "Laatste 30 dagen",
+    "presetThisYear": "Dit jaar",
+    "presetLastYear": "Vorig jaar",
+    "presetCustom": "Aangepast bereik"
   },
   "blueprints": {
     "title": "Blauwdrukken",
@@ -842,5 +872,13 @@
       "themeSystemDescription": "Volg de instelling van je browser of besturingssysteem.",
       "languageDescription": "Taalwijzigingen worden direct toegepast en opgeslagen in je gebruikersprofiel."
     }
+  },
+  "clipboard": {
+    "manualCopyTitle": "Handmatig kopiëren",
+    "manualCopyDescription": "Je browser blokkeert automatisch klembord-schrijven omdat deze pagina via gewoon HTTP wordt aangeboden. Gebruik het onderstaande veld om de waarde te kopiëren.",
+    "manualCopyHint": "De tekst is al geselecteerd — druk op Ctrl+C (Cmd+C op macOS) om te kopiëren.",
+    "selectAndCopy": "Selecteer & kopieer",
+    "copied": "Gekopieerd",
+    "close": "Sluiten"
   }
 }

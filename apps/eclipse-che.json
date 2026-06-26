@@ -1,0 +1,37 @@
+{
+    "slug":  "eclipse-che",
+    "name":  "Eclipse Che",
+    "description":  "Kubernetes-native cloud IDE and developer workspace server.",
+    "category":  "Developer Tools",
+    "image":  "eclipse/che-server:latest",
+    "logo":  "https://icon.horse/icon/www.eclipse.org",
+    "website":  "https://www.eclipse.org/che",
+    "docsUrl":  "https://www.eclipse.org/che/docs/stable/administration-guide/installing-che/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/eclipse-che/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CHE_HOST",
+                        "default":  "che.example.com",
+                        "description":  "Public hostname of the Che server"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

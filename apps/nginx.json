@@ -1,0 +1,44 @@
+{
+    "slug":  "nginx",
+    "name":  "Nginx",
+    "description":  "High-performance HTTP server, reverse proxy, and IMAP/POP3 proxy.",
+    "category":  "Networking",
+    "image":  "nginx:alpine",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/nginx.png",
+    "website":  "https://nginx.org",
+    "docsUrl":  "https://nginx.org/en/docs/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nginx/conf",
+                        "container":  "/etc/nginx/conf.d"
+                    },
+                    {
+                        "host":  "/opt/appdata/nginx/html",
+                        "container":  "/usr/share/nginx/html"
+                    },
+                    {
+                        "host":  "/opt/appdata/nginx/certs",
+                        "container":  "/etc/nginx/certs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "alpine"
+}

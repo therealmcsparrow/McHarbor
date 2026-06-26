@@ -1,0 +1,31 @@
+{
+    "slug":  "quickchart-api",
+    "name":  "QuickChart",
+    "description":  "Chart and QR code image web API. Generate Chart.js, Plotly, and GraphViz charts as PNG or SVG from simple URL parameters.",
+    "category":  "Productivity",
+    "image":  "ianw/quickchart:latest",
+    "logo":  "https://icon.horse/icon/quickchart.io",
+    "website":  "https://quickchart.io",
+    "docsUrl":  "https://quickchart.io/documentation",
+    "ports":  [
+                  {
+                      "host":  3400,
+                      "container":  3400,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/quickchart-api/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

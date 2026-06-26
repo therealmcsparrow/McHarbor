@@ -1,0 +1,36 @@
+{
+    "slug":  "node-lts-dev",
+    "name":  "Node.js LTS",
+    "description":  "Latest long-term support Node.js runtime on Alpine Linux for stable, supported development.",
+    "category":  "Developer Tools",
+    "image":  "node:lts-alpine",
+    "logo":  "https://icon.horse/icon/nodejs.org",
+    "website":  "https://nodejs.org",
+    "docsUrl":  "https://nodejs.org/en/docs",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/node-lts-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NODE_ENV",
+                        "default":  "development",
+                        "description":  "Node environment"
+                    }
+                ],
+    "version":  "lts-alpine"
+}

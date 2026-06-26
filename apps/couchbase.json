@@ -1,0 +1,42 @@
+{
+    "slug":  "couchbase",
+    "name":  "Couchbase Server",
+    "description":  "Distributed NoSQL document database with powerful query engine and full-text search.",
+    "category":  "Databases",
+    "image":  "couchbase/server:latest",
+    "logo":  "https://icon.horse/icon/www.couchbase.com",
+    "website":  "https://www.couchbase.com",
+    "docsUrl":  "https://docs.couchbase.com/server/current",
+    "ports":  [
+                  {
+                      "host":  8091,
+                      "container":  8091,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  11210,
+                      "container":  11210,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/couchbase/data",
+                        "container":  "/opt/couchbase/var"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "USERNAME",
+                        "default":  "Administrator",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

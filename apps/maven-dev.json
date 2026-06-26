@@ -1,0 +1,36 @@
+{
+    "slug":  "maven-dev",
+    "name":  "Maven",
+    "description":  "Apache Maven 3.9 on Temurin 21, project management and comprehension tool for Java projects.",
+    "category":  "Developer Tools",
+    "image":  "maven:3.9-eclipse-temurin-21",
+    "logo":  "https://icon.horse/icon/maven.apache.org",
+    "website":  "https://maven.apache.org",
+    "docsUrl":  "https://maven.apache.org/guides/index.html",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/maven-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MAVEN_CONFIG",
+                        "default":  "",
+                        "description":  "Optional Maven configuration file path"
+                    }
+                ],
+    "version":  "3.9-eclipse-temurin-21"
+}

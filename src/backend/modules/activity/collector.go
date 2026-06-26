@@ -86,6 +86,15 @@ func (c *Collector) run(ctx context.Context) {
 }
 
 // prune removes events older than the configured retention period.
+//
+// The timestamp column is stored as RFC3339 ("2026-05-25T00:00:02Z"),
+// while datetime('now', '-N days') returns SQLite's native format
+// ("2026-05-25 00:00:00"). A direct string comparison breaks at the
+// date boundary because ' ' (0x20) sorts before 'T' (0x54), so the
+// cutoff always sorts less than anything stored on the same date and
+// nothing is ever deleted. Wrapping both sides in julianday() forces
+// SQLite to convert the RFC3339 timestamp to a numeric day count so
+// the comparison is chronological rather than lexicographic.
 func (c *Collector) prune() {
 	retentionSettings := coreSettings.ReadRetentionSettings(c.db)
 	days := retentionSettings.ActivityRetentionDays
@@ -93,9 +102,13 @@ func (c *Collector) prune() {
 		return // 0 = keep forever
 	}
 
-	_, err := c.db.Exec("DELETE FROM container_events WHERE timestamp < datetime('now', '-' || ? || ' days')", days)
+	result, err := c.db.Exec("DELETE FROM container_events WHERE julianday(timestamp) < julianday('now', '-' || ? || ' days')", days)
 	if err != nil {
 		c.logger.Error("activity collector: failed to prune old events", "error", err)
+		return
+	}
+	if n, _ := result.RowsAffected(); n > 0 {
+		c.logger.Info("container events pruned", "days", days, "rows_deleted", n)
 	}
 }
 

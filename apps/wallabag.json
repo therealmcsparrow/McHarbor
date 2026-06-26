@@ -1,40 +1,40 @@
 {
-  "slug": "wallabag",
-  "name": "Wallabag",
-  "description": "Read-it-later web app for saving and annotating articles.",
-  "category": "Productivity",
-  "image": "wallabag/wallabag:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/wallabag.svg",
-  "website": "https://wallabag.org",
-  "docsUrl": "https://doc.wallabag.org",
-  "ports": [
-    {
-      "host": 8084,
-      "container": 80,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/wallabag/data",
-      "container": "/var/www/wallabag/data"
-    },
-    {
-      "host": "/opt/appdata/wallabag/images",
-      "container": "/var/www/wallabag/web/assets/images"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    },
-    {
-      "key": "SYMFONY__ENV__DOMAIN_NAME",
-      "default": "http://localhost:8084",
-      "description": "External URL"
-    }
-  ],
-  "version": "latest"
+    "slug":  "wallabag",
+    "name":  "Wallabag",
+    "description":  "Read-it-later web app for saving and annotating articles.",
+    "category":  "Productivity",
+    "image":  "wallabag/wallabag:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/wallabag.png",
+    "website":  "https://wallabag.org",
+    "docsUrl":  "https://doc.wallabag.org",
+    "ports":  [
+                  {
+                      "host":  8084,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/wallabag/data",
+                        "container":  "/var/www/wallabag/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/wallabag/images",
+                        "container":  "/var/www/wallabag/web/assets/images"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SYMFONY__ENV__DOMAIN_NAME",
+                        "default":  "http://localhost:8084",
+                        "description":  "External URL"
+                    }
+                ],
+    "version":  "latest"
 }

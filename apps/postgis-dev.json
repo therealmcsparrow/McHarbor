@@ -1,0 +1,42 @@
+{
+    "slug":  "postgis-dev",
+    "name":  "PostGIS Dev",
+    "description":  "PostgreSQL 16 with the PostGIS 3.4 extension on Alpine for spatial development.",
+    "category":  "Databases",
+    "image":  "postgis/postgis:16-3.4-alpine",
+    "logo":  "https://icon.horse/icon/postgis.net",
+    "website":  "https://postgis.net",
+    "docsUrl":  "https://postgis.net/documentation/",
+    "ports":  [
+                  {
+                      "host":  5432,
+                      "container":  5432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/postgis-dev/data",
+                        "container":  "/var/lib/postgresql/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "POSTGRES_USER",
+                        "default":  "postgres",
+                        "description":  "Database superuser name"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "",
+                        "description":  "Database superuser password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POSTGRES_DB",
+                        "default":  "gis",
+                        "description":  "Default database name"
+                    }
+                ],
+    "version":  "16-3.4-alpine"
+}

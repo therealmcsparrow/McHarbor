@@ -1,0 +1,42 @@
+{
+    "slug":  "tabbyapi",
+    "name":  "TabbyAPI",
+    "description":  "An OpenAI-compatible LLM inference server optimized for ExLlamaV2, designed for self-hosted AI.",
+    "category":  "AI \u0026 Voice",
+    "image":  "ghcr.io/theroyallab/tabbyapi:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/theroyallab/tabbyAPI",
+    "docsUrl":  "https://github.com/theroyallab/tabbyAPI/wiki",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tabbyapi/models",
+                        "container":  "/models"
+                    },
+                    {
+                        "host":  "/opt/appdata/tabbyapi/config",
+                        "container":  "/app/config.yml"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TABBY_API_KEY",
+                        "default":  "",
+                        "description":  "API key to gate the server",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "6GB",
+    "version":  "latest"
+}

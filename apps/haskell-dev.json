@@ -1,0 +1,31 @@
+{
+    "slug":  "haskell-dev",
+    "name":  "Haskell",
+    "description":  "Haskell 9.4 toolchain, purely functional language with strong static typing and lazy evaluation.",
+    "category":  "Developer Tools",
+    "image":  "haskell:9.4",
+    "logo":  "https://icon.horse/icon/www.haskell.org",
+    "website":  "https://www.haskell.org",
+    "docsUrl":  "https://www.haskell.org/documentation/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/haskell-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "9.4"
+}

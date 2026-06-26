@@ -1,0 +1,36 @@
+{
+    "slug":  "opensips",
+    "name":  "OpenSIPS",
+    "description":  "Open-source SIP proxy/registrar with routing, billing, and advanced VoIP features.",
+    "category":  "Communications",
+    "image":  "opensips/opensips:latest",
+    "logo":  "https://icon.horse/icon/www.opensips.org",
+    "website":  "https://www.opensips.org",
+    "docsUrl":  "https://opensips.org/docs",
+    "ports":  [
+                  {
+                      "host":  5060,
+                      "container":  5060,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  5060,
+                      "container":  5060,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/opensips/etc",
+                        "container":  "/etc/opensips"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,40 @@
+{
+    "slug":  "teddit",
+    "name":  "Teddit",
+    "description":  "Privacy-respecting, ad-free Reddit alternative front-end with infinite scroll and lightweight design.",
+    "category":  "Media",
+    "image":  "teddit/teddit:latest",
+    "logo":  "https://icon.horse/icon/codeberg.org",
+    "website":  "https://codeberg.org/teddit/teddit",
+    "docsUrl":  "https://codeberg.org/teddit/teddit#teddit",
+    "ports":  [
+                  {
+                      "host":  8088,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/teddit/config",
+                        "container":  "/teddit/settings.js"
+                    },
+                    {
+                        "host":  "/opt/appdata/teddit/public",
+                        "container":  "/teddit/public"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "REDIRECT_SUBREDDITS",
+                        "default":  "on",
+                        "description":  "Redirect NSFW subreddits to the old Reddit interface"
+                    }
+                ],
+    "version":  "latest"
+}

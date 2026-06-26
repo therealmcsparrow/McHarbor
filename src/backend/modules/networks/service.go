@@ -5,7 +5,9 @@ package networks
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
@@ -15,6 +17,25 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/docker"
 )
+
+// ErrBuiltIn is returned when an operation targets a Docker built-in network
+// (bridge, host, none) which McHarbor treats as non-deletable to protect the
+// host's networking stack.
+var ErrBuiltIn = errors.New("built-in network")
+
+// builtInNetworkNames is the set of Docker built-in network names that are
+// always present on every Docker host and must never be removed.
+var builtInNetworkNames = map[string]struct{}{
+	"bridge": {},
+	"host":   {},
+	"none":   {},
+}
+
+// IsBuiltInName reports whether the given network name is a Docker built-in.
+func IsBuiltInName(name string) bool {
+	_, ok := builtInNetworkNames[strings.ToLower(strings.TrimSpace(name))]
+	return ok
+}
 
 // Service wraps Docker SDK network operations.
 type Service struct {
@@ -73,6 +94,7 @@ func (s *Service) List(ctx context.Context, envID string) ([]NetworkSummary, err
 			Options:    n.Options,
 			Labels:     n.Labels,
 			Created:    n.Created.Format("2006-01-02T15:04:05Z"),
+			BuiltIn:    IsBuiltInName(n.Name),
 		})
 	}
 
@@ -148,7 +170,8 @@ func (s *Service) Inspect(ctx context.Context, envID, id string) (network.Inspec
 	return net, nil
 }
 
-// Remove removes a network.
+// Remove removes a network. Built-in networks (bridge, host, none) are
+// rejected with ErrBuiltIn to protect the host's networking stack.
 func (s *Service) Remove(ctx context.Context, envID, id string) error {
 	cli, err := s.getClient(envID)
 	if err != nil {
@@ -157,6 +180,18 @@ func (s *Service) Remove(ctx context.Context, envID, id string) error {
 
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
+
+	// Inspect the network first so we can reject built-ins by name before
+	// asking the Docker daemon to remove them. NetworkInspect works for
+	// bridge and host, and the lookup-by-id catches calls that pass a
+	// built-in ID without a name.
+	net, err := cli.NetworkInspect(ctx, id, network.InspectOptions{})
+	if err != nil {
+		return fmt.Errorf("inspecting network %s before remove: %w", id, err)
+	}
+	if IsBuiltInName(net.Name) {
+		return fmt.Errorf("%w: %s", ErrBuiltIn, net.Name)
+	}
 
 	if err := cli.NetworkRemove(ctx, id); err != nil {
 		return fmt.Errorf("removing network %s: %w", id, err)

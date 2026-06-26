@@ -1,0 +1,77 @@
+{
+  "slug": "espocrm",
+  "name": "EspoCRM",
+  "description": "Open-source CRM with documents, calendars, contacts, and sales pipeline management.",
+  "category": "Documents",
+  "image": "espocrm/espocrm:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/espocrm.png",
+  "website": "https://www.espocrm.com",
+  "docsUrl": "https://github.com/espocrm/espocrm",
+  "ports": [
+    {
+      "host": 8092,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/espocrm/data",
+      "container": "/var/www/html/data"
+    },
+    {
+      "host": "/opt/appdata/espocrm/config",
+      "container": "/var/www/html/custom"
+    },
+    {
+      "host": "/opt/appdata/espocrm/upload",
+      "container": "/var/www/html/upload"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "SITE_URL",
+      "default": "http://localhost:8092",
+      "description": "Public site URL"
+    },
+    {
+      "key": "DB_HOST",
+      "default": "espocrm-db",
+      "description": "Database host"
+    },
+    {
+      "key": "DB_NAME",
+      "default": "espocrm",
+      "description": "Database name"
+    },
+    {
+      "key": "DB_USER",
+      "default": "espocrm",
+      "description": "Database user"
+    },
+    {
+      "key": "DB_PASSWORD",
+      "default": "change-me",
+      "description": "Database password",
+      "secret": true
+    },
+    {
+      "key": "ADMIN_USERNAME",
+      "default": "admin",
+      "description": "Initial admin username"
+    },
+    {
+      "key": "ADMIN_PASSWORD",
+      "default": "change-me",
+      "description": "Initial admin password",
+      "secret": true
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

@@ -1,31 +1,31 @@
 {
-  "slug": "homebox",
-  "name": "Homebox",
-  "description": "Inventory and organization system for household items.",
-  "category": "Productivity",
-  "image": "ghcr.io/sysadminsmedia/homebox:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/homebox.svg",
-  "website": "https://homebox.software",
-  "docsUrl": "https://homebox.software/en/quick-start/",
-  "ports": [
-    {
-      "host": 3100,
-      "container": 7745,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/homebox/data",
-      "container": "/data"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "homebox",
+    "name":  "Homebox",
+    "description":  "Inventory and organization system for household items.",
+    "category":  "Productivity",
+    "image":  "ghcr.io/sysadminsmedia/homebox:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/homebox.png",
+    "website":  "https://homebox.software",
+    "docsUrl":  "https://homebox.software/en/quick-start/",
+    "ports":  [
+                  {
+                      "host":  3100,
+                      "container":  7745,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/homebox/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

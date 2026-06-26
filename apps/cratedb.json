@@ -1,0 +1,36 @@
+{
+    "slug":  "cratedb",
+    "name":  "CrateDB",
+    "description":  "Distributed SQL database for machine data and IoT with standard SQL and elastic scaling.",
+    "category":  "Databases",
+    "image":  "crate/crate:latest",
+    "logo":  "https://icon.horse/icon/crate.io",
+    "website":  "https://crate.io",
+    "docsUrl":  "https://crate.io/docs/crate/reference/en/latest/",
+    "ports":  [
+                  {
+                      "host":  4200,
+                      "container":  4200,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5432,
+                      "container":  5432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cratedb/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

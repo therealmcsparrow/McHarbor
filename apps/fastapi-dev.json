@@ -1,0 +1,41 @@
+{
+  "slug": "fastapi-dev",
+  "name": "FastAPI",
+  "description": "Tiangolo Uvicorn-Gunicorn-FastAPI, modern high-performance Python web framework with type hints.",
+  "category": "Developer Tools",
+  "image": "tiangolo/uvicorn-gunicorn-fastapi:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/fastapi.png",
+  "website": "https://fastapi.tiangolo.com",
+  "docsUrl": "https://fastapi.tiangolo.com/tutorial/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/fastapi-dev/app",
+      "container": "/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "MODULE_NAME",
+      "default": "app.main",
+      "description": "FastAPI module entrypoint"
+    },
+    {
+      "key": "VARIABLE_NAME",
+      "default": "app",
+      "description": "ASGI application variable name"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,46 @@
+{
+    "slug":  "apache-ignite",
+    "name":  "Apache Ignite",
+    "description":  "Distributed in-memory database and compute platform for transactional and analytical workloads.",
+    "category":  "Databases",
+    "image":  "apacheignite/ignite:latest",
+    "logo":  "https://icon.horse/icon/ignite.apache.org",
+    "website":  "https://ignite.apache.org",
+    "docsUrl":  "https://ignite.apache.org/docs/latest/",
+    "ports":  [
+                  {
+                      "host":  11211,
+                      "container":  11211,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  47100,
+                      "container":  47100,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  47500,
+                      "container":  47500,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  49112,
+                      "container":  49112,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apache-ignite/data",
+                        "container":  "/opt/ignite/work"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

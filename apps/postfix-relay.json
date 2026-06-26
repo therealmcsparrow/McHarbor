@@ -1,0 +1,53 @@
+{
+    "slug":  "postfix-relay",
+    "name":  "Postfix Relay",
+    "description":  "Lightweight Postfix MTA container for outbound mail relay and SMTP forwarding.",
+    "category":  "Communications",
+    "image":  "mwader/postfix-relay:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/wader/postfix-relay",
+    "docsUrl":  "https://github.com/wader/postfix-relay",
+    "ports":  [
+                  {
+                      "host":  25,
+                      "container":  25,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/postfix-relay/data",
+                        "container":  "/var/spool/postfix"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RELAYHOST",
+                        "default":  "smtp.example.com",
+                        "description":  "Upstream SMTP relay host"
+                    },
+                    {
+                        "key":  "RELAY_PORT",
+                        "default":  "587",
+                        "description":  "Upstream SMTP relay port"
+                    },
+                    {
+                        "key":  "RELAY_USERNAME",
+                        "default":  "",
+                        "description":  "SMTP relay username",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "RELAY_PASSWORD",
+                        "default":  "",
+                        "description":  "SMTP relay password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

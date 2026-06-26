@@ -1,0 +1,36 @@
+{
+  "slug": "frpc-client",
+  "name": "frp Client",
+  "description": "FRP client for connecting local services to a remote FRP server.",
+  "category": "Networking",
+  "image": "snowdreamtech/frpc:latest",
+  "logo": "https://github.com/fatedier/frp/raw/master/doc/pic/modal.png",
+  "website": "https://github.com/fatedier/frp",
+  "docsUrl": "https://github.com/fatedier/frp/blob/master/README.md",
+  "ports": [
+    {
+      "host": 7000,
+      "container": 7000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/frpc/config",
+      "container": "/etc/frp"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "FRPC_SERVER_ADDR",
+      "default": "frp.example.com",
+      "description": "FRP server address"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,65 @@
+{
+    "slug":  "erpnext",
+    "name":  "ERPNext",
+    "description":  "Open-source ERP for manufacturing, distribution, retail, services, and project-driven businesses.",
+    "category":  "Productivity",
+    "image":  "frappe/erpnext-worker:latest",
+    "logo":  "https://icon.horse/icon/erpnext.com",
+    "website":  "https://erpnext.com",
+    "docsUrl":  "https://docs.erpnext.com",
+    "ports":  [
+                  {
+                      "host":  8603,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/erpnext/sites",
+                        "container":  "/home/frappe/frappe-bench/sites"
+                    },
+                    {
+                        "host":  "/opt/appdata/erpnext/apps",
+                        "container":  "/home/frappe/frappe-bench/apps"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DB_HOST",
+                        "default":  "mariadb",
+                        "description":  "Database host"
+                    },
+                    {
+                        "key":  "DB_PORT",
+                        "default":  "3306",
+                        "description":  "Database port"
+                    },
+                    {
+                        "key":  "REDIS_CACHE_HOST",
+                        "default":  "redis-cache",
+                        "description":  "Redis cache host"
+                    },
+                    {
+                        "key":  "REDIS_QUEUE_HOST",
+                        "default":  "redis-queue",
+                        "description":  "Redis queue host"
+                    },
+                    {
+                        "key":  "REDIS_SOCKETIO_HOST",
+                        "default":  "redis-socketio",
+                        "description":  "Redis socketio host"
+                    },
+                    {
+                        "key":  "SOCKETIO_PORT",
+                        "default":  "9000",
+                        "description":  "Socket.IO port"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,52 @@
+{
+  "slug": "plane",
+  "name": "Plane",
+  "description": "Open-source project, sprint, and issue tracking platform for engineering and product teams.",
+  "category": "Productivity",
+  "image": "makeplane/plane-backend:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/plane.png",
+  "website": "https://plane.so",
+  "docsUrl": "https://developers.plane.so",
+  "ports": [
+    {
+      "host": 8606,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/plane/data",
+      "container": "/code/plane-app/media"
+    },
+    {
+      "host": "/opt/appdata/plane/logs",
+      "container": "/code/plane-app/logs"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "DATABASE_URL",
+      "default": "postgresql://plane:plane@postgres/plane",
+      "description": "PostgreSQL connection URL",
+      "secret": true
+    },
+    {
+      "key": "REDIS_URL",
+      "default": "redis://redis:6379/",
+      "description": "Redis connection URL"
+    },
+    {
+      "key": "SECRET_KEY",
+      "default": "",
+      "description": "Application secret key",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

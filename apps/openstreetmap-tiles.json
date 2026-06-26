@@ -1,0 +1,50 @@
+{
+  "slug": "openstreetmap-tiles",
+  "name": "OpenStreetMap Tile Server",
+  "description": "Self-hosted OpenStreetMap raster tile server rendering map tiles from PostgreSQL/PostGIS data.",
+  "category": "Databases",
+  "image": "overv/openstreetmap-tile-server:latest",
+  "logo": "https://www.openstreetmap.org/assets/osm_logo_256x256.png",
+  "website": "https://github.com/overv/openstreetmap-tile-server",
+  "docsUrl": "https://github.com/overv/openstreetmap-tile-server/blob/master/README.md",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/openstreetmap-tiles/data",
+      "container": "/var/lib/postgresql/16/main"
+    },
+    {
+      "host": "/opt/appdata/openstreetmap-tiles/tiles",
+      "container": "/var/lib/mod_tile"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "THREADS",
+      "default": "2",
+      "description": "Render thread count"
+    },
+    {
+      "key": "OSM2PGSQL_EXTRA_ARGS",
+      "default": "",
+      "description": "Extra arguments for osm2pgsql import"
+    },
+    {
+      "key": "ALLOW_CORS",
+      "default": "1",
+      "description": "Allow CORS on tile endpoint"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

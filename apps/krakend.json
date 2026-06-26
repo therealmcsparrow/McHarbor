@@ -1,0 +1,36 @@
+{
+  "slug": "krakend",
+  "name": "KrakenD",
+  "description": "High-performance API gateway that aggregates data from multiple sources in a single call.",
+  "category": "Networking",
+  "image": "devopsfaith/krakend:latest",
+  "logo": "https://www.krakend.io/images/logo_krakend.svg",
+  "website": "https://www.krakend.io",
+  "docsUrl": "https://www.krakend.io/docs/",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8090,
+      "container": 8090,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/krakend/config",
+      "container": "/etc/krakend"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

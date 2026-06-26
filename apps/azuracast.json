@@ -1,0 +1,36 @@
+{
+    "slug":  "azuracast",
+    "name":  "AzuraCast",
+    "description":  "Web-based radio station management with auto-DJ, playlists, and live DJs.",
+    "category":  "Media",
+    "image":  "ghcr.io/azuracast/azuracast:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/azuracast.png",
+    "website":  "https://www.azuracast.com",
+    "docsUrl":  "https://www.azuracast.com/docs/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/azuracast/groups",
+                        "container":  "/var/lib/azuracast/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "AZURACAST_BASE_URL",
+                        "default":  "http://localhost",
+                        "description":  "Public base URL for AzuraCast"
+                    }
+                ],
+    "version":  "latest"
+}

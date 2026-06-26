@@ -1,0 +1,50 @@
+{
+    "slug":  "traefik-forward-auth",
+    "name":  "Traefik Forward Auth",
+    "description":  "Authentication provider for Traefik that supports OIDC, Google, and other providers.",
+    "category":  "Networking",
+    "image":  "thomseddon/traefik-forward-auth:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/thomseddon/traefik-forward-auth",
+    "docsUrl":  "https://github.com/thomseddon/traefik-forward-auth",
+    "ports":  [
+                  {
+                      "host":  4181,
+                      "container":  4181,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PROVIDERS_OIDC_ISSUER_URL",
+                        "default":  "https://example.com",
+                        "description":  "OIDC issuer URL"
+                    },
+                    {
+                        "key":  "PROVIDERS_OIDC_CLIENT_ID",
+                        "default":  "",
+                        "description":  "OIDC client ID"
+                    },
+                    {
+                        "key":  "PROVIDERS_OIDC_CLIENT_SECRET",
+                        "default":  "",
+                        "description":  "OIDC client secret",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SECRET",
+                        "default":  "",
+                        "description":  "Random string used to sign cookies",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

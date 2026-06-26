@@ -43,4 +43,5 @@ type NetworkSummary struct {
 	Options    map[string]string `json:"Options"`
 	Labels     map[string]string `json:"Labels"`
 	Created    string            `json:"Created"`
+	BuiltIn    bool              `json:"BuiltIn"`
 }

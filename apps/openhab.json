@@ -1,0 +1,54 @@
+{
+    "slug":  "openhab",
+    "name":  "openHAB",
+    "description":  "Vendor-neutral home automation platform with a powerful rule engine.",
+    "category":  "Home Automation",
+    "image":  "openhab/openhab:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/openhab.png",
+    "website":  "https://www.openhab.org",
+    "docsUrl":  "https://www.openhab.org/docs/installation/docker.html",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/openhab/conf",
+                        "container":  "/openhab/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/openhab/userdata",
+                        "container":  "/openhab/userdata"
+                    },
+                    {
+                        "host":  "/opt/appdata/openhab/addons",
+                        "container":  "/openhab/addons"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OPENHAB_HTTP_PORT",
+                        "default":  "8080",
+                        "description":  "HTTP port"
+                    },
+                    {
+                        "key":  "OPENHAB_HTTPS_PORT",
+                        "default":  "8443",
+                        "description":  "HTTPS port"
+                    }
+                ],
+    "version":  "latest"
+}

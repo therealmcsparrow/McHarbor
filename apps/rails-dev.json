@@ -1,0 +1,42 @@
+{
+    "slug":  "rails-dev",
+    "name":  "Ruby on Rails",
+    "description":  "Rails framework on Ruby, opinionated full-stack web framework for rapid application development.",
+    "category":  "Developer Tools",
+    "image":  "rails:latest",
+    "logo":  "https://icon.horse/icon/rubyonrails.org",
+    "website":  "https://rubyonrails.org",
+    "docsUrl":  "https://guides.rubyonrails.org",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rails-dev/app",
+                        "container":  "/rails"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RAILS_ENV",
+                        "default":  "development",
+                        "description":  "Rails environment"
+                    },
+                    {
+                        "key":  "SECRET_KEY_BASE",
+                        "default":  "",
+                        "description":  "Rails secret key base",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,41 @@
+{
+    "slug":  "starrocks",
+    "name":  "StarRocks",
+    "description":  "High-performance MPP analytical database for sub-second real-time analytics at scale.",
+    "category":  "Databases",
+    "image":  "starrocks/allin1-ubuntu:latest",
+    "logo":  "https://icon.horse/icon/www.starrocks.io",
+    "website":  "https://www.starrocks.io",
+    "docsUrl":  "https://docs.starrocks.io",
+    "ports":  [
+                  {
+                      "host":  9030,
+                      "container":  9030,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8030,
+                      "container":  8030,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8040,
+                      "container":  8040,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/starrocks/data",
+                        "container":  "/opt/starrocks/var"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

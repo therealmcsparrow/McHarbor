@@ -1,0 +1,41 @@
+{
+    "slug":  "jenkins-dev",
+    "name":  "Jenkins Dev",
+    "description":  "Jenkins LTS automation server on Alpine for local CI/CD development.",
+    "category":  "Developer Tools",
+    "image":  "jenkins/jenkins:lts",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jenkins.png",
+    "website":  "https://www.jenkins.io",
+    "docsUrl":  "https://www.jenkins.io/doc/book/installing/docker/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  50000,
+                      "container":  50000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jenkins-dev/home",
+                        "container":  "/var/jenkins_home"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "lts"
+}

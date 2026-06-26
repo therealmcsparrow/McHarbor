@@ -1,0 +1,41 @@
+{
+    "slug":  "buildbot-master",
+    "name":  "Buildbot Master",
+    "description":  "Build automation framework master that schedules builds across workers.",
+    "category":  "Developer Tools",
+    "image":  "buildbot/buildbot-master:latest",
+    "logo":  "https://icon.horse/icon/buildbot.net",
+    "website":  "https://buildbot.net",
+    "docsUrl":  "https://docs.buildbot.net/current/tutorial/docker.html",
+    "ports":  [
+                  {
+                      "host":  8010,
+                      "container":  8010,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9989,
+                      "container":  9989,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/buildbot-master/data",
+                        "container":  "/var/lib/buildbot/master"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "BUILDBOT_MASTER_NAME",
+                        "default":  "buildbot-master",
+                        "description":  "Name of the Buildbot master"
+                    }
+                ],
+    "version":  "latest"
+}

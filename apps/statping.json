@@ -1,0 +1,42 @@
+{
+    "slug":  "statping",
+    "name":  "Statping",
+    "description":  "Status page and monitoring for HTTP, TCP, ICMP and gRPC services with a beautiful dashboard.",
+    "category":  "Monitoring",
+    "image":  "statping/statping:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/statping.png",
+    "website":  "https://statping.com",
+    "docsUrl":  "https://github.com/statping/statping/wiki",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/statping/data",
+                        "container":  "/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ADMIN_USER",
+                        "default":  "admin",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "ADMIN_PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

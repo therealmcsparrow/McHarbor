@@ -1,0 +1,31 @@
+{
+  "slug": "vulcand",
+  "name": "Vulcand",
+  "description": "Programmatic load balancer and reverse proxy powered by Etcd and built in Go.",
+  "category": "Networking",
+  "image": "jtblin/vulcand:latest",
+  "logo": "https://www.vulcand.org/static/img/vulcand_logo.png",
+  "website": "https://www.vulcand.org",
+  "docsUrl": "https://www.vulcand.org/usage/",
+  "ports": [
+    {
+      "host": 8181,
+      "container": 8181,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/vulcand/config",
+      "container": "/etc/vulcand"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

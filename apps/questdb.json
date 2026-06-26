@@ -1,0 +1,46 @@
+{
+    "slug":  "questdb",
+    "name":  "QuestDB",
+    "description":  "High-performance open-source time-series database with SQL analytics and low latency.",
+    "category":  "Databases",
+    "image":  "questdb/questdb:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/questdb.png",
+    "website":  "https://questdb.io",
+    "docsUrl":  "https://questdb.io/docs/",
+    "ports":  [
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9009,
+                      "container":  9009,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8812,
+                      "container":  8812,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9003,
+                      "container":  9003,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/questdb/data",
+                        "container":  "/var/lib/questdb"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

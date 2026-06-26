@@ -1,0 +1,43 @@
+{
+  "slug": "langflow",
+  "name": "Langflow",
+  "description": "Visual builder for LangChain pipelines. Prototype LLM apps by dragging components together.",
+  "category": "AI & Voice",
+  "image": "langflowai/langflow:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/langflow.png",
+  "website": "https://www.langflow.org",
+  "docsUrl": "https://docs.langflow.org",
+  "ports": [
+    {
+      "host": 7860,
+      "container": 7860,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/langflow/data",
+      "container": "/app/langflow"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "LANGFLOW_AUTO_LOGIN",
+      "default": "false",
+      "description": "Auto-login with default credentials (true/false)"
+    },
+    {
+      "key": "LANGFLOW_SECRET_KEY",
+      "default": "",
+      "description": "Encryption secret key",
+      "secret": true
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

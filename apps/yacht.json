@@ -1,0 +1,52 @@
+{
+  "slug": "yacht",
+  "name": "Yacht",
+  "description": "Yacht is a web UI for managing Docker containers with a clean modern interface.",
+  "category": "Developer Tools",
+  "image": "selfhostedpro/yacht:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/yacht.png",
+  "website": "https://yacht.flynn.gg",
+  "docsUrl": "https://github.com/SelfhostedPro/Yacht",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock"
+    },
+    {
+      "host": "/opt/appdata/yacht/data",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "SECRET_KEY",
+      "default": "changeme",
+      "description": "Flask secret key",
+      "secret": true
+    },
+    {
+      "key": "ADMIN_USERNAME",
+      "default": "admin@yacht.local",
+      "description": "Initial admin email"
+    },
+    {
+      "key": "ADMIN_PASSWORD",
+      "default": "pass",
+      "description": "Initial admin password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

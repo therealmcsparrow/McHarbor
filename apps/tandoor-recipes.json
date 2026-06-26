@@ -1,41 +1,41 @@
 {
-  "slug": "tandoor-recipes",
-  "name": "Tandoor Recipes",
-  "description": "Recipe manager, meal planner, and shopping list app.",
-  "category": "Productivity",
-  "image": "vabene1111/recipes:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/tandoor-recipes.svg",
-  "website": "https://tandoor.dev",
-  "docsUrl": "https://docs.tandoor.dev",
-  "ports": [
-    {
-      "host": 8088,
-      "container": 8080,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/tandoor-recipes/staticfiles",
-      "container": "/opt/recipes/staticfiles"
-    },
-    {
-      "host": "/opt/appdata/tandoor-recipes/mediafiles",
-      "container": "/opt/recipes/mediafiles"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    },
-    {
-      "key": "SECRET_KEY",
-      "default": "change-me",
-      "description": "Django secret key",
-      "secret": true
-    }
-  ],
-  "version": "latest"
+    "slug":  "tandoor-recipes",
+    "name":  "Tandoor Recipes",
+    "description":  "Recipe manager, meal planner, and shopping list app.",
+    "category":  "Productivity",
+    "image":  "vabene1111/recipes:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tandoor-recipes.png",
+    "website":  "https://tandoor.dev",
+    "docsUrl":  "https://docs.tandoor.dev",
+    "ports":  [
+                  {
+                      "host":  8088,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tandoor-recipes/staticfiles",
+                        "container":  "/opt/recipes/staticfiles"
+                    },
+                    {
+                        "host":  "/opt/appdata/tandoor-recipes/mediafiles",
+                        "container":  "/opt/recipes/mediafiles"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SECRET_KEY",
+                        "default":  "change-me",
+                        "description":  "Django secret key",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
 }

@@ -1,0 +1,36 @@
+{
+  "slug": "astro-dev",
+  "name": "Astro",
+  "description": "Astro dev server on Node 22 Alpine, content-driven web framework with islands architecture.",
+  "category": "Developer Tools",
+  "image": "node:22-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/astro.png",
+  "website": "https://astro.build",
+  "docsUrl": "https://docs.astro.build",
+  "ports": [
+    {
+      "host": 4321,
+      "container": 4321,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/astro-dev/app",
+      "container": "/usr/src/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "HOST",
+      "default": "0.0.0.0",
+      "description": "Bind address for dev server"
+    }
+  ],
+  "version": "22-alpine"
+}

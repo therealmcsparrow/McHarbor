@@ -1,0 +1,54 @@
+{
+  "slug": "makemkv",
+  "name": "MakeMKV",
+  "description": "DVD and Blu-ray disc ripping tool with a web-based GUI for scheduled rips.",
+  "category": "Productivity",
+  "image": "jlesage/makemkv:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/makemkv.png",
+  "website": "https://www.makemkv.com",
+  "docsUrl": "https://github.com/jlesage/docker-makemkv",
+  "ports": [
+    {
+      "host": 5801,
+      "container": 5800,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/makemkv/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/makemkv/storage",
+      "container": "/storage"
+    },
+    {
+      "host": "/opt/appdata/makemkv/output",
+      "container": "/output"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "MAKEMKV_KEY",
+      "default": "",
+      "description": "MakeMKV beta key (leave blank to register on first run)"
+    }
+  ],
+  "version": "latest"
+}

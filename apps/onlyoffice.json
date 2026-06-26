@@ -1,0 +1,42 @@
+{
+  "slug": "onlyoffice",
+  "name": "ONLYOFFICE Docs",
+  "description": "Open-source online office suite for documents, spreadsheets, and presentations.",
+  "category": "Documents",
+  "image": "onlyoffice/documentserver:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/onlyoffice.png",
+  "website": "https://www.onlyoffice.com",
+  "docsUrl": "https://helpcenter.onlyoffice.com/installation/docs-community-install-docker.aspx",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/onlyoffice/data",
+      "container": "/var/www/onlyoffice/Data"
+    },
+    {
+      "host": "/opt/appdata/onlyoffice/logs",
+      "container": "/var/log/onlyoffice"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "JWT_SECRET",
+      "default": "change-me",
+      "description": "JWT secret used for document signing",
+      "secret": true
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

@@ -184,7 +184,8 @@
     "reinstallSelected": "Reinstalar selecionado",
     "confirmTitle": "Confirmar ação em lote",
     "confirmDescription": "Tem certeza de que deseja itens {{action}} {{count}}?",
-    "confirmPruneDescription": "Remova recursos não utilizados que não são mais referenciados."
+    "confirmPruneDescription": "Remova recursos não utilizados que não são mais referenciados.",
+    "clearSelection": "Limpar selecao"
   },
   "errors": {
     "somethingWentWrong": "Algo deu errado",
@@ -283,6 +284,11 @@
     "running": "{{count}} em execução",
     "services": "{{count}} svc"
   },
+  "list": {
+    "loadingMore": "Carregando mais...",
+    "endOfList": "Fim da lista",
+    "loadMore": "Carregar mais"
+  },
   "logs": {
     "title": "Registros",
     "description": "Ver saída de log do contêiner",
@@ -340,6 +346,30 @@
     "detailsTitle": "Detalhes de entrada de auditoria",
     "viewDetails": "Ver detalhes",
     "local": "Local"
+  },
+  "dateRange": {
+    "label": "Intervalo de datas",
+    "title": "Período",
+    "allTime": "Todo o período",
+    "reset": "Redefinir",
+    "close": "Fechar",
+    "from": "De",
+    "to": "Até",
+    "presetAll": "Todo o período",
+    "presetLast15Minutes": "Últimos 15 minutos",
+    "presetLast1Hour": "Última hora",
+    "presetLast24Hours": "Últimas 24 horas",
+    "presetToday": "Hoje",
+    "presetYesterday": "Ontem",
+    "presetThisWeek": "Esta semana",
+    "presetLastWeek": "Semana passada",
+    "presetLast7Days": "Últimos 7 dias",
+    "presetThisMonth": "Este mês",
+    "presetLastMonth": "Mês passado",
+    "presetLast30Days": "Últimos 30 dias",
+    "presetThisYear": "Este ano",
+    "presetLastYear": "Ano passado",
+    "presetCustom": "Intervalo personalizado"
   },
   "blueprints": {
     "title": "Plantas",
@@ -842,5 +872,13 @@
       "themeSystemDescription": "Siga a configura??o do navegador ou do sistema operacional.",
       "languageDescription": "As alteracoes de idioma sao aplicadas imediatamente e salvas no seu perfil de usuario."
     }
+  },
+  "clipboard": {
+    "manualCopyTitle": "Copiar manualmente",
+    "manualCopyDescription": "O seu navegador bloqueia a escrita autom?tica na ?rea de transfer?ncia porque esta p?gina ? servida por HTTP sem encripta??o. Use o campo abaixo para copiar o valor.",
+    "manualCopyHint": "O texto j? est? selecionado - prima Ctrl+C (Cmd+C no macOS) para o copiar.",
+    "selectAndCopy": "Selecionar e copiar",
+    "copied": "Copiado",
+    "close": "Fechar"
   }
 }

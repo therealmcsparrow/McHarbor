@@ -1,0 +1,31 @@
+{
+    "slug":  "hazelcast",
+    "name":  "Hazelcast",
+    "description":  "Distributed in-memory data grid and compute platform for low-latency workloads.",
+    "category":  "Databases",
+    "image":  "hazelcast/hazelcast:latest",
+    "logo":  "https://icon.horse/icon/hazelcast.com",
+    "website":  "https://hazelcast.com",
+    "docsUrl":  "https://docs.hazelcast.com/",
+    "ports":  [
+                  {
+                      "host":  5701,
+                      "container":  5701,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/hazelcast/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "HZ_NETWORK_PORT",
+                        "default":  "5701",
+                        "description":  "Port for cluster member communication"
+                    }
+                ],
+    "version":  "latest"
+}

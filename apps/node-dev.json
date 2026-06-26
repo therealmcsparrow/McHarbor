@@ -1,0 +1,36 @@
+{
+    "slug":  "node-dev",
+    "name":  "Node.js 22",
+    "description":  "JavaScript runtime built on Chrome\u0027s V8 engine, lightweight Alpine image for development workloads.",
+    "category":  "Developer Tools",
+    "image":  "node:22-alpine",
+    "logo":  "https://icon.horse/icon/nodejs.org",
+    "website":  "https://nodejs.org",
+    "docsUrl":  "https://nodejs.org/en/docs",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/node-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NODE_ENV",
+                        "default":  "development",
+                        "description":  "Node environment"
+                    }
+                ],
+    "version":  "22-alpine"
+}

@@ -1,0 +1,31 @@
+{
+    "slug":  "solr",
+    "name":  "Apache Solr",
+    "description":  "Apache Solr 9 open-source enterprise search platform built on Apache Lucene.",
+    "category":  "Databases",
+    "image":  "solr:9",
+    "logo":  "https://icon.horse/icon/solr.apache.org",
+    "website":  "https://solr.apache.org",
+    "docsUrl":  "https://solr.apache.org/guide/",
+    "ports":  [
+                  {
+                      "host":  8983,
+                      "container":  8983,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/solr/data",
+                        "container":  "/var/solr"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "9"
+}

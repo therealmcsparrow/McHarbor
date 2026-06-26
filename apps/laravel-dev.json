@@ -1,0 +1,42 @@
+{
+  "slug": "laravel-dev",
+  "name": "Laravel",
+  "description": "Bitnami Laravel image, expressive PHP framework with elegant syntax and rich ecosystem.",
+  "category": "Developer Tools",
+  "image": "bitnami/laravel:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/laravel.png",
+  "website": "https://laravel.com",
+  "docsUrl": "https://laravel.com/docs",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/laravel-dev/app",
+      "container": "/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "APP_ENV",
+      "default": "local",
+      "description": "Application environment"
+    },
+    {
+      "key": "APP_KEY",
+      "default": "",
+      "description": "Laravel application key",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

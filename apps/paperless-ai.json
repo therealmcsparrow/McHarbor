@@ -1,0 +1,54 @@
+{
+  "slug": "paperless-ai",
+  "name": "Paperless-AI",
+  "description": "AI-powered auto-tagging and summarization for paperless-ngx documents.",
+  "category": "Documents",
+  "image": "clusterzx/paperless-ai:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/paperless-ai.png",
+  "website": "https://github.com/clusterzx/paperless-ai",
+  "docsUrl": "https://github.com/clusterzx/paperless-ai",
+  "ports": [
+    {
+      "host": 8098,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/paperless-ai/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "PAPERLESS_URL",
+      "default": "http://paperless:8000",
+      "description": "Paperless-ngx base URL"
+    },
+    {
+      "key": "PAPERLESS_TOKEN",
+      "default": "change-me",
+      "description": "Paperless-ngx API token",
+      "secret": true
+    },
+    {
+      "key": "OPENAI_API_KEY",
+      "default": "",
+      "description": "OpenAI API key",
+      "secret": true
+    },
+    {
+      "key": "AI_MODEL",
+      "default": "gpt-4o-mini",
+      "description": "OpenAI model to use"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

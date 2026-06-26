@@ -1,0 +1,78 @@
+{
+    "slug":  "directus",
+    "name":  "Directus",
+    "description":  "Open-source headless CMS and data platform that turns any SQL database into a powerful API and no-code app studio.",
+    "category":  "Web Apps",
+    "image":  "directus/directus:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/directus.png",
+    "website":  "https://directus.io",
+    "docsUrl":  "https://docs.directus.io",
+    "ports":  [
+                  {
+                      "host":  8055,
+                      "container":  8055,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/directus/database",
+                        "container":  "/directus/database"
+                    },
+                    {
+                        "host":  "/opt/appdata/directus/uploads",
+                        "container":  "/directus/uploads"
+                    },
+                    {
+                        "host":  "/opt/appdata/directus/extensions",
+                        "container":  "/directus/extensions"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "KEY",
+                        "default":  "change-me-32-chars-min-secret-key",
+                        "description":  "Random string for tokens",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SECRET",
+                        "default":  "change-me-secret",
+                        "description":  "Random string for sessions",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DB_CLIENT",
+                        "default":  "sqlite3",
+                        "description":  "Database client"
+                    },
+                    {
+                        "key":  "DB_FILENAME",
+                        "default":  "/directus/database/data.db",
+                        "description":  "SQLite database file"
+                    },
+                    {
+                        "key":  "ADMIN_EMAIL",
+                        "default":  "[email protected]",
+                        "description":  "Initial admin email"
+                    },
+                    {
+                        "key":  "ADMIN_PASSWORD",
+                        "default":  "change-me-admin",
+                        "description":  "Initial admin password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "WEBSOCKETS_ENABLED",
+                        "default":  "true",
+                        "description":  "Enable WebSockets for live updates"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

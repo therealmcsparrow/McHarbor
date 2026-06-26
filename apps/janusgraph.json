@@ -1,0 +1,31 @@
+{
+    "slug":  "janusgraph",
+    "name":  "JanusGraph",
+    "description":  "Distributed graph database optimized for storing and querying massive-scale graphs.",
+    "category":  "Databases",
+    "image":  "janusgraph/janusgraph:latest",
+    "logo":  "https://icon.horse/icon/janusgraph.org",
+    "website":  "http://janusgraph.org",
+    "docsUrl":  "https://docs.janusgraph.org",
+    "ports":  [
+                  {
+                      "host":  8182,
+                      "container":  8182,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/janusgraph/data",
+                        "container":  "/var/lib/janusgraph"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

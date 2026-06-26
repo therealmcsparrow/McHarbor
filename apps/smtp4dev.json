@@ -1,0 +1,41 @@
+{
+    "slug":  "smtp4dev",
+    "name":  "smtp4dev",
+    "description":  "Dummy SMTP server for development; captures emails and displays them in a web UI.",
+    "category":  "Communications",
+    "image":  "rnwood/smtp4dev:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/rnwood/smtp4dev",
+    "docsUrl":  "https://github.com/rnwood/smtp4dev",
+    "ports":  [
+                  {
+                      "host":  25,
+                      "container":  25,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  143,
+                      "container":  143,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/smtp4dev/data",
+                        "container":  "/var/mail"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

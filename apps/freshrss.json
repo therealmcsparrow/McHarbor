@@ -1,35 +1,35 @@
 {
-  "slug": "freshrss",
-  "name": "FreshRSS",
-  "description": "Lightweight RSS feed aggregator and reader.",
-  "category": "Productivity",
-  "image": "freshrss/freshrss:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/freshrss.svg",
-  "website": "https://freshrss.org",
-  "docsUrl": "https://freshrss.github.io/FreshRSS",
-  "ports": [
-    {
-      "host": 8085,
-      "container": 80,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/freshrss/data",
-      "container": "/var/www/FreshRSS/data"
-    },
-    {
-      "host": "/opt/appdata/freshrss/extensions",
-      "container": "/var/www/FreshRSS/extensions"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "freshrss",
+    "name":  "FreshRSS",
+    "description":  "Lightweight RSS feed aggregator and reader.",
+    "category":  "Productivity",
+    "image":  "freshrss/freshrss:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/freshrss.png",
+    "website":  "https://freshrss.org",
+    "docsUrl":  "https://freshrss.github.io/FreshRSS",
+    "ports":  [
+                  {
+                      "host":  8085,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/freshrss/data",
+                        "container":  "/var/www/FreshRSS/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/freshrss/extensions",
+                        "container":  "/var/www/FreshRSS/extensions"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

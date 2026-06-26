@@ -1,0 +1,36 @@
+{
+    "slug":  "node-20-dev",
+    "name":  "Node.js 20",
+    "description":  "Node.js 20 LTS runtime on Alpine Linux, balanced for production workloads and long-term support.",
+    "category":  "Developer Tools",
+    "image":  "node:20-alpine",
+    "logo":  "https://icon.horse/icon/nodejs.org",
+    "website":  "https://nodejs.org",
+    "docsUrl":  "https://nodejs.org/en/docs",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/node-20-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NODE_ENV",
+                        "default":  "development",
+                        "description":  "Node environment"
+                    }
+                ],
+    "version":  "20-alpine"
+}

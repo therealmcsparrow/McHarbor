@@ -1,0 +1,42 @@
+{
+    "slug":  "activemq-artemis",
+    "name":  "ActiveMQ Artemis",
+    "description":  "Next-generation multi-protocol message broker from Apache with high performance and clustering.",
+    "category":  "Databases",
+    "image":  "apache/activemq-artemis:latest",
+    "logo":  "https://icon.horse/icon/activemq.apache.org",
+    "website":  "https://activemq.apache.org/components/artemis",
+    "docsUrl":  "https://activemq.apache.org/components/artemis/documentation/latest/",
+    "ports":  [
+                  {
+                      "host":  61616,
+                      "container":  61616,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8161,
+                      "container":  8161,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/activemq-artemis/data",
+                        "container":  "/var/lib/artemis/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "ARTEMIS_USER",
+                        "default":  "artemis",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "ARTEMIS_PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

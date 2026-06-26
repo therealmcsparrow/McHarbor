@@ -1,0 +1,41 @@
+{
+    "slug":  "revolt",
+    "name":  "Revolt",
+    "description":  "Open-source user-first chat platform; Discord alternative with end-to-end encryption.",
+    "category":  "Communications",
+    "image":  "revoltchat/server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/revolt.png",
+    "website":  "https://revolt.chat",
+    "docsUrl":  "https://developers.revolt.chat",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/revolt/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "REVOLT_APP_URL",
+                        "default":  "http://localhost:80",
+                        "description":  "Public Revolt URL"
+                    },
+                    {
+                        "key":  "REVOLT_CONFIG",
+                        "default":  "default",
+                        "description":  "Configuration template to use"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,46 @@
+{
+  "slug": "webdav",
+  "name": "WebDAV Server",
+  "description": "Lightweight WebDAV file server for sharing files over HTTP with simple authentication.",
+  "category": "Photos & Files",
+  "image": "bytemark/webdav:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/webdav.png",
+  "website": "https://github.com/hacdias/webdav",
+  "docsUrl": "https://github.com/hacdias/webdav/blob/master/README.md",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/webdav/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/webdav/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "WEBDAV_USERNAME",
+      "default": "admin",
+      "description": "WebDAV username"
+    },
+    {
+      "key": "WEBDAV_PASSWORD",
+      "default": "",
+      "description": "WebDAV password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

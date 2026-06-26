@@ -1,0 +1,31 @@
+{
+    "slug":  "iobroker",
+    "name":  "ioBroker",
+    "description":  "IoT automation platform with a rich adapter ecosystem and visualization.",
+    "category":  "Home Automation",
+    "image":  "buanet/iobroker:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/iobroker.png",
+    "website":  "https://www.iobroker.net",
+    "docsUrl":  "https://docs.iobroker.net/en/install/docker.html",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/iobroker/iobroker-data",
+                        "container":  "/opt/iobroker/iobroker-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

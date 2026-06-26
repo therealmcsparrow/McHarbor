@@ -1,0 +1,45 @@
+{
+    "slug":  "jeedom",
+    "name":  "Jeedom",
+    "description":  "French home automation hub with strong Z-Wave, Zigbee, and KNX support.",
+    "category":  "Home Automation",
+    "image":  "jeedom/jeedom:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jeedom.png",
+    "website":  "https://www.jeedom.com",
+    "docsUrl":  "https://doc.jeedom.com/en_US/installation/docker",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jeedom/html",
+                        "container":  "/var/www/html"
+                    },
+                    {
+                        "host":  "/opt/appdata/jeedom/db",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Europe/Paris",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SHARE",
+                        "default":  "",
+                        "description":  "Network share (CIFS) for Jeedom market"
+                    }
+                ],
+    "version":  "latest"
+}

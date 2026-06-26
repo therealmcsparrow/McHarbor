@@ -1,0 +1,40 @@
+{
+    "slug":  "tempo",
+    "name":  "Grafana Tempo",
+    "description":  "High-scale, low-cost distributed tracing backend from Grafana Labs with S3/GCS storage.",
+    "category":  "Monitoring",
+    "image":  "grafana/tempo:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tempo.png",
+    "website":  "https://grafana.com/oss/tempo",
+    "docsUrl":  "https://grafana.com/docs/tempo/latest/",
+    "ports":  [
+                  {
+                      "host":  3200,
+                      "container":  3200,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4317,
+                      "container":  4317,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tempo/config",
+                        "container":  "/etc/tempo"
+                    },
+                    {
+                        "host":  "/opt/appdata/tempo/data",
+                        "container":  "/var/tempo"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

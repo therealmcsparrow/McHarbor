@@ -1,0 +1,35 @@
+{
+  "slug": "benthos",
+  "name": "Benthos",
+  "description": "Declarative stream processor for connecting, transforming, and routing data between protocols.",
+  "category": "Databases",
+  "image": "jeffail/benthos:latest",
+  "logo": "https://benthos.dev/docs/img/benthos_icon.svg",
+  "website": "https://benthos.dev",
+  "docsUrl": "https://benthos.dev/docs/about/docker",
+  "ports": [
+    {
+      "host": 4195,
+      "container": 4195,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/benthos/config",
+      "container": "/benthos/config"
+    },
+    {
+      "host": "/opt/appdata/benthos/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

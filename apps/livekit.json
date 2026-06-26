@@ -1,0 +1,47 @@
+{
+    "slug":  "livekit",
+    "name":  "LiveKit Server",
+    "description":  "Scalable, low-latency WebRTC SFU for video and audio conferencing.",
+    "category":  "Communications",
+    "image":  "livekit/livekit-server:latest",
+    "logo":  "https://icon.horse/icon/livekit.io",
+    "website":  "https://livekit.io",
+    "docsUrl":  "https://docs.livekit.io/home",
+    "ports":  [
+                  {
+                      "host":  7880,
+                      "container":  7880,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7881,
+                      "container":  7881,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7882,
+                      "container":  7882,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/livekit/config",
+                        "container":  "/etc/livekit"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LIVEKIT_KEYS",
+                        "default":  "devkey: secret",
+                        "description":  "API key:secret pair for LiveKit",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

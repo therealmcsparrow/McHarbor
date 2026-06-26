@@ -1,0 +1,40 @@
+{
+    "slug":  "dovecot",
+    "name":  "Dovecot",
+    "description":  "Secure, fast, and reliable IMAP and POP3 email server.",
+    "category":  "Communications",
+    "image":  "dovecot/dovecot:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/dovecot.png",
+    "website":  "https://www.dovecot.org",
+    "docsUrl":  "https://doc.dovecot.org",
+    "ports":  [
+                  {
+                      "host":  143,
+                      "container":  143,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  993,
+                      "container":  993,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dovecot/mail",
+                        "container":  "/var/mail"
+                    },
+                    {
+                        "host":  "/opt/appdata/dovecot/config",
+                        "container":  "/etc/dovecot"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

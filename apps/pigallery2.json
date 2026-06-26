@@ -1,0 +1,45 @@
+{
+    "slug":  "pigallery2",
+    "name":  "PiGallery2",
+    "description":  "Fast directory-based photo gallery with face recognition and map view.",
+    "category":  "Photos \u0026 Files",
+    "image":  "bpatrik/pigallery2:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pigallery2.png",
+    "website":  "https://bpatrik.github.io/pigallery2/",
+    "docsUrl":  "https://github.com/bpatrik/pigallery2",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pigallery2/config",
+                        "container":  "/app/data"
+                    },
+                    {
+                        "host":  "/srv/photos",
+                        "container":  "/app/picture"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,35 @@
+{
+  "slug": "loki-dev",
+  "name": "Loki Dev",
+  "description": "Grafana Loki log aggregation system for local log shipping and querying.",
+  "category": "Developer Tools",
+  "image": "grafana/loki:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/loki.png",
+  "website": "https://grafana.com/oss/loki",
+  "docsUrl": "https://grafana.com/docs/loki/latest/installation/docker/",
+  "ports": [
+    {
+      "host": 3100,
+      "container": 3100,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/loki-dev/config",
+      "container": "/etc/loki"
+    },
+    {
+      "host": "/opt/appdata/loki-dev/data",
+      "container": "/loki"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

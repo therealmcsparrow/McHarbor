@@ -1,0 +1,31 @@
+{
+  "slug": "osrm-backend",
+  "name": "OSRM Backend",
+  "description": "High-performance Open Source Routing Machine for shortest paths, distances, and map matching over OSM data.",
+  "category": "Databases",
+  "image": "osrm/osrm-backend:latest",
+  "logo": "http://project-osrm.org/img/osrm-logo.png",
+  "website": "http://project-osrm.org",
+  "docsUrl": "http://project-osrm.org/docs/v5.24.0/api/",
+  "ports": [
+    {
+      "host": 5000,
+      "container": 5000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/osrm-backend/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,42 @@
+{
+  "slug": "mongo-6-dev",
+  "name": "MongoDB 6 Dev",
+  "description": "MongoDB 6 for development and testing on legacy stacks.",
+  "category": "Databases",
+  "image": "mongo:6",
+  "logo": "https://www.mongodb.com/assets/images/global/favicon.ico",
+  "website": "https://www.mongodb.com",
+  "docsUrl": "https://www.mongodb.com/docs/v6.0/",
+  "ports": [
+    {
+      "host": 27017,
+      "container": 27017,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mongo-6-dev/data",
+      "container": "/data/db"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MONGO_INITDB_ROOT_USERNAME",
+      "default": "admin",
+      "description": "Root username"
+    },
+    {
+      "key": "MONGO_INITDB_ROOT_PASSWORD",
+      "default": "",
+      "description": "Root password",
+      "secret": true
+    },
+    {
+      "key": "MONGO_INITDB_DATABASE",
+      "default": "dev",
+      "description": "Default database name"
+    }
+  ],
+  "version": "6"
+}

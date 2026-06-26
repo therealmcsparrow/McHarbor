@@ -1,0 +1,73 @@
+{
+    "slug":  "prestashop",
+    "name":  "PrestaShop",
+    "description":  "Leading open-source e-commerce solution powering 250,000+ shops worldwide with 5,000+ modules and themes.",
+    "category":  "Web Apps",
+    "image":  "prestashop/prestashop:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/prestashop.svg",
+    "website":  "https://www.prestashop.com",
+    "docsUrl":  "https://devdocs.prestashop-project.org",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/prestashop/data",
+                        "container":  "/var/www/html"
+                    },
+                    {
+                        "host":  "/opt/appdata/prestashop/modules",
+                        "container":  "/var/www/html/modules"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "DB_SERVER",
+                        "default":  "prestashop-db",
+                        "description":  "Database server"
+                    },
+                    {
+                        "key":  "DB_NAME",
+                        "default":  "prestashop",
+                        "description":  "Database name"
+                    },
+                    {
+                        "key":  "DB_USER",
+                        "default":  "prestashop",
+                        "description":  "Database user"
+                    },
+                    {
+                        "key":  "DB_PASSWD",
+                        "default":  "change-me-db",
+                        "description":  "Database password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PS_ADMIN_USER",
+                        "default":  "admin",
+                        "description":  "Admin user"
+                    },
+                    {
+                        "key":  "PS_ADMIN_PASSWD",
+                        "default":  "change-me-admin",
+                        "description":  "Admin password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PS_ADMIN_EMAIL",
+                        "default":  "[email protected]",
+                        "description":  "Admin email"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

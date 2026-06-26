@@ -1,0 +1,31 @@
+{
+    "slug":  "fluentbit",
+    "name":  "Fluent Bit",
+    "description":  "Fast and lightweight log processor and forwarder with rich input/output plugin ecosystem.",
+    "category":  "Monitoring",
+    "image":  "fluent/fluent-bit:latest",
+    "logo":  "https://icon.horse/icon/fluentbit.io",
+    "website":  "https://fluentbit.io",
+    "docsUrl":  "https://docs.fluentbit.io/manual/installation/docker",
+    "ports":  [
+                  {
+                      "host":  2020,
+                      "container":  2020,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/fluentbit/config",
+                        "container":  "/fluent-bit/etc"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,41 @@
+{
+  "slug": "rust-dev",
+  "name": "Rust",
+  "description": "Rust toolchain on Debian Bookworm, memory-safe systems language with zero-cost abstractions.",
+  "category": "Developer Tools",
+  "image": "rust:1-bookworm",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rust.png",
+  "website": "https://www.rust-lang.org",
+  "docsUrl": "https://doc.rust-lang.org/book/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/rust-dev/app",
+      "container": "/usr/src/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "CARGO_HOME",
+      "default": "/usr/local/cargo",
+      "description": "Cargo home directory"
+    },
+    {
+      "key": "RUST_BACKTRACE",
+      "default": "1",
+      "description": "Enable backtraces on panic"
+    }
+  ],
+  "version": "1-bookworm"
+}

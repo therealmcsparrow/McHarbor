@@ -1,0 +1,52 @@
+{
+  "slug": "owncloud",
+  "name": "ownCloud",
+  "description": "Self-hosted file sync, sharing, and collaboration platform with strong data sovereignty.",
+  "category": "Photos & Files",
+  "image": "owncloud/server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/owncloud.png",
+  "website": "https://owncloud.com",
+  "docsUrl": "https://doc.owncloud.com",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/owncloud/config",
+      "container": "/var/www/html/config"
+    },
+    {
+      "host": "/opt/appdata/owncloud/data",
+      "container": "/var/www/html/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "OWNCLOUD_ADMIN_USERNAME",
+      "default": "admin",
+      "description": "Admin username"
+    },
+    {
+      "key": "OWNCLOUD_ADMIN_PASSWORD",
+      "default": "",
+      "description": "Admin password",
+      "secret": true
+    },
+    {
+      "key": "OWNCLOUD_DOMAIN",
+      "default": "localhost",
+      "description": "Trusted domain"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest"
+}

@@ -1,0 +1,35 @@
+{
+    "slug":  "buildkit",
+    "name":  "BuildKit",
+    "description":  "Moby BuildKit daemon for concurrent, cache-efficient container image builds.",
+    "category":  "Developer Tools",
+    "image":  "moby/buildkit:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/moby/buildkit",
+    "docsUrl":  "https://github.com/moby/buildkit/blob/master/README.md",
+    "ports":  [
+                  {
+                      "host":  1234,
+                      "container":  1234,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/buildkit/cache",
+                        "container":  "/var/lib/buildkit"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

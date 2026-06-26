@@ -1,0 +1,36 @@
+{
+  "slug": "apicurio-registry",
+  "name": "Apicurio Registry",
+  "description": "Shared schema and API artifact registry for Kafka, Avro, Protobuf, JSON Schema, and OpenAPI.",
+  "category": "Databases",
+  "image": "apicurio/apicurio-registry:latest",
+  "logo": "https://www.apicur.io/images/registry_logo.png",
+  "website": "https://www.apicur.io",
+  "docsUrl": "https://www.apicur.io/registry/docs/getting-started/assembly-installing-registry-docker.html",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/apicurio-registry/data",
+      "container": "/tmp"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "REGISTRY_AUTH_ANONYMOUS_READ_ACCESS_ENABLED",
+      "default": "true",
+      "description": "Allow anonymous read access"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

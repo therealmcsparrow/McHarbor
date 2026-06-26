@@ -1,0 +1,36 @@
+{
+    "slug":  "psono-server",
+    "name":  "Psono Server",
+    "description":  "Open-source password manager for teams with end-to-end encryption and sharing.",
+    "category":  "Productivity",
+    "image":  "psono/psono-client:latest",
+    "logo":  "https://icon.horse/icon/psono.com",
+    "website":  "https://psono.com",
+    "docsUrl":  "https://doc.psono.com",
+    "ports":  [
+                  {
+                      "host":  8090,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/psono-server/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PSONO_URL",
+                        "default":  "http://localhost:8090",
+                        "description":  "Psono URL"
+                    }
+                ],
+    "version":  "latest"
+}

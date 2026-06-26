@@ -1,0 +1,48 @@
+{
+  "slug": "flowise",
+  "name": "Flowise",
+  "description": "Drag-and-drop UI to build LLM orchestration flows and agents using LangChain components.",
+  "category": "AI & Voice",
+  "image": "flowiseai/flowise:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flowise.png",
+  "website": "https://flowiseai.com",
+  "docsUrl": "https://docs.flowiseai.com/getting-started",
+  "ports": [
+    {
+      "host": 3000,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/flowise/data",
+      "container": "/root/.flowise"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "FLOWISE_USERNAME",
+      "default": "",
+      "description": "Optional basic auth username"
+    },
+    {
+      "key": "FLOWISE_PASSWORD",
+      "default": "",
+      "description": "Optional basic auth password",
+      "secret": true
+    },
+    {
+      "key": "SECRETKEY_PATH",
+      "default": "/run/secrets/flowise_key",
+      "description": "Path to the encryption secret key file"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

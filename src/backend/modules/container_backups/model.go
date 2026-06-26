@@ -17,6 +17,7 @@ type BackupPlan struct {
 	IncludeFilesystem  bool     `json:"includeFilesystem"`
 	IncludeImage       bool     `json:"includeImage"`
 	SelectedMounts     []string `json:"selectedMounts"`
+	LogTailLines       int      `json:"logTailLines"`
 	Cron               string   `json:"cron,omitempty"`
 	Enabled            bool     `json:"enabled"`
 	RetentionCount     int      `json:"retentionCount"`
@@ -64,6 +65,8 @@ type BackupRunDestination struct {
 	Path                string `json:"path"`
 	Error               string `json:"error,omitempty"`
 	UploadedAt          string `json:"uploadedAt,omitempty"`
+	BytesUploaded       int64  `json:"bytesUploaded"`
+	BytesTotal          int64  `json:"bytesTotal"`
 	CreatedAt           string `json:"createdAt"`
 	UpdatedAt           string `json:"updatedAt"`
 }
@@ -149,6 +152,7 @@ type CreateBackupPlanInput struct {
 	IncludeFilesystem  bool     `json:"includeFilesystem"`
 	IncludeImage       bool     `json:"includeImage"`
 	SelectedMounts     []string `json:"selectedMounts"`
+	LogTailLines       int      `json:"logTailLines"`
 	Cron               string   `json:"cron"`
 	Enabled            bool     `json:"enabled"`
 	RetentionCount     int      `json:"retentionCount"`
@@ -165,6 +169,7 @@ type UpdateBackupPlanInput struct {
 	IncludeFilesystem  *bool     `json:"includeFilesystem"`
 	IncludeImage       *bool     `json:"includeImage"`
 	SelectedMounts     *[]string `json:"selectedMounts"`
+	LogTailLines       *int      `json:"logTailLines"`
 	Cron               *string   `json:"cron"`
 	Enabled            *bool     `json:"enabled"`
 	RetentionCount     *int      `json:"retentionCount"`

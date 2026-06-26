@@ -1,0 +1,40 @@
+{
+    "slug":  "bluecherry",
+    "name":  "Bluecherry DVR",
+    "description":  "Professional video surveillance DVR server with IP camera support.",
+    "category":  "Home Automation",
+    "image":  "bluecherrydvr/bluecherry:latest",
+    "logo":  "https://icon.horse/icon/www.bluecherrydvr.com",
+    "website":  "https://www.bluecherrydvr.com",
+    "docsUrl":  "https://www.bluecherrydvr.com/documentation/",
+    "ports":  [
+                  {
+                      "host":  7001,
+                      "container":  7001,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7002,
+                      "container":  7002,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/bluecherry/config",
+                        "container":  "/etc/bluecherry"
+                    },
+                    {
+                        "host":  "/opt/appdata/bluecherry/recordings",
+                        "container":  "/var/lib/bluecherry/recordings"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

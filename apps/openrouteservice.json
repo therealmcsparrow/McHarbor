@@ -1,0 +1,50 @@
+{
+  "slug": "openrouteservice",
+  "name": "openrouteservice",
+  "description": "Open-source routing engine for directions, isochrones, matrix, and geospatial analysis over OpenStreetMap data.",
+  "category": "Databases",
+  "image": "giscience/openrouteservice:latest",
+  "logo": "https://openrouteservice.org/img/ors-logo.svg",
+  "website": "https://openrouteservice.org",
+  "docsUrl": "https://giscience.github.io/openrouteservice/installation/Running-with-Docker.html",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/openrouteservice/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/openrouteservice/conf",
+      "container": "/conf"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "XMS",
+      "default": "1g",
+      "description": "JVM initial heap size"
+    },
+    {
+      "key": "XMX",
+      "default": "4g",
+      "description": "JVM max heap size"
+    },
+    {
+      "key": "ORS_APP_PROFILE",
+      "default": "default",
+      "description": "App configuration profile"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

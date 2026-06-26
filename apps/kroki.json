@@ -1,0 +1,41 @@
+{
+    "slug":  "kroki",
+    "name":  "Kroki",
+    "description":  "Unified API for diagrams. Generate BlockDiag, BPMN, C4, D2, Excalidraw, GraphViz, Mermaid, PlantUML, and many more diagrams from text.",
+    "category":  "Productivity",
+    "image":  "yuzutech/kroki:latest",
+    "logo":  "https://icon.horse/icon/kroki.io",
+    "website":  "https://kroki.io",
+    "docsUrl":  "https://docs.kroki.io",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kroki/data",
+                        "container":  "/tmp/kroki"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KROKI_MAX_URI_LENGTH",
+                        "default":  "8192",
+                        "description":  "Maximum URI length for incoming requests"
+                    },
+                    {
+                        "key":  "KROKI_MAX_FILE_SIZE",
+                        "default":  "1048576",
+                        "description":  "Maximum source file size in bytes"
+                    }
+                ],
+    "version":  "latest"
+}

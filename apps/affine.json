@@ -1,0 +1,51 @@
+{
+  "slug": "affine",
+  "name": "AFFiNE",
+  "description": "Open-source knowledge base that blends docs, whiteboard, and database into a single workspace.",
+  "category": "Productivity",
+  "image": "ghcr.io/toeverything/affine:stable",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/affine.png",
+  "website": "https://affine.pro",
+  "docsUrl": "https://docs.affine.pro/docs/self-host-affine",
+  "ports": [
+    {
+      "host": 3010,
+      "container": 3010,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/affine/config",
+      "container": "/root/.affine/config"
+    },
+    {
+      "host": "/opt/appdata/affine/storage",
+      "container": "/root/.affine/storage"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "AFFINE_SERVER_HOST",
+      "default": "0.0.0.0",
+      "description": "Server bind address"
+    },
+    {
+      "key": "AFFINE_SERVER_PORT",
+      "default": "3010",
+      "description": "Server port"
+    },
+    {
+      "key": "AFFINE_CONFIG_PATH",
+      "default": "/root/.affine/config",
+      "description": "Configuration path"
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "stable"
+}

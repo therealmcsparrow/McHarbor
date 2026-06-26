@@ -1,0 +1,48 @@
+{
+  "slug": "logto",
+  "name": "Logto",
+  "description": "Auth0 alternative for building sign-in, MFA, and B2B identity flows.",
+  "category": "Security",
+  "image": "ghcr.io/logto-io/logto:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/logto.png",
+  "website": "https://logto.io",
+  "docsUrl": "https://docs.logto.io",
+  "ports": [
+    {
+      "host": 3001,
+      "container": 3001,
+      "protocol": "tcp"
+    },
+    {
+      "host": 3002,
+      "container": 3002,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/logto/data",
+      "container": "/etc/logto"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "ENDPOINT",
+      "default": "https://logto.example.com",
+      "description": "Public endpoint URL"
+    },
+    {
+      "key": "DB_URL",
+      "default": "postgresql://logto:change-me@logto-postgres:5432/logto",
+      "description": "PostgreSQL connection URL",
+      "secret": true
+    },
+    {
+      "key": "ADMIN_ENDPOINT",
+      "default": "https://admin.logto.example.com",
+      "description": "Management console URL"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

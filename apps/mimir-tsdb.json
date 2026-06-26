@@ -1,0 +1,35 @@
+{
+    "slug":  "mimir-tsdb",
+    "name":  "Grafana Mimir",
+    "description":  "Horizontally scalable, multi-tenant Prometheus-compatible time-series database.",
+    "category":  "Databases",
+    "image":  "grafana/mimir:latest",
+    "logo":  "https://icon.horse/icon/grafana.com",
+    "website":  "https://grafana.com/oss/mimir",
+    "docsUrl":  "https://grafana.com/docs/mimir/latest/",
+    "ports":  [
+                  {
+                      "host":  9009,
+                      "container":  9009,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mimir-tsdb/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/mimir-tsdb/config",
+                        "container":  "/etc/mimir"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,53 @@
+{
+    "slug":  "kolide-fleet",
+    "name":  "Kolide Fleet",
+    "description":  "Osquery manager providing a web UI for live and scheduled endpoint queries.",
+    "category":  "Security",
+    "image":  "kolide/fleet:latest",
+    "logo":  "https://icon.horse/icon/www.kolide.com",
+    "website":  "https://www.kolide.com",
+    "docsUrl":  "https://www.kolide.com/docs",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kolide-fleet/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "FLEET_SERVER_ADDRESS",
+                        "default":  "https://kolide.example.com",
+                        "description":  "Public Fleet server address"
+                    },
+                    {
+                        "key":  "MYSQL_ADDRESS",
+                        "default":  "kolide-mysql:3306",
+                        "description":  "MySQL host:port"
+                    },
+                    {
+                        "key":  "MYSQL_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "MySQL password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "REDIS_ADDRESS",
+                        "default":  "kolide-redis:6379",
+                        "description":  "Redis address"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

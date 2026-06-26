@@ -37,7 +37,14 @@
     "backupDays": "Back-upbewaring (dagen)",
     "backupDaysDescription": "Maximum aantal dagen dat geslaagde back-ups per container worden bewaard. Oudere back-uparchieven worden automatisch verwijderd. Stel in op 0 om back-ups ongeacht leeftijd te bewaren.",
     "backupCount": "Back-upbewaring (aantal)",
-    "backupCountDescription": "Maximum aantal geslaagde back-ups dat per container wordt bewaard. Oudere back-uparchieven worden automatisch verwijderd. Stel in op 0 om alle back-ups te bewaren."
+    "backupCountDescription": "Maximum aantal geslaagde back-ups dat per container wordt bewaard. Oudere back-uparchieven worden automatisch verwijderd. Stel in op 0 om alle back-ups te bewaren.",
+    "clearNow": "Nu wissen",
+    "clearNowHint": "Voer de bewaarpurge nu uit (vermeldingen ouder dan {{days}} dagen)",
+    "clearAuditTitle": "Auditlog wissen?",
+    "clearAuditDescription": "Verwijder permanent alle auditlogvermeldingen ouder dan {{days}} dagen. Het aantal verwijderde items wordt na de bewerking getoond. Dit kan niet ongedaan worden gemaakt.",
+    "clearActivityTitle": "Activiteitslog wissen?",
+    "clearActivityDescription": "Verwijder permanent alle activiteitsgebeurtenissen ouder dan {{days}} dagen. Het aantal verwijderde gebeurtenissen wordt na de bewerking getoond. Dit kan niet ongedaan worden gemaakt.",
+    "keepForever": "Stel bewaartermijn in op een positief getal om wissen in te schakelen."
   },
   "auth": {
     "description": "Configureer authenticatieproviders en sessie-instellingen.",
@@ -809,10 +816,15 @@
     "policyUpdated": "Updatebeleid bijgewerkt",
     "policyDeleted": "Updatebeleid verwijderd",
     "retentionUpdated": "Bewaarinstellingen bijgewerkt",
+    "auditLogPurged": "Auditlogboek gewist ({{count}} items)",
+    "activityLogPurged": "Activiteitslogboek gewist ({{count}} gebeurtenissen)",
+    "auditLogPurgedVacuuming": "Auditlogboek gewist ({{count}} items). Database wordt op de achtergrond gecomprimeerd...",
+    "activityLogPurgedVacuuming": "Activiteitslogboek gewist ({{count}} gebeurtenissen). Database wordt op de achtergrond gecomprimeerd...",
     "backupKeyGenerated": "Back-upversleutelingssleutel gegenereerd",
     "backupKeyInstalled": "Back-upgeheim geinstalleerd; McHarbor-herstart gepland",
     "backupKeyCopied": "Back-upversleutelingssleutel gekopieerd",
     "backupKeySetupCopied": "Back-upinstallatieopdracht gekopieerd",
+    "copyFailed": "Kan niet naar klembord kopiëren",
     "storageBackupsMigrated": "Back-ups gemigreerd: {{migrated}} gekopieerd, {{skipped}} overgeslagen, {{failed}} mislukt",
     "storageBackupsMigrationFailed": "Back-upmigratie mislukt"
   }

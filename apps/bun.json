@@ -1,0 +1,31 @@
+{
+    "slug":  "bun",
+    "name":  "Bun",
+    "description":  "All-in-one JavaScript runtime and toolkit with native bundler, test runner, and package manager.",
+    "category":  "Developer Tools",
+    "image":  "oven/bun:latest",
+    "logo":  "https://icon.horse/icon/bun.sh",
+    "website":  "https://bun.sh",
+    "docsUrl":  "https://bun.sh/docs",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/bun/app",
+                        "container":  "/home/bun/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

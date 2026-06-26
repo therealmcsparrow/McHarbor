@@ -1,0 +1,39 @@
+{
+    "slug":  "collabora",
+    "name":  "Collabora Online",
+    "description":  "LibreOffice in the browser for collaborative document editing in Nextcloud and others.",
+    "category":  "Documents",
+    "image":  "collabora/code:latest",
+    "logo":  "https://icon.horse/icon/www.collaboraoffice.com",
+    "website":  "https://www.collaboraoffice.com",
+    "docsUrl":  "https://www.collaboraoffice.com/code/",
+    "ports":  [
+                  {
+                      "host":  9980,
+                      "container":  9980,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "aliasgroup1",
+                        "default":  "https://nextcloud.local:443",
+                        "description":  "Allowed WOPI host (Nextcloud or other)"
+                    },
+                    {
+                        "key":  "extra_params",
+                        "default":  "--o:ssl.enable=false --o:ssl.termination=true",
+                        "description":  "Extra startup parameters for code"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

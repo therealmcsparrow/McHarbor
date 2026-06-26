@@ -1,0 +1,45 @@
+{
+  "slug": "zookeeper",
+  "name": "Apache ZooKeeper",
+  "description": "Centralized service for maintaining configuration, naming, and providing distributed synchronization.",
+  "category": "Networking",
+  "image": "zookeeper:latest",
+  "logo": "https://zookeeper.apache.org/images/zookeeper_small.gif",
+  "website": "https://zookeeper.apache.org",
+  "docsUrl": "https://zookeeper.apache.org/documentation/",
+  "ports": [
+    {
+      "host": 2181,
+      "container": 2181,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/zookeeper/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/zookeeper/datalog",
+      "container": "/datalog"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "ZOO_MY_ID",
+      "default": "1",
+      "description": "Server ID (must be unique in ensemble)"
+    }
+  ],
+  "version": "latest"
+}

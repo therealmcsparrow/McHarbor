@@ -1,0 +1,33 @@
+{
+    "slug":  "iperf",
+    "name":  "iperf3",
+    "description":  "iperf3 network bandwidth measurement tool for testing TCP and UDP performance.",
+    "category":  "Developer Tools",
+    "image":  "networkstatic/iperf3:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/esnet/iperf",
+    "docsUrl":  "https://github.com/esnet/iperf/blob/master/README.md",
+    "ports":  [
+                  {
+                      "host":  5201,
+                      "container":  5201,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5201,
+                      "container":  5201,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

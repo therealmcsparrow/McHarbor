@@ -1,0 +1,46 @@
+{
+    "slug":  "schema-registry",
+    "name":  "Confluent Schema Registry",
+    "description":  "Centralized schema management and compatibility service for Kafka with Avro, JSON Schema, and Protobuf.",
+    "category":  "Databases",
+    "image":  "confluentinc/cp-schema-registry:latest",
+    "logo":  "https://icon.horse/icon/docs.confluent.io",
+    "website":  "https://docs.confluent.io",
+    "docsUrl":  "https://docs.confluent.io/platform/current/schema-registry/installation/deployment.html",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/schema-registry/data",
+                        "container":  "/var/lib/schema-registry"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "SCHEMA_REGISTRY_HOST_NAME",
+                        "default":  "schema-registry",
+                        "description":  "Hostname advertised to clients"
+                    },
+                    {
+                        "key":  "SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS",
+                        "default":  "kafka:9092",
+                        "description":  "Kafka bootstrap servers"
+                    },
+                    {
+                        "key":  "SCHEMA_REGISTRY_LISTENERS",
+                        "default":  "http://0.0.0.0:8081",
+                        "description":  "HTTP listen address"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

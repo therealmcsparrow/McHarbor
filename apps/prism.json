@@ -1,0 +1,36 @@
+{
+    "slug":  "prism",
+    "name":  "Prism",
+    "description":  "Open-source HTTP mock server that generates responses from OpenAPI specifications.",
+    "category":  "Developer Tools",
+    "image":  "stoplight/prism:latest",
+    "logo":  "https://icon.horse/icon/stoplight.io",
+    "website":  "https://stoplight.io/open-source/prism",
+    "docsUrl":  "https://meta.stoplight.io/docs/prism/",
+    "ports":  [
+                  {
+                      "host":  4010,
+                      "container":  4010,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/prism/specs",
+                        "container":  "/tmp/specs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PRISM_SPEC_URL",
+                        "default":  "https://raw.githubusercontent.com/stoplightio/PublicDocs/master/openapi/petstore.json",
+                        "description":  "URL of the OpenAPI spec"
+                    }
+                ],
+    "version":  "latest"
+}

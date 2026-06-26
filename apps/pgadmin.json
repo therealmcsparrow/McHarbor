@@ -1,37 +1,37 @@
 {
-  "slug": "pgadmin",
-  "name": "pgAdmin",
-  "description": "PostgreSQL administration and query UI.",
-  "category": "Developer Tools",
-  "image": "dpage/pgadmin4:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/pgadmin.svg",
-  "website": "https://www.pgadmin.org",
-  "docsUrl": "https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html",
-  "ports": [
-    {
-      "host": 5050,
-      "container": 80,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/pgadmin/data",
-      "container": "/var/lib/pgadmin"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PGADMIN_DEFAULT_EMAIL",
-      "default": "admin@example.com",
-      "description": "Default login email"
-    },
-    {
-      "key": "PGADMIN_DEFAULT_PASSWORD",
-      "default": "change-me",
-      "description": "Default login password",
-      "secret": true
-    }
-  ],
-  "version": "latest"
+    "slug":  "pgadmin",
+    "name":  "pgAdmin",
+    "description":  "PostgreSQL administration and query UI.",
+    "category":  "Developer Tools",
+    "image":  "dpage/pgadmin4:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/pgadmin.png",
+    "website":  "https://www.pgadmin.org",
+    "docsUrl":  "https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html",
+    "ports":  [
+                  {
+                      "host":  5050,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pgadmin/data",
+                        "container":  "/var/lib/pgadmin"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PGADMIN_DEFAULT_EMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Default login email"
+                    },
+                    {
+                        "key":  "PGADMIN_DEFAULT_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Default login password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
 }

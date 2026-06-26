@@ -1,0 +1,41 @@
+{
+    "slug":  "orientdb",
+    "name":  "OrientDB",
+    "description":  "Multi-model NoSQL database supporting graph, document, object, and key-value models.",
+    "category":  "Databases",
+    "image":  "orientdb:3.2",
+    "logo":  "https://icon.horse/icon/www.orientdb.org",
+    "website":  "https://www.orientdb.org",
+    "docsUrl":  "https://orientdb.org/docs",
+    "ports":  [
+                  {
+                      "host":  2480,
+                      "container":  2480,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2424,
+                      "container":  2424,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/orientdb/data",
+                        "container":  "/orientdb/databases"
+                    },
+                    {
+                        "host":  "/opt/appdata/orientdb/config",
+                        "container":  "/orientdb/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "ORIENTDB_ROOT_PASSWORD",
+                        "default":  "",
+                        "description":  "Root password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "3.2"
+}

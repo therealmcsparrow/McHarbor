@@ -1,0 +1,42 @@
+{
+    "slug":  "confluent-kafka",
+    "name":  "Confluent Kafka",
+    "description":  "Confluent\u0027s distribution of Apache Kafka for local development and testing.",
+    "category":  "Developer Tools",
+    "image":  "confluentinc/cp-kafka:latest",
+    "logo":  "https://icon.horse/icon/kafka.apache.org",
+    "website":  "https://kafka.apache.org",
+    "docsUrl":  "https://docs.confluent.io/platform/current/installation/docker/image-reference.html",
+    "ports":  [
+                  {
+                      "host":  9092,
+                      "container":  9092,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/confluent-kafka/data",
+                        "container":  "/var/lib/kafka/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KAFKA_NODE_ID",
+                        "default":  "1",
+                        "description":  "Kafka node ID"
+                    },
+                    {
+                        "key":  "KAFKA_PROCESS_ROLES",
+                        "default":  "broker,controller",
+                        "description":  "KRaft node roles"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

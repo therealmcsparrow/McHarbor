@@ -9,7 +9,7 @@ type AgentTokenValueProps = {
   token: string;
   copiedKey: string | null;
   ariaLabel: string;
-  onCopy: (value: string, key: string) => void;
+  onCopy: (value: string, key: string, label: string) => void;
 };
 
 export function AgentTokenValue({
@@ -29,7 +29,7 @@ export function AgentTokenValue({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => onCopy(token, 'token')}
+          onClick={() => onCopy(token, 'token', label)}
           aria-label={ariaLabel}
         >
           {copiedKey === 'token' ? (

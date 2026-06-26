@@ -1,0 +1,54 @@
+{
+    "slug":  "resilio-sync",
+    "name":  "Resilio Sync",
+    "description":  "Peer-to-peer file synchronization across devices with no cloud required.",
+    "category":  "Photos \u0026 Files",
+    "image":  "linuxserver/resilio-sync:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/resilio-sync.svg",
+    "website":  "https://www.resilio.com",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-resilio-sync",
+    "ports":  [
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  55555,
+                      "container":  55555,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/resilio-sync/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/resilio-sync/downloads",
+                        "container":  "/downloads"
+                    },
+                    {
+                        "host":  "/opt/appdata/resilio-sync/data",
+                        "container":  "/sync"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "latest"
+}

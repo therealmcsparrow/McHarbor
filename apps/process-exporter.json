@@ -1,0 +1,39 @@
+{
+    "slug":  "process-exporter",
+    "name":  "Process Exporter",
+    "description":  "Prometheus exporter that mines /proc to expose named process metrics and resource usage.",
+    "category":  "Monitoring",
+    "image":  "ncabatoff/process-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/ncabatoff/process-exporter",
+    "docsUrl":  "https://github.com/ncabatoff/process-exporter#readme",
+    "ports":  [
+                  {
+                      "host":  9256,
+                      "container":  9256,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/process-exporter/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/proc",
+                        "container":  "/proc"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

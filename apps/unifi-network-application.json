@@ -1,67 +1,67 @@
 {
-  "slug": "unifi-network-application",
-  "name": "UniFi Network Application",
-  "description": "Controller for UniFi network devices.",
-  "category": "Networking",
-  "image": "lscr.io/linuxserver/unifi-network-application:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/unifi.svg",
-  "website": "https://docs.linuxserver.io/images/docker-unifi-network-application/",
-  "docsUrl": "https://docs.linuxserver.io/images/docker-unifi-network-application/",
-  "ports": [
-    {
-      "host": 8443,
-      "container": 8443,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/unifi-network-application/config",
-      "container": "/config"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PUID",
-      "default": "1000",
-      "description": "User ID"
-    },
-    {
-      "key": "PGID",
-      "default": "1000",
-      "description": "Group ID"
-    },
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    },
-    {
-      "key": "MONGO_USER",
-      "default": "unifi",
-      "description": "MongoDB username"
-    },
-    {
-      "key": "MONGO_PASS",
-      "default": "change-me",
-      "description": "MongoDB password",
-      "secret": true
-    },
-    {
-      "key": "MONGO_HOST",
-      "default": "unifi-db",
-      "description": "MongoDB host"
-    },
-    {
-      "key": "MONGO_PORT",
-      "default": "27017",
-      "description": "MongoDB port"
-    },
-    {
-      "key": "MONGO_DBNAME",
-      "default": "unifi",
-      "description": "MongoDB database"
-    }
-  ],
-  "version": "latest"
+    "slug":  "unifi-network-application",
+    "name":  "UniFi Network Application",
+    "description":  "Controller for UniFi network devices.",
+    "category":  "Networking",
+    "image":  "lscr.io/linuxserver/unifi-network-application:latest",
+    "logo":  "https://icon.horse/icon/docs.linuxserver.io",
+    "website":  "https://docs.linuxserver.io/images/docker-unifi-network-application/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-unifi-network-application/",
+    "ports":  [
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/unifi-network-application/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MONGO_USER",
+                        "default":  "unifi",
+                        "description":  "MongoDB username"
+                    },
+                    {
+                        "key":  "MONGO_PASS",
+                        "default":  "change-me",
+                        "description":  "MongoDB password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "MONGO_HOST",
+                        "default":  "unifi-db",
+                        "description":  "MongoDB host"
+                    },
+                    {
+                        "key":  "MONGO_PORT",
+                        "default":  "27017",
+                        "description":  "MongoDB port"
+                    },
+                    {
+                        "key":  "MONGO_DBNAME",
+                        "default":  "unifi",
+                        "description":  "MongoDB database"
+                    }
+                ],
+    "version":  "latest"
 }

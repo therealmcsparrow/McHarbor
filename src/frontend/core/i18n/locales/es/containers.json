@@ -465,7 +465,16 @@
     "restore": "Restaurar copia",
     "restoring": "Restaurando...",
     "restoreTitle": "Restaurar copia?",
+    "restoringTitle": "Restaurando copia…",
+    "restoreCompleteTitle": "Restauración completada",
+    "restoreFailedTitle": "Restauración fallida",
     "restoreDescription": "Esto restaura el archivo de copia en el contenedor original. Los archivos existentes en el contenedor o en rutas montadas pueden sobrescribirse.",
+    "restoringHeading": "Restaurando la copia…",
+    "restoreCompleteHeading": "Restauración completada",
+    "restoreFailedHeading": "Restauración fallida",
+    "restoreCompleteHint": "El contenedor se ha restaurado desde la copia. Puedes cerrar este diálogo.",
+    "closeRestore": "Cerrar",
+    "startedAt": "Iniciada {{value}}",
     "restoreSecretTitle": "Introducir clave secreta de copia",
     "restoreSecretDescription": "Esta copia se cifro con una clave distinta a la clave actual de copias de McHarbor. Introduzca la clave secreta original.",
     "restoreSecretPlaceholder": "Clave de cifrado de copia",
@@ -490,7 +499,8 @@
     "status": {
       "running": "Ejecutando",
       "success": "Correcto",
-      "failure": "Error"
+      "failure": "Error",
+      "cancelled": "Cancelada"
     },
     "progress": {
       "queued": "Esperando para iniciar la copia.",
@@ -528,11 +538,16 @@
     "deleteScheduleDescription": "Esto elimina la programacion. Los archivos de copia existentes no se eliminan.",
     "deleteRunTitle": "Eliminar copia?",
     "deleteRunDescription": "Esto elimina permanentemente la ejecucion de copia y el archivo local cuando existe. Esta accion no se puede deshacer.",
+    "cancelRun": "Cancelar",
+    "cancelRunConfirm": "Cancelar copia",
+    "cancelRunTitle": "¿Cancelar copia en curso?",
+    "cancelRunDescription": "La copia en curso se detendrá. Las operaciones de Docker, agente o almacenamiento en curso se abortarán. La copia se marcará como cancelada y luego se podrá eliminar.",
     "toast": {
       "started": "Copia iniciada",
       "scheduleCreated": "Programacion de copia guardada",
       "scheduleDeleted": "Programacion de copia eliminada",
       "runDeleted": "Copia eliminada",
+      "runCancelled": "Copia cancelada",
       "restoreStarted": "Restauracion iniciada",
       "restored": "Copia restaurada"
     }

@@ -1,0 +1,39 @@
+{
+    "slug":  "shinobi",
+    "name":  "Shinobi",
+    "description":  "CCTV NVR software with multi-monitor, motion detection, and deep learning analysis.",
+    "category":  "Home Automation",
+    "image":  "shinobisystems/shinobi:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/shinobi.png",
+    "website":  "https://shinobi.video",
+    "docsUrl":  "https://docs.shinobi.video/installation/docker",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/shinobi/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/shinobi/videos",
+                        "container":  "/var/lib/shinobi/videos"
+                    },
+                    {
+                        "host":  "/opt/appdata/shinobi/database",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

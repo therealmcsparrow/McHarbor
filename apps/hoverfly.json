@@ -1,0 +1,36 @@
+{
+    "slug":  "hoverfly",
+    "name":  "Hoverfly",
+    "description":  "Lightweight API simulation tool for intercepting and modifying HTTP traffic.",
+    "category":  "Developer Tools",
+    "image":  "spectolabs/hoverfly:latest",
+    "logo":  "https://icon.horse/icon/hoverfly.io",
+    "website":  "https://hoverfly.io",
+    "docsUrl":  "https://hoverfly.io/docs/pages/installation/docker/",
+    "ports":  [
+                  {
+                      "host":  8888,
+                      "container":  8888,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8500,
+                      "container":  8500,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/hoverfly/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

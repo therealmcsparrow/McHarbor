@@ -1,0 +1,31 @@
+{
+  "slug": "focalboard",
+  "name": "Focalboard",
+  "description": "Open-source project and team management boards for kanban, calendars, and tables.",
+  "category": "Productivity",
+  "image": "mattermost/focalboard:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/focalboard.png",
+  "website": "https://www.focalboard.com",
+  "docsUrl": "https://www.focalboard.com/docs",
+  "ports": [
+    {
+      "host": 8605,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/focalboard/data",
+      "container": "/opt/focalboard/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

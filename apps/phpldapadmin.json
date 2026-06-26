@@ -1,0 +1,42 @@
+{
+  "slug": "phpldapadmin",
+  "name": "phpLDAPadmin",
+  "description": "Web-based LDAP administration interface for browsing and editing directory entries.",
+  "category": "Security",
+  "image": "osixia/phpldapadmin:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/phpldapadmin.png",
+  "website": "https://github.com/leenooks/phpLDAPadmin",
+  "docsUrl": "https://github.com/osixia/docker-phpLDAPadmin",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/phpldapadmin/config",
+      "container": "/container/service/phpldapadmin/assets/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PHPLDAPADMIN_LDAP_HOSTS",
+      "default": "ldap://openldap:389",
+      "description": "LDAP server URI"
+    },
+    {
+      "key": "PHPLDAPADMIN_HTTPS",
+      "default": "false",
+      "description": "Force HTTPS"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "128MB",
+  "version": "latest"
+}

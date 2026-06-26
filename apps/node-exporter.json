@@ -1,42 +1,42 @@
 {
-  "slug": "node-exporter",
-  "name": "Node Exporter",
-  "description": "Prometheus exporter for host hardware and OS metrics.",
-  "category": "Monitoring",
-  "image": "prom/node-exporter:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/prometheus.svg",
-  "website": "https://prometheus.io/docs/guides/node-exporter/",
-  "docsUrl": "https://prometheus.io/docs/guides/node-exporter/",
-  "ports": [
-    {
-      "host": 9100,
-      "container": 9100,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/proc",
-      "container": "/host/proc",
-      "readOnly": true
-    },
-    {
-      "host": "/sys",
-      "container": "/host/sys",
-      "readOnly": true
-    },
-    {
-      "host": "/",
-      "container": "/rootfs",
-      "readOnly": true
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "node-exporter",
+    "name":  "Node Exporter",
+    "description":  "Prometheus exporter for host hardware and OS metrics.",
+    "category":  "Monitoring",
+    "image":  "prom/node-exporter:latest",
+    "logo":  "https://icon.horse/icon/prometheus.io",
+    "website":  "https://prometheus.io/docs/guides/node-exporter/",
+    "docsUrl":  "https://prometheus.io/docs/guides/node-exporter/",
+    "ports":  [
+                  {
+                      "host":  9100,
+                      "container":  9100,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/proc",
+                        "container":  "/host/proc",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/sys",
+                        "container":  "/host/sys",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/",
+                        "container":  "/rootfs",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

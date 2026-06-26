@@ -1,0 +1,53 @@
+{
+    "slug":  "ory-kratos",
+    "name":  "Ory Kratos",
+    "description":  "Identity server with login, registration, account recovery, and profile management.",
+    "category":  "Security",
+    "image":  "oryd/kratos:latest",
+    "logo":  "https://icon.horse/icon/www.ory.sh",
+    "website":  "https://www.ory.sh/kratos",
+    "docsUrl":  "https://www.ory.sh/kratos/docs",
+    "ports":  [
+                  {
+                      "host":  4433,
+                      "container":  4433,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4434,
+                      "container":  4434,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ory-kratos/config",
+                        "container":  "/etc/config/kratos"
+                    },
+                    {
+                        "host":  "/opt/appdata/ory-kratos/db",
+                        "container":  "/var/lib/sqlite"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "DSN",
+                        "default":  "sqlite:///var/lib/sqlite/kratos.db?mode=rwc\u0026_fk=true",
+                        "description":  "Database DSN",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SECRETS_DEFAULT",
+                        "default":  "change-me-32-chars-or-more",
+                        "description":  "Default secret for cookie/HMAC",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SERVE_PUBLIC_BASE_URL",
+                        "default":  "https://auth.example.com",
+                        "description":  "Public base URL"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

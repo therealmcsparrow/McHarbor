@@ -1,49 +1,49 @@
 {
-  "slug": "lidarr",
-  "name": "Lidarr",
-  "description": "Music collection manager for Usenet and BitTorrent users.",
-  "category": "Media",
-  "image": "lscr.io/linuxserver/lidarr:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/lidarr.svg",
-  "website": "https://docs.linuxserver.io/images/docker-lidarr/",
-  "docsUrl": "https://docs.linuxserver.io/images/docker-lidarr/",
-  "ports": [
-    {
-      "host": 8686,
-      "container": 8686,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/lidarr/config",
-      "container": "/config"
-    },
-    {
-      "host": "/srv/media",
-      "container": "/media"
-    },
-    {
-      "host": "/srv/downloads",
-      "container": "/downloads"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PUID",
-      "default": "1000",
-      "description": "User ID"
-    },
-    {
-      "key": "PGID",
-      "default": "1000",
-      "description": "Group ID"
-    },
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "lidarr",
+    "name":  "Lidarr",
+    "description":  "Music collection manager for Usenet and BitTorrent users.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/lidarr:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lidarr.png",
+    "website":  "https://docs.linuxserver.io/images/docker-lidarr/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-lidarr/",
+    "ports":  [
+                  {
+                      "host":  8686,
+                      "container":  8686,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/lidarr/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    },
+                    {
+                        "host":  "/srv/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

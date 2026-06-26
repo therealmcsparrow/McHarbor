@@ -1,0 +1,36 @@
+{
+    "slug":  "varnish-dev",
+    "name":  "Varnish Dev",
+    "description":  "Varnish HTTP accelerator for local caching and CDN behavior testing.",
+    "category":  "Developer Tools",
+    "image":  "varnish:latest",
+    "logo":  "https://icon.horse/icon/varnish-cache.org",
+    "website":  "https://varnish-cache.org",
+    "docsUrl":  "https://hub.docker.com/_/varnish",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/varnish-dev/config",
+                        "container":  "/etc/varnish"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "VARNISH_SIZE",
+                        "default":  "256M",
+                        "description":  "Cache size"
+                    }
+                ],
+    "version":  "latest"
+}

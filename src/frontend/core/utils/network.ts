@@ -5,6 +5,11 @@ import type { ContainerInspect, NetworkInfo } from '@core/types/docker';
 
 const builtInDockerNetworks = new Set(['bridge', 'host', 'none']);
 
+export function isBuiltInNetwork(network: Pick<NetworkInfo, 'BuiltIn' | 'Name'>): boolean {
+  if (network.BuiltIn) return true;
+  return builtInDockerNetworks.has(network.Name.toLowerCase());
+}
+
 export function getNetworkContainerCount(network: Pick<NetworkInfo, 'Containers'>): number {
   const containers = network.Containers;
   if (typeof containers === 'number') return containers;

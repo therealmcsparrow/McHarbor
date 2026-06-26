@@ -1,0 +1,27 @@
+{
+    "slug":  "busybox",
+    "name":  "BusyBox",
+    "description":  "BusyBox combines tiny versions of common Unix utilities into a single image.",
+    "category":  "Utilities",
+    "image":  "busybox:latest",
+    "logo":  "https://icon.horse/icon/busybox.net",
+    "website":  "https://busybox.net",
+    "docsUrl":  "https://hub.docker.com/_/busybox",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/busybox/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

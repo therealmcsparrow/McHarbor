@@ -1,0 +1,41 @@
+{
+    "slug":  "dotnet-9-dev",
+    "name":  ".NET SDK 9",
+    "description":  "Microsoft .NET 9 SDK, latest build tools for C#, F#, and Visual Basic with new runtime features.",
+    "category":  "Developer Tools",
+    "image":  "mcr.microsoft.com/dotnet/sdk:9.0",
+    "logo":  "https://icon.horse/icon/dotnet.microsoft.com",
+    "website":  "https://dotnet.microsoft.com",
+    "docsUrl":  "https://learn.microsoft.com/dotnet/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dotnet-9-dev/app",
+                        "container":  "/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DOTNET_CLI_TELEMETRY_OPTOUT",
+                        "default":  "1",
+                        "description":  "Disable .NET CLI telemetry"
+                    },
+                    {
+                        "key":  "DOTNET_NOLOGO",
+                        "default":  "1",
+                        "description":  "Suppress .NET banner messages"
+                    }
+                ],
+    "version":  "9.0"
+}

@@ -1,0 +1,60 @@
+{
+  "slug": "dolibarr",
+  "name": "Dolibarr",
+  "description": "Open-source ERP and CRM suite for invoices, inventory, accounting, and customer management.",
+  "category": "Productivity",
+  "image": "dolibarr/dolibarr:latest",
+  "logo": "https://www.dolibarr.org/themes/eldy/img/favicon-32x32.png",
+  "website": "https://www.dolibarr.org",
+  "docsUrl": "https://wiki.dolibarr.org",
+  "ports": [
+    {
+      "host": 8590,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/dolibarr/documents",
+      "container": "/var/www/documents"
+    },
+    {
+      "host": "/opt/appdata/dolibarr/custom",
+      "container": "/var/www/html/custom"
+    },
+    {
+      "host": "/opt/appdata/dolibarr/conf",
+      "container": "/etc/dolibarr"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "DOLI_DB_HOST",
+      "default": "mariadb",
+      "description": "Database host"
+    },
+    {
+      "key": "DOLI_DB_NAME",
+      "default": "dolibarr",
+      "description": "Database name"
+    },
+    {
+      "key": "DOLI_DB_USER",
+      "default": "dolibarr",
+      "description": "Database user"
+    },
+    {
+      "key": "DOLI_DB_PASSWORD",
+      "default": "",
+      "description": "Database password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

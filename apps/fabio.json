@@ -1,0 +1,36 @@
+{
+  "slug": "fabio",
+  "name": "Fabio",
+  "description": "Consul-based HTTP and TCP load balancer with automatic service registration.",
+  "category": "Networking",
+  "image": "fabiolb/fabio:latest",
+  "logo": "https://fabiolb.net/img/fabio.png",
+  "website": "https://fabiolb.net",
+  "docsUrl": "https://fabiolb.net/quickstart/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9999,
+      "container": 9999,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/fabio/config",
+      "container": "/etc/fabio"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

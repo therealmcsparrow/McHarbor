@@ -1,0 +1,46 @@
+{
+  "slug": "traefik-dev",
+  "name": "Traefik Dev",
+  "description": "Traefik reverse proxy and load balancer for local container development.",
+  "category": "Developer Tools",
+  "image": "traefik:v3.0",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/traefik.png",
+  "website": "https://traefik.io",
+  "docsUrl": "https://doc.traefik.io/traefik/getting-started/quick-start/",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    },
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/traefik-dev/data",
+      "container": "/data"
+    },
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock",
+      "readOnly": true
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "v3.0"
+}

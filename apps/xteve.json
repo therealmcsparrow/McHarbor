@@ -1,0 +1,40 @@
+{
+    "slug":  "xteve",
+    "name":  "xTeVe",
+    "description":  "IPTV proxy and EPG guide for Plex, Kodi, and other media managers.",
+    "category":  "Media",
+    "image":  "alturismo/xteve:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/xteve.png",
+    "website":  "https://github.com/xteve-project/xTeVe",
+    "docsUrl":  "https://github.com/xteve-project/xTeVe-Documentation/blob/master/README.md",
+    "ports":  [
+                  {
+                      "host":  34400,
+                      "container":  34400,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  34400,
+                      "container":  34400,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/xteve/config",
+                        "container":  "/home/xteve/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/xteve/cache",
+                        "container":  "/home/xteve/cache"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

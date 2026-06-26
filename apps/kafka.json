@@ -1,0 +1,86 @@
+{
+    "slug":  "kafka",
+    "name":  "Apache Kafka",
+    "description":  "Distributed event streaming platform for high-throughput pipelines, real-time analytics, and replayable data feeds.",
+    "category":  "Databases",
+    "image":  "confluentinc/cp-kafka:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kafka.png",
+    "website":  "https://kafka.apache.org",
+    "docsUrl":  "https://docs.confluent.io/platform/current/installation/docker/image-reference.html",
+    "ports":  [
+                  {
+                      "host":  9092,
+                      "container":  9092,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  29092,
+                      "container":  29092,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kafka/data",
+                        "container":  "/var/lib/kafka/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "KAFKA_NODE_ID",
+                        "default":  "1",
+                        "description":  "Unique broker node ID"
+                    },
+                    {
+                        "key":  "KAFKA_PROCESS_ROLES",
+                        "default":  "broker,controller",
+                        "description":  "Combined mode roles (KRaft)"
+                    },
+                    {
+                        "key":  "KAFKA_LISTENERS",
+                        "default":  "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093",
+                        "description":  "Internal listener bindings"
+                    },
+                    {
+                        "key":  "KAFKA_ADVERTISED_LISTENERS",
+                        "default":  "PLAINTEXT://kafka:9092",
+                        "description":  "Listeners advertised to clients"
+                    },
+                    {
+                        "key":  "KAFKA_CONTROLLER_LISTENER_NAMES",
+                        "default":  "CONTROLLER",
+                        "description":  "Controller listener name"
+                    },
+                    {
+                        "key":  "KAFKA_LISTENER_SECURITY_PROTOCOL_MAP",
+                        "default":  "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT",
+                        "description":  "Listener to security protocol mapping"
+                    },
+                    {
+                        "key":  "KAFKA_INTER_BROKER_LISTENER_NAME",
+                        "default":  "PLAINTEXT",
+                        "description":  "Inter-broker listener"
+                    },
+                    {
+                        "key":  "KAFKA_CONTROLLER_QUORUM_VOTERS",
+                        "default":  "1@kafka:9093",
+                        "description":  "Controller quorum voters"
+                    },
+                    {
+                        "key":  "KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR",
+                        "default":  "1",
+                        "description":  "Replication factor for offsets topic"
+                    },
+                    {
+                        "key":  "CLUSTER_ID",
+                        "default":  "MkU3OEVBNTcwNTJENDM2Qk",
+                        "description":  "Kafka cluster ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

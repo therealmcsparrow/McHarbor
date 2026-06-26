@@ -1,0 +1,50 @@
+{
+    "slug":  "photoview",
+    "name":  "Photoview",
+    "description":  "Simple, fast photo gallery with sharing, EXIF, and user authentication.",
+    "category":  "Photos \u0026 Files",
+    "image":  "photoview/photoview:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/photoview.png",
+    "website":  "https://photoview.github.io",
+    "docsUrl":  "https://github.com/photoview/photoview",
+    "ports":  [
+                  {
+                      "host":  4000,
+                      "container":  4000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/photoview/config",
+                        "container":  "/app/data"
+                    },
+                    {
+                        "host":  "/srv/photos",
+                        "container":  "/photos"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PHOTOVIEW_DATABASE_URL",
+                        "default":  "postgresql://photoview:photoview@photoview-db:5432/photoview",
+                        "description":  "Database connection URL"
+                    },
+                    {
+                        "key":  "PHOTOVIEW_LISTEN_IP",
+                        "default":  "0.0.0.0",
+                        "description":  "Listen IP"
+                    },
+                    {
+                        "key":  "PHOTOVIEW_LISTEN_PORT",
+                        "default":  "4000",
+                        "description":  "Listen port"
+                    }
+                ],
+    "version":  "latest"
+}

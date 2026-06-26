@@ -19,7 +19,10 @@
   },
   "badges": {
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "used": "En uso",
+    "unused": "Sin usar",
+    "builtIn": "Integrada"
   },
   "create": {
     "title": "Crear red",
@@ -62,11 +65,26 @@
     "connected": "Contenedor conectado",
     "disconnected": "Contenedor desconectado",
     "updated": "Red actualizada",
-    "updateFailed": "No se pudo actualizar la red"
+    "updateFailed": "No se pudo actualizar la red",
+    "builtIn": "Las redes integradas no se pueden eliminar ni modificar"
   },
   "confirm": {
     "removeTitle": "Quitar red",
-    "removeDescription": "Esto eliminará permanentemente esta red."
+    "removeDescription": "Esto eliminará permanentemente esta red.",
+    "builtInRemoveTitle": "No se puede eliminar la red integrada",
+    "builtInRemoveDescription": "Las redes integradas (bridge, host, none) están protegidas y no se pueden eliminar."
+  },
+  "bulkRemoveDialog": {
+    "title": "Eliminar redes",
+    "description": "Esto eliminará permanentemente <bold>{{count}}</bold> redes.",
+    "networks": "Redes",
+    "andXMore": "y {{count}} más",
+    "inUse": "en uso",
+    "inUseWarning": "{{count}} red(es) seleccionada(s) aún están conectadas a contenedores en ejecución. La eliminación fallará para ellas a menos que primero se detengan o desconecten los contenedores.",
+    "forceLabel": "Entiendo y quiero intentar la eliminación de todos modos",
+    "removing": "Eliminando...",
+    "builtInSkipped": "{{count}} red(es) integrada(s) omitida(s) (no se pueden eliminar)",
+    "noneEligible": "Ninguna red es elegible para eliminar."
   },
   "actions": {
     "edit": "Editar",
@@ -86,6 +104,8 @@
   "detail": {
     "backToNetworks": "Volver a las redes",
     "notFound": "Red no encontrada",
+    "builtInCannotEdit": "Las redes integradas no se pueden editar",
+    "builtInCannotRemove": "Las redes integradas no se pueden eliminar",
     "general": "General",
     "name": "Nombre",
     "networkId": "ID de red",

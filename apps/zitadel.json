@@ -1,0 +1,53 @@
+{
+  "slug": "zitadel",
+  "name": "Zitadel",
+  "description": "Identity and access management platform with multi-tenancy and audit logs.",
+  "category": "Security",
+  "image": "ghcr.io/zitadel/zitadel:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/zitadel.png",
+  "website": "https://zitadel.com",
+  "docsUrl": "https://zitadel.com/docs",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/zitadel/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "ZITADEL_EXTERNALDOMAIN",
+      "default": "zitadel.example.com",
+      "description": "External domain for the instance"
+    },
+    {
+      "key": "ZITADEL_EXTERNALSECURE",
+      "default": "true",
+      "description": "Use HTTPS for external traffic"
+    },
+    {
+      "key": "ZITADEL_DATABASE_POSTGRES_HOST",
+      "default": "zitadel-postgres",
+      "description": "PostgreSQL host"
+    },
+    {
+      "key": "ZITADEL_DATABASE_POSTGRES_PASSWORD",
+      "default": "change-me",
+      "description": "PostgreSQL password",
+      "secret": true
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

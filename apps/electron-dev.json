@@ -1,0 +1,31 @@
+{
+  "slug": "electron-dev",
+  "name": "Electron",
+  "description": "Electron builder image, framework for building cross-platform desktop apps with web technologies.",
+  "category": "Developer Tools",
+  "image": "electronuserland/builder:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/electron.png",
+  "website": "https://www.electronjs.org",
+  "docsUrl": "https://www.electronjs.org/docs/latest/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/electron-dev/app",
+      "container": "/project"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

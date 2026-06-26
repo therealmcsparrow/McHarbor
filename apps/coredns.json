@@ -1,0 +1,36 @@
+{
+    "slug":  "coredns",
+    "name":  "CoreDNS",
+    "description":  "DNS server with a flexible plugin architecture, fast and cloud-native.",
+    "category":  "Networking",
+    "image":  "coredns/coredns:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/coredns.png",
+    "website":  "https://coredns.io",
+    "docsUrl":  "https://coredns.io/manual/toc/",
+    "ports":  [
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/coredns/config",
+                        "container":  "/etc/coredns"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,47 @@
+{
+    "slug":  "yugabytedb",
+    "name":  "YugabyteDB",
+    "description":  "Distributed SQL database combining PostgreSQL compatibility with cloud-native scalability.",
+    "category":  "Databases",
+    "image":  "yugabytedb/yugabyte:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/yugabytedb.svg",
+    "website":  "https://www.yugabyte.com",
+    "docsUrl":  "https://docs.yugabyte.com",
+    "ports":  [
+                  {
+                      "host":  5433,
+                      "container":  5433,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9042,
+                      "container":  9042,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7000,
+                      "container":  7000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/yugabytedb/data",
+                        "container":  "/home/yugabyte/yb_data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "YSQL_USER",
+                        "default":  "yugabyte",
+                        "description":  "YSQL username"
+                    },
+                    {
+                        "key":  "YSQL_PASSWORD",
+                        "default":  "",
+                        "description":  "YSQL password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

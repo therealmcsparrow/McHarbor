@@ -1,0 +1,31 @@
+{
+    "slug":  "tasmoadmin",
+    "name":  "TasmoAdmin",
+    "description":  "Web admin interface to manage multiple Tasmota devices from one place.",
+    "category":  "Home Automation",
+    "image":  "ghcr.io/tasmoadmin/tasmoadmin:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tasmoadmin.png",
+    "website":  "https://github.com/tasmoadmin/TasmoAdmin",
+    "docsUrl":  "https://github.com/tasmoadmin/TasmoAdmin",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tasmoadmin/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

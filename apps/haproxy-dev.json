@@ -1,0 +1,36 @@
+{
+  "slug": "haproxy-dev",
+  "name": "HAProxy Dev",
+  "description": "HAProxy load balancer on Alpine for local reverse proxy and routing tests.",
+  "category": "Developer Tools",
+  "image": "haproxy:alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/haproxy.png",
+  "website": "https://www.haproxy.org",
+  "docsUrl": "https://hub.docker.com/_/haproxy",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8404,
+      "container": 8404,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/haproxy-dev/config",
+      "container": "/usr/local/etc/haproxy"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "alpine"
+}

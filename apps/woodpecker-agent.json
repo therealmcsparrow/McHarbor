@@ -1,0 +1,46 @@
+{
+    "slug":  "woodpecker-agent",
+    "name":  "Woodpecker CI Agent",
+    "description":  "Worker that executes pipeline steps for a Woodpecker CI server.",
+    "category":  "Developer Tools",
+    "image":  "woodpeckerci/woodpecker-agent:latest",
+    "logo":  "https://icon.horse/icon/woodpecker-ci.org",
+    "website":  "https://woodpecker-ci.org",
+    "docsUrl":  "https://woodpecker-ci.org/docs/intro",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/woodpecker-agent/data",
+                        "container":  "/var/lib/woodpecker"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WOODPECKER_SERVER",
+                        "default":  "woodpecker-server:9000",
+                        "description":  "Woodpecker server address"
+                    },
+                    {
+                        "key":  "WOODPECKER_AGENT_SECRET",
+                        "default":  "",
+                        "description":  "Shared secret with the server",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

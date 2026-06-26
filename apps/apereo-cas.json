@@ -1,0 +1,46 @@
+{
+    "slug":  "apereo-cas",
+    "name":  "Apereo CAS",
+    "description":  "Central Authentication Service single sign-on server for the web.",
+    "category":  "Security",
+    "image":  "apereo/cas:latest",
+    "logo":  "https://icon.horse/icon/www.apereo.org",
+    "website":  "https://www.apereo.org/projects/cas",
+    "docsUrl":  "https://apereo.github.io/cas",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apereo-cas/etc",
+                        "container":  "/etc/cas"
+                    },
+                    {
+                        "host":  "/opt/appdata/apereo-cas/keystore",
+                        "container":  "/etc/cas/keystore"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "CAS_SERVER_NAME",
+                        "default":  "https://cas.example.com",
+                        "description":  "Public CAS server URL"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

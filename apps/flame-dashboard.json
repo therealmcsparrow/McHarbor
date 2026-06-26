@@ -1,0 +1,31 @@
+{
+  "slug": "flame-dashboard",
+  "name": "Flame",
+  "description": "Self-hosted start page with a clean modern UI and app bookmarks.",
+  "category": "Dashboards",
+  "image": "pawelmalak/flame:latest",
+  "logo": "https://raw.githubusercontent.com/pawelmalak/flame/master/.github/preview.png",
+  "website": "https://github.com/pawelmalak/flame",
+  "docsUrl": "https://github.com/pawelmalak/flame",
+  "ports": [
+    {
+      "host": 5005,
+      "container": 5005,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/flame-dashboard/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

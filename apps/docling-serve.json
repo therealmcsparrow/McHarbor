@@ -1,0 +1,37 @@
+{
+    "slug":  "docling-serve",
+    "name":  "Docling Serve",
+    "description":  "IBM\u0027s Docling document AI server. Converts PDFs and docs to structured Markdown and JSON.",
+    "category":  "AI \u0026 Voice",
+    "image":  "ghcr.io/docling-project/docling-serve:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/DS4SD/docling",
+    "docsUrl":  "https://docling-project.github.io/docling/",
+    "ports":  [
+                  {
+                      "host":  5001,
+                      "container":  5001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/docling-serve/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DOCLING_SERVE_ENABLE_REMOTE",
+                        "default":  "false",
+                        "description":  "Enable remote artifact downloads (true/false)"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

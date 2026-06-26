@@ -1,0 +1,51 @@
+{
+    "slug":  "kafka-rest",
+    "name":  "Confluent Kafka REST Proxy",
+    "description":  "HTTP gateway to a Kafka cluster allowing produce and consume operations over REST.",
+    "category":  "Databases",
+    "image":  "confluentinc/cp-kafka-rest:latest",
+    "logo":  "https://icon.horse/icon/docs.confluent.io",
+    "website":  "https://docs.confluent.io",
+    "docsUrl":  "https://docs.confluent.io/platform/current/kafka-rest/installation/install-rest.html",
+    "ports":  [
+                  {
+                      "host":  8082,
+                      "container":  8082,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kafka-rest/data",
+                        "container":  "/var/lib/kafka-rest"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "KAFKA_REST_HOST_NAME",
+                        "default":  "kafka-rest",
+                        "description":  "Hostname advertised to clients"
+                    },
+                    {
+                        "key":  "KAFKA_REST_BOOTSTRAP_SERVERS",
+                        "default":  "kafka:9092",
+                        "description":  "Kafka bootstrap servers"
+                    },
+                    {
+                        "key":  "KAFKA_REST_LISTENERS",
+                        "default":  "http://0.0.0.0:8082",
+                        "description":  "HTTP listen address"
+                    },
+                    {
+                        "key":  "KAFKA_REST_SCHEMA_REGISTRY_URL",
+                        "default":  "http://schema-registry:8081",
+                        "description":  "Schema Registry URL"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

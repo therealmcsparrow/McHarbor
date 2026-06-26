@@ -1,0 +1,37 @@
+{
+    "slug":  "playwright",
+    "name":  "Playwright",
+    "description":  "Microsoft Playwright image with browsers and tools for reliable end-to-end testing.",
+    "category":  "Developer Tools",
+    "image":  "mcr.microsoft.com/playwright:latest",
+    "logo":  "https://icon.horse/icon/playwright.dev",
+    "website":  "https://playwright.dev",
+    "docsUrl":  "https://playwright.dev/docs/docker",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/playwright/data",
+                        "container":  "/ms-playwright"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PLAYWRIGHT_BROWSERS_PATH",
+                        "default":  "/ms-playwright",
+                        "description":  "Browsers install path"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

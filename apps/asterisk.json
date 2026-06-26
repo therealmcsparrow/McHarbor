@@ -1,0 +1,45 @@
+{
+    "slug":  "asterisk",
+    "name":  "Asterisk",
+    "description":  "Open-source telephony platform; powers IP PBX, VoIP gateways, and conference servers.",
+    "category":  "Communications",
+    "image":  "dougbtv/asterisk:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/asterisk.png",
+    "website":  "https://www.asterisk.org",
+    "docsUrl":  "https://docs.asterisk.org",
+    "ports":  [
+                  {
+                      "host":  5060,
+                      "container":  5060,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  5060,
+                      "container":  5060,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  10000,
+                      "container":  10000,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/asterisk/etc",
+                        "container":  "/etc/asterisk"
+                    },
+                    {
+                        "host":  "/opt/appdata/asterisk/var",
+                        "container":  "/var/lib/asterisk"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

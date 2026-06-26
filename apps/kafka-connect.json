@@ -1,0 +1,80 @@
+{
+    "slug":  "kafka-connect",
+    "name":  "Confluent Kafka Connect",
+    "description":  "Scalable, fault-tolerant framework for streaming data between Kafka and external systems using connectors.",
+    "category":  "Databases",
+    "image":  "confluentinc/cp-kafka-connect:latest",
+    "logo":  "https://icon.horse/icon/docs.confluent.io",
+    "website":  "https://docs.confluent.io",
+    "docsUrl":  "https://docs.confluent.io/platform/current/connect/installation/docker.html",
+    "ports":  [
+                  {
+                      "host":  8083,
+                      "container":  8083,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kafka-connect/data",
+                        "container":  "/var/lib/kafka-connect"
+                    },
+                    {
+                        "host":  "/opt/appdata/kafka-connect/plugins",
+                        "container":  "/usr/share/java/plugins"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "CONNECT_BOOTSTRAP_SERVERS",
+                        "default":  "kafka:9092",
+                        "description":  "Kafka bootstrap servers"
+                    },
+                    {
+                        "key":  "CONNECT_REST_ADVERTISED_HOST_NAME",
+                        "default":  "kafka-connect",
+                        "description":  "Advertised hostname for REST"
+                    },
+                    {
+                        "key":  "CONNECT_REST_PORT",
+                        "default":  "8083",
+                        "description":  "REST API port"
+                    },
+                    {
+                        "key":  "CONNECT_GROUP_ID",
+                        "default":  "kafka-connect",
+                        "description":  "Connect cluster group ID"
+                    },
+                    {
+                        "key":  "CONNECT_CONFIG_STORAGE_TOPIC",
+                        "default":  "_connect-configs",
+                        "description":  "Configuration storage topic"
+                    },
+                    {
+                        "key":  "CONNECT_OFFSET_STORAGE_TOPIC",
+                        "default":  "_connect-offsets",
+                        "description":  "Offset storage topic"
+                    },
+                    {
+                        "key":  "CONNECT_STATUS_STORAGE_TOPIC",
+                        "default":  "_connect-status",
+                        "description":  "Status storage topic"
+                    },
+                    {
+                        "key":  "CONNECT_KEY_CONVERTER",
+                        "default":  "org.apache.kafka.connect.storage.StringConverter",
+                        "description":  "Key converter class"
+                    },
+                    {
+                        "key":  "CONNECT_VALUE_CONVERTER",
+                        "default":  "org.apache.kafka.connect.storage.StringConverter",
+                        "description":  "Value converter class"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

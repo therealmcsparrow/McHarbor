@@ -1,0 +1,46 @@
+{
+  "slug": "terraria",
+  "name": "Terraria",
+  "description": "Dedicated Terraria server for the 2D sandbox adventure game with multiplayer support.",
+  "category": "Gaming",
+  "image": "ryshe/terraria:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/terraria.png",
+  "website": "https://terraria.org",
+  "docsUrl": "https://github.com/ryshe/terraria",
+  "ports": [
+    {
+      "host": 7777,
+      "container": 7777,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/terraria/config",
+      "container": "/config"
+    },
+    {
+      "host": "/opt/appdata/terraria/worlds",
+      "container": "/worlds"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "WORLD_FILENAME",
+      "default": "world1.wld",
+      "description": "World file name"
+    },
+    {
+      "key": "MAX_PLAYERS",
+      "default": "8",
+      "description": "Maximum players"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

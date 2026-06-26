@@ -1,0 +1,54 @@
+{
+  "slug": "infisical",
+  "name": "Infisical",
+  "description": "End-to-end encrypted secrets management for developers and teams.",
+  "category": "Security",
+  "image": "infisical/infisical:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/infisical.png",
+  "website": "https://infisical.com",
+  "docsUrl": "https://infisical.com/docs/self-hosting",
+  "ports": [
+    {
+      "host": 80,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/infisical/data",
+      "container": "/app/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "ENCRYPTION_KEY",
+      "default": "change-me-32-characters-long",
+      "description": "Data encryption key",
+      "secret": true
+    },
+    {
+      "key": "JWT_AUTH_SECRET",
+      "default": "change-me",
+      "description": "JWT signing secret",
+      "secret": true
+    },
+    {
+      "key": "JWT_AUTH_LIFETIME",
+      "default": "10d",
+      "description": "Session JWT lifetime"
+    },
+    {
+      "key": "SITE_URL",
+      "default": "https://infisical.example.com",
+      "description": "Public site URL"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

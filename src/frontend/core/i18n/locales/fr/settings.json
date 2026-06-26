@@ -37,7 +37,14 @@
     "backupDays": "Conservation des sauvegardes (jours)",
     "backupDaysDescription": "Nombre maximal de jours pendant lesquels conserver les sauvegardes reussies par conteneur. Les archives plus anciennes sont supprimees automatiquement. Reglez sur 0 pour conserver les sauvegardes sans limite d'age.",
     "backupCount": "Conservation des sauvegardes (nombre)",
-    "backupCountDescription": "Nombre maximal de sauvegardes réussies à conserver par conteneur. Les archives plus anciennes sont supprimées automatiquement. Réglez sur 0 pour conserver toutes les sauvegardes."
+    "backupCountDescription": "Nombre maximal de sauvegardes réussies à conserver par conteneur. Les archives plus anciennes sont supprimées automatiquement. Réglez sur 0 pour conserver toutes les sauvegardes.",
+    "clearNow": "Effacer maintenant",
+    "clearNowHint": "Exécuter la purge de rétention maintenant (entrées de plus de {{days}} jours)",
+    "clearAuditTitle": "Effacer le journal d'audit ?",
+    "clearAuditDescription": "Supprimer définitivement toutes les entrées du journal d'audit de plus de {{days}} jours. Le nombre d'entrées supprimées sera affiché après l'opération. Action irréversible.",
+    "clearActivityTitle": "Effacer le journal d'activité ?",
+    "clearActivityDescription": "Supprimer définitivement tous les événements d'activité de plus de {{days}} jours. Le nombre d'événements supprimés sera affiché après l'opération. Action irréversible.",
+    "keepForever": "Définissez la rétention sur un nombre positif pour activer l'effacement."
   },
   "auth": {
     "description": "Configurez les fournisseurs d'authentification et les paramètres de session.",
@@ -809,9 +816,14 @@
     "policyUpdated": "Politique de mise à jour mise à jour",
     "policyDeleted": "Politique de mise à jour supprimée",
     "retentionUpdated": "Paramètres de rétention mis à jour",
+    "auditLogPurged": "Journal d'audit effacé ({{count}} entrées)",
+    "activityLogPurged": "Journal d'activité effacé ({{count}} événements)",
+    "auditLogPurgedVacuuming": "Journal d'audit effacé ({{count}} entrées). Compactage de la base de données en arrière-plan...",
+    "activityLogPurgedVacuuming": "Journal d'activité effacé ({{count}} événements). Compactage de la base de données en arrière-plan...",
     "backupKeyGenerated": "Cle de chiffrement des sauvegardes generee",
     "backupKeyCopied": "Cle de chiffrement des sauvegardes copiee",
     "backupKeySetupCopied": "Commande de configuration des sauvegardes copiee",
+    "copyFailed": "Impossible de copier dans le presse-papiers",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
     "storageBackupsMigrated": "Sauvegardes migrees : {{migrated}} copiees, {{skipped}} ignorees, {{failed}} echouees",
     "storageBackupsMigrationFailed": "Echec de la migration des sauvegardes"

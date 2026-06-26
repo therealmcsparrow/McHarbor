@@ -21,7 +21,8 @@
     "yes": "Yes",
     "no": "No",
     "used": "Used",
-    "unused": "Unused"
+    "unused": "Unused",
+    "builtIn": "Built-in"
   },
   "filters": {
     "all": "All",
@@ -69,11 +70,14 @@
     "connected": "Container connected",
     "disconnected": "Container disconnected",
     "updated": "Network updated",
-    "updateFailed": "Failed to update network"
+    "updateFailed": "Failed to update network",
+    "builtIn": "Built-in networks cannot be removed or modified"
   },
   "confirm": {
     "removeTitle": "Remove Network",
-    "removeDescription": "This will permanently remove this network."
+    "removeDescription": "This will permanently remove this network.",
+    "builtInRemoveTitle": "Cannot remove built-in network",
+    "builtInRemoveDescription": "Built-in networks (bridge, host, none) are protected and cannot be removed."
   },
   "bulkRemoveDialog": {
     "title": "Remove Networks",
@@ -83,7 +87,9 @@
     "inUse": "in use",
     "inUseWarning": "{{count}} selected network(s) are still attached to running containers. Removal will fail for those unless containers are stopped or disconnected first.",
     "forceLabel": "I understand and want to attempt removal anyway",
-    "removing": "Removing..."
+    "removing": "Removing...",
+    "builtInSkipped": "{{count}} built-in network(s) skipped (cannot be removed)",
+    "noneEligible": "No networks are eligible for removal."
   },
   "actions": {
     "edit": "Edit",
@@ -103,6 +109,8 @@
   "detail": {
     "backToNetworks": "Back to networks",
     "notFound": "Network not found",
+    "builtInCannotEdit": "Built-in networks cannot be edited",
+    "builtInCannotRemove": "Built-in networks cannot be removed",
     "general": "General",
     "name": "Name",
     "networkId": "Network ID",

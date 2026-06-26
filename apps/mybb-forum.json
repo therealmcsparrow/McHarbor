@@ -1,0 +1,57 @@
+{
+    "slug":  "mybb-forum",
+    "name":  "MyBB",
+    "description":  "Free, open-source forum software with plugin and theme support, designed for ease of use and extensibility.",
+    "category":  "Web Apps",
+    "image":  "mybb/mybb:latest",
+    "logo":  "https://icon.horse/icon/mybb.com",
+    "website":  "https://mybb.com",
+    "docsUrl":  "https://docs.mybb.com",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mybb/html",
+                        "container":  "/var/www/html"
+                    },
+                    {
+                        "host":  "/opt/appdata/mybb/uploads",
+                        "container":  "/var/www/html/uploads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "DB_HOST",
+                        "default":  "mybb-db",
+                        "description":  "Database host"
+                    },
+                    {
+                        "key":  "DB_NAME",
+                        "default":  "mybb",
+                        "description":  "Database name"
+                    },
+                    {
+                        "key":  "DB_USER",
+                        "default":  "mybb",
+                        "description":  "Database user"
+                    },
+                    {
+                        "key":  "DB_PASSWORD",
+                        "default":  "change-me-db",
+                        "description":  "Database password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

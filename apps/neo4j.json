@@ -1,0 +1,41 @@
+{
+  "slug": "neo4j",
+  "name": "Neo4j",
+  "description": "Leading graph database with native graph storage and the powerful Cypher query language.",
+  "category": "Databases",
+  "image": "neo4j:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/neo4j.png",
+  "website": "https://neo4j.com",
+  "docsUrl": "https://neo4j.com/docs/",
+  "ports": [
+    {
+      "host": 7474,
+      "container": 7474,
+      "protocol": "tcp"
+    },
+    {
+      "host": 7687,
+      "container": 7687,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/neo4j/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/neo4j/logs",
+      "container": "/logs"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "NEO4J_AUTH",
+      "default": "neo4j/",
+      "description": "Auth in form neo4j/<password>",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

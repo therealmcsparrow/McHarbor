@@ -1,0 +1,52 @@
+{
+  "slug": "clickhouse",
+  "name": "ClickHouse",
+  "description": "Ultra-fast column-oriented database for real-time analytical queries and dashboards.",
+  "category": "Databases",
+  "image": "clickhouse/clickhouse-server:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/clickhouse.png",
+  "website": "https://clickhouse.com",
+  "docsUrl": "https://clickhouse.com/docs",
+  "ports": [
+    {
+      "host": 8123,
+      "container": 8123,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9000,
+      "container": 9000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/clickhouse/data",
+      "container": "/var/lib/clickhouse"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "CLICKHOUSE_DB",
+      "default": "default",
+      "description": "Default database"
+    },
+    {
+      "key": "CLICKHOUSE_USER",
+      "default": "default",
+      "description": "Default user"
+    },
+    {
+      "key": "CLICKHOUSE_PASSWORD",
+      "default": "",
+      "description": "Default user password",
+      "secret": true
+    },
+    {
+      "key": "CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT",
+      "default": "1",
+      "description": "Enable default access management"
+    }
+  ],
+  "version": "latest"
+}

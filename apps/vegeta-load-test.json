@@ -1,0 +1,31 @@
+{
+    "slug":  "vegeta-load-test",
+    "name":  "Vegeta Load Test",
+    "description":  "HTTP load testing CLI and library for measuring system endurance.",
+    "category":  "Developer Tools",
+    "image":  "peterevans/vegeta:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/tsenart/vegeta",
+    "docsUrl":  "https://github.com/tsenart/vegeta",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vegeta-load-test/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

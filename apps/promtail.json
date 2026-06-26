@@ -1,0 +1,43 @@
+{
+    "slug":  "promtail",
+    "name":  "Promtail",
+    "description":  "Loki log shipping agent that tails local log files and pushes them to a Loki instance.",
+    "category":  "Monitoring",
+    "image":  "grafana/promtail:latest",
+    "logo":  "https://icon.horse/icon/grafana.com",
+    "website":  "https://grafana.com/docs/loki/latest/clients/promtail/",
+    "docsUrl":  "https://grafana.com/docs/loki/latest/clients/promtail/configuration/",
+    "ports":  [
+                  {
+                      "host":  9080,
+                      "container":  9080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/promtail/config",
+                        "container":  "/etc/promtail"
+                    },
+                    {
+                        "host":  "/var/log",
+                        "container":  "/var/log"
+                    },
+                    {
+                        "host":  "/var/lib/docker/containers",
+                        "container":  "/var/lib/docker/containers"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

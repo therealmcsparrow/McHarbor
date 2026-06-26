@@ -1,0 +1,41 @@
+{
+    "slug":  "whoogle",
+    "name":  "Whoogle",
+    "description":  "Self-hosted, ad-free, privacy-respecting metasearch engine that proxies Google search results without tracking.",
+    "category":  "Utilities",
+    "image":  "benbusby/whoogle-search:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/whoogle.png",
+    "website":  "https://github.com/benbusby/whoogle-search",
+    "docsUrl":  "https://github.com/benbusby/whoogle-search#readme",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/whoogle/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WHOOGLE_CONFIG_LANG",
+                        "default":  "en-US",
+                        "description":  "Interface language code"
+                    },
+                    {
+                        "key":  "WHOOGLE_CONFIG_COUNTRY",
+                        "default":  "US",
+                        "description":  "Search results country code"
+                    }
+                ],
+    "version":  "latest"
+}

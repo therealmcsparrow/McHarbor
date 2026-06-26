@@ -1,31 +1,31 @@
 {
-  "slug": "gotify",
-  "name": "Gotify",
-  "description": "Simple server for sending and receiving push notifications.",
-  "category": "Notifications",
-  "image": "gotify/server:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/gotify.svg",
-  "website": "https://gotify.net",
-  "docsUrl": "https://gotify.net/docs",
-  "ports": [
-    {
-      "host": 8089,
-      "container": 80,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/gotify/data",
-      "container": "/app/data"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "gotify",
+    "name":  "Gotify",
+    "description":  "Simple server for sending and receiving push notifications.",
+    "category":  "Notifications",
+    "image":  "gotify/server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/gotify.png",
+    "website":  "https://gotify.net",
+    "docsUrl":  "https://gotify.net/docs",
+    "ports":  [
+                  {
+                      "host":  8089,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gotify/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

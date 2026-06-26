@@ -1,0 +1,42 @@
+{
+    "slug":  "localai",
+    "name":  "LocalAI",
+    "description":  "OpenAI-compatible API for running LLMs, embeddings, and image generation locally on CPU or GPU.",
+    "category":  "AI \u0026 Voice",
+    "image":  "localai/localai:latest",
+    "logo":  "https://icon.horse/icon/localai.io",
+    "website":  "https://localai.io",
+    "docsUrl":  "https://localai.io/docs/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/localai/models",
+                        "container":  "/models"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CONTEXT_SIZE",
+                        "default":  "512",
+                        "description":  "Default model context size"
+                    },
+                    {
+                        "key":  "MODELS_PATH",
+                        "default":  "/models",
+                        "description":  "Path to model gallery cache"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

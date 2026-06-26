@@ -1,0 +1,44 @@
+{
+  "slug": "lobe-chat",
+  "name": "Lobe Chat",
+  "description": "Open-source, modern design AI chat framework with multi-model support, plugins, and knowledge base.",
+  "category": "AI & Voice",
+  "image": "lobehub/lobe-chat:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/lobe-chat.png",
+  "website": "https://lobehub.com",
+  "docsUrl": "https://lobehub.com/docs/self-hosting",
+  "ports": [
+    {
+      "host": 3210,
+      "container": 3210,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/lobe-chat/data",
+      "container": "/app/.next"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "OPENAI_API_KEY",
+      "default": "",
+      "description": "OpenAI API key for default provider",
+      "secret": true
+    },
+    {
+      "key": "ACCESS_CODE",
+      "default": "",
+      "description": "Access code to gate the UI (empty disables)",
+      "secret": true
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

@@ -1,0 +1,41 @@
+{
+    "slug":  "sqlitebrowser",
+    "name":  "SQLite Browser",
+    "description":  "Web-based visual editor for SQLite database files, powered by LinuxServer.io.",
+    "category":  "Databases",
+    "image":  "linuxserver/sqlitebrowser:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sqlitebrowser.png",
+    "website":  "https://sqlitebrowser.org",
+    "docsUrl":  "https://hub.docker.com/r/linuxserver/sqlitebrowser",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sqlitebrowser/data",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID for the application"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID for the application"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

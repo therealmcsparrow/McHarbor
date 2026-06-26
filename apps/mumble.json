@@ -1,0 +1,42 @@
+{
+    "slug":  "mumble",
+    "name":  "Mumble Server",
+    "description":  "Low-latency, high-quality voice chat primarily used for gaming; Murmur server.",
+    "category":  "Communications",
+    "image":  "mumblevoip/mumble-server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mumble.png",
+    "website":  "https://www.mumble.info",
+    "docsUrl":  "https://wiki.mumble.info/wiki/Murmur",
+    "ports":  [
+                  {
+                      "host":  64738,
+                      "container":  64738,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  64738,
+                      "container":  64738,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mumble/config",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MUMBLE_SUPW",
+                        "default":  "",
+                        "description":  "SuperUser password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

@@ -21,7 +21,8 @@
     "yes": "Ja",
     "no": "Nein",
     "used": "Verwendet",
-    "unused": "Unbenutzt"
+    "unused": "Unbenutzt",
+    "builtIn": "Integriert"
   },
   "filters": {
     "all": "Alle",
@@ -69,11 +70,14 @@
     "connected": "Container verbunden",
     "disconnected": "Container getrennt",
     "updated": "Netzwerk aktualisiert",
-    "updateFailed": "Netzwerk konnte nicht aktualisiert werden"
+    "updateFailed": "Netzwerk konnte nicht aktualisiert werden",
+    "builtIn": "Integrierte Netzwerke können nicht entfernt oder geändert werden"
   },
   "confirm": {
     "removeTitle": "Netzwerk entfernen",
-    "removeDescription": "Dies entfernt dieses Netzwerk dauerhaft."
+    "removeDescription": "Dies entfernt dieses Netzwerk dauerhaft.",
+    "builtInRemoveTitle": "Integriertes Netzwerk kann nicht entfernt werden",
+    "builtInRemoveDescription": "Integrierte Netzwerke (bridge, host, none) sind geschützt und können nicht entfernt werden."
   },
   "bulkRemoveDialog": {
     "title": "Netzwerke entfernen",
@@ -83,7 +87,9 @@
     "inUse": "in Verwendung",
     "inUseWarning": "{{count}} ausgewählte(s) Netzwerk(e) sind noch mit laufenden Containern verbunden. Das Entfernen schlägt für diese fehl, sofern die Container nicht zuerst gestoppt oder getrennt werden.",
     "forceLabel": "Ich verstehe und möchte das Entfernen trotzdem versuchen",
-    "removing": "Wird entfernt..."
+    "removing": "Wird entfernt...",
+    "builtInSkipped": "{{count}} integrierte(s) Netzwerk(e) übersprungen (kann nicht entfernt werden)",
+    "noneEligible": "Keine Netzwerke sind für das Entfernen geeignet."
   },
   "actions": {
     "edit": "Bearbeiten",
@@ -103,6 +109,8 @@
   "detail": {
     "backToNetworks": "Zurück zu Netzwerken",
     "notFound": "Netzwerk nicht gefunden",
+    "builtInCannotEdit": "Integrierte Netzwerke können nicht bearbeitet werden",
+    "builtInCannotRemove": "Integrierte Netzwerke können nicht entfernt werden",
     "general": "Allgemein",
     "name": "Name",
     "networkId": "Netzwerk-ID",

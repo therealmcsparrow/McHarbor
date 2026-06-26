@@ -1,0 +1,32 @@
+{
+  "slug": "chroma",
+  "name": "Chroma",
+  "description": "AI-native open-source embedding database for storing and retrieving vector embeddings.",
+  "category": "Databases",
+  "image": "chromadb/chroma:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/chroma.png",
+  "website": "https://www.trychroma.com",
+  "docsUrl": "https://docs.trychroma.com",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/chroma/data",
+      "container": "/chroma/chroma"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "CHROMA_SERVER_AUTHN_CREDENTIALS",
+      "default": "",
+      "description": "Auth credentials (leave empty to disable)",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

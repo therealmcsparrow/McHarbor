@@ -1,0 +1,31 @@
+{
+    "slug":  "sqlite-web",
+    "name":  "sqlite-web",
+    "description":  "Web-based SQLite database browser and editor written in Python.",
+    "category":  "Databases",
+    "image":  "ghcr.io/coleifer/sqlite-web:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/coleifer/sqlite-web",
+    "docsUrl":  "https://github.com/coleifer/sqlite-web#readme",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sqlite-web/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "SQLITE_DATABASE",
+                        "default":  "db.sqlite3",
+                        "description":  "Path to the SQLite database file"
+                    }
+                ],
+    "version":  "latest"
+}

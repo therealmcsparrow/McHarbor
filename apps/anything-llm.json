@@ -1,0 +1,53 @@
+{
+  "slug": "anything-llm",
+  "name": "AnythingLLM",
+  "description": "All-in-one document-based AI workspace. Chat with your docs using local or cloud LLMs.",
+  "category": "AI & Voice",
+  "image": "mintplexlabs/anythingllm:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/anything-llm.png",
+  "website": "https://anythingllm.com",
+  "docsUrl": "https://docs.anythingllm.com",
+  "ports": [
+    {
+      "host": 3001,
+      "container": 3001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/anything-llm/data",
+      "container": "/app/server/storage"
+    },
+    {
+      "host": "/opt/appdata/anything-llm/.env",
+      "container": "/app/server/.env",
+      "readOnly": false
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "STORAGE_DIR",
+      "default": "/app/server/storage",
+      "description": "Storage directory"
+    },
+    {
+      "key": "LLM_PROVIDER",
+      "default": "ollama",
+      "description": "Default LLM provider"
+    },
+    {
+      "key": "JWT_SECRET",
+      "default": "",
+      "description": "JWT signing secret",
+      "secret": true
+    }
+  ],
+  "minMemory": "2GB",
+  "version": "latest"
+}

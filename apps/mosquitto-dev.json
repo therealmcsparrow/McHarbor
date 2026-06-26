@@ -1,0 +1,44 @@
+{
+  "slug": "mosquitto-dev",
+  "name": "Mosquitto Dev",
+  "description": "Eclipse Mosquitto MQTT broker for local IoT and pubsub development.",
+  "category": "Developer Tools",
+  "image": "eclipse-mosquitto:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mosquitto.png",
+  "website": "https://mosquitto.org",
+  "docsUrl": "https://mosquitto.org/documentation/",
+  "ports": [
+    {
+      "host": 1883,
+      "container": 1883,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9001,
+      "container": 9001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mosquitto-dev/config",
+      "container": "/mosquitto/config"
+    },
+    {
+      "host": "/opt/appdata/mosquitto-dev/data",
+      "container": "/mosquitto/data"
+    },
+    {
+      "host": "/opt/appdata/mosquitto-dev/log",
+      "container": "/mosquitto/log"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

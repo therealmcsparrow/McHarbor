@@ -1,0 +1,31 @@
+{
+    "slug":  "groovy-dev",
+    "name":  "Groovy",
+    "description":  "Apache Groovy, dynamic language for the JVM with scripting and domain-specific language support.",
+    "category":  "Developer Tools",
+    "image":  "groovy:latest",
+    "logo":  "https://icon.horse/icon/groovy-lang.org",
+    "website":  "https://groovy-lang.org",
+    "docsUrl":  "https://groovy-lang.org/documentation.html",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/groovy-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

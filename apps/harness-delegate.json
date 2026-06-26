@@ -1,0 +1,57 @@
+{
+    "slug":  "harness-delegate",
+    "name":  "Harness CI Delegate",
+    "description":  "Lightweight worker that connects a Harness account to your CI/CD infrastructure.",
+    "category":  "Developer Tools",
+    "image":  "harness/delegate:latest",
+    "logo":  "https://icon.horse/icon/www.harness.io",
+    "website":  "https://www.harness.io",
+    "docsUrl":  "https://developer.harness.io/docs/platform/delegates/install-delegates/overview",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/harness-delegate/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DELEGATE_NAME",
+                        "default":  "docker-delegate",
+                        "description":  "Name for this delegate"
+                    },
+                    {
+                        "key":  "ACCOUNT_ID",
+                        "default":  "",
+                        "description":  "Harness account ID",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DELEGATE_TOKEN",
+                        "default":  "",
+                        "description":  "Delegate registration token",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "MANAGER_HOST_AND_PORT",
+                        "default":  "https://app.harness.io",
+                        "description":  "Harness manager endpoint"
+                    }
+                ],
+    "version":  "latest"
+}

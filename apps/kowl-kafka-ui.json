@@ -1,0 +1,36 @@
+{
+  "slug": "kowl-kafka-ui",
+  "name": "Kowl",
+  "description": "Modern web UI for Apache Kafka with topic browsing, message inspection, and consumer-group monitoring.",
+  "category": "Databases",
+  "image": "quay.io/cloudhut/kowl:latest",
+  "logo": "https://github.com/cloudhut/kowl/raw/master/frontend/src/svg/kowl-logo.svg",
+  "website": "https://github.com/cloudhut/kowl",
+  "docsUrl": "https://github.com/cloudhut/kowl/blob/master/docs/config/config-file.md",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kowl-kafka-ui/config",
+      "container": "/etc/kowl"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "KAFKA_BROKERS",
+      "default": "kafka:9092",
+      "description": "Comma-separated Kafka bootstrap servers"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

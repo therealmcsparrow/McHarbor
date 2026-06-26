@@ -1,0 +1,47 @@
+{
+    "slug":  "ory-oathkeeper",
+    "name":  "Ory Oathkeeper",
+    "description":  "Identity and access proxy that authenticates and authorizes incoming HTTP requests.",
+    "category":  "Security",
+    "image":  "oryd/oathkeeper:latest",
+    "logo":  "https://icon.horse/icon/www.ory.sh",
+    "website":  "https://www.ory.sh/oathkeeper",
+    "docsUrl":  "https://www.ory.sh/oathkeeper/docs",
+    "ports":  [
+                  {
+                      "host":  4455,
+                      "container":  4455,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4456,
+                      "container":  4456,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ory-oathkeeper/config",
+                        "container":  "/etc/config/oathkeeper"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "ACCESS_RULES",
+                        "default":  "/etc/config/oathkeeper/access-rules.yml",
+                        "description":  "Path to access rules"
+                    },
+                    {
+                        "key":  "MUTATORS",
+                        "default":  "/etc/config/oathkeeper/mutators.yml",
+                        "description":  "Path to mutators config"
+                    },
+                    {
+                        "key":  "AUTHENTICATORS",
+                        "default":  "/etc/config/oathkeeper/authenticators.yml",
+                        "description":  "Path to authenticators config"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

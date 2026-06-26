@@ -1,0 +1,56 @@
+{
+    "slug":  "kong",
+    "name":  "Kong Gateway",
+    "description":  "Cloud-native API gateway with a powerful plugin ecosystem for microservices.",
+    "category":  "Networking",
+    "image":  "kong:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kong.png",
+    "website":  "https://konghq.com",
+    "docsUrl":  "https://docs.konghq.com/gateway/latest/",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8001,
+                      "container":  8001,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8002,
+                      "container":  8002,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8443,
+                      "container":  8443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kong/config",
+                        "container":  "/etc/kong"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KONG_DATABASE",
+                        "default":  "off",
+                        "description":  "Database backend (off uses DB-less mode)"
+                    },
+                    {
+                        "key":  "KONG_ADMIN_LISTEN",
+                        "default":  "0.0.0.0:8001",
+                        "description":  "Admin API listen address"
+                    }
+                ],
+    "version":  "latest"
+}

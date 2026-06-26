@@ -1,0 +1,56 @@
+{
+    "slug":  "redmine",
+    "name":  "Redmine",
+    "description":  "Flexible project management web application with wiki, issues, and Gantt charts.",
+    "category":  "Developer Tools",
+    "image":  "redmine:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/redmine.png",
+    "website":  "https://www.redmine.org",
+    "docsUrl":  "https://www.redmine.org/projects/redmine/wiki/RedmineInstall",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/redmine/data",
+                        "container":  "/usr/src/redmine/files"
+                    },
+                    {
+                        "host":  "/opt/appdata/redmine/plugins",
+                        "container":  "/usr/src/redmine/plugins"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "REDMINE_DB_POSTGRES_HOST",
+                        "default":  "db",
+                        "description":  "PostgreSQL host"
+                    },
+                    {
+                        "key":  "REDMINE_DB_POSTGRES_PORT",
+                        "default":  "5432",
+                        "description":  "PostgreSQL port"
+                    },
+                    {
+                        "key":  "REDMINE_DB_POSTGRES_USER",
+                        "default":  "redmine",
+                        "description":  "Database user"
+                    },
+                    {
+                        "key":  "REDMINE_DB_POSTGRES_PASSWORD",
+                        "default":  "",
+                        "description":  "Database password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

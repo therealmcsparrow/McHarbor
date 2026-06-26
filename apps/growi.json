@@ -1,0 +1,48 @@
+{
+    "slug":  "growi",
+    "name":  "GROWI",
+    "description":  "Team collaboration wiki with Markdown editing, diagrams, and granular page permissions.",
+    "category":  "Documents",
+    "image":  "weseek/growi:latest",
+    "logo":  "https://icon.horse/icon/growi.org",
+    "website":  "https://growi.org",
+    "docsUrl":  "https://docs.growi.org",
+    "ports":  [
+                  {
+                      "host":  3005,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/growi/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MONGO_URI",
+                        "default":  "mongodb://growi:change-me@growi-db:27017/growi",
+                        "description":  "MongoDB connection URI"
+                    },
+                    {
+                        "key":  "ELASTICSEARCH_URI",
+                        "default":  "http://growi-elasticsearch:9200/growi",
+                        "description":  "Elasticsearch URI for full-text search"
+                    },
+                    {
+                        "key":  "PASSWORD_SEED",
+                        "default":  "change-me",
+                        "description":  "Password seed for user invitations",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

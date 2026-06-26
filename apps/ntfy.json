@@ -1,35 +1,35 @@
 {
-  "slug": "ntfy",
-  "name": "ntfy",
-  "description": "HTTP-based pub-sub notification service.",
-  "category": "Notifications",
-  "image": "binwiederhier/ntfy:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/ntfy.svg",
-  "website": "https://ntfy.sh",
-  "docsUrl": "https://docs.ntfy.sh",
-  "ports": [
-    {
-      "host": 8091,
-      "container": 80,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/ntfy/cache",
-      "container": "/var/cache/ntfy"
-    },
-    {
-      "host": "/opt/appdata/ntfy/config",
-      "container": "/etc/ntfy"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "ntfy",
+    "name":  "ntfy",
+    "description":  "HTTP-based pub-sub notification service.",
+    "category":  "Notifications",
+    "image":  "binwiederhier/ntfy:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ntfy.png",
+    "website":  "https://ntfy.sh",
+    "docsUrl":  "https://docs.ntfy.sh",
+    "ports":  [
+                  {
+                      "host":  8091,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ntfy/cache",
+                        "container":  "/var/cache/ntfy"
+                    },
+                    {
+                        "host":  "/opt/appdata/ntfy/config",
+                        "container":  "/etc/ntfy"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

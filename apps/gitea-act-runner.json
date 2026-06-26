@@ -1,0 +1,46 @@
+{
+  "slug": "gitea-act-runner",
+  "name": "Gitea Actions Runner",
+  "description": "Runner for executing Gitea Actions workflows on a self-hosted host.",
+  "category": "Developer Tools",
+  "image": "gitea/act_runner:latest",
+  "logo": "https://about.gitea.com/gitea.png",
+  "website": "https://docs.gitea.com/usage/actions/act-runner",
+  "docsUrl": "https://docs.gitea.com/usage/actions/act-runner",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/gitea-act-runner/data",
+      "container": "/data"
+    },
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "GITEA_INSTANCE_URL",
+      "default": "https://gitea.example.com",
+      "description": "Gitea instance URL"
+    },
+    {
+      "key": "GITEA_RUNNER_REGISTRATION_TOKEN",
+      "default": "",
+      "description": "Runner registration token from Gitea",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

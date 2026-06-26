@@ -1,0 +1,33 @@
+{
+    "slug":  "jaeger-collector",
+    "name":  "Jaeger Collector",
+    "description":  "Standalone Jaeger collector component for receiving and processing trace data.",
+    "category":  "Monitoring",
+    "image":  "jaegertracing/jaeger-collector:latest",
+    "logo":  "https://icon.horse/icon/www.jaegertracing.io",
+    "website":  "https://www.jaegertracing.io",
+    "docsUrl":  "https://www.jaegertracing.io/docs/1.55/deployment/",
+    "ports":  [
+                  {
+                      "host":  9411,
+                      "container":  9411,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  14250,
+                      "container":  14250,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,56 @@
+{
+  "slug": "osticket",
+  "name": "osTicket",
+  "description": "Open-source support ticket system for managing customer service requests and workflows.",
+  "category": "Productivity",
+  "image": "osticket/osticket:latest",
+  "logo": "https://osticket.com/sites/default/files/favicon_0.ico",
+  "website": "https://osticket.com",
+  "docsUrl": "https://docs.osticket.com",
+  "ports": [
+    {
+      "host": 8593,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/osticket/html",
+      "container": "/var/www/html"
+    },
+    {
+      "host": "/opt/appdata/osticket/attachments",
+      "container": "/var/www/html/attachments"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "MYSQL_HOST",
+      "default": "mariadb",
+      "description": "Database host"
+    },
+    {
+      "key": "MYSQL_DATABASE",
+      "default": "osticket",
+      "description": "Database name"
+    },
+    {
+      "key": "MYSQL_USER",
+      "default": "osticket",
+      "description": "Database user"
+    },
+    {
+      "key": "MYSQL_PASSWORD",
+      "default": "",
+      "description": "Database password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

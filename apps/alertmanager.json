@@ -1,31 +1,31 @@
 {
-  "slug": "alertmanager",
-  "name": "Alertmanager",
-  "description": "Prometheus alert routing, grouping, and notification manager.",
-  "category": "Monitoring",
-  "image": "prom/alertmanager:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/alertmanager.svg",
-  "website": "https://prometheus.io/docs/alerting/latest/alertmanager/",
-  "docsUrl": "https://prometheus.io/docs/alerting/latest/alertmanager/",
-  "ports": [
-    {
-      "host": 9093,
-      "container": 9093,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/alertmanager/config",
-      "container": "/etc/alertmanager"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "alertmanager",
+    "name":  "Alertmanager",
+    "description":  "Prometheus alert routing, grouping, and notification manager.",
+    "category":  "Monitoring",
+    "image":  "prom/alertmanager:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/alertmanager.png",
+    "website":  "https://prometheus.io/docs/alerting/latest/alertmanager/",
+    "docsUrl":  "https://prometheus.io/docs/alerting/latest/alertmanager/",
+    "ports":  [
+                  {
+                      "host":  9093,
+                      "container":  9093,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/alertmanager/config",
+                        "container":  "/etc/alertmanager"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

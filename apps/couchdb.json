@@ -1,0 +1,41 @@
+{
+  "slug": "couchdb",
+  "name": "CouchDB",
+  "description": "Document-oriented NoSQL database with seamless multi-master replication and HTTP API.",
+  "category": "Databases",
+  "image": "couchdb:3",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/couchdb.png",
+  "website": "https://couchdb.apache.org",
+  "docsUrl": "https://docs.couchdb.org",
+  "ports": [
+    {
+      "host": 5984,
+      "container": 5984,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/couchdb/data",
+      "container": "/opt/couchdb/data"
+    },
+    {
+      "host": "/opt/appdata/couchdb/etc",
+      "container": "/opt/couchdb/etc/local.d"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "COUCHDB_USER",
+      "default": "admin",
+      "description": "Admin username"
+    },
+    {
+      "key": "COUCHDB_PASSWORD",
+      "default": "",
+      "description": "Admin password",
+      "secret": true
+    }
+  ],
+  "version": "3"
+}

@@ -1,0 +1,59 @@
+{
+  "slug": "outline",
+  "name": "Outline",
+  "description": "Team knowledge base and wiki with real-time collaborative editing and search.",
+  "category": "Documents",
+  "image": "outlinewiki/outline:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/outline.png",
+  "website": "https://www.getoutline.com",
+  "docsUrl": "https://docs.getoutline.com/s/hosting",
+  "ports": [
+    {
+      "host": 3003,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/outline/data",
+      "container": "/var/lib/outline"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "URL",
+      "default": "http://localhost:3003",
+      "description": "Public URL where Outline is hosted"
+    },
+    {
+      "key": "SECRET_KEY",
+      "default": "change-me",
+      "description": "Outline secret key (64+ hex chars)",
+      "secret": true
+    },
+    {
+      "key": "UTILS_SECRET",
+      "default": "change-me",
+      "description": "Utility secret (32+ chars)",
+      "secret": true
+    },
+    {
+      "key": "DATABASE_URL",
+      "default": "postgres://outline:change-me@outline-db:5432/outline",
+      "description": "Postgres connection URL"
+    },
+    {
+      "key": "REDIS_URL",
+      "default": "redis://outline-redis:6379",
+      "description": "Redis connection URL"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

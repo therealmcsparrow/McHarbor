@@ -1,0 +1,61 @@
+{
+    "slug":  "minecraft-bedrock",
+    "name":  "Minecraft Bedrock",
+    "description":  "Dedicated Minecraft Bedrock Edition server supporting cross-play with consoles and mobile.",
+    "category":  "Gaming",
+    "image":  "itzg/minecraft-bedrock-server:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/itzg/docker-minecraft-bedrock-server",
+    "docsUrl":  "https://github.com/itzg/docker-minecraft-bedrock-server/blob/master/README.md",
+    "ports":  [
+                  {
+                      "host":  19132,
+                      "container":  19132,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/minecraft-bedrock/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/minecraft-bedrock/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "EULA",
+                        "default":  "TRUE",
+                        "description":  "Accept Minecraft EULA"
+                    },
+                    {
+                        "key":  "SERVER_NAME",
+                        "default":  "Bedrock Server",
+                        "description":  "Server name"
+                    },
+                    {
+                        "key":  "GAMEMODE",
+                        "default":  "survival",
+                        "description":  "Game mode (survival, creative, adventure)"
+                    },
+                    {
+                        "key":  "DIFFICULTY",
+                        "default":  "normal",
+                        "description":  "Difficulty"
+                    },
+                    {
+                        "key":  "MAX_PLAYERS",
+                        "default":  "10",
+                        "description":  "Maximum players"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

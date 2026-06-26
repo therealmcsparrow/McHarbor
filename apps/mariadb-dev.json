@@ -1,0 +1,48 @@
+{
+  "slug": "mariadb-dev",
+  "name": "MariaDB 11 Dev",
+  "description": "MariaDB 11 LTS for development and testing.",
+  "category": "Databases",
+  "image": "mariadb:11",
+  "logo": "https://mariadb.com/wp-content/uploads/2019/11/mariadb-logo-vert_blue-transparent.png",
+  "website": "https://mariadb.org",
+  "docsUrl": "https://mariadb.com/kb/en/documentation/",
+  "ports": [
+    {
+      "host": 3306,
+      "container": 3306,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mariadb-dev/data",
+      "container": "/var/lib/mysql"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MARIADB_ROOT_PASSWORD",
+      "default": "",
+      "description": "Root password",
+      "secret": true
+    },
+    {
+      "key": "MARIADB_DATABASE",
+      "default": "dev",
+      "description": "Default database name"
+    },
+    {
+      "key": "MARIADB_USER",
+      "default": "dev",
+      "description": "Database user"
+    },
+    {
+      "key": "MARIADB_PASSWORD",
+      "default": "",
+      "description": "Database user password",
+      "secret": true
+    }
+  ],
+  "version": "11"
+}

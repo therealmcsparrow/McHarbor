@@ -1,0 +1,45 @@
+{
+    "slug":  "ossec",
+    "name":  "OSSEC",
+    "description":  "Open-source host-based intrusion detection system for log monitoring and file integrity.",
+    "category":  "Security",
+    "image":  "atomicorp/ossec-docker:latest",
+    "logo":  "https://icon.horse/icon/www.ossec.net",
+    "website":  "https://www.ossec.net",
+    "docsUrl":  "https://www.ossec.net/docs",
+    "ports":  [
+                  {
+                      "host":  1514,
+                      "container":  1514,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  514,
+                      "container":  514,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ossec/etc",
+                        "container":  "/var/ossec/etc"
+                    },
+                    {
+                        "host":  "/opt/appdata/ossec/var",
+                        "container":  "/var/ossec/var"
+                    },
+                    {
+                        "host":  "/opt/appdata/ossec/logs",
+                        "container":  "/var/ossec/logs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

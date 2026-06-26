@@ -118,6 +118,7 @@
     "revokeKey": "Révoquer",
     "revokeKeyConfirm": "Êtes-vous sûr de vouloir révoquer cette clé API ? Il ne sera plus utilisable.",
     "copyKey": "Copier la clé",
+    "copyFailed": "Impossible de copier dans le presse-papiers",
     "keyCopied": "Clé API copiée dans le presse-papiers",
     "keyWarning": "Assurez-vous de copier cette clé maintenant. Vous ne pourrez plus le revoir.",
     "noKeys": "Aucune clé API créée pour le moment",

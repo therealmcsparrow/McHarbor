@@ -1,0 +1,37 @@
+{
+    "slug":  "sms-gateway-android",
+    "name":  "SMS Gateway (Android)",
+    "description":  "Use your Android phone as an SMS gateway; sends SMS via REST API.",
+    "category":  "Communications",
+    "image":  "capcom6/sms-gateway:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/capcom6/sms-gateway",
+    "docsUrl":  "https://github.com/capcom6/sms-gateway",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sms-gateway/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "API_AUTH_TOKEN",
+                        "default":  "",
+                        "description":  "Bearer token for the gateway API",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

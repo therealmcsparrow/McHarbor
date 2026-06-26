@@ -1,0 +1,44 @@
+{
+    "slug":  "selenium-hub",
+    "name":  "Selenium Hub",
+    "description":  "Selenium Grid hub that distributes tests across registered node containers.",
+    "category":  "Developer Tools",
+    "image":  "selenium/hub:latest",
+    "logo":  "https://icon.horse/icon/www.selenium.dev",
+    "website":  "https://www.selenium.dev",
+    "docsUrl":  "https://github.com/SeleniumHQ/docker-selenium",
+    "ports":  [
+                  {
+                      "host":  4442,
+                      "container":  4442,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4443,
+                      "container":  4443,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4444,
+                      "container":  4444,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GRID_MAX_SESSION",
+                        "default":  "16",
+                        "description":  "Maximum concurrent sessions"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

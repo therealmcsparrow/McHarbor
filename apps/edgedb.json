@@ -1,0 +1,32 @@
+{
+    "slug":  "edgedb",
+    "name":  "EdgeDB",
+    "description":  "Graph-relational database with a powerful query language and strong type system.",
+    "category":  "Databases",
+    "image":  "edgedb/edgedb:latest",
+    "logo":  "https://icon.horse/icon/www.edgedb.com",
+    "website":  "https://www.edgedb.com",
+    "docsUrl":  "https://www.edgedb.com/docs",
+    "ports":  [
+                  {
+                      "host":  5656,
+                      "container":  5656,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/edgedb/data",
+                        "container":  "/var/lib/edgedb"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "EDGEDB_SERVER_PASSWORD",
+                        "default":  "",
+                        "description":  "Server password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

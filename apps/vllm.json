@@ -1,0 +1,38 @@
+{
+  "slug": "vllm",
+  "name": "vLLM",
+  "description": "High-throughput, low-latency LLM serving engine with PagedAttention for production workloads.",
+  "category": "AI & Voice",
+  "image": "vllm/vllm-openai:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/vllm.png",
+  "website": "https://docs.vllm.ai",
+  "docsUrl": "https://docs.vllm.ai/en/latest/serving/deploying_with_docker.html",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/vllm/models",
+      "container": "/root/.cache/huggingface"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "HF_TOKEN",
+      "default": "",
+      "description": "Hugging Face token for gated models",
+      "secret": true
+    }
+  ],
+  "minMemory": "8GB",
+  "version": "latest"
+}

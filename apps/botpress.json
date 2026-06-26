@@ -1,0 +1,52 @@
+{
+    "slug":  "botpress",
+    "name":  "Botpress",
+    "description":  "Open-source conversational AI platform for building chatbots and virtual assistants.",
+    "category":  "Productivity",
+    "image":  "botpress/server:latest",
+    "logo":  "https://icon.horse/icon/botpress.com",
+    "website":  "https://botpress.com",
+    "docsUrl":  "https://botpress.com/docs",
+    "ports":  [
+                  {
+                      "host":  8610,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/botpress/data",
+                        "container":  "/botpress/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "BP_DATABASE_URL",
+                        "default":  "postgresql://botpress:botpress@postgres:5432/botpress",
+                        "description":  "PostgreSQL connection URL",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "BP_REDIS_URL",
+                        "default":  "redis://redis:6379/",
+                        "description":  "Redis connection URL"
+                    },
+                    {
+                        "key":  "BP_PRODUCTION",
+                        "default":  "true",
+                        "description":  "Run in production mode"
+                    },
+                    {
+                        "key":  "CLUSTER_ENABLED",
+                        "default":  "true",
+                        "description":  "Enable clustering"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,52 @@
+{
+  "slug": "maxwell-cdc",
+  "name": "Maxwell's Daemon",
+  "description": "MySQL change data capture tool that reads binlogs and produces JSON messages to Kafka, Redis, RabbitMQ, and others.",
+  "category": "Databases",
+  "image": "zendesk/maxwell:latest",
+  "logo": "https://maxwells-daemon.io/img/logo.svg",
+  "website": "https://maxwells-daemon.io",
+  "docsUrl": "https://maxwells-daemon.io/quickstart/",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/maxwell-cdc/data",
+      "container": "/var/lib/maxwell"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MAXWELL_HOST",
+      "default": "mysql",
+      "description": "MySQL host"
+    },
+    {
+      "key": "MAXWELL_USER",
+      "default": "maxwell",
+      "description": "MySQL user"
+    },
+    {
+      "key": "MAXWELL_PASSWORD",
+      "default": "",
+      "description": "MySQL password",
+      "secret": true
+    },
+    {
+      "key": "MAXWELL_PRODUCER",
+      "default": "stdout",
+      "description": "Producer type (kafka, redis, rabbitmq, stdout)"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,26 +1,28 @@
 {
-  "slug": "adminer",
-  "name": "Adminer",
-  "description": "Single-file database administration UI.",
-  "category": "Developer Tools",
-  "image": "adminer:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/adminer.svg",
-  "website": "https://www.adminer.org",
-  "docsUrl": "https://hub.docker.com/_/adminer",
-  "ports": [
-    {
-      "host": 8084,
-      "container": 8080,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "adminer",
+    "name":  "Adminer",
+    "description":  "Single-file database administration UI.",
+    "category":  "Developer Tools",
+    "image":  "adminer:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/adminer.png",
+    "website":  "https://www.adminer.org",
+    "docsUrl":  "https://hub.docker.com/_/adminer",
+    "ports":  [
+                  {
+                      "host":  8084,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

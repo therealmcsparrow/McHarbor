@@ -1,0 +1,37 @@
+{
+  "slug": "surrealdb",
+  "name": "SurrealDB",
+  "description": "Multi-model database combining document, graph, and key-value capabilities with SQL-like queries.",
+  "category": "Databases",
+  "image": "surrealdb/surrealdb:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/surrealdb.png",
+  "website": "https://surrealdb.com",
+  "docsUrl": "https://surrealdb.com/docs",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/surrealdb/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "SURREAL_USER",
+      "default": "root",
+      "description": "Root username"
+    },
+    {
+      "key": "SURREAL_PASS",
+      "default": "",
+      "description": "Root password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,50 @@
+{
+    "slug":  "tvheadend",
+    "name":  "Tvheadend",
+    "description":  "TV streaming server and DVR for Linux with DVB, SAT\u003eIP, and HDHomeRun support.",
+    "category":  "Media",
+    "image":  "linuxserver/tvheadend:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tvheadend.png",
+    "website":  "https://tvheadend.org",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-tvheadend",
+    "ports":  [
+                  {
+                      "host":  9981,
+                      "container":  9981,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9982,
+                      "container":  9982,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tvheadend/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/tvheadend/recordings",
+                        "container":  "/recordings"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "latest"
+}

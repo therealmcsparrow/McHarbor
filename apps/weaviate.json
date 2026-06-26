@@ -1,0 +1,42 @@
+{
+    "slug":  "weaviate",
+    "name":  "Weaviate",
+    "description":  "Open-source vector database combining vector and keyword search with modular ML models.",
+    "category":  "Databases",
+    "image":  "semitechnologies/weaviate:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/weaviate.svg",
+    "website":  "https://weaviate.io",
+    "docsUrl":  "https://weaviate.io/developers/weaviate",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  50051,
+                      "container":  50051,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/weaviate/data",
+                        "container":  "/var/lib/weaviate"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "AUTHENTICATION_API_KEY",
+                        "default":  "",
+                        "description":  "API key for authentication",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "PERSISTENCE_DATA_PATH",
+                        "default":  "/var/lib/weaviate",
+                        "description":  "Data persistence path"
+                    }
+                ],
+    "version":  "latest"
+}

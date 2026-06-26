@@ -1,0 +1,33 @@
+{
+    "slug":  "kafka-exporter",
+    "name":  "Kafka Exporter",
+    "description":  "Prometheus exporter for Apache Kafka consumer group, topic and broker metrics.",
+    "category":  "Monitoring",
+    "image":  "danielqsj/kafka-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/danielqsj/kafka_exporter",
+    "docsUrl":  "https://github.com/danielqsj/kafka_exporter#docker",
+    "ports":  [
+                  {
+                      "host":  9308,
+                      "container":  9308,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "KAFKA_BROKERS",
+                        "default":  "kafka:9092",
+                        "description":  "Comma-separated list of Kafka brokers"
+                    }
+                ],
+    "version":  "latest"
+}

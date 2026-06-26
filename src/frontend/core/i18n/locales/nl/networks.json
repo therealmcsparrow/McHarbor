@@ -21,7 +21,8 @@
     "yes": "Ja",
     "no": "Nee",
     "used": "Gebruikt",
-    "unused": "Ongebruikt"
+    "unused": "Ongebruikt",
+    "builtIn": "Ingebouwd"
   },
   "filters": {
     "all": "Alle",
@@ -69,11 +70,14 @@
     "connected": "Container verbonden",
     "disconnected": "Container ontkoppeld",
     "updated": "Netwerk bijgewerkt",
-    "updateFailed": "Netwerk bijwerken mislukt"
+    "updateFailed": "Netwerk bijwerken mislukt",
+    "builtIn": "Ingebouwde netwerken kunnen niet worden verwijderd of gewijzigd"
   },
   "confirm": {
     "removeTitle": "Netwerk verwijderen",
-    "removeDescription": "Dit verwijdert dit netwerk permanent."
+    "removeDescription": "Dit verwijdert dit netwerk permanent.",
+    "builtInRemoveTitle": "Kan ingebouwd netwerk niet verwijderen",
+    "builtInRemoveDescription": "Ingebouwde netwerken (bridge, host, none) zijn beveiligd en kunnen niet worden verwijderd."
   },
   "bulkRemoveDialog": {
     "title": "Netwerken verwijderen",
@@ -83,7 +87,9 @@
     "inUse": "in gebruik",
     "inUseWarning": "{{count}} geselecteerde netwerk(en) zijn nog gekoppeld aan draaiende containers. Verwijderen zal voor diegene mislukken tenzij containers eerst worden gestopt of ontkoppeld.",
     "forceLabel": "Ik begrijp het en wil de verwijdering toch proberen",
-    "removing": "Verwijderen..."
+    "removing": "Verwijderen...",
+    "builtInSkipped": "{{count}} ingebouwde netwerk(en) overgeslagen (kunnen niet worden verwijderd)",
+    "noneEligible": "Geen netwerken komen in aanmerking voor verwijdering."
   },
   "actions": {
     "edit": "Bewerken",
@@ -103,6 +109,8 @@
   "detail": {
     "backToNetworks": "Terug naar netwerken",
     "notFound": "Netwerk niet gevonden",
+    "builtInCannotEdit": "Ingebouwde netwerken kunnen niet worden bewerkt",
+    "builtInCannotRemove": "Ingebouwde netwerken kunnen niet worden verwijderd",
     "general": "Algemeen",
     "name": "Naam",
     "networkId": "Netwerk-ID",

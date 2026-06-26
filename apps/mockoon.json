@@ -1,0 +1,31 @@
+{
+    "slug":  "mockoon",
+    "name":  "Mockoon",
+    "description":  "Mock APIs locally and serve them with a single CLI binary.",
+    "category":  "Developer Tools",
+    "image":  "mockoon/cli:latest",
+    "logo":  "https://icon.horse/icon/mockoon.com",
+    "website":  "https://mockoon.com",
+    "docsUrl":  "https://mockoon.com/cli/",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mockoon/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

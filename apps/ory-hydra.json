@@ -1,0 +1,64 @@
+{
+    "slug":  "ory-hydra",
+    "name":  "Ory Hydra",
+    "description":  "Open-source OAuth2 and OpenID Connect server with full spec compliance.",
+    "category":  "Security",
+    "image":  "oryd/hydra:latest",
+    "logo":  "https://icon.horse/icon/www.ory.sh",
+    "website":  "https://www.ory.sh/hydra",
+    "docsUrl":  "https://www.ory.sh/hydra/docs",
+    "ports":  [
+                  {
+                      "host":  4444,
+                      "container":  4444,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4445,
+                      "container":  4445,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/ory-hydra/config",
+                        "container":  "/etc/config/hydra"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "DSN",
+                        "default":  "postgres://hydra:change-me@ory-hydra-postgres:5432/hydra?sslmode=disable",
+                        "description":  "Database DSN",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "SECRETS_SYSTEM",
+                        "default":  "change-me-32-chars-or-more",
+                        "description":  "System secret",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "URLS_PUBLIC",
+                        "default":  "http://localhost:4444",
+                        "description":  "Public URL"
+                    },
+                    {
+                        "key":  "URLS_ADMIN",
+                        "default":  "http://localhost:4445",
+                        "description":  "Admin URL"
+                    },
+                    {
+                        "key":  "URLS_CONSENT",
+                        "default":  "http://localhost:3000/consent",
+                        "description":  "Consent URL"
+                    },
+                    {
+                        "key":  "URLS_LOGIN",
+                        "default":  "http://localhost:3000/login",
+                        "description":  "Login URL"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

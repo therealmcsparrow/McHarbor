@@ -1,0 +1,35 @@
+{
+    "slug":  "juicefs",
+    "name":  "JuiceFS",
+    "description":  "Distributed POSIX file system built on top of object storage and Redis or TiKV metadata.",
+    "category":  "Photos \u0026 Files",
+    "image":  "juicedata/juicefs:latest",
+    "logo":  "https://icon.horse/icon/juicefs.com",
+    "website":  "https://juicefs.com",
+    "docsUrl":  "https://juicefs.com/docs",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/juicefs/config",
+                        "container":  "/root/.juicefs"
+                    },
+                    {
+                        "host":  "/opt/appdata/juicefs/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

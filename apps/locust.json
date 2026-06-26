@@ -1,0 +1,46 @@
+{
+    "slug":  "locust",
+    "name":  "Locust",
+    "description":  "Python-based distributed load testing with a real-time web UI.",
+    "category":  "Developer Tools",
+    "image":  "locustio/locust:latest",
+    "logo":  "https://icon.horse/icon/locust.io",
+    "website":  "https://locust.io",
+    "docsUrl":  "https://docs.locust.io/en/stable/running-in-docker.html",
+    "ports":  [
+                  {
+                      "host":  8089,
+                      "container":  8089,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5557,
+                      "container":  5557,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  5558,
+                      "container":  5558,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/locust/scripts",
+                        "container":  "/home/locust"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LOCUST_FILE",
+                        "default":  "locustfile.py",
+                        "description":  "Locust test file"
+                    }
+                ],
+    "version":  "latest"
+}

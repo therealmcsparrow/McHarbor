@@ -1,0 +1,61 @@
+{
+    "slug":  "zammad",
+    "name":  "Zammad",
+    "description":  "Open-source helpdesk and customer support ticket system with email, chat, and social channels.",
+    "category":  "Productivity",
+    "image":  "zammad/zammad:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/zammad.png",
+    "website":  "https://zammad.org",
+    "docsUrl":  "https://admin-docs.zammad.org",
+    "ports":  [
+                  {
+                      "host":  8591,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/zammad/data",
+                        "container":  "/opt/zammad/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/zammad/config",
+                        "container":  "/opt/zammad/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "POSTGRES_HOST",
+                        "default":  "postgres",
+                        "description":  "PostgreSQL host"
+                    },
+                    {
+                        "key":  "POSTGRES_DB",
+                        "default":  "zammad",
+                        "description":  "PostgreSQL database name"
+                    },
+                    {
+                        "key":  "POSTGRES_USER",
+                        "default":  "zammad",
+                        "description":  "PostgreSQL user"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "",
+                        "description":  "PostgreSQL password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "REDIS_HOST",
+                        "default":  "redis",
+                        "description":  "Redis host"
+                    }
+                ],
+    "version":  "latest"
+}

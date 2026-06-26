@@ -1,0 +1,35 @@
+{
+  "slug": "apache-dev",
+  "name": "Apache Dev",
+  "description": "Apache HTTP Server on Alpine for local web development and testing.",
+  "category": "Developer Tools",
+  "image": "httpd:alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/apache.png",
+  "website": "https://httpd.apache.org",
+  "docsUrl": "https://hub.docker.com/_/httpd",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/apache-dev/htdocs",
+      "container": "/usr/local/apache2/htdocs"
+    },
+    {
+      "host": "/opt/appdata/apache-dev/conf",
+      "container": "/usr/local/apache2/conf"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "alpine"
+}

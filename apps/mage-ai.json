@@ -1,0 +1,41 @@
+{
+  "slug": "mage-ai",
+  "name": "Mage",
+  "description": "Modern data pipeline tool for transforming and integrating data with notebooks, scripts, and triggers.",
+  "category": "Databases",
+  "image": "mageai/mageai:latest",
+  "logo": "https://www.mage.ai/favicon.svg",
+  "website": "https://www.mage.ai",
+  "docsUrl": "https://docs.mage.ai/getting-started/setup",
+  "ports": [
+    {
+      "host": 6789,
+      "container": 6789,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mage-ai/mage_data",
+      "container": "/home/src/mage_data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MAGE_REQUIRE_USER_AUTHENTICATION",
+      "default": "0",
+      "description": "Require user authentication (1 = yes)"
+    },
+    {
+      "key": "MAGE_DATABASE_CONNECTION_URL",
+      "default": "postgresql://postgres:postgres@postgres:5432/mage",
+      "description": "Metadata database connection"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

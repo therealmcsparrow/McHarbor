@@ -1,0 +1,41 @@
+{
+    "slug":  "dotnet-8-dev",
+    "name":  ".NET SDK 8",
+    "description":  "Microsoft .NET 8 SDK, long-term support build tools for C#, F#, and Visual Basic projects.",
+    "category":  "Developer Tools",
+    "image":  "mcr.microsoft.com/dotnet/sdk:8.0",
+    "logo":  "https://icon.horse/icon/dotnet.microsoft.com",
+    "website":  "https://dotnet.microsoft.com",
+    "docsUrl":  "https://learn.microsoft.com/dotnet/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dotnet-8-dev/app",
+                        "container":  "/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DOTNET_CLI_TELEMETRY_OPTOUT",
+                        "default":  "1",
+                        "description":  "Disable .NET CLI telemetry"
+                    },
+                    {
+                        "key":  "DOTNET_NOLOGO",
+                        "default":  "1",
+                        "description":  "Suppress .NET banner messages"
+                    }
+                ],
+    "version":  "8.0"
+}

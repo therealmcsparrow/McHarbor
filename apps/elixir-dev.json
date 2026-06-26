@@ -1,0 +1,36 @@
+{
+    "slug":  "elixir-dev",
+    "name":  "Elixir 1.17",
+    "description":  "Elixir 1.17 on Alpine, dynamic functional language on the Erlang VM with metaprogramming.",
+    "category":  "Developer Tools",
+    "image":  "elixir:1.17-alpine",
+    "logo":  "https://icon.horse/icon/elixir-lang.org",
+    "website":  "https://elixir-lang.org",
+    "docsUrl":  "https://hexdocs.pm/elixir",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/elixir-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "MIX_ENV",
+                        "default":  "dev",
+                        "description":  "Mix build environment"
+                    }
+                ],
+    "version":  "1.17-alpine"
+}

@@ -1,0 +1,26 @@
+{
+  "slug": "excalidraw",
+  "name": "Excalidraw",
+  "description": "Virtual whiteboard for sketching hand-drawn diagrams. End-to-end encrypted collaboration with a relaxed, expressive feel.",
+  "category": "Productivity",
+  "image": "excalidraw/excalidraw:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/excalidraw.png",
+  "website": "https://excalidraw.com",
+  "docsUrl": "https://docs.excalidraw.com",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

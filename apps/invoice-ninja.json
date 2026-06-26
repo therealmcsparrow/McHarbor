@@ -1,0 +1,71 @@
+{
+  "slug": "invoice-ninja",
+  "name": "Invoice Ninja",
+  "description": "Invoicing, billing, expense tracking, and time management for freelancers and small teams.",
+  "category": "Productivity",
+  "image": "invoiceninja/invoiceninja:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/invoice-ninja.png",
+  "website": "https://invoiceninja.com",
+  "docsUrl": "https://invoiceninja.github.io",
+  "ports": [
+    {
+      "host": 8598,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/invoice-ninja/data",
+      "container": "/var/www/app/data"
+    },
+    {
+      "host": "/opt/appdata/invoice-ninja/storage",
+      "container": "/var/www/app/storage"
+    },
+    {
+      "host": "/opt/appdata/invoice-ninja/public",
+      "container": "/var/www/app/public"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "DB_HOST",
+      "default": "mariadb",
+      "description": "Database host"
+    },
+    {
+      "key": "DB_DATABASE",
+      "default": "ninja",
+      "description": "Database name"
+    },
+    {
+      "key": "DB_USERNAME",
+      "default": "ninja",
+      "description": "Database user"
+    },
+    {
+      "key": "DB_PASSWORD",
+      "default": "",
+      "description": "Database password",
+      "secret": true
+    },
+    {
+      "key": "APP_KEY",
+      "default": "",
+      "description": "Application encryption key",
+      "secret": true
+    },
+    {
+      "key": "APP_URL",
+      "default": "http://localhost:8598",
+      "description": "Application public URL"
+    }
+  ],
+  "version": "latest"
+}

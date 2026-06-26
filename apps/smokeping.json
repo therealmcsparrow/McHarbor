@@ -1,0 +1,45 @@
+{
+    "slug":  "smokeping",
+    "name":  "SmokePing",
+    "description":  "Latency measurement and graphing tool with multiple probe types and historical analysis.",
+    "category":  "Monitoring",
+    "image":  "linuxserver/smokeping:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/smokeping.png",
+    "website":  "https://oss.oetiker.ch/smokeping",
+    "docsUrl":  "https://github.com/linuxserver/docker-smokeping",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/smokeping/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/smokeping/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,39 @@
+{
+  "slug": "squid",
+  "name": "Squid",
+  "description": "Caching HTTP and HTTPS forward proxy with rich access controls.",
+  "category": "Networking",
+  "image": "sameersbn/squid:latest",
+  "logo": "https://www.squid-cache.org/favicon.ico",
+  "website": "http://www.squid-cache.org",
+  "docsUrl": "https://github.com/sameersbn/docker-squid",
+  "ports": [
+    {
+      "host": 3128,
+      "container": 3128,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/squid/config",
+      "container": "/etc/squid"
+    },
+    {
+      "host": "/opt/appdata/squid/cache",
+      "container": "/var/spool/squid"
+    },
+    {
+      "host": "/opt/appdata/squid/log",
+      "container": "/var/log/squid"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

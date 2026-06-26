@@ -1,0 +1,34 @@
+{
+    "slug":  "postgres-exporter",
+    "name":  "Postgres Exporter",
+    "description":  "Prometheus exporter for PostgreSQL server metrics with auto-discovery of databases.",
+    "category":  "Monitoring",
+    "image":  "prometheuscommunity/postgres-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/prometheus-community/postgres_exporter",
+    "docsUrl":  "https://github.com/prometheus-community/postgres_exporter#docker",
+    "ports":  [
+                  {
+                      "host":  9187,
+                      "container":  9187,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DATA_SOURCE_NAME",
+                        "default":  "postgresql://postgres:postgres@postgres:5432/postgres?sslmode=disable",
+                        "description":  "Postgres DSN",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

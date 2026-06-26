@@ -1,0 +1,35 @@
+{
+    "slug":  "apache",
+    "name":  "Apache HTTP Server",
+    "description":  "The most widely used open source HTTP web server in the world.",
+    "category":  "Networking",
+    "image":  "httpd:alpine",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/apache.png",
+    "website":  "https://httpd.apache.org",
+    "docsUrl":  "https://httpd.apache.org/docs/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/apache/conf",
+                        "container":  "/usr/local/apache2/conf"
+                    },
+                    {
+                        "host":  "/opt/appdata/apache/htdocs",
+                        "container":  "/usr/local/apache2/htdocs"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "alpine"
+}

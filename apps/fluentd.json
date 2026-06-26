@@ -1,0 +1,36 @@
+{
+    "slug":  "fluentd",
+    "name":  "Fluentd",
+    "description":  "Open-source data collector for unified logging with pluggable input/output architecture.",
+    "category":  "Monitoring",
+    "image":  "fluent/fluentd:latest",
+    "logo":  "https://icon.horse/icon/www.fluentd.org",
+    "website":  "https://www.fluentd.org",
+    "docsUrl":  "https://docs.fluentd.org/container-deployment/docker-compose",
+    "ports":  [
+                  {
+                      "host":  24224,
+                      "container":  24224,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/fluentd/config",
+                        "container":  "/fluentd/etc"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "FLUENTD_CONF",
+                        "default":  "fluent.conf",
+                        "description":  "Main config file"
+                    }
+                ],
+    "version":  "latest"
+}

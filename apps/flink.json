@@ -1,0 +1,40 @@
+{
+  "slug": "flink",
+  "name": "Apache Flink",
+  "description": "Distributed stream and batch processing engine for stateful computations over unbounded data streams.",
+  "category": "Databases",
+  "image": "flink:latest",
+  "logo": "https://flink.apache.org/img/logo/png/1000/flink-logo-hires.png",
+  "website": "https://flink.apache.org",
+  "docsUrl": "https://nightlies.apache.org/flink/flink-docs-master/docs/try-flink/local_installation/",
+  "ports": [
+    {
+      "host": 8081,
+      "container": 8081,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/flink/data",
+      "container": "/opt/flink/data"
+    },
+    {
+      "host": "/opt/appdata/flink/conf",
+      "container": "/opt/flink/conf"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "JOB_MANAGER_RPC_ADDRESS",
+      "default": "flink",
+      "description": "JobManager RPC address"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

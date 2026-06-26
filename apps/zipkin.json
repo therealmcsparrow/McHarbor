@@ -1,0 +1,33 @@
+{
+    "slug":  "zipkin",
+    "name":  "Zipkin",
+    "description":  "Distributed tracing system for collecting and visualizing timing data across services.",
+    "category":  "Monitoring",
+    "image":  "openzipkin/zipkin:latest",
+    "logo":  "https://icon.horse/icon/zipkin.io",
+    "website":  "https://zipkin.io",
+    "docsUrl":  "https://zipkin.io/pages/quickstart.html",
+    "ports":  [
+                  {
+                      "host":  9411,
+                      "container":  9411,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "STORAGE_TYPE",
+                        "default":  "mem",
+                        "description":  "Storage backend (mem, mysql, cassandra, elasticsearch)"
+                    }
+                ],
+    "version":  "latest"
+}

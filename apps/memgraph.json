@@ -1,0 +1,42 @@
+{
+    "slug":  "memgraph",
+    "name":  "Memgraph",
+    "description":  "In-memory graph database built for real-time streaming and high-performance analytics.",
+    "category":  "Databases",
+    "image":  "memgraph/memgraph:latest",
+    "logo":  "https://icon.horse/icon/memgraph.com",
+    "website":  "https://memgraph.com",
+    "docsUrl":  "https://memgraph.com/docs",
+    "ports":  [
+                  {
+                      "host":  7687,
+                      "container":  7687,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7444,
+                      "container":  7444,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/memgraph/data",
+                        "container":  "/var/lib/memgraph"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MEMGRAPH_USER",
+                        "default":  "",
+                        "description":  "Auth username"
+                    },
+                    {
+                        "key":  "MEMGRAPH_PASSWORD",
+                        "default":  "",
+                        "description":  "Auth password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

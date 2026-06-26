@@ -1,0 +1,40 @@
+{
+  "slug": "caddy-dev",
+  "name": "Caddy Dev",
+  "description": "Caddy web server on Alpine with automatic HTTPS for local development.",
+  "category": "Developer Tools",
+  "image": "caddy:2-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/caddy.png",
+  "website": "https://caddyserver.com",
+  "docsUrl": "https://hub.docker.com/_/caddy",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/caddy-dev/data",
+      "container": "/data"
+    },
+    {
+      "host": "/opt/appdata/caddy-dev/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "2-alpine"
+}

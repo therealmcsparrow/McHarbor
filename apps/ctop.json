@@ -1,0 +1,28 @@
+{
+    "slug":  "ctop",
+    "name":  "ctop",
+    "description":  "Top-like interface for monitoring Docker container metrics in real time.",
+    "category":  "Developer Tools",
+    "image":  "quay.io/vektorlab/ctop:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/bcicen/ctop",
+    "docsUrl":  "https://github.com/bcicen/ctop#readme",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock",
+                        "readOnly":  true
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

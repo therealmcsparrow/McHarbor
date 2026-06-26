@@ -1,31 +1,31 @@
 {
-  "slug": "jellyseerr",
-  "name": "Jellyseerr",
-  "description": "Media request management for Jellyfin and Emby users.",
-  "category": "Media",
-  "image": "fallenbagel/jellyseerr:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/jellyseerr.svg",
-  "website": "https://docs.jellyseerr.dev",
-  "docsUrl": "https://docs.jellyseerr.dev",
-  "ports": [
-    {
-      "host": 5055,
-      "container": 5055,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/jellyseerr/config",
-      "container": "/config"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "jellyseerr",
+    "name":  "Jellyseerr",
+    "description":  "Media request management for Jellyfin and Emby users.",
+    "category":  "Media",
+    "image":  "fallenbagel/jellyseerr:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jellyseerr.png",
+    "website":  "https://docs.jellyseerr.dev",
+    "docsUrl":  "https://docs.jellyseerr.dev",
+    "ports":  [
+                  {
+                      "host":  5055,
+                      "container":  5055,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jellyseerr/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

@@ -1,0 +1,36 @@
+{
+    "slug":  "mailhog",
+    "name":  "MailHog",
+    "description":  "Web and API based SMTP testing tool for developers; catches outgoing mail locally.",
+    "category":  "Communications",
+    "image":  "mailhog/mailhog:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/mailhog.png",
+    "website":  "https://github.com/mailhog/MailHog",
+    "docsUrl":  "https://github.com/mailhog/MailHog",
+    "ports":  [
+                  {
+                      "host":  1025,
+                      "container":  1025,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8025,
+                      "container":  8025,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/mailhog/data",
+                        "container":  "/tmp/mailhog"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "MH_STORAGE",
+                        "default":  "maildir",
+                        "description":  "Storage backend"
+                    }
+                ],
+    "version":  "latest"
+}

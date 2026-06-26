@@ -1,0 +1,69 @@
+{
+    "slug":  "firezone",
+    "name":  "Firezone",
+    "description":  "WireGuard-based VPN server with SSO, device approvals, and policy-based access.",
+    "category":  "Networking",
+    "image":  "firezone/firezone:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/firezone.svg",
+    "website":  "https://www.firezone.dev",
+    "docsUrl":  "https://www.firezone.dev/docs",
+    "ports":  [
+                  {
+                      "host":  51820,
+                      "container":  51820,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/firezone/data",
+                        "container":  "/var/firezone"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "FQDN",
+                        "default":  "firezone.example.com",
+                        "description":  "Public FQDN for the admin UI"
+                    },
+                    {
+                        "key":  "DATABASE_NAME",
+                        "default":  "firezone",
+                        "description":  "Database name"
+                    },
+                    {
+                        "key":  "DATABASE_HOST",
+                        "default":  "firezone-postgres",
+                        "description":  "Database host"
+                    },
+                    {
+                        "key":  "DATABASE_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Database password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DEFAULT_ADMIN_EMAIL",
+                        "default":  "admin@example.com",
+                        "description":  "Default admin email"
+                    },
+                    {
+                        "key":  "DEFAULT_ADMIN_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Default admin password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

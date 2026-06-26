@@ -1,0 +1,45 @@
+{
+  "slug": "portainer",
+  "name": "Portainer CE",
+  "description": "Portainer Community Edition web UI for managing Docker, Swarm, and Kubernetes.",
+  "category": "Developer Tools",
+  "image": "portainer/portainer-ce:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/portainer.png",
+  "website": "https://www.portainer.io",
+  "docsUrl": "https://docs.portainer.io/start/install-ce/server/docker/linux",
+  "ports": [
+    {
+      "host": 9000,
+      "container": 9000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 9443,
+      "container": 9443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/portainer/data",
+      "container": "/data"
+    },
+    {
+      "host": "/var/run/docker.sock",
+      "container": "/var/run/docker.sock"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,45 @@
+{
+    "slug":  "tdengine",
+    "name":  "TDengine",
+    "description":  "High-performance time-series database optimized for IoT, industrial, and monitoring workloads.",
+    "category":  "Databases",
+    "image":  "tdengine/tdengine:latest",
+    "logo":  "https://icon.horse/icon/www.taosdata.com",
+    "website":  "https://www.taosdata.com",
+    "docsUrl":  "https://docs.tdengine.com",
+    "ports":  [
+                  {
+                      "host":  6041,
+                      "container":  6041,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6030,
+                      "container":  6030,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6060,
+                      "container":  6060,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tdengine/data",
+                        "container":  "/var/lib/taos"
+                    },
+                    {
+                        "host":  "/opt/appdata/tdengine/log",
+                        "container":  "/var/log/taos"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

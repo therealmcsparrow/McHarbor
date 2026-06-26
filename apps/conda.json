@@ -1,0 +1,31 @@
+{
+    "slug":  "conda",
+    "name":  "Miniconda",
+    "description":  "Minimal Conda installer with Python, package manager for scientific computing and data science.",
+    "category":  "Developer Tools",
+    "image":  "continuumio/miniconda3:latest",
+    "logo":  "https://icon.horse/icon/docs.conda.io",
+    "website":  "https://docs.conda.io",
+    "docsUrl":  "https://docs.conda.io/projects/miniconda",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/conda/data",
+                        "container":  "/opt/conda"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

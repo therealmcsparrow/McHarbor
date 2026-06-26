@@ -1,0 +1,40 @@
+{
+  "slug": "openresty",
+  "name": "OpenResty",
+  "description": "Nginx plus LuaJIT and a curated set of Lua libraries for powerful web apps.",
+  "category": "Networking",
+  "image": "openresty/openresty:alpine",
+  "logo": "https://openresty.org/images/logo.png",
+  "website": "https://openresty.org",
+  "docsUrl": "https://openresty.org/en/documentation.html",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 443,
+      "container": 443,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/openresty/conf",
+      "container": "/etc/nginx/conf.d"
+    },
+    {
+      "host": "/opt/appdata/openresty/html",
+      "container": "/usr/local/openresty/nginx/html"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "alpine"
+}

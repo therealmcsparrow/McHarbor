@@ -1,0 +1,51 @@
+{
+    "slug":  "selenium",
+    "name":  "Selenium Chrome",
+    "description":  "Standalone Selenium with Chrome and ChromeDriver pre-installed for browser automation.",
+    "category":  "Developer Tools",
+    "image":  "selenium/standalone-chrome:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/selenium.png",
+    "website":  "https://www.selenium.dev",
+    "docsUrl":  "https://github.com/SeleniumHQ/docker-selenium",
+    "ports":  [
+                  {
+                      "host":  4444,
+                      "container":  4444,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7900,
+                      "container":  7900,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/selenium/downloads",
+                        "container":  "/home/seluser/Downloads"
+                    },
+                    {
+                        "host":  "/dev/shm",
+                        "container":  "/dev/shm"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SE_SCREEN_WIDTH",
+                        "default":  "1920",
+                        "description":  "Browser screen width"
+                    },
+                    {
+                        "key":  "SE_SCREEN_HEIGHT",
+                        "default":  "1080",
+                        "description":  "Browser screen height"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

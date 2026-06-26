@@ -1,0 +1,60 @@
+{
+  "slug": "glpi",
+  "name": "GLPI",
+  "description": "IT asset management and helpdesk ticketing platform with inventory and software tracking.",
+  "category": "Productivity",
+  "image": "glpi/glpi:latest",
+  "logo": "https://glpi-project.org/favicon.ico",
+  "website": "https://glpi-project.org",
+  "docsUrl": "https://glpi-user-documentation.readthedocs.io",
+  "ports": [
+    {
+      "host": 8594,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/glpi/data",
+      "container": "/var/www/glpi/data"
+    },
+    {
+      "host": "/opt/appdata/glpi/config",
+      "container": "/var/www/glpi/config"
+    },
+    {
+      "host": "/opt/appdata/glpi/files",
+      "container": "/var/www/glpi/files"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "GLPI_DB_HOST",
+      "default": "mariadb",
+      "description": "Database host"
+    },
+    {
+      "key": "GLPI_DB_NAME",
+      "default": "glpi",
+      "description": "Database name"
+    },
+    {
+      "key": "GLPI_DB_USER",
+      "default": "glpi",
+      "description": "Database user"
+    },
+    {
+      "key": "GLPI_DB_PASSWORD",
+      "default": "",
+      "description": "Database password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

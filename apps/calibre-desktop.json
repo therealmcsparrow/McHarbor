@@ -1,0 +1,50 @@
+{
+    "slug":  "calibre-desktop",
+    "name":  "Calibre (Desktop)",
+    "description":  "Full-featured self-hosted Calibre ebook library manager with web-based desktop access via KasmVNC.",
+    "category":  "Productivity",
+    "image":  "linuxserver/calibre:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/calibre.png",
+    "website":  "https://calibre-ebook.com",
+    "docsUrl":  "https://hub.docker.com/r/linuxserver/calibre",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3081,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/calibre-desktop/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/calibre-desktop/books",
+                        "container":  "/books"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID for file permissions"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID for file permissions"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,31 @@
+{
+  "slug": "deno",
+  "name": "Deno",
+  "description": "Modern secure runtime for JavaScript and TypeScript with built-in tooling and web standards.",
+  "category": "Developer Tools",
+  "image": "denoland/deno:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/deno.png",
+  "website": "https://deno.com",
+  "docsUrl": "https://docs.deno.com",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/deno/app",
+      "container": "/deno-app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

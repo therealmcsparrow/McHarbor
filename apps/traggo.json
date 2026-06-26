@@ -1,0 +1,31 @@
+{
+  "slug": "traggo",
+  "name": "Traggo",
+  "description": "Lightweight self-hosted time tagging and tracking tool with tag-based time entries.",
+  "category": "Productivity",
+  "image": "traggo/server:latest",
+  "logo": "https://traggo.net/img/logo.svg",
+  "website": "https://traggo.net",
+  "docsUrl": "https://github.com/traggo/server",
+  "ports": [
+    {
+      "host": 8600,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/traggo/data",
+      "container": "/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -164,6 +164,11 @@ func DecodeBody(r *http.Request, target any) error {
 }
 
 // ParsePagination extracts page/per_page query params with defaults.
+//
+// The default per-page size is 25 and the maximum is 1000. Endpoints
+// that serve very large result sets (audit logs, container events)
+// typically pair this with lazy loading on the client and request
+// per_page values between 50 and 500.
 func ParsePagination(r *http.Request) (page, perPage int) {
 	page = 1
 	perPage = 25
@@ -174,7 +179,7 @@ func ParsePagination(r *http.Request) (page, perPage int) {
 		}
 	}
 	if v := r.URL.Query().Get("per_page"); v != "" {
-		if pp := parseInt(v); pp > 0 && pp <= 100 {
+		if pp := parseInt(v); pp > 0 && pp <= 1000 {
 			perPage = pp
 		}
 	}

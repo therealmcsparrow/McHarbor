@@ -1,0 +1,35 @@
+{
+    "slug":  "phabricator",
+    "name":  "Phabricator",
+    "description":  "Suite of code review, project management, and collaboration tools.",
+    "category":  "Developer Tools",
+    "image":  "phabricator/phabricator:latest",
+    "logo":  "https://icon.horse/icon/www.phacility.com",
+    "website":  "https://www.phacility.com",
+    "docsUrl":  "https://www.phacility.com/phabricator/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/phabricator/repo",
+                        "container":  "/var/repo"
+                    },
+                    {
+                        "host":  "/opt/appdata/phabricator/conf",
+                        "container":  "/etc/phacility"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -122,6 +122,8 @@ func buildTags() []map[string]any {
 		{"name": "storage", "description": "External storage locations for backups, exports, and provider consent flows."},
 		{"name": "notifications", "description": "Notification rules, communication channels, and in-app notifications."},
 		{"name": "telemetry", "description": "Logs, events, metrics, and realtime transports."},
+		{"name": "audit-log", "description": "User and system audit log of administrative actions."},
+		{"name": "activity-log", "description": "Container activity events streamed from the Docker daemon."},
 	}
 }
 
@@ -2337,6 +2339,54 @@ func buildPaths() map[string]any {
 				},
 			}),
 		),
+		"/audit": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "List audit log entries",
+				Description: "Returns paginated audit log entries. Optional `from` / `to` query parameters (RFC3339) restrict the window to the inclusive [from, to] range. The result is ordered by timestamp descending.",
+				OperationID: "auditList",
+				Tags:        []string{"audit-log"},
+				Parameters:  []any{paramRef("EnvID"), paramRef("Page"), paramRef("PerPage"), queryDateTimeParam("from", "Inclusive lower bound on timestamp (RFC3339)."), queryDateTimeParam("to", "Inclusive upper bound on timestamp (RFC3339).")},
+				Responses: map[string]any{
+					"200": okResponse("Audit log entries", arrayOf(schemaRef("AuditLogEntry"))),
+				},
+			}),
+			op(operationSpec{
+				Method:      "DELETE",
+				Summary:     "Purge audit log entries older than retention",
+				Description: "Runs the configured retention purge against `audit_logs` immediately. Rows older than the retention cutoff are deleted in a single indexed statement. Pass `?vacuum=true` to also run `PRAGMA wal_checkpoint(TRUNCATE)` synchronously and spawn a background `VACUUM` so the on-disk `.db` file shrinks back. Returns the count of deleted rows and whether a vacuum was scheduled.",
+				OperationID: "auditPurge",
+				Tags:        []string{"audit-log"},
+				Parameters:  []any{queryBooleanParam("vacuum", "If true, run a WAL checkpoint and background VACUUM after the purge so freed pages are returned to the OS.")},
+				Responses: map[string]any{
+					"200": okResponse("Purge result", schemaRef("RetentionPurgeResult")),
+				},
+			}),
+		),
+		"/activity": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "List container activity events",
+				Description: "Returns paginated container activity events. Optional `from` / `to` query parameters (RFC3339) restrict the window to the inclusive [from, to] range. The result is ordered by timestamp descending.",
+				OperationID: "activityList",
+				Tags:        []string{"activity-log"},
+				Parameters:  []any{paramRef("EnvID"), paramRef("Page"), paramRef("PerPage"), queryDateTimeParam("from", "Inclusive lower bound on timestamp (RFC3339)."), queryDateTimeParam("to", "Inclusive upper bound on timestamp (RFC3339).")},
+				Responses: map[string]any{
+					"200": okResponse("Container activity events", arrayOf(schemaRef("ContainerEvent"))),
+				},
+			}),
+			op(operationSpec{
+				Method:      "DELETE",
+				Summary:     "Purge container activity events older than retention",
+				Description: "Runs the configured retention purge against `container_events` immediately. Rows older than the retention cutoff are deleted in a single indexed statement. Pass `?vacuum=true` to also run `PRAGMA wal_checkpoint(TRUNCATE)` synchronously and spawn a background `VACUUM` so the on-disk `.db` file shrinks back. Returns the count of deleted rows and whether a vacuum was scheduled.",
+				OperationID: "activityPurge",
+				Tags:        []string{"activity-log"},
+				Parameters:  []any{queryBooleanParam("vacuum", "If true, run a WAL checkpoint and background VACUUM after the purge so freed pages are returned to the OS.")},
+				Responses: map[string]any{
+					"200": okResponse("Purge result", schemaRef("RetentionPurgeResult")),
+				},
+			}),
+		),
 		"/logs/{id}": path(
 			op(operationSpec{
 				Method:      "GET",
@@ -2424,6 +2474,49 @@ func buildSchemas() map[string]any {
 				"status": map[string]any{"type": "string", "example": "ok"},
 			},
 			"required": []string{"status"},
+		},
+		"AuditLogEntry": map[string]any{
+			"type":        "object",
+			"description": "Single audit log row from container_backup_logs schema.",
+			"properties": map[string]any{
+				"id":            map[string]any{"type": "string"},
+				"userId":        map[string]any{"type": "string"},
+				"username":      map[string]any{"type": "string"},
+				"action":        map[string]any{"type": "string"},
+				"entityType":    map[string]any{"type": "string"},
+				"entityId":      map[string]any{"type": "string"},
+				"entityName":    map[string]any{"type": "string"},
+				"details":       map[string]any{"type": "string"},
+				"ipAddress":     map[string]any{"type": "string"},
+				"environmentId": map[string]any{"type": "string"},
+				"timestamp":     map[string]any{"type": "string", "format": "date-time"},
+			},
+			"required": []string{"id", "action", "timestamp"},
+		},
+		"ContainerEvent": map[string]any{
+			"type":        "object",
+			"description": "Single container activity event row from container_events schema.",
+			"properties": map[string]any{
+				"id":            map[string]any{"type": "string"},
+				"environmentId": map[string]any{"type": "string"},
+				"containerId":   map[string]any{"type": "string"},
+				"containerName": map[string]any{"type": "string"},
+				"eventType":     map[string]any{"type": "string"},
+				"action":        map[string]any{"type": "string"},
+				"metadata":      map[string]any{"type": "string"},
+				"timestamp":     map[string]any{"type": "string", "format": "date-time"},
+			},
+			"required": []string{"id", "containerId", "eventType", "action", "timestamp"},
+		},
+		"RetentionPurgeResult": map[string]any{
+			"type":        "object",
+			"description": "Result of running an immediate retention purge against audit_logs or container_events.",
+			"properties": map[string]any{
+				"deleted":       map[string]any{"type": "integer", "description": "Number of rows removed by the purge."},
+				"retentionDays": map[string]any{"type": "integer", "description": "Configured retention in days. 0 means 'keep forever'."},
+				"vacuuming":     map[string]any{"type": "boolean", "description": "True when ?vacuum=true was passed and a background VACUUM was scheduled."},
+			},
+			"required": []string{"deleted", "retentionDays", "vacuuming"},
 		},
 		"AboutInfo": map[string]any{
 			"type": "object",
@@ -3179,6 +3272,7 @@ func buildSchemas() map[string]any {
 				"includeFilesystem":  map[string]any{"type": "boolean"},
 				"includeImage":       map[string]any{"type": "boolean"},
 				"selectedMounts":     arrayOf(map[string]any{"type": "string"}),
+				"logTailLines":       map[string]any{"type": "integer", "minimum": 0, "description": "Cap on container log lines included in IncludeLogs backups. 0 keeps the legacy 'all' behavior; default is 10000."},
 				"cron":               map[string]any{"type": "string"},
 				"enabled":            map[string]any{"type": "boolean"},
 				"retentionCount":     map[string]any{"type": "integer", "minimum": 0, "maximum": 1000, "description": "Maximum successful runs to keep for this schedule. 0 keeps all by count."},
@@ -3202,6 +3296,7 @@ func buildSchemas() map[string]any {
 				"includeFilesystem":  map[string]any{"type": "boolean"},
 				"includeImage":       map[string]any{"type": "boolean"},
 				"selectedMounts":     arrayOf(map[string]any{"type": "string"}),
+				"logTailLines":       map[string]any{"type": "integer", "minimum": 0, "description": "Cap on container log lines. 0 keeps the legacy 'all' behavior."},
 				"cron":               map[string]any{"type": "string"},
 				"enabled":            map[string]any{"type": "boolean"},
 				"retentionCount":     map[string]any{"type": "integer", "minimum": 0, "maximum": 1000},
@@ -3220,6 +3315,7 @@ func buildSchemas() map[string]any {
 				"includeFilesystem":  map[string]any{"type": "boolean"},
 				"includeImage":       map[string]any{"type": "boolean"},
 				"selectedMounts":     arrayOf(map[string]any{"type": "string"}),
+				"logTailLines":       map[string]any{"type": "integer", "minimum": 0, "description": "Cap on container log lines. 0 keeps the legacy 'all' behavior."},
 				"cron":               map[string]any{"type": "string"},
 				"enabled":            map[string]any{"type": "boolean"},
 				"retentionCount":     map[string]any{"type": "integer", "minimum": 0, "maximum": 1000},
@@ -3259,13 +3355,34 @@ func buildSchemas() map[string]any {
 				"progressStage":     map[string]any{"type": "string", "description": "Current backup stage while the run is active."},
 				"progressMessage":   map[string]any{"type": "string", "description": "Optional backend progress detail for the active stage."},
 				"progressUpdatedAt": map[string]any{"type": "string", "format": "date-time", "description": "Last time the active backup made progress."},
+				"destinations":      arrayOf(schemaRef("BackupRunDestination")),
 				"startedAt":         map[string]any{"type": "string", "format": "date-time"},
 				"completedAt":       map[string]any{"type": "string", "format": "date-time"},
 				"durationMs":        map[string]any{"type": "integer", "format": "int64"},
 				"createdAt":         map[string]any{"type": "string", "format": "date-time"},
 				"updatedAt":         map[string]any{"type": "string", "format": "date-time"},
 			},
-			"required": []string{"id", "operation", "environmentId", "containerId", "status", "archiveSize", "startedAt", "durationMs", "createdAt", "updatedAt"},
+			"required": []string{"id", "operation", "environmentId", "containerId", "status", "archiveSize", "destinations", "startedAt", "durationMs", "createdAt", "updatedAt"},
+		},
+		"BackupRunDestination": map[string]any{
+			"type":        "object",
+			"description": "Per-destination upload record for a backup run. bytesUploaded / bytesTotal stream progress while the upload is running.",
+			"properties": map[string]any{
+				"id":                  map[string]any{"type": "string"},
+				"runId":               map[string]any{"type": "string"},
+				"storageLocationId":   map[string]any{"type": "string"},
+				"storageLocationName": map[string]any{"type": "string"},
+				"locationType":        map[string]any{"type": "string", "example": "local"},
+				"status":              map[string]any{"type": "string", "enum": []string{"pending", "uploading", "success", "failure"}},
+				"path":                map[string]any{"type": "string"},
+				"error":               map[string]any{"type": "string"},
+				"uploadedAt":          map[string]any{"type": "string", "format": "date-time"},
+				"bytesUploaded":       map[string]any{"type": "integer", "format": "int64"},
+				"bytesTotal":          map[string]any{"type": "integer", "format": "int64"},
+				"createdAt":           map[string]any{"type": "string", "format": "date-time"},
+				"updatedAt":           map[string]any{"type": "string", "format": "date-time"},
+			},
+			"required": []string{"id", "runId", "status", "bytesUploaded", "bytesTotal", "createdAt", "updatedAt"},
 		},
 		"ContainerBackupRestoreRequest": map[string]any{
 			"type": "object",
@@ -3548,6 +3665,31 @@ func queryParam(name, description string, required bool) map[string]any {
 		"required":    required,
 		"schema": map[string]any{
 			"type": "string",
+		},
+	}
+}
+
+func queryDateTimeParam(name, description string) map[string]any {
+	return map[string]any{
+		"name":        name,
+		"in":          "query",
+		"description": description,
+		"required":    false,
+		"schema": map[string]any{
+			"type":   "string",
+			"format": "date-time",
+		},
+	}
+}
+
+func queryBooleanParam(name, description string) map[string]any {
+	return map[string]any{
+		"name":        name,
+		"in":          "query",
+		"description": description,
+		"required":    false,
+		"schema": map[string]any{
+			"type": "boolean",
 		},
 	}
 }

@@ -1,0 +1,36 @@
+{
+  "slug": "frp",
+  "name": "frp (Fast Reverse Proxy)",
+  "description": "High-performance reverse proxy to expose NAT'd local servers to the public internet.",
+  "category": "Networking",
+  "image": "snowdreamtech/frps:latest",
+  "logo": "https://github.com/fatedier/frp/raw/master/doc/pic/modal.png",
+  "website": "https://github.com/fatedier/frp",
+  "docsUrl": "https://github.com/fatedier/frp/blob/master/README.md",
+  "ports": [
+    {
+      "host": 7000,
+      "container": 7000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 7500,
+      "container": 7500,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/frp/config",
+      "container": "/etc/frp"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

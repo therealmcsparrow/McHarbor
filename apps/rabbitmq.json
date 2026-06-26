@@ -1,0 +1,42 @@
+{
+  "slug": "rabbitmq",
+  "name": "RabbitMQ",
+  "description": "Reliable, widely-deployed AMQP message broker with management UI and clustering support.",
+  "category": "Databases",
+  "image": "rabbitmq:3-management-alpine",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/rabbitmq.png",
+  "website": "https://www.rabbitmq.com",
+  "docsUrl": "https://www.rabbitmq.com/documentation.html",
+  "ports": [
+    {
+      "host": 5672,
+      "container": 5672,
+      "protocol": "tcp"
+    },
+    {
+      "host": 15672,
+      "container": 15672,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/rabbitmq/data",
+      "container": "/var/lib/rabbitmq"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "RABBITMQ_DEFAULT_USER",
+      "default": "guest",
+      "description": "Default admin username"
+    },
+    {
+      "key": "RABBITMQ_DEFAULT_PASS",
+      "default": "",
+      "description": "Default admin password",
+      "secret": true
+    }
+  ],
+  "version": "3-management-alpine"
+}

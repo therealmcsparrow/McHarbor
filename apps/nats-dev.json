@@ -1,0 +1,41 @@
+{
+    "slug":  "nats-dev",
+    "name":  "NATS Dev",
+    "description":  "NATS lightweight high-performance messaging system on Alpine for development.",
+    "category":  "Developer Tools",
+    "image":  "nats:2-alpine",
+    "logo":  "https://icon.horse/icon/nats.io",
+    "website":  "https://nats.io",
+    "docsUrl":  "https://hub.docker.com/_/nats",
+    "ports":  [
+                  {
+                      "host":  4222,
+                      "container":  4222,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8222,
+                      "container":  8222,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  6222,
+                      "container":  6222,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nats-dev/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "2-alpine"
+}

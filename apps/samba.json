@@ -1,0 +1,57 @@
+{
+    "slug":  "samba",
+    "name":  "Samba",
+    "description":  "SMB/CIFS file server for cross-platform network shares compatible with Windows and macOS.",
+    "category":  "Photos \u0026 Files",
+    "image":  "dperson/samba:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/dperson/samba",
+    "docsUrl":  "https://github.com/dperson/samba/blob/master/README.md",
+    "ports":  [
+                  {
+                      "host":  445,
+                      "container":  445,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  139,
+                      "container":  139,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  137,
+                      "container":  137,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  138,
+                      "container":  138,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/samba/share",
+                        "container":  "/mount"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "USER",
+                        "default":  "smbuser",
+                        "description":  "SMB username"
+                    },
+                    {
+                        "key":  "PASS",
+                        "default":  "",
+                        "description":  "SMB password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

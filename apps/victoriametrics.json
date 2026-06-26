@@ -1,31 +1,31 @@
 {
-  "slug": "victoriametrics",
-  "name": "VictoriaMetrics",
-  "description": "Fast time-series database and Prometheus-compatible metrics backend.",
-  "category": "Monitoring",
-  "image": "victoriametrics/victoria-metrics:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/victoriametrics.svg",
-  "website": "https://victoriametrics.com",
-  "docsUrl": "https://docs.victoriametrics.com",
-  "ports": [
-    {
-      "host": 8428,
-      "container": 8428,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/victoriametrics/data",
-      "container": "/victoria-metrics-data"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "victoriametrics",
+    "name":  "VictoriaMetrics",
+    "description":  "Fast time-series database and Prometheus-compatible metrics backend.",
+    "category":  "Monitoring",
+    "image":  "victoriametrics/victoria-metrics:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/victoriametrics.png",
+    "website":  "https://victoriametrics.com",
+    "docsUrl":  "https://docs.victoriametrics.com",
+    "ports":  [
+                  {
+                      "host":  8428,
+                      "container":  8428,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/victoriametrics/data",
+                        "container":  "/victoria-metrics-data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

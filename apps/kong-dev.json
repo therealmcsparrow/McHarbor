@@ -1,0 +1,62 @@
+{
+  "slug": "kong-dev",
+  "name": "Kong Dev",
+  "description": "Kong API Gateway in DB-less mode for local API management development.",
+  "category": "Developer Tools",
+  "image": "kong:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kong.png",
+  "website": "https://konghq.com",
+  "docsUrl": "https://docs.konghq.com/gateway/latest/install/docker/",
+  "ports": [
+    {
+      "host": 8000,
+      "container": 8000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8443,
+      "container": 8443,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8001,
+      "container": 8001,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8444,
+      "container": 8444,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kong-dev/data",
+      "container": "/var/lib/kong"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "KONG_DATABASE",
+      "default": "off",
+      "description": "DB-less mode"
+    },
+    {
+      "key": "KONG_DECLARATIVE_CONFIG",
+      "default": "/etc/kong/kong.yml",
+      "description": "Declarative config file"
+    },
+    {
+      "key": "KONG_ADMIN_LISTEN",
+      "default": "0.0.0.0:8001",
+      "description": "Admin API listen address"
+    }
+  ],
+  "minMemory": "512MB",
+  "version": "latest"
+}

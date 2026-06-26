@@ -1,0 +1,40 @@
+{
+    "slug":  "hivemq-ce",
+    "name":  "HiveMQ Community Edition",
+    "description":  "Enterprise-grade MQTT broker with native Kafka integration and observability features.",
+    "category":  "Databases",
+    "image":  "hivemq/hivemq-ce:latest",
+    "logo":  "https://icon.horse/icon/www.hivemq.com",
+    "website":  "https://www.hivemq.com",
+    "docsUrl":  "https://docs.hivemq.com/hivemq-ce/",
+    "ports":  [
+                  {
+                      "host":  1883,
+                      "container":  1883,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/hivemq-ce/data",
+                        "container":  "/opt/hivemq/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/hivemq-ce/conf",
+                        "container":  "/opt/hivemq/conf"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

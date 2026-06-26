@@ -184,7 +184,8 @@
     "reinstallSelected": "Reinstalar seleccionado",
     "confirmTitle": "Confirmar acción por lotes",
     "confirmDescription": "¿Está seguro de que desea obtener elementos {{action}} {{count}}?",
-    "confirmPruneDescription": "Elimine los recursos no utilizados a los que ya no se hace referencia."
+    "confirmPruneDescription": "Elimine los recursos no utilizados a los que ya no se hace referencia.",
+    "clearSelection": "Borrar seleccion"
   },
   "errors": {
     "somethingWentWrong": "algo salió mal",
@@ -283,6 +284,11 @@
     "running": "{{count}} ejecutándose",
     "services": "Servicio {{count}}"
   },
+  "list": {
+    "loadingMore": "Cargando más...",
+    "endOfList": "Fin de la lista",
+    "loadMore": "Cargar más"
+  },
   "logs": {
     "title": "Registros",
     "description": "Ver la salida del registro del contenedor",
@@ -340,6 +346,30 @@
     "detailsTitle": "Detalles de entrada de auditoría",
     "viewDetails": "Ver detalles",
     "local": "Local"
+  },
+  "dateRange": {
+    "label": "Rango de fechas",
+    "title": "Periodo de tiempo",
+    "allTime": "Todo el periodo",
+    "reset": "Restablecer",
+    "close": "Cerrar",
+    "from": "Desde",
+    "to": "Hasta",
+    "presetAll": "Todo el periodo",
+    "presetLast15Minutes": "Últimos 15 minutos",
+    "presetLast1Hour": "Última hora",
+    "presetLast24Hours": "Últimas 24 horas",
+    "presetToday": "Hoy",
+    "presetYesterday": "Ayer",
+    "presetThisWeek": "Esta semana",
+    "presetLastWeek": "Semana pasada",
+    "presetLast7Days": "Últimos 7 días",
+    "presetThisMonth": "Este mes",
+    "presetLastMonth": "Mes pasado",
+    "presetLast30Days": "Últimos 30 días",
+    "presetThisYear": "Este año",
+    "presetLastYear": "Año pasado",
+    "presetCustom": "Rango personalizado"
   },
   "blueprints": {
     "title": "Planos",
@@ -842,5 +872,13 @@
       "themeSystemDescription": "Sigue la configuraci?n del navegador o del sistema operativo.",
       "languageDescription": "Los cambios de idioma se aplican de inmediato y se guardan en tu perfil de usuario."
     }
+  },
+  "clipboard": {
+    "manualCopyTitle": "Copiar manualmente",
+    "manualCopyDescription": "Tu navegador bloquea la escritura autom?tica en el portapapeles porque esta p?gina se sirve a trav?s de HTTP sin cifrar. Usa el campo de abajo para copiar el valor.",
+    "manualCopyHint": "El texto ya est? seleccionado: pulsa Ctrl+C (Cmd+C en macOS) para copiarlo.",
+    "selectAndCopy": "Seleccionar y copiar",
+    "copied": "Copiado",
+    "close": "Cerrar"
   }
 }

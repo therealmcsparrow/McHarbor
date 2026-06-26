@@ -20,6 +20,8 @@ import {
 import { Input } from '@resources/components/ui/Input';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { cn } from '@resources/utils/cn';
+import { copyToClipboard } from '@resources/utils/clipboard';
+import { ManualCopyDialog } from '@resources/components/ManualCopyDialog';
 import { StorageLocationCard } from './StorageLocationCard';
 import { StorageLocationDialog } from './StorageLocationDialog';
 import {
@@ -33,6 +35,7 @@ import {
 
 export function StorageTab() {
   const { t } = useTranslation('settings');
+  const { t: tc } = useTranslation('common');
   const { data: locations = [], isLoading } = useStorageLocations();
   const { data: backupKeyStatus, isLoading: backupKeyStatusLoading } = useBackupEncryptionKeyStatus();
   const generateBackupKey = useGenerateBackupEncryptionKey();
@@ -43,6 +46,7 @@ export function StorageTab() {
   const [regenerateOpen, setRegenerateOpen] = useState(false);
   const [customKeyOpen, setCustomKeyOpen] = useState(false);
   const [customBackupKey, setCustomBackupKey] = useState('');
+  const [manualCopy, setManualCopy] = useState<{ value: string; label: string } | null>(null);
 
   function handleGenerateBackupKey() {
     if (backupKey || backupKeyStatus?.readable) {
@@ -63,14 +67,22 @@ export function StorageTab() {
 
   async function handleCopyBackupKey() {
     if (!backupKey) return;
-    await navigator.clipboard.writeText(backupKey.key);
-    toast.success(t('toast.backupKeyCopied'));
+    const result = await copyToClipboard(backupKey.key);
+    if (result.ok) {
+      toast.success(t('toast.backupKeyCopied'));
+    } else {
+      setManualCopy({ value: backupKey.key, label: t('storage.backupKeyTitle') });
+    }
   }
 
   async function handleCopyBackupSetupCommand() {
     if (!backupKey) return;
-    await navigator.clipboard.writeText(backupKey.setupCommand);
-    toast.success(t('toast.backupKeySetupCopied'));
+    const result = await copyToClipboard(backupKey.setupCommand);
+    if (result.ok) {
+      toast.success(t('toast.backupKeySetupCopied'));
+    } else {
+      setManualCopy({ value: backupKey.setupCommand, label: t('storage.backupKeySetupTitle') });
+    }
   }
 
   function handleInstallBackupKey() {
@@ -309,6 +321,15 @@ export function StorageTab() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ManualCopyDialog
+        open={manualCopy !== null}
+        onOpenChange={(open) => {
+          if (!open) setManualCopy(null);
+        }}
+        value={manualCopy?.value ?? ''}
+        title={manualCopy?.label ? `${tc('clipboard.manualCopyTitle')}: ${manualCopy.label}` : undefined}
+      />
     </div>
   );
 }

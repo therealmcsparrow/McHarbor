@@ -1,41 +1,41 @@
 {
-  "slug": "heimdall",
-  "name": "Heimdall",
-  "description": "Application dashboard and launcher for self-hosted services.",
-  "category": "Dashboards",
-  "image": "lscr.io/linuxserver/heimdall:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/heimdall.svg",
-  "website": "https://docs.linuxserver.io/images/docker-heimdall/",
-  "docsUrl": "https://docs.linuxserver.io/images/docker-heimdall/",
-  "ports": [
-    {
-      "host": 8087,
-      "container": 80,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/heimdall/config",
-      "container": "/config"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PUID",
-      "default": "1000",
-      "description": "User ID"
-    },
-    {
-      "key": "PGID",
-      "default": "1000",
-      "description": "Group ID"
-    },
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "heimdall",
+    "name":  "Heimdall",
+    "description":  "Application dashboard and launcher for self-hosted services.",
+    "category":  "Dashboards",
+    "image":  "lscr.io/linuxserver/heimdall:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/heimdall.png",
+    "website":  "https://docs.linuxserver.io/images/docker-heimdall/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-heimdall/",
+    "ports":  [
+                  {
+                      "host":  8087,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/heimdall/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

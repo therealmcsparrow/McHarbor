@@ -1,0 +1,51 @@
+{
+    "slug":  "vernemq",
+    "name":  "VerneMQ",
+    "description":  "High-performance, distributed MQTT broker designed for IoT and real-time messaging.",
+    "category":  "Databases",
+    "image":  "vernemq/vernemq:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/vernemq.svg",
+    "website":  "https://vernemq.com",
+    "docsUrl":  "https://docs.vernemq.com",
+    "ports":  [
+                  {
+                      "host":  1883,
+                      "container":  1883,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8883,
+                      "container":  8883,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vernemq/data",
+                        "container":  "/vernemq/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/vernemq/etc",
+                        "container":  "/etc/vernemq"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "DOCKER_VERNEMQ_USER",
+                        "default":  "admin",
+                        "description":  "Admin username"
+                    },
+                    {
+                        "key":  "DOCKER_VERNEMQ_PASSWORD",
+                        "default":  "",
+                        "description":  "Admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

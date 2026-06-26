@@ -1,0 +1,26 @@
+{
+  "slug": "bore-tunnel",
+  "name": "bore",
+  "description": "Modern, simple TCP tunnel in Rust that exposes local ports to a remote server.",
+  "category": "Networking",
+  "image": "ekzhang/bore:latest",
+  "logo": "https://github.com/ekzhang/bore/raw/master/img/bore.svg",
+  "website": "https://github.com/ekzhang/bore",
+  "docsUrl": "https://github.com/ekzhang/bore",
+  "ports": [
+    {
+      "host": 22016,
+      "container": 22016,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

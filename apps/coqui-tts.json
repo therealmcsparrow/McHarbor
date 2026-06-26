@@ -1,0 +1,37 @@
+{
+    "slug":  "coqui-tts",
+    "name":  "Coqui TTS",
+    "description":  "Deep learning toolkit for Text-to-Speech with 1100+ pretrained models and voice cloning.",
+    "category":  "AI \u0026 Voice",
+    "image":  "ghcr.io/coqui-ai/tts-cpu:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/coqui-ai/TTS",
+    "docsUrl":  "https://github.com/coqui-ai/TTS/blob/dev/README.md",
+    "ports":  [
+                  {
+                      "host":  5002,
+                      "container":  5002,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/coqui-tts/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TTS_MODEL_NAME",
+                        "default":  "tts_models/en/ljspeech/tacotron2-DDC",
+                        "description":  "Default model to load on startup"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

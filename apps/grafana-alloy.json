@@ -1,0 +1,40 @@
+{
+    "slug":  "grafana-alloy",
+    "name":  "Grafana Alloy",
+    "description":  "OpenTelemetry collector with native pipelines for logs, metrics, traces and profiling from Grafana.",
+    "category":  "Monitoring",
+    "image":  "grafana/alloy:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/grafana-alloy.svg",
+    "website":  "https://grafana.com/docs/alloy",
+    "docsUrl":  "https://grafana.com/docs/agent/latest/flow/",
+    "ports":  [
+                  {
+                      "host":  12345,
+                      "container":  12345,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/grafana-alloy/config",
+                        "container":  "/etc/alloy"
+                    },
+                    {
+                        "host":  "/opt/appdata/grafana-alloy/data",
+                        "container":  "/var/lib/alloy/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ALLOY_DEPLOY_MODE",
+                        "default":  "single-binary",
+                        "description":  "Deployment mode"
+                    }
+                ],
+    "version":  "latest"
+}

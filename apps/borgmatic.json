@@ -1,34 +1,36 @@
 {
-  "slug": "borgmatic",
-  "name": "Borgmatic",
-  "description": "Configuration-driven BorgBackup automation.",
-  "category": "Backups",
-  "image": "ghcr.io/borgmatic-collective/borgmatic:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/borgmatic.svg",
-  "website": "https://torsion.org/borgmatic/",
-  "docsUrl": "https://torsion.org/borgmatic/docs/how-to/set-up-backups/",
-  "ports": [],
-  "volumes": [
-    {
-      "host": "/opt/appdata/borgmatic/config",
-      "container": "/etc/borgmatic.d"
-    },
-    {
-      "host": "/srv",
-      "container": "/mnt/source",
-      "readOnly": true
-    },
-    {
-      "host": "/srv/backups/borgmatic",
-      "container": "/mnt/borg-repository"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "borgmatic",
+    "name":  "Borgmatic",
+    "description":  "Configuration-driven BorgBackup automation.",
+    "category":  "Backups",
+    "image":  "ghcr.io/borgmatic-collective/borgmatic:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/borgmatic.png",
+    "website":  "https://torsion.org/borgmatic/",
+    "docsUrl":  "https://torsion.org/borgmatic/docs/how-to/set-up-backups/",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/borgmatic/config",
+                        "container":  "/etc/borgmatic.d"
+                    },
+                    {
+                        "host":  "/srv",
+                        "container":  "/mnt/source",
+                        "readOnly":  true
+                    },
+                    {
+                        "host":  "/srv/backups/borgmatic",
+                        "container":  "/mnt/borg-repository"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

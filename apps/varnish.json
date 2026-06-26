@@ -1,0 +1,35 @@
+{
+  "slug": "varnish",
+  "name": "Varnish Cache",
+  "description": "HTTP accelerator designed for content-heavy dynamic web sites and APIs.",
+  "category": "Networking",
+  "image": "varnish:latest",
+  "logo": "https://varnish-cache.org/sites/default/files/varnish_50.png",
+  "website": "https://varnish-cache.org",
+  "docsUrl": "https://varnish-cache.org/docs/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/varnish/config",
+      "container": "/etc/varnish"
+    },
+    {
+      "host": "/opt/appdata/varnish/lib",
+      "container": "/var/lib/varnish"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

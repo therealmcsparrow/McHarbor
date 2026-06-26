@@ -1,0 +1,71 @@
+{
+    "slug":  "redpanda",
+    "name":  "Redpanda",
+    "description":  "Kafka-compatible streaming platform written in C++ for low-latency, high-throughput workloads.",
+    "category":  "Databases",
+    "image":  "redpandadata/redpanda:latest",
+    "logo":  "https://icon.horse/icon/redpanda.com",
+    "website":  "https://redpanda.com",
+    "docsUrl":  "https://docs.redpanda.com/current/get-started/quick-start/",
+    "ports":  [
+                  {
+                      "host":  9092,
+                      "container":  9092,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9644,
+                      "container":  9644,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/redpanda/data",
+                        "container":  "/var/lib/redpanda/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "REDPANDA_NODE_ID",
+                        "default":  "1",
+                        "description":  "Unique node ID in cluster"
+                    },
+                    {
+                        "key":  "REDPANDA_KAFKA_ADDRESS",
+                        "default":  "0.0.0.0:9092",
+                        "description":  "Kafka listener address"
+                    },
+                    {
+                        "key":  "REDPANDA_ADVERTISE_KAFKA_ADDRESS",
+                        "default":  "redpanda:9092",
+                        "description":  "Advertised Kafka address"
+                    },
+                    {
+                        "key":  "REDPANDA_RPC_ADDRESS",
+                        "default":  "0.0.0.0:33145",
+                        "description":  "Internal RPC address"
+                    },
+                    {
+                        "key":  "REDPANDA_SEEDS",
+                        "default":  "redpanda:33145",
+                        "description":  "Seeds for cluster discovery"
+                    },
+                    {
+                        "key":  "REDPANDA_ADMIN",
+                        "default":  "0.0.0.0:9644",
+                        "description":  "Internal admin API listen address"
+                    },
+                    {
+                        "key":  "REDPANDA_DEVELOPMENT_MODE",
+                        "default":  "true",
+                        "description":  "Enable development mode (single-node)"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

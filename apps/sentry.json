@@ -1,0 +1,38 @@
+{
+    "slug":  "sentry",
+    "name":  "Sentry",
+    "description":  "Application monitoring and error tracking that helps you fix bugs in real time.",
+    "category":  "Developer Tools",
+    "image":  "getsentry/sentry:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/sentry.png",
+    "website":  "https://sentry.io",
+    "docsUrl":  "https://develop.sentry.dev/self-hosted/",
+    "ports":  [
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/sentry/data",
+                        "container":  "/var/lib/sentry"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SENTRY_SECRET_KEY",
+                        "default":  "",
+                        "description":  "Application secret key",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

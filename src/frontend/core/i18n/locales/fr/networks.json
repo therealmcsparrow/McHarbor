@@ -19,7 +19,10 @@
   },
   "badges": {
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "used": "Utilisé",
+    "unused": "Inutilisé",
+    "builtIn": "Intégré"
   },
   "create": {
     "title": "Créer un réseau",
@@ -62,11 +65,26 @@
     "connected": "Conteneur connecté",
     "disconnected": "Conteneur déconnecté",
     "updated": "Réseau mis à jour",
-    "updateFailed": "Échec de la mise à jour du réseau"
+    "updateFailed": "Échec de la mise à jour du réseau",
+    "builtIn": "Les réseaux intégrés ne peuvent pas être supprimés ou modifiés"
   },
   "confirm": {
     "removeTitle": "Supprimer le réseau",
-    "removeDescription": "Cela supprimera définitivement ce réseau."
+    "removeDescription": "Cela supprimera définitivement ce réseau.",
+    "builtInRemoveTitle": "Impossible de supprimer le réseau intégré",
+    "builtInRemoveDescription": "Les réseaux intégrés (bridge, host, none) sont protégés et ne peuvent pas être supprimés."
+  },
+  "bulkRemoveDialog": {
+    "title": "Supprimer des réseaux",
+    "description": "Cela supprimera définitivement <bold>{{count}}</bold> réseaux.",
+    "networks": "Réseaux",
+    "andXMore": "et {{count}} de plus",
+    "inUse": "en cours d'utilisation",
+    "inUseWarning": "{{count}} réseau(x) sélectionné(s) sont encore attachés à des conteneurs en cours d'exécution. La suppression échouera pour ceux-ci à moins que les conteneurs ne soient d'abord arrêtés ou déconnectés.",
+    "forceLabel": "Je comprends et je souhaite tout de même tenter la suppression",
+    "removing": "Suppression...",
+    "builtInSkipped": "{{count}} réseau(x) intégré(s) ignoré(s) (ne peuvent pas être supprimés)",
+    "noneEligible": "Aucun réseau n'est éligible à la suppression."
   },
   "actions": {
     "edit": "Modifier",
@@ -86,6 +104,8 @@
   "detail": {
     "backToNetworks": "Retour aux réseaux",
     "notFound": "Réseau introuvable",
+    "builtInCannotEdit": "Les réseaux intégrés ne peuvent pas être modifiés",
+    "builtInCannotRemove": "Les réseaux intégrés ne peuvent pas être supprimés",
     "general": "Général",
     "name": "Nom",
     "networkId": "ID de réseau",

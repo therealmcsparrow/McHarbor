@@ -1,0 +1,36 @@
+{
+    "slug":  "android-sdk",
+    "name":  "Android SDK",
+    "description":  "Prebuilt Android SDK image with build tools and platform tools for app development and CI.",
+    "category":  "Developer Tools",
+    "image":  "thyrlian/android-sdk:latest",
+    "logo":  "https://icon.horse/icon/developer.android.com",
+    "website":  "https://developer.android.com",
+    "docsUrl":  "https://developer.android.com/docs",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/android-sdk/data",
+                        "container":  "/opt/android-sdk"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ANDROID_HOME",
+                        "default":  "/opt/android-sdk",
+                        "description":  "Android SDK installation path"
+                    }
+                ],
+    "version":  "latest"
+}

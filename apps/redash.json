@@ -1,0 +1,53 @@
+{
+  "slug": "redash",
+  "name": "Redash",
+  "description": "Connect to data sources, query them with SQL, build dashboards, and share insights with your team.",
+  "category": "Databases",
+  "image": "redash/redash:latest",
+  "logo": "https://redash.io/assets/images/redash_icon.png",
+  "website": "https://redash.io",
+  "docsUrl": "https://redash.io/help/open-source/setup-guide",
+  "ports": [
+    {
+      "host": 5000,
+      "container": 5000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/redash/data",
+      "container": "/app/redash_data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "REDASH_DATABASE_URL",
+      "default": "postgresql://postgres@postgres/postgres",
+      "description": "Metadata database connection"
+    },
+    {
+      "key": "REDASH_COOKIE_SECRET",
+      "default": "",
+      "description": "Cookie signing secret",
+      "secret": true
+    },
+    {
+      "key": "REDASH_SECRET_KEY",
+      "default": "",
+      "description": "Application secret key",
+      "secret": true
+    },
+    {
+      "key": "PYTHONUNBUFFERED",
+      "default": "0",
+      "description": "Disable Python output buffering"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

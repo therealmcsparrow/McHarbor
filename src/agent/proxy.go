@@ -318,6 +318,57 @@ func (p *Proxy) ExportContainer(ctx context.Context, containerID string) (io.Rea
 	return resp.Body, nil
 }
 
+// PauseContainer asks the local Docker daemon to pause the container so
+// that subsequent snapshot reads (export, archive copy, logs) are
+// point-in-time consistent.
+//
+// Pause is best-effort. Some runtimes (Windows containers, certain
+// custom runtimes) reject pause with an error; the caller should treat
+// the returned bool as "did we actually pause" and skip the matching
+// unpause if not.
+func (p *Proxy) PauseContainer(ctx context.Context, containerID string) error {
+	containerID = strings.TrimSpace(containerID)
+	if containerID == "" {
+		return fmt.Errorf("container id is required")
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://docker/containers/"+url.PathEscape(containerID)+"/pause", nil)
+	if err != nil {
+		return fmt.Errorf("building container pause request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("pausing container: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return fmt.Errorf("pausing container returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return nil
+}
+
+// UnpauseContainer releases a previously paused container.
+func (p *Proxy) UnpauseContainer(ctx context.Context, containerID string) error {
+	containerID = strings.TrimSpace(containerID)
+	if containerID == "" {
+		return fmt.Errorf("container id is required")
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://docker/containers/"+url.PathEscape(containerID)+"/unpause", nil)
+	if err != nil {
+		return fmt.Errorf("building container unpause request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("unpausing container: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return fmt.Errorf("unpausing container returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	return nil
+}
+
 func (p *Proxy) CopyArchiveFromContainer(ctx context.Context, containerID, sourcePath string) (io.ReadCloser, int64, error) {
 	containerID = strings.TrimSpace(containerID)
 	sourcePath = strings.TrimSpace(sourcePath)

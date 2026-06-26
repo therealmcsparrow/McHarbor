@@ -28,6 +28,7 @@ export function useContainerBatchActions({
       {
         label: tc('batch.start'),
         icon: IconPlayerPlay,
+        iconClassName: 'text-emerald-500',
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
@@ -39,6 +40,7 @@ export function useContainerBatchActions({
       {
         label: tc('batch.stop'),
         icon: IconPlayerStop,
+        iconClassName: 'text-amber-500',
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
@@ -50,6 +52,7 @@ export function useContainerBatchActions({
       {
         label: tc('batch.restart'),
         icon: IconRotate,
+        iconClassName: 'text-blue-400',
         variant: 'default',
         onClick: (rows) => {
           for (const row of rows as ContainerInfo[]) {
@@ -61,18 +64,21 @@ export function useContainerBatchActions({
       {
         label: tc('batch.updateSelected'),
         icon: IconArrowUp,
+        iconClassName: 'text-emerald-400',
         variant: 'default',
         onClick: (rows) => onUpdateSelected?.((rows as ContainerInfo[]).filter(canRunContainerUpdateOperation)),
       },
       {
         label: tc('batch.reinstallSelected'),
         icon: IconRotate,
+        iconClassName: 'text-blue-400',
         variant: 'default',
         onClick: (rows) => onReinstallSelected?.((rows as ContainerInfo[]).filter(canRunContainerUpdateOperation)),
       },
       {
         label: tc('batch.remove'),
         icon: IconTrash,
+        iconClassName: 'text-destructive',
         variant: 'destructive',
         onClick: (rows) => {
           const eligible = (rows as ContainerInfo[]).filter((c) => !isProtectedContainer(c));

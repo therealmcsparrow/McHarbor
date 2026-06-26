@@ -1,0 +1,37 @@
+{
+  "slug": "qdrant",
+  "name": "Qdrant",
+  "description": "High-performance vector database and similarity search engine written in Rust.",
+  "category": "Databases",
+  "image": "qdrant/qdrant:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/qdrant.png",
+  "website": "https://qdrant.tech",
+  "docsUrl": "https://qdrant.tech/documentation/",
+  "ports": [
+    {
+      "host": 6333,
+      "container": 6333,
+      "protocol": "tcp"
+    },
+    {
+      "host": 6334,
+      "container": 6334,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/qdrant/data",
+      "container": "/qdrant/storage"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "QDRANT_API_KEY",
+      "default": "",
+      "description": "API key for authentication (leave empty to disable)",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

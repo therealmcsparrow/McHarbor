@@ -1,0 +1,32 @@
+{
+    "slug":  "keydb",
+    "name":  "KeyDB",
+    "description":  "High-performance fork of Redis with multi-threading and active-active replication.",
+    "category":  "Databases",
+    "image":  "eqalpha/keydb:latest",
+    "logo":  "https://icon.horse/icon/keydb.dev",
+    "website":  "https://keydb.dev",
+    "docsUrl":  "https://docs.keydb.dev",
+    "ports":  [
+                  {
+                      "host":  6379,
+                      "container":  6379,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/keydb/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "KEYDB_PASSWORD",
+                        "default":  "",
+                        "description":  "Server password (leave empty for no auth)",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

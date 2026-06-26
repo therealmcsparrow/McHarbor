@@ -1,0 +1,43 @@
+{
+    "slug":  "newapi-llm",
+    "name":  "New API",
+    "description":  "Next-generation LLM gateway and API management platform, a community fork of One API.",
+    "category":  "AI \u0026 Voice",
+    "image":  "calciumion/new-api:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/quantum-suite/new-api",
+    "docsUrl":  "https://github.com/quantum-suite/new-api/blob/main/README.md",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/newapi-llm/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SQL_DSN",
+                        "default":  "sqlite:///data/new-api.db",
+                        "description":  "Database connection string"
+                    },
+                    {
+                        "key":  "SESSION_SECRET",
+                        "default":  "",
+                        "description":  "Session signing secret",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

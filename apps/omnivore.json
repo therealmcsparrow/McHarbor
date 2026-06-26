@@ -1,0 +1,43 @@
+{
+  "slug": "omnivore",
+  "name": "Omnivore",
+  "description": "Read-it-later app with highlighting, organization, and a personal knowledge base.",
+  "category": "Documents",
+  "image": "ghcr.io/omnivore-app/backend:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/omnivore.png",
+  "website": "https://omnivore.app",
+  "docsUrl": "https://github.com/omnivore-app/omnivore",
+  "ports": [
+    {
+      "host": 8089,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/omnivore/data",
+      "container": "/opt/omnivore-backend/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "JWT_SECRET",
+      "default": "change-me",
+      "description": "JWT signing secret",
+      "secret": true
+    },
+    {
+      "key": "DATABASE_URL",
+      "default": "postgres://omnivore:change-me@omnivore-db:5432/omnivore",
+      "description": "Postgres connection URL"
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

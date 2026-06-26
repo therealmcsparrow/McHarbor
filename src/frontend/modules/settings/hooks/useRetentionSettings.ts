@@ -7,6 +7,12 @@ import { api } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
 import type { RetentionSettingsData } from '../types';
 
+export type PurgeResponse = {
+  deleted: number;
+  retentionDays: number;
+  vacuuming: boolean;
+};
+
 export function useRetentionSettings() {
   return useQuery({
     queryKey: ['settings', 'retention'],
@@ -23,6 +29,44 @@ export function useSaveRetentionSettings() {
     meta: { success: t('toast.retentionUpdated') },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings', 'retention'] });
+    },
+  });
+}
+
+export function usePurgeAuditLog() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: () => api.del<PurgeResponse>('/audit', { vacuum: 'true' }).then(assertSuccess),
+    meta: {
+      success: (data: PurgeResponse | undefined) => {
+        if (data?.vacuuming) {
+          return t('toast.auditLogPurgedVacuuming', { count: data.deleted ?? 0 });
+        }
+        return t('toast.auditLogPurged', { count: data?.deleted ?? 0 });
+      },
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+    },
+  });
+}
+
+export function usePurgeActivityLog() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: () => api.del<PurgeResponse>('/activity', { vacuum: 'true' }).then(assertSuccess),
+    meta: {
+      success: (data: PurgeResponse | undefined) => {
+        if (data?.vacuuming) {
+          return t('toast.activityLogPurgedVacuuming', { count: data.deleted ?? 0 });
+        }
+        return t('toast.activityLogPurged', { count: data?.deleted ?? 0 });
+      },
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
     },
   });
 }

@@ -1,0 +1,41 @@
+{
+    "slug":  "envoy-dev",
+    "name":  "Envoy Dev",
+    "description":  "Envoy proxy for local service mesh and API gateway development.",
+    "category":  "Developer Tools",
+    "image":  "envoyproxy/envoy:v1.30-latest",
+    "logo":  "https://icon.horse/icon/www.envoyproxy.io",
+    "website":  "https://www.envoyproxy.io",
+    "docsUrl":  "https://www.envoyproxy.io/docs/envoy/latest/start/docker",
+    "ports":  [
+                  {
+                      "host":  10000,
+                      "container":  10000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9901,
+                      "container":  9901,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/envoy-dev/config",
+                        "container":  "/etc/envoy"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ENVOY_UID",
+                        "default":  "0",
+                        "description":  "Run as root for read-only mounts"
+                    }
+                ],
+    "version":  "v1.30-latest"
+}

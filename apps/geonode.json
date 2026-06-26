@@ -1,0 +1,52 @@
+{
+  "slug": "geonode",
+  "name": "GeoNode",
+  "description": "Open-source geospatial content management system for publishing and sharing maps, layers, and documents.",
+  "category": "Databases",
+  "image": "geonode/geonode:latest",
+  "logo": "https://geonode.org/img/geonode-logo.svg",
+  "website": "https://geonode.org",
+  "docsUrl": "https://docs.geonode.org/en/master/install/docker/index.html",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/geonode/data",
+      "container": "/mnt/geonode-data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "GEONODE_ADMIN_USERNAME",
+      "default": "admin",
+      "description": "Bootstrap admin username"
+    },
+    {
+      "key": "GEONODE_ADMIN_PASSWORD",
+      "default": "",
+      "description": "Bootstrap admin password",
+      "secret": true
+    },
+    {
+      "key": "GEONODE_ADMIN_EMAIL",
+      "default": "admin@geonode.local",
+      "description": "Bootstrap admin email"
+    },
+    {
+      "key": "GEONODE_SITENAME",
+      "default": "GeoNode",
+      "description": "Display site name"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,41 @@
+{
+  "slug": "python-dev",
+  "name": "Python 3.12",
+  "description": "Python 3.12 slim image, modern interpreter with improved error messages and faster CPython.",
+  "category": "Developer Tools",
+  "image": "python:3.12-slim",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/python.png",
+  "website": "https://www.python.org",
+  "docsUrl": "https://docs.python.org/3/",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/python-dev/app",
+      "container": "/usr/src/app"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "PYTHONDONTWRITEBYTECODE",
+      "default": "1",
+      "description": "Prevent Python from writing .pyc files"
+    },
+    {
+      "key": "PYTHONUNBUFFERED",
+      "default": "1",
+      "description": "Force stdout/stderr streams to be unbuffered"
+    }
+  ],
+  "version": "3.12-slim"
+}

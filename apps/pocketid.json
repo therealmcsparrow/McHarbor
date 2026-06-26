@@ -1,0 +1,41 @@
+{
+    "slug":  "pocketid",
+    "name":  "Pocket ID",
+    "description":  "OIDC SSO provider that uses passkeys for passwordless authentication.",
+    "category":  "Security",
+    "image":  "ghcr.io/pocket-id/pocket-id:latest",
+    "logo":  "https://icon.horse/icon/pocket-id.org",
+    "website":  "https://pocket-id.org",
+    "docsUrl":  "https://pocket-id.org/docs",
+    "ports":  [
+                  {
+                      "host":  1411,
+                      "container":  1411,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pocketid/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "APP_URL",
+                        "default":  "https://pocketid.example.com",
+                        "description":  "Public application URL"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PORT",
+                        "default":  "1411",
+                        "description":  "Listen port"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -37,7 +37,14 @@
     "backupDays": "Retenção de backups (dias)",
     "backupDaysDescription": "Número máximo de dias para manter backups bem-sucedidos por contêiner. Arquivos de backup mais antigos são excluídos automaticamente. Defina como 0 para manter backups sem limite de idade.",
     "backupCount": "Retenção de backups (quantidade)",
-    "backupCountDescription": "Número máximo de backups bem-sucedidos mantidos por contêiner. Arquivos de backup mais antigos são excluídos automaticamente. Defina como 0 para manter todos os backups."
+    "backupCountDescription": "Número máximo de backups bem-sucedidos mantidos por contêiner. Arquivos de backup mais antigos são excluídos automaticamente. Defina como 0 para manter todos os backups.",
+    "clearNow": "Limpar agora",
+    "clearNowHint": "Executar a purga de retenção agora (entradas com mais de {{days}} dias)",
+    "clearAuditTitle": "Limpar registro de auditoria?",
+    "clearAuditDescription": "Excluir permanentemente todas as entradas do registro de auditoria com mais de {{days}} dias. A contagem de entradas excluídas será exibida após a operação. Esta ação não pode ser desfeita.",
+    "clearActivityTitle": "Limpar registro de atividade?",
+    "clearActivityDescription": "Excluir permanentemente todos os eventos de atividade com mais de {{days}} dias. A contagem de eventos excluídos será exibida após a operação. Esta ação não pode ser desfeita.",
+    "keepForever": "Defina a retenção como um número positivo para permitir a limpeza."
   },
   "auth": {
     "description": "Configure provedores de autenticação e configurações de sessão.",
@@ -809,9 +816,14 @@
     "policyUpdated": "Política de atualização atualizada",
     "policyDeleted": "Política de atualização excluída",
     "retentionUpdated": "Configurações de retenção atualizadas",
+    "auditLogPurged": "Registro de auditoria limpo ({{count}} entradas)",
+    "activityLogPurged": "Registro de atividade limpo ({{count}} eventos)",
+    "auditLogPurgedVacuuming": "Registro de auditoria limpo ({{count}} entradas). Compactando o banco de dados em segundo plano...",
+    "activityLogPurgedVacuuming": "Registro de atividade limpo ({{count}} eventos). Compactando o banco de dados em segundo plano...",
     "backupKeyGenerated": "Chave de criptografia de backups gerada",
     "backupKeyCopied": "Chave de criptografia de backups copiada",
     "backupKeySetupCopied": "Comando de configuracao dos backups copiado",
+    "copyFailed": "Não foi possível copiar para a área de transferência",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
     "storageBackupsMigrated": "Backups migrados: {{migrated}} copiados, {{skipped}} ignorados, {{failed}} com falha",
     "storageBackupsMigrationFailed": "Falha na migracao dos backups"

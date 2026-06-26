@@ -1,0 +1,62 @@
+{
+    "slug":  "bookstack-caddy",
+    "name":  "BookStack (Caddy)",
+    "description":  "Simple wiki platform with a Caddy reverse proxy and auto-TLS on a dedicated host.",
+    "category":  "Documents",
+    "image":  "lscr.io/linuxserver/bookstack:latest",
+    "logo":  "https://icon.horse/icon/www.bookstackapp.com",
+    "website":  "https://www.bookstackapp.com",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-bookstack",
+    "ports":  [
+                  {
+                      "host":  6876,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/bookstack-caddy/config",
+                        "container":  "/config"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "APP_URL",
+                        "default":  "http://localhost:6876",
+                        "description":  "Application URL"
+                    },
+                    {
+                        "key":  "DB_HOST",
+                        "default":  "bookstack-caddy-db",
+                        "description":  "Database host"
+                    },
+                    {
+                        "key":  "DB_DATABASE",
+                        "default":  "bookstack",
+                        "description":  "Database name"
+                    },
+                    {
+                        "key":  "DB_USERNAME",
+                        "default":  "bookstack",
+                        "description":  "Database user"
+                    },
+                    {
+                        "key":  "DB_PASSWORD",
+                        "default":  "",
+                        "description":  "Database password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

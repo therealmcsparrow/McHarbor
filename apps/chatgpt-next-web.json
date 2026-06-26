@@ -1,0 +1,48 @@
+{
+    "slug":  "chatgpt-next-web",
+    "name":  "ChatGPT Next Web",
+    "description":  "Cross-platform ChatGPT-style web UI with one-click deployment and multi-user support.",
+    "category":  "AI \u0026 Voice",
+    "image":  "yidadaa/chatgpt-next-web:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/Yidadaa/ChatGPT-Next-Web",
+    "docsUrl":  "https://github.com/Yidadaa/ChatGPT-Next-Web/blob/main/README.md",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/chatgpt-next-web/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "OPENAI_API_KEY",
+                        "default":  "",
+                        "description":  "OpenAI API key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "CODE",
+                        "default":  "",
+                        "description":  "Access code to gate the UI (empty disables)"
+                    },
+                    {
+                        "key":  "BASE_URL",
+                        "default":  "",
+                        "description":  "Custom OpenAI base URL for compatible APIs"
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

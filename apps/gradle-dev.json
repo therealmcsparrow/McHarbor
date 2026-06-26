@@ -1,0 +1,36 @@
+{
+    "slug":  "gradle-dev",
+    "name":  "Gradle",
+    "description":  "Gradle 8 on JDK 21, flexible build automation tool for multi-language software projects.",
+    "category":  "Developer Tools",
+    "image":  "gradle:8-jdk21",
+    "logo":  "https://icon.horse/icon/gradle.org",
+    "website":  "https://gradle.org",
+    "docsUrl":  "https://docs.gradle.org",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/gradle-dev/app",
+                        "container":  "/home/gradle/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "GRADLE_USER_HOME",
+                        "default":  "/home/gradle/.gradle",
+                        "description":  "Gradle user home directory"
+                    }
+                ],
+    "version":  "8-jdk21"
+}

@@ -1,0 +1,41 @@
+{
+    "slug":  "fhem",
+    "name":  "FHEM",
+    "description":  "Perl-based home automation server for diverse hardware and protocols.",
+    "category":  "Home Automation",
+    "image":  "fhem/fhem:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/fhem.png",
+    "website":  "https://fhem.de",
+    "docsUrl":  "https://fhem.de/commandref.html",
+    "ports":  [
+                  {
+                      "host":  8083,
+                      "container":  8083,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8084,
+                      "container":  8084,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8085,
+                      "container":  8085,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/fhem/config",
+                        "container":  "/fhem"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,47 @@
+{
+  "slug": "grafana-dev",
+  "name": "Grafana Dev",
+  "description": "Grafana analytics and observability dashboards for local metric visualization.",
+  "category": "Developer Tools",
+  "image": "grafana/grafana:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/grafana.png",
+  "website": "https://grafana.com",
+  "docsUrl": "https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/",
+  "ports": [
+    {
+      "host": 3000,
+      "container": 3000,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/grafana-dev/data",
+      "container": "/var/lib/grafana"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "GF_SECURITY_ADMIN_USER",
+      "default": "admin",
+      "description": "Admin username"
+    },
+    {
+      "key": "GF_SECURITY_ADMIN_PASSWORD",
+      "default": "admin",
+      "description": "Admin password",
+      "secret": true
+    },
+    {
+      "key": "GF_AUTH_ANONYMOUS_ENABLED",
+      "default": "true",
+      "description": "Allow anonymous access"
+    }
+  ],
+  "version": "latest"
+}

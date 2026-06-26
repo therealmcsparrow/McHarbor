@@ -1,0 +1,31 @@
+{
+    "slug":  "redis-dev",
+    "name":  "Redis 7 Dev",
+    "description":  "Redis 7 on Alpine for development, caching, and testing.",
+    "category":  "Databases",
+    "image":  "redis:7-alpine",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/redis.png",
+    "website":  "https://redis.io",
+    "docsUrl":  "https://redis.io/docs/",
+    "ports":  [
+                  {
+                      "host":  6379,
+                      "container":  6379,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/redis-dev/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "7-alpine"
+}

@@ -1,0 +1,45 @@
+{
+  "slug": "nomad",
+  "name": "HashiCorp Nomad",
+  "description": "Workload orchestrator that deploys, manages, and scales containers and non-containerized apps.",
+  "category": "Networking",
+  "image": "hashicorp/nomad:latest",
+  "logo": "https://www.nomadproject.io/assets/images/logo-hashicorp-nomad-color.svg",
+  "website": "https://www.nomadproject.io",
+  "docsUrl": "https://developer.hashicorp.com/nomad/docs",
+  "ports": [
+    {
+      "host": 4646,
+      "container": 4646,
+      "protocol": "tcp"
+    },
+    {
+      "host": 4647,
+      "container": 4647,
+      "protocol": "tcp"
+    },
+    {
+      "host": 4648,
+      "container": 4648,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/nomad/config",
+      "container": "/nomad/config"
+    },
+    {
+      "host": "/opt/appdata/nomad/data",
+      "container": "/nomad/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

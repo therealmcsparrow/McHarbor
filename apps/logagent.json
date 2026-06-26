@@ -1,0 +1,41 @@
+{
+    "slug":  "logagent",
+    "name":  "Sematext Logagent",
+    "description":  "Lightweight log shipper with built-in parsers for common log formats and log enrichment.",
+    "category":  "Monitoring",
+    "image":  "sematext/logagent:latest",
+    "logo":  "https://icon.horse/icon/sematext.com",
+    "website":  "https://sematext.com",
+    "docsUrl":  "https://github.com/sematext/logagent-js",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/logagent/config",
+                        "container":  "/opt/logagent"
+                    },
+                    {
+                        "host":  "/var/log",
+                        "container":  "/var/log"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "LOGAGENT_TOKEN",
+                        "default":  "",
+                        "description":  "Sematext Logs token",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

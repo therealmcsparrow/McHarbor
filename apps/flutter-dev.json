@@ -1,0 +1,36 @@
+{
+  "slug": "flutter-dev",
+  "name": "Flutter",
+  "description": "CirrusCI Flutter SDK, cross-platform UI toolkit for building natively compiled mobile, web, and desktop apps.",
+  "category": "Developer Tools",
+  "image": "cirrusci/flutter:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/flutter.png",
+  "website": "https://flutter.dev",
+  "docsUrl": "https://docs.flutter.dev",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/flutter-dev/app",
+      "container": "/home/cirrus/dev"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "ANDROID_HOME",
+      "default": "/home/cirrus/Android/sdk",
+      "description": "Android SDK path"
+    }
+  ],
+  "version": "latest"
+}

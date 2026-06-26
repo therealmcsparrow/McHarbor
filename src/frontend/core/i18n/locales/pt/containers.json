@@ -465,7 +465,16 @@
     "restore": "Restaurar backup",
     "restoring": "Restaurando...",
     "restoreTitle": "Restaurar backup?",
+    "restoringTitle": "Restaurando backup…",
+    "restoreCompleteTitle": "Restauração concluída",
+    "restoreFailedTitle": "Restauração falhou",
     "restoreDescription": "Isto restaura o arquivo de backup no container original. Arquivos existentes no container ou em caminhos montados podem ser sobrescritos.",
+    "restoringHeading": "Restaurando o backup…",
+    "restoreCompleteHeading": "Restauração concluída",
+    "restoreFailedHeading": "Restauração falhou",
+    "restoreCompleteHint": "O container foi restaurado a partir do backup. Pode fechar esta caixa de diálogo.",
+    "closeRestore": "Fechar",
+    "startedAt": "Iniciado {{value}}",
     "restoreSecretTitle": "Inserir chave secreta do backup",
     "restoreSecretDescription": "Este backup foi criptografado com uma chave diferente da chave atual de backup do McHarbor. Insira a chave secreta original.",
     "restoreSecretPlaceholder": "Chave de criptografia do backup",
@@ -490,7 +499,8 @@
     "status": {
       "running": "Executando",
       "success": "Sucesso",
-      "failure": "Falhou"
+      "failure": "Falhou",
+      "cancelled": "Cancelado"
     },
     "progress": {
       "queued": "Aguardando para iniciar o backup.",
@@ -528,11 +538,16 @@
     "deleteScheduleDescription": "Isto remove a agenda. Arquivos de backup existentes nao sao excluidos.",
     "deleteRunTitle": "Excluir backup?",
     "deleteRunDescription": "Isto exclui permanentemente a execucao de backup e o arquivo local quando existir. Esta acao nao pode ser desfeita.",
+    "cancelRun": "Cancelar",
+    "cancelRunConfirm": "Cancelar backup",
+    "cancelRunTitle": "Cancelar backup em andamento?",
+    "cancelRunDescription": "O backup em andamento será interrompido. Operações de Docker, agente ou armazenamento em curso serão abortadas. O backup será marcado como cancelado e poderá então ser excluído.",
     "toast": {
       "started": "Backup iniciado",
       "scheduleCreated": "Agenda de backup salva",
       "scheduleDeleted": "Agenda de backup excluida",
       "runDeleted": "Backup excluido",
+      "runCancelled": "Backup cancelado",
       "restoreStarted": "Restauracao iniciada",
       "restored": "Backup restaurado"
     }

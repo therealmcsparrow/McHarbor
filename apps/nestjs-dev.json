@@ -1,0 +1,41 @@
+{
+    "slug":  "nestjs-dev",
+    "name":  "NestJS",
+    "description":  "NestJS on Node 22 Alpine, progressive Node.js framework for scalable server-side applications.",
+    "category":  "Developer Tools",
+    "image":  "node:22-alpine",
+    "logo":  "https://icon.horse/icon/nestjs.com",
+    "website":  "https://nestjs.com",
+    "docsUrl":  "https://docs.nestjs.com",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/nestjs-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "NODE_ENV",
+                        "default":  "development",
+                        "description":  "Node environment"
+                    },
+                    {
+                        "key":  "PORT",
+                        "default":  "3000",
+                        "description":  "Application port"
+                    }
+                ],
+    "version":  "22-alpine"
+}

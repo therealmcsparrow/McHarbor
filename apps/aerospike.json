@@ -1,0 +1,50 @@
+{
+    "slug":  "aerospike",
+    "name":  "Aerospike",
+    "description":  "Flash-optimized in-memory NoSQL database for real-time workloads at scale.",
+    "category":  "Databases",
+    "image":  "aerospike/aerospike-server:latest",
+    "logo":  "https://icon.horse/icon/aerospike.com",
+    "website":  "https://aerospike.com",
+    "docsUrl":  "https://docs.aerospike.com/",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3001,
+                      "container":  3001,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3002,
+                      "container":  3002,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  3003,
+                      "container":  3003,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/aerospike/data",
+                        "container":  "/opt/aerospike/data"
+                    },
+                    {
+                        "host":  "/opt/appdata/aerospike/config",
+                        "container":  "/opt/aerospike/etc"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

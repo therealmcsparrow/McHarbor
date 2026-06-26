@@ -1,0 +1,45 @@
+{
+    "slug":  "piwigo",
+    "name":  "Piwigo",
+    "description":  "Photo gallery web application with categories, tags, and user management.",
+    "category":  "Photos \u0026 Files",
+    "image":  "linuxserver/piwigo:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/piwigo.png",
+    "website":  "https://piwigo.org",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-piwigo",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/piwigo/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/photos",
+                        "container":  "/gallery"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    }
+                ],
+    "version":  "latest"
+}

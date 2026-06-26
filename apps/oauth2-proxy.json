@@ -1,0 +1,48 @@
+{
+  "slug": "oauth2-proxy",
+  "name": "oauth2-proxy",
+  "description": "Reverse proxy that provides authentication as a service for OIDC and OAuth providers.",
+  "category": "Networking",
+  "image": "quay.io/oauth2-proxy/oauth2-proxy:latest",
+  "logo": "https://oauth2-proxy.github.io/oauth2-proxy/images/logos/OAuth2_Proxy_horizontal.svg",
+  "website": "https://oauth2-proxy.github.io/oauth2-proxy/",
+  "docsUrl": "https://oauth2-proxy.github.io/oauth2-proxy/docs/",
+  "ports": [
+    {
+      "host": 4180,
+      "container": 4180,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/oauth2-proxy/config",
+      "container": "/etc/oauth2-proxy"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "OAUTH2_PROXY_CLIENT_ID",
+      "default": "",
+      "description": "OAuth2 client ID"
+    },
+    {
+      "key": "OAUTH2_PROXY_CLIENT_SECRET",
+      "default": "",
+      "description": "OAuth2 client secret",
+      "secret": true
+    },
+    {
+      "key": "OAUTH2_PROXY_COOKIE_SECRET",
+      "default": "",
+      "description": "Random 32-byte cookie secret",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

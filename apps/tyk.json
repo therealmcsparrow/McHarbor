@@ -1,0 +1,37 @@
+{
+    "slug":  "tyk",
+    "name":  "Tyk API Gateway",
+    "description":  "Open source API gateway with analytics, rate limiting, and authentication.",
+    "category":  "Networking",
+    "image":  "tykio/tyk-gateway:latest",
+    "logo":  "https://icon.horse/icon/tyk.io",
+    "website":  "https://tyk.io",
+    "docsUrl":  "https://tyk.io/docs/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/tyk/config",
+                        "container":  "/etc/tyk"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TYK_GW_SECRET",
+                        "default":  "",
+                        "description":  "Tyk gateway secret",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

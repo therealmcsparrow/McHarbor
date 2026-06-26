@@ -13,6 +13,8 @@ import {
   DialogFooter,
 } from '@resources/components/ui/Dialog';
 import { Button } from '@resources/components/ui/Button';
+import { ManualCopyDialog } from '@resources/components/ManualCopyDialog';
+import { copyToClipboard } from '@resources/utils/clipboard';
 import type { InstallTokenResponse } from '../hooks/useEnvironmentActions';
 import { AgentDockerImage } from '../constants';
 import { AgentCopyBlock } from './AgentCopyBlock';
@@ -20,18 +22,7 @@ import { AgentTokenValue } from './AgentTokenValue';
 
 export { AgentDockerImage } from '../constants';
 
-export async function copyAgentText(text: string): Promise<boolean> {
-  if (!navigator.clipboard?.writeText) {
-    return false;
-  }
-
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
+export const copyAgentText = copyToClipboard;
 
 type AgentTokenDialogProps = {
   open: boolean;
@@ -52,15 +43,16 @@ export function AgentTokenDialog({
 }: AgentTokenDialogProps) {
   const { t } = useTranslation('environments');
   const [copied, setCopied] = useState<string | null>(null);
+  const [manualCopy, setManualCopy] = useState<{ value: string; label: string } | null>(null);
   const agentImage = installScript?.agentImage || AgentDockerImage;
   const effectiveServerUrl = installScript?.serverUrl || serverUrl;
   const transferListen = installScript?.transferListen || '0.0.0.0:8788';
   const transferAdvertiseUrl = installScript?.transferAdvertiseUrl || 'http://agent-host-or-ip:8788';
 
-  const copyToClipboard = async (text: string, key: string) => {
-    const copied = await copyAgentText(text);
-    if (!copied) {
-      toast.error(t('toast.copyFailed'));
+  const copyToClipboard = async (text: string, key: string, label: string) => {
+    const result = await copyAgentText(text);
+    if (!result.ok) {
+      setManualCopy({ value: text, label });
       return;
     }
 
@@ -146,6 +138,15 @@ mcharbor-agent`;
           <Button onClick={() => onOpenChange(false)}>{t('agentToken.done')}</Button>
         </DialogFooter>
       </DialogContent>
+
+      <ManualCopyDialog
+        open={manualCopy !== null}
+        onOpenChange={(open) => {
+          if (!open) setManualCopy(null);
+        }}
+        value={manualCopy?.value ?? ''}
+        title={manualCopy?.label ? `${t('clipboard.manualCopyTitle')}: ${manualCopy.label}` : undefined}
+      />
     </Dialog>
   );
 }

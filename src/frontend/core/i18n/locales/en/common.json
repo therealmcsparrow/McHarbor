@@ -184,7 +184,8 @@
     "reinstallSelected": "Reinstall Selected",
     "confirmTitle": "Confirm Batch Action",
     "confirmDescription": "Are you sure you want to {{action}} {{count}} items?",
-    "confirmPruneDescription": "Remove unused resources that are no longer referenced."
+    "confirmPruneDescription": "Remove unused resources that are no longer referenced.",
+    "clearSelection": "Clear selection"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -283,6 +284,11 @@
     "running": "{{count}} running",
     "services": "{{count}} svc"
   },
+  "list": {
+    "loadingMore": "Loading more...",
+    "endOfList": "End of list",
+    "loadMore": "Load more"
+  },
   "logs": {
     "title": "Logs",
     "description": "View container log output",
@@ -340,6 +346,30 @@
     "detailsTitle": "Audit Entry Details",
     "viewDetails": "View Details",
     "local": "Local"
+  },
+  "dateRange": {
+    "label": "Date range",
+    "title": "Time range",
+    "allTime": "All time",
+    "reset": "Reset",
+    "close": "Close",
+    "from": "From",
+    "to": "To",
+    "presetAll": "All time",
+    "presetLast15Minutes": "Last 15 minutes",
+    "presetLast1Hour": "Last 1 hour",
+    "presetLast24Hours": "Last 24 hours",
+    "presetToday": "Today",
+    "presetYesterday": "Yesterday",
+    "presetThisWeek": "This week",
+    "presetLastWeek": "Last week",
+    "presetLast7Days": "Last 7 days",
+    "presetThisMonth": "This month",
+    "presetLastMonth": "Last month",
+    "presetLast30Days": "Last 30 days",
+    "presetThisYear": "This year",
+    "presetLastYear": "Last year",
+    "presetCustom": "Custom range"
   },
   "blueprints": {
     "title": "Blueprints",
@@ -842,5 +872,13 @@
       "themeSystemDescription": "Follow your browser or operating system setting.",
       "languageDescription": "Language changes apply immediately and are saved to your user profile."
     }
+  },
+  "clipboard": {
+    "manualCopyTitle": "Copy manually",
+    "manualCopyDescription": "Your browser blocks automatic clipboard writes because this page is served over plain HTTP. Use the field below to copy the value.",
+    "manualCopyHint": "The text is already selected — press Ctrl+C (Cmd+C on macOS) to copy it.",
+    "selectAndCopy": "Select & copy",
+    "copied": "Copied",
+    "close": "Close"
   }
 }

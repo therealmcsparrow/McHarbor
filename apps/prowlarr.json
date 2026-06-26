@@ -1,49 +1,49 @@
 {
-  "slug": "prowlarr",
-  "name": "Prowlarr",
-  "description": "Indexer manager and proxy for the Servarr media automation stack.",
-  "category": "Media",
-  "image": "lscr.io/linuxserver/prowlarr:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/prowlarr.svg",
-  "website": "https://docs.linuxserver.io/images/docker-prowlarr/",
-  "docsUrl": "https://docs.linuxserver.io/images/docker-prowlarr/",
-  "ports": [
-    {
-      "host": 9696,
-      "container": 9696,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/prowlarr/config",
-      "container": "/config"
-    },
-    {
-      "host": "/srv/media",
-      "container": "/media"
-    },
-    {
-      "host": "/srv/downloads",
-      "container": "/downloads"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PUID",
-      "default": "1000",
-      "description": "User ID"
-    },
-    {
-      "key": "PGID",
-      "default": "1000",
-      "description": "Group ID"
-    },
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "prowlarr",
+    "name":  "Prowlarr",
+    "description":  "Indexer manager and proxy for the Servarr media automation stack.",
+    "category":  "Media",
+    "image":  "lscr.io/linuxserver/prowlarr:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/prowlarr.png",
+    "website":  "https://docs.linuxserver.io/images/docker-prowlarr/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-prowlarr/",
+    "ports":  [
+                  {
+                      "host":  9696,
+                      "container":  9696,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/prowlarr/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/media",
+                        "container":  "/media"
+                    },
+                    {
+                        "host":  "/srv/downloads",
+                        "container":  "/downloads"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

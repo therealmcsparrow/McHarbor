@@ -1,36 +1,36 @@
 {
-  "slug": "vikunja",
-  "name": "Vikunja",
-  "description": "Task and project management for personal and team workflows.",
-  "category": "Productivity",
-  "image": "vikunja/vikunja:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/vikunja.svg",
-  "website": "https://vikunja.io",
-  "docsUrl": "https://vikunja.io/docs",
-  "ports": [
-    {
-      "host": 3456,
-      "container": 3456,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/vikunja/files",
-      "container": "/app/vikunja/files"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    },
-    {
-      "key": "VIKUNJA_SERVICE_PUBLICURL",
-      "default": "http://localhost:3456",
-      "description": "Public URL"
-    }
-  ],
-  "version": "latest"
+    "slug":  "vikunja",
+    "name":  "Vikunja",
+    "description":  "Task and project management for personal and team workflows.",
+    "category":  "Productivity",
+    "image":  "vikunja/vikunja:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/vikunja.png",
+    "website":  "https://vikunja.io",
+    "docsUrl":  "https://vikunja.io/docs",
+    "ports":  [
+                  {
+                      "host":  3456,
+                      "container":  3456,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/vikunja/files",
+                        "container":  "/app/vikunja/files"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "VIKUNJA_SERVICE_PUBLICURL",
+                        "default":  "http://localhost:3456",
+                        "description":  "Public URL"
+                    }
+                ],
+    "version":  "latest"
 }

@@ -1,0 +1,31 @@
+{
+  "slug": "shaarli",
+  "name": "Shaarli",
+  "description": "Personal bookmark and link sharing service with tagging and RSS feeds.",
+  "category": "Documents",
+  "image": "shaarli/shaarli:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/shaarli.png",
+  "website": "https://shaarli.readthedocs.io",
+  "docsUrl": "https://shaarli.readthedocs.io/en/master/Guides/Docker.html",
+  "ports": [
+    {
+      "host": 8091,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/shaarli/data",
+      "container": "/var/www/shaarli/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

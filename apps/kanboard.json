@@ -1,0 +1,35 @@
+{
+  "slug": "kanboard",
+  "name": "Kanboard",
+  "description": "Kanban-style project management focused on simplicity, visualization, and team efficiency.",
+  "category": "Productivity",
+  "image": "kanboard/kanboard:latest",
+  "logo": "https://kanboard.org/img/kanboard-logo.svg",
+  "website": "https://kanboard.org",
+  "docsUrl": "https://docs.kanboard.org",
+  "ports": [
+    {
+      "host": 8595,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kanboard/data",
+      "container": "/var/www/app/data"
+    },
+    {
+      "host": "/opt/appdata/kanboard/plugins",
+      "container": "/var/www/app/plugins"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

@@ -1,0 +1,57 @@
+{
+    "slug":  "easy-appointments",
+    "name":  "Easy!Appointments",
+    "description":  "Lightweight appointment scheduler for service businesses with email notifications.",
+    "category":  "Productivity",
+    "image":  "alextselegidis/easyappointments:latest",
+    "logo":  "https://icon.horse/icon/easyappointments.org",
+    "website":  "https://easyappointments.org",
+    "docsUrl":  "https://easyappointments.org/docs.html",
+    "ports":  [
+                  {
+                      "host":  8089,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/easy-appointments/data",
+                        "container":  "/var/www/html/storage"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "BASE_URL",
+                        "default":  "http://localhost:8089",
+                        "description":  "Public base URL"
+                    },
+                    {
+                        "key":  "DB_HOST",
+                        "default":  "easy-appointments-db",
+                        "description":  "Database host"
+                    },
+                    {
+                        "key":  "DB_NAME",
+                        "default":  "easyappointments",
+                        "description":  "Database name"
+                    },
+                    {
+                        "key":  "DB_USER",
+                        "default":  "easyappointments",
+                        "description":  "Database user"
+                    },
+                    {
+                        "key":  "DB_PASSWORD",
+                        "default":  "change-me",
+                        "description":  "Database password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

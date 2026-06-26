@@ -1,0 +1,38 @@
+{
+    "slug":  "signoz",
+    "name":  "SigNoz",
+    "description":  "Open-source observability platform: traces, metrics and logs in a single application.",
+    "category":  "Monitoring",
+    "image":  "signoz/signoz:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/signoz.png",
+    "website":  "https://signoz.io",
+    "docsUrl":  "https://signoz.io/docs/install/docker/",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  4317,
+                      "container":  4317,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "SIGNOZ_OTEL_COLLECTOR_ADDR",
+                        "default":  "signoz-otel-collector:4317",
+                        "description":  "OTel collector address"
+                    }
+                ],
+    "version":  "latest"
+}

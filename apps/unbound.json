@@ -1,0 +1,36 @@
+{
+    "slug":  "unbound",
+    "name":  "Unbound",
+    "description":  "Validating, recursive, and caching DNS resolver focused on security and privacy.",
+    "category":  "Networking",
+    "image":  "mvance/unbound:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/unbound.png",
+    "website":  "https://nlnetlabs.nl/projects/unbound/about/",
+    "docsUrl":  "https://github.com/MatthewVance/unbound-docker",
+    "ports":  [
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  53,
+                      "container":  53,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/unbound/config",
+                        "container":  "/opt/unbound/etc/unbound"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

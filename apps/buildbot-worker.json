@@ -1,0 +1,47 @@
+{
+    "slug":  "buildbot-worker",
+    "name":  "Buildbot Worker",
+    "description":  "Buildbot worker that executes jobs dispatched by the Buildbot master.",
+    "category":  "Developer Tools",
+    "image":  "buildbot/buildbot-worker:latest",
+    "logo":  "https://icon.horse/icon/buildbot.net",
+    "website":  "https://buildbot.net",
+    "docsUrl":  "https://docs.buildbot.net/current/tutorial/docker.html",
+    "ports":  [
+                  {
+                      "host":  8010,
+                      "container":  8010,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/buildbot-worker/data",
+                        "container":  "/var/lib/buildbot/worker"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "BUILDBOT_MASTER",
+                        "default":  "buildbot-master:9989",
+                        "description":  "Buildbot master host and port"
+                    },
+                    {
+                        "key":  "BUILDBOT_NAME",
+                        "default":  "docker-worker",
+                        "description":  "Name of this worker"
+                    },
+                    {
+                        "key":  "BUILDBOT_PASSWORD",
+                        "default":  "pass",
+                        "description":  "Worker password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

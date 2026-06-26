@@ -19,7 +19,10 @@
   },
   "badges": {
     "yes": "Sim",
-    "no": "Não"
+    "no": "Não",
+    "used": "Em uso",
+    "unused": "Sem uso",
+    "builtIn": "Integrada"
   },
   "create": {
     "title": "Criar rede",
@@ -62,11 +65,26 @@
     "connected": "Contêiner conectado",
     "disconnected": "Contêiner desconectado",
     "updated": "Rede atualizada",
-    "updateFailed": "Falha ao atualizar a rede"
+    "updateFailed": "Falha ao atualizar a rede",
+    "builtIn": "Redes integradas não podem ser removidas ou modificadas"
   },
   "confirm": {
     "removeTitle": "Remover rede",
-    "removeDescription": "Isso removerá permanentemente esta rede."
+    "removeDescription": "Isso removerá permanentemente esta rede.",
+    "builtInRemoveTitle": "Não é possível remover a rede integrada",
+    "builtInRemoveDescription": "Redes integradas (bridge, host, none) são protegidas e não podem ser removidas."
+  },
+  "bulkRemoveDialog": {
+    "title": "Remover redes",
+    "description": "Isso removerá permanentemente <bold>{{count}}</bold> redes.",
+    "networks": "Redes",
+    "andXMore": "e mais {{count}}",
+    "inUse": "em uso",
+    "inUseWarning": "{{count}} rede(s) selecionada(s) ainda estão anexadas a contêineres em execução. A remoção falhará para elas a menos que os contêineres sejam primeiro parados ou desconectados.",
+    "forceLabel": "Eu entendo e quero tentar a remoção mesmo assim",
+    "removing": "Removendo...",
+    "builtInSkipped": "{{count}} rede(s) integrada(s) ignorada(s) (não podem ser removidas)",
+    "noneEligible": "Nenhuma rede é elegível para remoção."
   },
   "actions": {
     "edit": "Editar",
@@ -86,6 +104,8 @@
   "detail": {
     "backToNetworks": "Voltar às redes",
     "notFound": "Rede não encontrada",
+    "builtInCannotEdit": "Redes integradas não podem ser editadas",
+    "builtInCannotRemove": "Redes integradas não podem ser removidas",
     "general": "Em geral",
     "name": "Nome",
     "networkId": "ID da rede",

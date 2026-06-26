@@ -1,0 +1,46 @@
+{
+  "slug": "ferdium",
+  "name": "Ferdium",
+  "description": "Multi-messenger desktop client that combines many chat and email services into one application.",
+  "category": "Productivity",
+  "image": "lscr.io/linuxserver/ferdium:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ferdium.png",
+  "website": "https://ferdium.org",
+  "docsUrl": "https://github.com/linuxserver/docker-ferdium",
+  "ports": [
+    {
+      "host": 3000,
+      "container": 3000,
+      "protocol": "tcp"
+    },
+    {
+      "host": 3001,
+      "container": 3001,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/ferdium/config",
+      "container": "/config"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "PUID",
+      "default": "1000",
+      "description": "User ID"
+    },
+    {
+      "key": "PGID",
+      "default": "1000",
+      "description": "Group ID"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

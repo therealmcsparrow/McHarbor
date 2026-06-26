@@ -1,0 +1,51 @@
+{
+    "slug":  "onlyoffice-workspace",
+    "name":  "ONLYOFFICE Workspace",
+    "description":  "All-in-one collaboration platform with documents, mail, CRM, projects, and calendar.",
+    "category":  "Documents",
+    "image":  "onlyoffice/communityserver:latest",
+    "logo":  "https://icon.horse/icon/www.onlyoffice.com",
+    "website":  "https://www.onlyoffice.com",
+    "docsUrl":  "https://helpcenter.onlyoffice.com/installation/workspace-install-docker.aspx",
+    "ports":  [
+                  {
+                      "host":  8081,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8082,
+                      "container":  8081,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  8083,
+                      "container":  8083,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/onlyoffice-workspace/data",
+                        "container":  "/var/www/onlyoffice/Data"
+                    },
+                    {
+                        "host":  "/opt/appdata/onlyoffice-workspace/mysql",
+                        "container":  "/var/lib/mysql"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ONLYOFFICE_HTTPS_PORT",
+                        "default":  "443",
+                        "description":  "External HTTPS port"
+                    }
+                ],
+    "minMemory":  "4GB",
+    "version":  "latest"
+}

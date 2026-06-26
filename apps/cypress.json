@@ -1,0 +1,38 @@
+{
+    "slug":  "cypress",
+    "name":  "Cypress",
+    "description":  "Self-contained Cypress runner with all browsers and dependencies for end-to-end testing.",
+    "category":  "Developer Tools",
+    "image":  "cypress/included:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/cypress.png",
+    "website":  "https://www.cypress.io",
+    "docsUrl":  "https://docs.cypress.io/guides/continuous-integration/introduction",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/cypress/e2e",
+                        "container":  "/e2e"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CYPRESS_RECORD_KEY",
+                        "default":  "",
+                        "description":  "Cypress Dashboard record key",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

@@ -1,0 +1,47 @@
+{
+    "slug":  "taiga",
+    "name":  "Taiga",
+    "description":  "Agile project management platform with kanban, scrum, and issue tracking.",
+    "category":  "Developer Tools",
+    "image":  "taigaio/taiga-back:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/taiga.png",
+    "website":  "https://www.taiga.io",
+    "docsUrl":  "https://docs.taiga.io/",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/taiga/media",
+                        "container":  "/taiga-back/media"
+                    },
+                    {
+                        "host":  "/opt/appdata/taiga/static",
+                        "container":  "/taiga-back/static"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TAIGA_SECRET_KEY",
+                        "default":  "",
+                        "description":  "Application secret key",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DATABASE_URL",
+                        "default":  "postgresql://taiga:taiga@db:5432/taiga",
+                        "description":  "PostgreSQL connection string"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

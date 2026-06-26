@@ -1,0 +1,33 @@
+{
+    "slug":  "tempo-query",
+    "name":  "Grafana Tempo Query",
+    "description":  "Standalone Tempo query service exposing a Jaeger-compatible API for trace lookups.",
+    "category":  "Monitoring",
+    "image":  "grafana/tempo-query:latest",
+    "logo":  "https://icon.horse/icon/grafana.com",
+    "website":  "https://grafana.com/oss/tempo",
+    "docsUrl":  "https://grafana.com/docs/tempo/latest/operations/tempo_query/",
+    "ports":  [
+                  {
+                      "host":  16686,
+                      "container":  16686,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "TEMPO_BACKEND",
+                        "default":  "tempo:3100",
+                        "description":  "Tempo backend address"
+                    }
+                ],
+    "version":  "latest"
+}

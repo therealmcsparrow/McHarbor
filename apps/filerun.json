@@ -1,0 +1,63 @@
+{
+  "slug": "filerun",
+  "name": "FileRun",
+  "description": "File manager and sharing platform with user management, previews, and integrations.",
+  "category": "Photos & Files",
+  "image": "filerun/filerun:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/filerun.png",
+  "website": "https://www.filerun.com",
+  "docsUrl": "https://docs.filerun.com/docker",
+  "ports": [
+    {
+      "host": 8092,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/filerun/data",
+      "container": "/var/www/html/data"
+    },
+    {
+      "host": "/opt/appdata/filerun/user-files",
+      "container": "/user-files"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "FR_DB_HOST",
+      "default": "filerun-db",
+      "description": "Database host"
+    },
+    {
+      "key": "FR_DB_NAME",
+      "default": "filerun",
+      "description": "Database name"
+    },
+    {
+      "key": "FR_DB_USER",
+      "default": "filerun",
+      "description": "Database user"
+    },
+    {
+      "key": "FR_DB_PASS",
+      "default": "change-me",
+      "description": "Database password",
+      "secret": true
+    },
+    {
+      "key": "APPS_AUTH_KEY",
+      "default": "change-me",
+      "description": "Authentication key for FileRun apps",
+      "secret": true
+    }
+  ],
+  "minMemory": "1GB",
+  "version": "latest"
+}

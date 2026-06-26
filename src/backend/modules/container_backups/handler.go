@@ -330,6 +330,43 @@ func (h *Handler) HandleDeleteRun(w http.ResponseWriter, r *http.Request) {
 	response.NoContent(w)
 }
 
+// HandleCancelRun cancels a running backup or restore run. The run is
+// transitioned to a terminal "cancelled" state and the background
+// goroutine's context is cancelled so in-flight Docker, agent, and
+// storage calls are aborted.
+func (h *Handler) HandleCancelRun(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	runID := chi.URLParam(r, "runId")
+	run, err := h.service.CancelRun(r.Context(), runID)
+	if err != nil {
+		if errors.Is(err, ErrBackupRunNotCancellable) {
+			response.BadRequestCode(w, r, i18n.ErrContainerBackupRunNotCancellable)
+			return
+		}
+		h.app.Logger.Error("cancel container backup run failed", "run", runID, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		return
+	}
+	if run == nil {
+		response.NotFoundCode(w, r, i18n.ErrNotFound)
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:        "backup.cancel",
+		EntityType:    "container",
+		EntityID:      run.ContainerID,
+		Details:       "run=" + run.ID + " operation=" + run.Operation,
+		EnvironmentID: run.EnvironmentID,
+	})
+
+	response.OK(w, run)
+}
+
 // HandleRestoreOptions returns restorable entries for a completed backup archive.
 func (h *Handler) HandleRestoreOptions(w http.ResponseWriter, r *http.Request) {
 	if user := auth.RequireAuth(r); user == nil {

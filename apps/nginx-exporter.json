@@ -1,0 +1,28 @@
+{
+    "slug":  "nginx-exporter",
+    "name":  "NGINX Prometheus Exporter",
+    "description":  "NGINX stub_status metrics exporter for Prometheus with Prometheus integration.",
+    "category":  "Monitoring",
+    "image":  "nginx/nginx-prometheus-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/nginxinc/nginx-prometheus-exporter",
+    "docsUrl":  "https://github.com/nginxinc/nginx-prometheus-exporter#docker",
+    "ports":  [
+                  {
+                      "host":  9113,
+                      "container":  9113,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

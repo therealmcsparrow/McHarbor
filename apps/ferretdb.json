@@ -1,0 +1,31 @@
+{
+  "slug": "ferretdb",
+  "name": "FerretDB",
+  "description": "Open-source MongoDB-compatible database proxy that translates queries to PostgreSQL backend.",
+  "category": "Databases",
+  "image": "ferretdb/ferretdb:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/ferretdb.png",
+  "website": "https://www.ferretdb.io",
+  "docsUrl": "https://docs.ferretdb.io",
+  "ports": [
+    {
+      "host": 27017,
+      "container": 27017,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/ferretdb/data",
+      "container": "/data/db"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "FERRETDB_POSTGRESQL_URL",
+      "default": "postgres://postgres:postgres@postgres:5432/ferretdb",
+      "description": "PostgreSQL connection string"
+    }
+  ],
+  "version": "latest"
+}

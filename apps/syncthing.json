@@ -1,45 +1,45 @@
 {
-  "slug": "syncthing",
-  "name": "Syncthing",
-  "description": "Continuous decentralized file synchronization.",
-  "category": "Photos & Files",
-  "image": "lscr.io/linuxserver/syncthing:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/syncthing.svg",
-  "website": "https://docs.linuxserver.io/images/docker-syncthing/",
-  "docsUrl": "https://docs.linuxserver.io/images/docker-syncthing/",
-  "ports": [
-    {
-      "host": 8384,
-      "container": 8384,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/syncthing/config",
-      "container": "/config"
-    },
-    {
-      "host": "/srv/sync",
-      "container": "/data"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "PUID",
-      "default": "1000",
-      "description": "User ID"
-    },
-    {
-      "key": "PGID",
-      "default": "1000",
-      "description": "Group ID"
-    },
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "syncthing",
+    "name":  "Syncthing",
+    "description":  "Continuous decentralized file synchronization.",
+    "category":  "Photos \u0026 Files",
+    "image":  "lscr.io/linuxserver/syncthing:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/syncthing.png",
+    "website":  "https://docs.linuxserver.io/images/docker-syncthing/",
+    "docsUrl":  "https://docs.linuxserver.io/images/docker-syncthing/",
+    "ports":  [
+                  {
+                      "host":  8384,
+                      "container":  8384,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/syncthing/config",
+                        "container":  "/config"
+                    },
+                    {
+                        "host":  "/srv/sync",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "PUID",
+                        "default":  "1000",
+                        "description":  "User ID"
+                    },
+                    {
+                        "key":  "PGID",
+                        "default":  "1000",
+                        "description":  "Group ID"
+                    },
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

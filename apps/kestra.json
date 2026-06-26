@@ -1,0 +1,61 @@
+{
+  "slug": "kestra",
+  "name": "Kestra",
+  "description": "Event-driven declarative orchestrator for data pipelines, ETL, and infrastructure automation.",
+  "category": "Databases",
+  "image": "kestra/kestra:latest",
+  "logo": "https://kestra.io/docs/logo.svg",
+  "website": "https://kestra.io",
+  "docsUrl": "https://kestra.io/docs/installation/docker",
+  "ports": [
+    {
+      "host": 8080,
+      "container": 8080,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/kestra/data",
+      "container": "/app/data"
+    },
+    {
+      "host": "/opt/appdata/kestra/storage",
+      "container": "/storage"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MICRONAUT_DATASOURCES_DEFAULT_URL",
+      "default": "jdbc:postgresql://postgres:5432/kestra",
+      "description": "JDBC database URL"
+    },
+    {
+      "key": "MICRONAUT_DATASOURCES_DEFAULT_USERNAME",
+      "default": "kestra",
+      "description": "Database user"
+    },
+    {
+      "key": "MICRONAUT_DATASOURCES_DEFAULT_PASSWORD",
+      "default": "",
+      "description": "Database password",
+      "secret": true
+    },
+    {
+      "key": "MICRONAUT_DATASOURCES_DEFAULT_DRIVER_CLASS_NAME",
+      "default": "org.postgresql.Driver",
+      "description": "Database driver class"
+    },
+    {
+      "key": "KESTRA_CONFIGURATION",
+      "default": "local",
+      "description": "Configuration profile"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

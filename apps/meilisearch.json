@@ -1,0 +1,37 @@
+{
+  "slug": "meilisearch",
+  "name": "Meilisearch",
+  "description": "Blazing-fast open-source search engine with typo tolerance, filters, and instant results.",
+  "category": "Databases",
+  "image": "getmeili/meilisearch:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/meilisearch.png",
+  "website": "https://www.meilisearch.com",
+  "docsUrl": "https://www.meilisearch.com/docs",
+  "ports": [
+    {
+      "host": 7700,
+      "container": 7700,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/meilisearch/data",
+      "container": "/meili_data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "MEILI_MASTER_KEY",
+      "default": "",
+      "description": "Master key for API access",
+      "secret": true
+    },
+    {
+      "key": "MEILI_NO_ANALYTICS",
+      "default": "true",
+      "description": "Disable anonymous analytics"
+    }
+  ],
+  "version": "latest"
+}

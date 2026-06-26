@@ -1,35 +1,35 @@
 {
-  "slug": "kavita",
-  "name": "Kavita",
-  "description": "Reading server for manga, comics, and ebooks.",
-  "category": "Media",
-  "image": "jvmilazz0/kavita:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/kavita.svg",
-  "website": "https://www.kavitareader.com",
-  "docsUrl": "https://wiki.kavitareader.com",
-  "ports": [
-    {
-      "host": 5000,
-      "container": 5000,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/kavita/config",
-      "container": "/kavita/config"
-    },
-    {
-      "host": "/srv/books",
-      "container": "/books"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "kavita",
+    "name":  "Kavita",
+    "description":  "Reading server for manga, comics, and ebooks.",
+    "category":  "Media",
+    "image":  "jvmilazz0/kavita:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/kavita.png",
+    "website":  "https://www.kavitareader.com",
+    "docsUrl":  "https://wiki.kavitareader.com",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/kavita/config",
+                        "container":  "/kavita/config"
+                    },
+                    {
+                        "host":  "/srv/books",
+                        "container":  "/books"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

@@ -1,0 +1,65 @@
+{
+  "slug": "mautic",
+  "name": "Mautic",
+  "description": "Open-source marketing automation platform for email campaigns, lead nurturing, and analytics.",
+  "category": "Productivity",
+  "image": "mautic/mautic:latest",
+  "logo": "https://www.mautic.org/media/images/favicon.ico",
+  "website": "https://www.mautic.org",
+  "docsUrl": "https://docs.mautic.org",
+  "ports": [
+    {
+      "host": 8589,
+      "container": 80,
+      "protocol": "tcp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/mautic/data",
+      "container": "/var/www/html/data"
+    },
+    {
+      "host": "/opt/appdata/mautic/config",
+      "container": "/var/www/html/config"
+    },
+    {
+      "host": "/opt/appdata/mautic/logs",
+      "container": "/var/www/html/var/logs"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    },
+    {
+      "key": "MAUTIC_DB_HOST",
+      "default": "mariadb",
+      "description": "Database host"
+    },
+    {
+      "key": "MAUTIC_DB_PORT",
+      "default": "3306",
+      "description": "Database port"
+    },
+    {
+      "key": "MAUTIC_DB_NAME",
+      "default": "mautic",
+      "description": "Database name"
+    },
+    {
+      "key": "MAUTIC_DB_USER",
+      "default": "mautic",
+      "description": "Database user"
+    },
+    {
+      "key": "MAUTIC_DB_PASSWORD",
+      "default": "",
+      "description": "Database password",
+      "secret": true
+    }
+  ],
+  "version": "latest"
+}

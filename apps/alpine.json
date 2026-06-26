@@ -1,0 +1,27 @@
+{
+    "slug":  "alpine",
+    "name":  "Alpine Linux",
+    "description":  "Alpine Linux base image, lightweight and security-oriented for container tasks.",
+    "category":  "Utilities",
+    "image":  "alpine:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/alpine.svg",
+    "website":  "https://alpinelinux.org",
+    "docsUrl":  "https://hub.docker.com/_/alpine",
+    "ports":  [
+
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/alpine/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

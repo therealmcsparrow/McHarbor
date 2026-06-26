@@ -1,0 +1,28 @@
+{
+    "slug":  "haproxy-exporter",
+    "name":  "HAProxy Exporter",
+    "description":  "Prometheus exporter for HAProxy metrics exposed via the HAProxy stats socket.",
+    "category":  "Monitoring",
+    "image":  "prom/haproxy-exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/prometheus/haproxy_exporter",
+    "docsUrl":  "https://github.com/prometheus/haproxy_exporter#docker",
+    "ports":  [
+                  {
+                      "host":  9101,
+                      "container":  9101,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

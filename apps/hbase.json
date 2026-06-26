@@ -1,0 +1,41 @@
+{
+    "slug":  "hbase",
+    "name":  "Apache HBase",
+    "description":  "Distributed, scalable NoSQL database on top of Hadoop for large sparse datasets.",
+    "category":  "Databases",
+    "image":  "harisekhon/hbase:latest",
+    "logo":  "https://icon.horse/icon/hbase.apache.org",
+    "website":  "https://hbase.apache.org",
+    "docsUrl":  "https://hbase.apache.org/book.html",
+    "ports":  [
+                  {
+                      "host":  16010,
+                      "container":  16010,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  16030,
+                      "container":  16030,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2181,
+                      "container":  2181,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/hbase/data",
+                        "container":  "/hbase/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone for container logs and scheduled tasks"
+                    }
+                ],
+    "version":  "latest"
+}

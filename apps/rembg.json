@@ -1,0 +1,37 @@
+{
+    "slug":  "rembg",
+    "name":  "rembg",
+    "description":  "Remove image backgrounds automatically using deep learning models via a simple HTTP API.",
+    "category":  "AI \u0026 Voice",
+    "image":  "danielgatis/rembg:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/danielgatis/rembg",
+    "docsUrl":  "https://github.com/danielgatis/rembg",
+    "ports":  [
+                  {
+                      "host":  7000,
+                      "container":  7000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/rembg/data",
+                        "container":  "/app/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "RembgHost",
+                        "default":  "0.0.0.0",
+                        "description":  "Bind address"
+                    }
+                ],
+    "minMemory":  "2GB",
+    "version":  "latest"
+}

@@ -1,23 +1,33 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconEraser } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { NumberInput } from '@resources/components/ui/NumberInput';
 import { Select } from '@resources/components/ui/Select';
 import { Label } from '@resources/components/ui/Label';
+import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
 import { useLanguageStore } from '@resources/stores/language';
 import { useAuth } from '@core/auth/useAuth';
 import { supportedLanguages, languageLabels, type SupportedLanguage } from '@core/i18n';
 import { useSaveSettings } from '../hooks/useSettings';
-import { useRetentionSettings, useSaveRetentionSettings } from '../hooks/useRetentionSettings';
+import {
+  useRetentionSettings,
+  useSaveRetentionSettings,
+  usePurgeAuditLog,
+  usePurgeActivityLog,
+} from '../hooks/useRetentionSettings';
 import type { AppSettings } from '../types';
 
 type GeneralTabProps = {
   settings?: AppSettings;
 };
+
+type PurgeTarget = 'audit' | 'activity' | null;
 
 export function GeneralTab({ settings }: GeneralTabProps) {
   const { t } = useTranslation('settings');
@@ -39,6 +49,60 @@ export function GeneralTab({ settings }: GeneralTabProps) {
       setActivityDays(retention.activityRetentionDays);
     }
   }, [retention]);
+
+  const [purgeTarget, setPurgeTarget] = useState<PurgeTarget>(null);
+
+  const purgeAudit = usePurgeAuditLog();
+  const purgeActivity = usePurgeActivityLog();
+
+  const auditRetentionDays = retention?.auditRetentionDays ?? 0;
+  const activityRetentionDays = retention?.activityRetentionDays ?? 0;
+
+  const auditEligible = auditRetentionDays > 0;
+  const activityEligible = activityRetentionDays > 0;
+
+  const auditClearDisabled = !auditEligible;
+  const activityClearDisabled = !activityEligible;
+
+  const auditClearTooltip = useMemo(() => {
+    if (!auditEligible) return t('retention.keepForever');
+    return t('retention.clearNowHint', { days: auditRetentionDays });
+  }, [auditEligible, auditRetentionDays, t]);
+
+  const activityClearTooltip = useMemo(() => {
+    if (!activityEligible) return t('retention.keepForever');
+    return t('retention.clearNowHint', { days: activityRetentionDays });
+  }, [activityEligible, activityRetentionDays, t]);
+
+  const activeMutationPending =
+    purgeTarget === 'audit' ? purgeAudit.isPending : purgeActivity.isPending;
+
+  const openConfirm = (target: 'audit' | 'activity') => setPurgeTarget(target);
+  const closeConfirm = () => {
+    if (activeMutationPending) return;
+    setPurgeTarget(null);
+  };
+
+  const confirmTitle =
+    purgeTarget === 'audit' ? t('retention.clearAuditTitle') : t('retention.clearActivityTitle');
+
+  const confirmDescription = useMemo(() => {
+    if (purgeTarget === 'audit') {
+      return t('retention.clearAuditDescription', { days: auditRetentionDays });
+    }
+    if (purgeTarget === 'activity') {
+      return t('retention.clearActivityDescription', { days: activityRetentionDays });
+    }
+    return '';
+  }, [purgeTarget, auditRetentionDays, activityRetentionDays, t]);
+
+  const handleConfirm = () => {
+    if (purgeTarget === 'audit') {
+      purgeAudit.mutate(undefined, { onSuccess: () => setPurgeTarget(null) });
+    } else if (purgeTarget === 'activity') {
+      purgeActivity.mutate(undefined, { onSuccess: () => setPurgeTarget(null) });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -89,24 +153,64 @@ export function GeneralTab({ settings }: GeneralTabProps) {
       <div>
         <Label className="mb-2">{t('retention.auditDays')}</Label>
         <p className="mb-2 text-sm text-muted-foreground">{t('retention.auditDaysDescription')}</p>
-        <NumberInput
-          value={auditDays}
-          onChange={setAuditDays}
-          min={0}
-          max={3650}
-          className="w-40"
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <NumberInput
+            value={auditDays}
+            onChange={setAuditDays}
+            min={0}
+            max={3650}
+            className="w-40"
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span tabIndex={auditClearDisabled ? 0 : -1}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => openConfirm('audit')}
+                  disabled={auditClearDisabled}
+                  aria-label={t('retention.clearNow')}
+                >
+                  <IconEraser className="size-4" />
+                  {t('retention.clearNow')}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>{auditClearTooltip}</TooltipContent>
+          </Tooltip>
+        </div>
       </div>
       <div>
         <Label className="mb-2">{t('retention.activityDays')}</Label>
         <p className="mb-2 text-sm text-muted-foreground">{t('retention.activityDaysDescription')}</p>
-        <NumberInput
-          value={activityDays}
-          onChange={setActivityDays}
-          min={0}
-          max={3650}
-          className="w-40"
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          <NumberInput
+            value={activityDays}
+            onChange={setActivityDays}
+            min={0}
+            max={3650}
+            className="w-40"
+          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span tabIndex={activityClearDisabled ? 0 : -1}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => openConfirm('activity')}
+                  disabled={activityClearDisabled}
+                  aria-label={t('retention.clearNow')}
+                >
+                  <IconEraser className="size-4" />
+                  {t('retention.clearNow')}
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>{activityClearTooltip}</TooltipContent>
+          </Tooltip>
+        </div>
       </div>
       <Button
         onClick={() => saveRetention.mutate({
@@ -119,6 +223,18 @@ export function GeneralTab({ settings }: GeneralTabProps) {
       >
         {saveRetention.isPending ? t('general.saving') : tc('actions.save')}
       </Button>
+
+      <ConfirmDialog
+        open={purgeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) closeConfirm();
+        }}
+        title={confirmTitle}
+        description={confirmDescription}
+        confirmLabel={t('retention.clearNow')}
+        loading={activeMutationPending}
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }

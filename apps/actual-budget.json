@@ -1,31 +1,31 @@
 {
-  "slug": "actual-budget",
-  "name": "Actual Budget",
-  "description": "Local-first personal finance and budgeting app.",
-  "category": "Productivity",
-  "image": "actualbudget/actual-server:latest",
-  "logo": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/actual-budget.svg",
-  "website": "https://actualbudget.org",
-  "docsUrl": "https://actualbudget.org/docs",
-  "ports": [
-    {
-      "host": 5006,
-      "container": 5006,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/actual-budget/data",
-      "container": "/data"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    }
-  ],
-  "version": "latest"
+    "slug":  "actual-budget",
+    "name":  "Actual Budget",
+    "description":  "Local-first personal finance and budgeting app.",
+    "category":  "Productivity",
+    "image":  "actualbudget/actual-server:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/actual-budget.png",
+    "website":  "https://actualbudget.org",
+    "docsUrl":  "https://actualbudget.org/docs",
+    "ports":  [
+                  {
+                      "host":  5006,
+                      "container":  5006,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/actual-budget/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
 }

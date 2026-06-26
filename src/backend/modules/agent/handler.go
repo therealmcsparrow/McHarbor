@@ -4,6 +4,7 @@
 package agent
 
 import (
+	"net"
 	"net/http"
 	"time"
 
@@ -63,6 +64,17 @@ func (h *Handler) HandleAgentWS(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
+
+	// Enable TCP keepalive so dead agents are detected within ~30s
+	// instead of waiting on the OS default (~2 hours). Without this,
+	// the ReadLoop blocks on a half-closed TCP connection and the
+	// transfer waiters don't fire until the next ping timeout.
+	if netConn := conn.UnderlyingConn(); netConn != nil {
+		if tcpConn, ok := netConn.(*net.TCPConn); ok {
+			_ = tcpConn.SetKeepAlive(true)
+			_ = tcpConn.SetKeepAlivePeriod(30 * time.Second)
+		}
+	}
 
 	// Wait for auth message (10s timeout)
 	conn.SetReadDeadline(time.Now().Add(10 * time.Second))

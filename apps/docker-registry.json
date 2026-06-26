@@ -1,36 +1,36 @@
 {
-  "slug": "docker-registry",
-  "name": "Docker Registry",
-  "description": "Private Docker image registry.",
-  "category": "Developer Tools",
-  "image": "registry:2",
-  "logo": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@master/svg/docker.svg",
-  "website": "https://distribution.github.io/distribution/",
-  "docsUrl": "https://distribution.github.io/distribution/about/deploying/",
-  "ports": [
-    {
-      "host": 5000,
-      "container": 5000,
-      "protocol": "tcp"
-    }
-  ],
-  "volumes": [
-    {
-      "host": "/opt/appdata/docker-registry/data",
-      "container": "/var/lib/registry"
-    }
-  ],
-  "envVars": [
-    {
-      "key": "TZ",
-      "default": "Etc/UTC",
-      "description": "Timezone"
-    },
-    {
-      "key": "REGISTRY_STORAGE_DELETE_ENABLED",
-      "default": "true",
-      "description": "Allow deleting manifests"
-    }
-  ],
-  "version": "latest"
+    "slug":  "docker-registry",
+    "name":  "Docker Registry",
+    "description":  "Private Docker image registry.",
+    "category":  "Developer Tools",
+    "image":  "registry:2",
+    "logo":  "https://icon.horse/icon/distribution.github.io",
+    "website":  "https://distribution.github.io/distribution/",
+    "docsUrl":  "https://distribution.github.io/distribution/about/deploying/",
+    "ports":  [
+                  {
+                      "host":  5000,
+                      "container":  5000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/docker-registry/data",
+                        "container":  "/var/lib/registry"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "REGISTRY_STORAGE_DELETE_ENABLED",
+                        "default":  "true",
+                        "description":  "Allow deleting manifests"
+                    }
+                ],
+    "version":  "latest"
 }

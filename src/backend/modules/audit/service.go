@@ -4,11 +4,16 @@
 package audit
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/rs/xid"
+
+	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 )
 
 // AuditLog represents a single audit log entry.
@@ -52,10 +57,13 @@ func NewService(db *sql.DB) *Service {
 }
 
 // List returns paginated audit logs with optional filtering.
-func (s *Service) List(page, perPage int, action, entityType string) ([]AuditLog, int64, error) {
+//
+// from and to are inclusive lower/upper bounds on the timestamp column.
+// A zero time.Time disables the corresponding bound.
+func (s *Service) List(page, perPage int, action, entityType string, from, to time.Time) ([]AuditLog, int64, error) {
 	var total int64
 	offset := (page - 1) * perPage
-	rows, total, err := s.listRows(page, perPage, offset, action, entityType)
+	rows, total, err := s.listRows(page, perPage, offset, action, entityType, from, to)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -75,72 +83,51 @@ func (s *Service) List(page, perPage int, action, entityType string) ([]AuditLog
 	return logs, total, rows.Err()
 }
 
-func (s *Service) listRows(page, perPage, offset int, action, entityType string) (*sql.Rows, int64, error) {
+func (s *Service) listRows(page, perPage, offset int, action, entityType string, from, to time.Time) (*sql.Rows, int64, error) {
 	var (
-		rows *sql.Rows
-		err  error
+		rows  *sql.Rows
+		err   error
 		total int64
 	)
 
-	switch {
-	case action != "" && entityType != "":
-		if err = s.db.QueryRow(
-			"SELECT COUNT(*) FROM audit_logs WHERE action = ? AND entity_type = ?",
-			action,
-			entityType,
-		).Scan(&total); err != nil {
-			return nil, 0, fmt.Errorf("counting audit logs: %w", err)
-		}
-		rows, err = s.db.Query(`
-			SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
-			       details, ip_address, environment_id, timestamp, created_at, updated_at
-			FROM audit_logs
-			WHERE action = ? AND entity_type = ?
-			ORDER BY timestamp DESC
-			LIMIT ? OFFSET ?
-		`, action, entityType, perPage, offset)
-	case action != "":
-		if err = s.db.QueryRow(
-			"SELECT COUNT(*) FROM audit_logs WHERE action = ?",
-			action,
-		).Scan(&total); err != nil {
-			return nil, 0, fmt.Errorf("counting audit logs: %w", err)
-		}
-		rows, err = s.db.Query(`
-			SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
-			       details, ip_address, environment_id, timestamp, created_at, updated_at
-			FROM audit_logs
-			WHERE action = ?
-			ORDER BY timestamp DESC
-			LIMIT ? OFFSET ?
-		`, action, perPage, offset)
-	case entityType != "":
-		if err = s.db.QueryRow(
-			"SELECT COUNT(*) FROM audit_logs WHERE entity_type = ?",
-			entityType,
-		).Scan(&total); err != nil {
-			return nil, 0, fmt.Errorf("counting audit logs: %w", err)
-		}
-		rows, err = s.db.Query(`
-			SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
-			       details, ip_address, environment_id, timestamp, created_at, updated_at
-			FROM audit_logs
-			WHERE entity_type = ?
-			ORDER BY timestamp DESC
-			LIMIT ? OFFSET ?
-		`, entityType, perPage, offset)
-	default:
-		if err = s.db.QueryRow("SELECT COUNT(*) FROM audit_logs").Scan(&total); err != nil {
-			return nil, 0, fmt.Errorf("counting audit logs: %w", err)
-		}
-		rows, err = s.db.Query(`
-			SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
-			       details, ip_address, environment_id, timestamp, created_at, updated_at
-			FROM audit_logs
-			ORDER BY timestamp DESC
-			LIMIT ? OFFSET ?
-		`, perPage, offset)
+	whereParts := []string{}
+	args := []any{}
+	if action != "" {
+		whereParts = append(whereParts, "action = ?")
+		args = append(args, action)
 	}
+	if entityType != "" {
+		whereParts = append(whereParts, "entity_type = ?")
+		args = append(args, entityType)
+	}
+	if !from.IsZero() {
+		whereParts = append(whereParts, "timestamp >= ?")
+		args = append(args, from.UTC().Format(time.RFC3339))
+	}
+	if !to.IsZero() {
+		whereParts = append(whereParts, "timestamp <= ?")
+		args = append(args, to.UTC().Format(time.RFC3339))
+	}
+
+	whereClause := ""
+	if len(whereParts) > 0 {
+		whereClause = " WHERE " + strings.Join(whereParts, " AND ")
+	}
+
+	countQuery := "SELECT COUNT(*) FROM audit_logs" + whereClause
+	if err = s.db.QueryRow(countQuery, args...).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("counting audit logs: %w", err)
+	}
+
+	queryArgs := append([]any{}, args...)
+	queryArgs = append(queryArgs, perPage, offset)
+	rows, err = s.db.Query(`
+		SELECT id, user_id, username, action, entity_type, entity_id, entity_name,
+		       details, ip_address, environment_id, timestamp, created_at, updated_at
+		FROM audit_logs`+whereClause+`
+		ORDER BY timestamp DESC
+		LIMIT ? OFFSET ?
+	`, queryArgs...)
 
 	if err != nil {
 		return nil, 0, fmt.Errorf("querying audit logs: %w", err)
@@ -219,4 +206,38 @@ func nullStringPtr(ns sql.NullString) *string {
 		return &ns.String
 	}
 	return nil
+}
+
+// PurgeByRetention deletes every audit log row older than the
+// configured retention cutoff.
+//
+// The cutoff is computed in Go as an RFC3339 string and passed as a
+// bound parameter so SQLite can use the timestamp index for the
+// range scan. Earlier revisions used julianday(timestamp) on both
+// sides of the comparison — that fix for the format-mismatch bug
+// was correct but forced a full table scan because julianday() is
+// a function expression and therefore not indexable. Comparing the
+// stored RFC3339 value against an RFC3339 bound uses the index
+// directly and is the same chronological order.
+//
+// Returns the number of rows actually deleted.
+func (s *Service) PurgeByRetention(ctx context.Context) (int64, int, error) {
+	days := coreSettings.ReadRetentionSettings(s.db).AuditRetentionDays
+	if days <= 0 {
+		return 0, 0, nil
+	}
+	cutoff := time.Now().UTC().AddDate(0, 0, -days).Format(time.RFC3339)
+	result, err := s.db.ExecContext(ctx,
+		"DELETE FROM audit_logs WHERE timestamp < ?",
+		cutoff,
+	)
+	if err != nil {
+		return 0, 0, fmt.Errorf("purging audit logs: %w", err)
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return 0, 0, fmt.Errorf("reading rows affected: %w", err)
+	}
+	slog.Info("audit logs purged", "retention_days", days, "rows_deleted", n)
+	return n, days, nil
 }

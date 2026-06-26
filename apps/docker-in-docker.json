@@ -1,0 +1,32 @@
+{
+    "slug":  "docker-in-docker",
+    "name":  "Docker in Docker",
+    "description":  "Docker-in-Docker daemon for nested container builds and CI workloads.",
+    "category":  "Developer Tools",
+    "image":  "docker:dind",
+    "logo":  "https://icon.horse/icon/www.docker.com",
+    "website":  "https://www.docker.com",
+    "docsUrl":  "https://hub.docker.com/_/docker",
+    "ports":  [
+                  {
+                      "host":  2375,
+                      "container":  2375,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/docker-in-docker/data",
+                        "container":  "/var/lib/docker"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "minMemory":  "1GB",
+    "version":  "latest"
+}

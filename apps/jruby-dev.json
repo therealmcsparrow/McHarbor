@@ -1,0 +1,31 @@
+{
+    "slug":  "jruby-dev",
+    "name":  "JRuby",
+    "description":  "JRuby on the JVM, Ruby implementation for fast scripting and Java interoperability.",
+    "category":  "Developer Tools",
+    "image":  "jruby:latest",
+    "logo":  "https://icon.horse/icon/www.jruby.org",
+    "website":  "https://www.jruby.org",
+    "docsUrl":  "https://www.jruby.org/documentation",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/jruby-dev/app",
+                        "container":  "/usr/src/app"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

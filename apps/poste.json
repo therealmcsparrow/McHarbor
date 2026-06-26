@@ -1,0 +1,52 @@
+{
+    "slug":  "poste",
+    "name":  "Poste.io",
+    "description":  "Complete mail server with webmail, antivirus, antispam, and ActiveSync in one container.",
+    "category":  "Communications",
+    "image":  "analogic/poste.io:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/poste.png",
+    "website":  "https://poste.io",
+    "docsUrl":  "https://poste.io/documentation.html",
+    "ports":  [
+                  {
+                      "host":  25,
+                      "container":  25,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  443,
+                      "container":  443,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/poste/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "HOSTNAME",
+                        "default":  "mail.example.com",
+                        "description":  "Public mail hostname"
+                    },
+                    {
+                        "key":  "POSTE_ADMIN_PASSWORD",
+                        "default":  "",
+                        "description":  "Initial admin password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

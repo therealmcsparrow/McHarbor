@@ -1,0 +1,42 @@
+{
+    "slug":  "citus",
+    "name":  "Citus",
+    "description":  "Distributed PostgreSQL that scales horizontally across multiple nodes for high performance.",
+    "category":  "Databases",
+    "image":  "citusdata/citus:12.1-alpine",
+    "logo":  "https://icon.horse/icon/www.citusdata.com",
+    "website":  "https://www.citusdata.com",
+    "docsUrl":  "https://docs.citusdata.com",
+    "ports":  [
+                  {
+                      "host":  5432,
+                      "container":  5432,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/citus/data",
+                        "container":  "/var/lib/postgresql/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "POSTGRES_USER",
+                        "default":  "postgres",
+                        "description":  "Database superuser name"
+                    },
+                    {
+                        "key":  "POSTGRES_PASSWORD",
+                        "default":  "",
+                        "description":  "Database superuser password",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "POSTGRES_DB",
+                        "default":  "citus",
+                        "description":  "Default database name"
+                    }
+                ],
+    "version":  "12.1-alpine"
+}

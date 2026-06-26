@@ -1,0 +1,37 @@
+{
+    "slug":  "dolt",
+    "name":  "Dolt",
+    "description":  "Git-for-data SQL database with branching, merging, and version control for your data.",
+    "category":  "Databases",
+    "image":  "dolthub/dolt-sql-server:latest",
+    "logo":  "https://icon.horse/icon/www.doltdb.com",
+    "website":  "https://www.doltdb.com",
+    "docsUrl":  "https://docs.dolthub.com",
+    "ports":  [
+                  {
+                      "host":  3306,
+                      "container":  3306,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/dolt/data",
+                        "container":  "/var/lib/dolt"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "DOLT_USER",
+                        "default":  "root",
+                        "description":  "Dolt username"
+                    },
+                    {
+                        "key":  "DOLT_PASSWORD",
+                        "default":  "",
+                        "description":  "Dolt password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

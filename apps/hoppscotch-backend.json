@@ -1,0 +1,43 @@
+{
+    "slug":  "hoppscotch-backend",
+    "name":  "Hoppscotch Backend",
+    "description":  "Open-source API development backend paired with Hoppscotch for self-hosted testing.",
+    "category":  "Developer Tools",
+    "image":  "hoppscotch/hoppscotch-backend:latest",
+    "logo":  "https://icon.horse/icon/hoppscotch.io",
+    "website":  "https://hoppscotch.io",
+    "docsUrl":  "https://docs.hoppscotch.io/documentation/self-host/getting-started",
+    "ports":  [
+                  {
+                      "host":  3000,
+                      "container":  3000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/hoppscotch-backend/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DATASTORE_URL",
+                        "default":  "mongodb://mongo:27017/hoppscotch",
+                        "description":  "MongoDB connection URL"
+                    },
+                    {
+                        "key":  "SECRET",
+                        "default":  "changeme",
+                        "description":  "Server secret",
+                        "secret":  true
+                    }
+                ],
+    "minMemory":  "512MB",
+    "version":  "latest"
+}

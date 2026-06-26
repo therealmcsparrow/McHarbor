@@ -1,0 +1,31 @@
+{
+    "slug":  "pyroscope",
+    "name":  "Grafana Pyroscope",
+    "description":  "Continuous profiling backend for CPU, memory, goroutine and lock analysis.",
+    "category":  "Monitoring",
+    "image":  "grafana/pyroscope:latest",
+    "logo":  "https://icon.horse/icon/grafana.com",
+    "website":  "https://grafana.com/oss/pyroscope",
+    "docsUrl":  "https://grafana.com/docs/pyroscope/latest/",
+    "ports":  [
+                  {
+                      "host":  4040,
+                      "container":  4040,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/pyroscope/data",
+                        "container":  "/var/lib/pyroscope"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

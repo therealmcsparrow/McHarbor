@@ -1,0 +1,38 @@
+{
+    "slug":  "jaeger-agent",
+    "name":  "Jaeger Agent",
+    "description":  "Jaeger agent daemon that batches and ships spans from instrumented client libraries.",
+    "category":  "Monitoring",
+    "image":  "jaegertracing/jaeger-agent:latest",
+    "logo":  "https://icon.horse/icon/www.jaegertracing.io",
+    "website":  "https://www.jaegertracing.io",
+    "docsUrl":  "https://www.jaegertracing.io/docs/1.55/deployment/",
+    "ports":  [
+                  {
+                      "host":  6831,
+                      "container":  6831,
+                      "protocol":  "udp"
+                  },
+                  {
+                      "host":  6832,
+                      "container":  6832,
+                      "protocol":  "udp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "REPORTER_COLLECTOR_HOST_PORT",
+                        "default":  "jaeger-collector:14267",
+                        "description":  "Collector host:port"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,36 @@
+{
+    "slug":  "zulip",
+    "name":  "Zulip",
+    "description":  "Threaded team chat that combines email and chat; organized by topics and streams.",
+    "category":  "Communications",
+    "image":  "zulip/docker-zulip:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/zulip.png",
+    "website":  "https://zulip.com",
+    "docsUrl":  "https://zulip.readthedocs.io/en/stable",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/zulip/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ZULIP_HOSTNAME",
+                        "default":  "zulip.example.com",
+                        "description":  "Public hostname"
+                    }
+                ],
+    "version":  "latest"
+}

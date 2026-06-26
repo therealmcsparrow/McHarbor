@@ -184,7 +184,8 @@
     "reinstallSelected": "Auswahl neu installieren",
     "confirmTitle": "Batchaktion bestätigen",
     "confirmDescription": "Sind Sie sicher, dass Sie {{count}} Elemente {{action}} möchten?",
-    "confirmPruneDescription": "Entfernt ungenutzte Ressourcen, die nicht mehr referenziert werden."
+    "confirmPruneDescription": "Entfernt ungenutzte Ressourcen, die nicht mehr referenziert werden.",
+    "clearSelection": "Auswahl loeschen"
   },
   "errors": {
     "somethingWentWrong": "Etwas ist schiefgelaufen",
@@ -280,8 +281,13 @@
   },
   "stackOverview": {
     "total": "{{count}} Stacks",
-    "running": "{{count}} aktiv",
+    "running": "{{count}} laufend",
     "services": "{{count}} Svc"
+  },
+  "list": {
+    "loadingMore": "Mehr laden...",
+    "endOfList": "Ende der Liste",
+    "loadMore": "Mehr laden"
   },
   "logs": {
     "title": "Protokolle",
@@ -340,6 +346,30 @@
     "detailsTitle": "Audit-Eintrag Details",
     "viewDetails": "Details anzeigen",
     "local": "Lokal"
+  },
+  "dateRange": {
+    "label": "Zeitraum",
+    "title": "Zeitbereich",
+    "allTime": "Gesamter Zeitraum",
+    "reset": "Zurücksetzen",
+    "close": "Schließen",
+    "from": "Von",
+    "to": "Bis",
+    "presetAll": "Gesamter Zeitraum",
+    "presetLast15Minutes": "Letzte 15 Minuten",
+    "presetLast1Hour": "Letzte Stunde",
+    "presetLast24Hours": "Letzte 24 Stunden",
+    "presetToday": "Heute",
+    "presetYesterday": "Gestern",
+    "presetThisWeek": "Diese Woche",
+    "presetLastWeek": "Letzte Woche",
+    "presetLast7Days": "Letzte 7 Tage",
+    "presetThisMonth": "Dieser Monat",
+    "presetLastMonth": "Letzter Monat",
+    "presetLast30Days": "Letzte 30 Tage",
+    "presetThisYear": "Dieses Jahr",
+    "presetLastYear": "Letztes Jahr",
+    "presetCustom": "Eigener Bereich"
   },
   "blueprints": {
     "title": "Vorlagen",
@@ -842,5 +872,13 @@
       "themeSystemDescription": "Folge der Einstellung deines Browsers oder Betriebssystems.",
       "languageDescription": "Sprachaenderungen werden sofort angewendet und in Ihrem Benutzerprofil gespeichert."
     }
+  },
+  "clipboard": {
+    "manualCopyTitle": "Manuell kopieren",
+    "manualCopyDescription": "Dein Browser blockiert das automatische Schreiben in die Zwischenablage, da diese Seite ueber unverschluesseltes HTTP ausgeliefert wird. Verwende das Feld unten, um den Wert zu kopieren.",
+    "manualCopyHint": "Der Text ist bereits markiert — druecke Strg+C (Cmd+C auf macOS), um ihn zu kopieren.",
+    "selectAndCopy": "Markieren & kopieren",
+    "copied": "Kopiert",
+    "close": "Schliessen"
   }
 }

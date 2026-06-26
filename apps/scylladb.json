@@ -1,0 +1,42 @@
+{
+    "slug":  "scylladb",
+    "name":  "ScyllaDB",
+    "description":  "Drop-in Apache Cassandra replacement written in C++ for extreme low-latency and throughput.",
+    "category":  "Databases",
+    "image":  "scylladb/scylla:latest",
+    "logo":  "https://icon.horse/icon/www.scylladb.com",
+    "website":  "https://www.scylladb.com",
+    "docsUrl":  "https://docs.scylladb.com",
+    "ports":  [
+                  {
+                      "host":  9042,
+                      "container":  9042,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7000,
+                      "container":  7000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  7001,
+                      "container":  7001,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/scylladb/data",
+                        "container":  "/var/lib/scylla"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "SCYLLA_PASSWORD",
+                        "default":  "",
+                        "description":  "Scylla password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

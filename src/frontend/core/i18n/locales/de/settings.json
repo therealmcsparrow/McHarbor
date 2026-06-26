@@ -37,7 +37,14 @@
     "backupDays": "Backup-Aufbewahrung (Tage)",
     "backupDaysDescription": "Maximale Anzahl von Tagen, die erfolgreiche Backups pro Container behalten werden. Aeltere Backup-Archive werden automatisch geloescht. Auf 0 setzen, um Backups unabhaengig vom Alter zu behalten.",
     "backupCount": "Backup-Aufbewahrung (Anzahl)",
-    "backupCountDescription": "Maximale Anzahl erfolgreicher Backups, die pro Container behalten werden. Ältere Backup-Archive werden automatisch gelöscht. Auf 0 setzen, um alle Backups zu behalten."
+    "backupCountDescription": "Maximale Anzahl erfolgreicher Backups, die pro Container behalten werden. Ältere Backup-Archive werden automatisch gelöscht. Auf 0 setzen, um alle Backups zu behalten.",
+    "clearNow": "Jetzt löschen",
+    "clearNowHint": "Aufbewahrungsbereinigung jetzt ausführen (Einträge älter als {{days}} Tage)",
+    "clearAuditTitle": "Audit-Log löschen?",
+    "clearAuditDescription": "Alle Audit-Log-Einträge älter als {{days}} Tage dauerhaft löschen. Die Anzahl der gelöschten Einträge wird nach dem Vorgang angezeigt. Dies kann nicht rückgängig gemacht werden.",
+    "clearActivityTitle": "Aktivitäts-Log löschen?",
+    "clearActivityDescription": "Alle Aktivitätsereignisse älter als {{days}} Tage dauerhaft löschen. Die Anzahl der gelöschten Ereignisse wird nach dem Vorgang angezeigt. Dies kann nicht rückgängig gemacht werden.",
+    "keepForever": "Aufbewahrung auf eine positive Zahl setzen, um das Löschen zu aktivieren."
   },
   "auth": {
     "description": "Konfigurieren Sie Authentifizierungsanbieter und Sitzungseinstellungen.",
@@ -809,10 +816,15 @@
     "policyUpdated": "Update-Richtlinie aktualisiert",
     "policyDeleted": "Update-Richtlinie gelöscht",
     "retentionUpdated": "Aufbewahrungseinstellungen aktualisiert",
+    "auditLogPurged": "Audit-Log gelöscht ({{count}} Einträge)",
+    "activityLogPurged": "Aktivitäts-Log gelöscht ({{count}} Ereignisse)",
+    "auditLogPurgedVacuuming": "Audit-Log gelöscht ({{count}} Einträge). Datenbank wird im Hintergrund komprimiert...",
+    "activityLogPurgedVacuuming": "Aktivitäts-Log gelöscht ({{count}} Ereignisse). Datenbank wird im Hintergrund komprimiert...",
     "backupKeyGenerated": "Backup-Verschluesselungsschluessel generiert",
     "backupKeyInstalled": "Backup-Secret installiert; McHarbor-Neustart geplant",
     "backupKeyCopied": "Backup-Verschluesselungsschluessel kopiert",
     "backupKeySetupCopied": "Backup-Einrichtungsbefehl kopiert",
+    "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
     "storageBackupsMigrated": "Backups migriert: {{migrated}} kopiert, {{skipped}} ubersprungen, {{failed}} fehlgeschlagen",
     "storageBackupsMigrationFailed": "Backup-Migration fehlgeschlagen"
   }

@@ -7,6 +7,8 @@ import { IconCopy } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
 import { Select } from '@resources/components/ui/Select';
+import { ManualCopyDialog } from '@resources/components/ManualCopyDialog';
+import { copyToClipboard } from '@resources/utils/clipboard';
 import {
   Dialog,
   DialogContent,
@@ -82,9 +84,14 @@ export function APIKeyTokenDialog({ open, onOpenChange, keyResult }: APIKeyToken
   const { t } = useTranslation('security');
   const { t: tc } = useTranslation('common');
   const [copied, setCopied] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(keyResult.key);
+    const result = await copyToClipboard(keyResult.key);
+    if (!result.ok) {
+      setManualOpen(true);
+      return;
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -115,6 +122,12 @@ export function APIKeyTokenDialog({ open, onOpenChange, keyResult }: APIKeyToken
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <ManualCopyDialog
+        open={manualOpen}
+        onOpenChange={setManualOpen}
+        value={keyResult.key}
+      />
     </Dialog>
   );
 }

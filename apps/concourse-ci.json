@@ -1,0 +1,50 @@
+{
+    "slug":  "concourse-ci",
+    "name":  "Concourse CI",
+    "description":  "Continuous thing-doer with a UI focused on pipelines as code.",
+    "category":  "Developer Tools",
+    "image":  "concourse/concourse:latest",
+    "logo":  "https://icon.horse/icon/concourse-ci.org",
+    "website":  "https://concourse-ci.org",
+    "docsUrl":  "https://concourse-ci.org/quick-start.html",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  2222,
+                      "container":  2222,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/concourse-ci/keys",
+                        "container":  "/concourse-keys"
+                    },
+                    {
+                        "host":  "/opt/appdata/concourse-ci/data",
+                        "container":  "/data"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "CONCOURSE_EXTERNAL_URL",
+                        "default":  "http://localhost:8080",
+                        "description":  "External URL of the Concourse web UI"
+                    },
+                    {
+                        "key":  "CONCOURSE_ADD_LOCAL_USER",
+                        "default":  "admin:admin",
+                        "description":  "Initial local user (user:password)"
+                    }
+                ],
+    "version":  "latest"
+}

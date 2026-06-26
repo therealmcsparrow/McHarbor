@@ -1,0 +1,52 @@
+{
+    "slug":  "drone",
+    "name":  "Drone CI",
+    "description":  "Self-service continuous delivery platform containerized in Go.",
+    "category":  "Developer Tools",
+    "image":  "drone/drone:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/drone.png",
+    "website":  "https://www.drone.io",
+    "docsUrl":  "https://docs.drone.io/server/overview/",
+    "ports":  [
+                  {
+                      "host":  80,
+                      "container":  80,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/drone/data",
+                        "container":  "/data"
+                    },
+                    {
+                        "host":  "/var/run/docker.sock",
+                        "container":  "/var/run/docker.sock"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "DRONE_RPC_SECRET",
+                        "default":  "",
+                        "description":  "Shared secret between server and runners",
+                        "secret":  true
+                    },
+                    {
+                        "key":  "DRONE_GITHUB_CLIENT_ID",
+                        "default":  "",
+                        "description":  "GitHub OAuth client ID"
+                    },
+                    {
+                        "key":  "DRONE_GITHUB_CLIENT_SECRET",
+                        "default":  "",
+                        "description":  "GitHub OAuth client secret",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

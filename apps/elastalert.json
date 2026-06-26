@@ -1,0 +1,45 @@
+{
+    "slug":  "elastalert",
+    "name":  "ElastAlert",
+    "description":  "Simple rules engine for alerting on anomalies, spikes and other patterns in Elasticsearch data.",
+    "category":  "Monitoring",
+    "image":  "karql/elastalert:latest",
+    "logo":  "https://icon.horse/icon/elastalert.readthedocs.io",
+    "website":  "https://elastalert.readthedocs.io",
+    "docsUrl":  "https://github.com/jertel/elastalert2",
+    "ports":  [
+                  {
+                      "host":  3030,
+                      "container":  3030,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/elastalert/config",
+                        "container":  "/opt/elastalert/config"
+                    },
+                    {
+                        "host":  "/opt/appdata/elastalert/rules",
+                        "container":  "/opt/elastalert/rules"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "ELASTICSEARCH_HOST",
+                        "default":  "elasticsearch",
+                        "description":  "Elasticsearch hostname"
+                    },
+                    {
+                        "key":  "ELASTICSEARCH_PORT",
+                        "default":  "9200",
+                        "description":  "Elasticsearch port"
+                    }
+                ],
+    "version":  "latest"
+}

@@ -1,0 +1,38 @@
+{
+    "slug":  "jaeger",
+    "name":  "Jaeger",
+    "description":  "End-to-end distributed tracing platform for microservices with a modern web UI.",
+    "category":  "Monitoring",
+    "image":  "jaegertracing/all-in-one:latest",
+    "logo":  "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/jaeger.png",
+    "website":  "https://www.jaegertracing.io",
+    "docsUrl":  "https://www.jaegertracing.io/docs/1.55/getting-started/",
+    "ports":  [
+                  {
+                      "host":  16686,
+                      "container":  16686,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  14268,
+                      "container":  14268,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "COLLECTOR_OTLP_ENABLED",
+                        "default":  "true",
+                        "description":  "Enable OTLP receiver"
+                    }
+                ],
+    "version":  "latest"
+}

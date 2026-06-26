@@ -1,0 +1,39 @@
+{
+    "slug":  "redis-exporter",
+    "name":  "Redis Exporter",
+    "description":  "Prometheus exporter for Redis metrics with keyspace, command stats and replication info.",
+    "category":  "Monitoring",
+    "image":  "oliver006/redis_exporter:latest",
+    "logo":  "https://icon.horse/icon/github.com",
+    "website":  "https://github.com/oliver006/redis_exporter",
+    "docsUrl":  "https://github.com/oliver006/redis_exporter#docker",
+    "ports":  [
+                  {
+                      "host":  9121,
+                      "container":  9121,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "REDIS_ADDR",
+                        "default":  "redis://redis:6379",
+                        "description":  "Redis server URL"
+                    },
+                    {
+                        "key":  "REDIS_PASSWORD",
+                        "default":  "",
+                        "description":  "Redis password",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}

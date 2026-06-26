@@ -52,7 +52,7 @@ export type ContainerBackupRun = {
   sourceRunId?: string;
   environmentId: string;
   containerId: string;
-  status: 'running' | 'success' | 'failure';
+  status: 'running' | 'success' | 'failure' | 'cancelled';
   archivePath?: string;
   archiveSize: number;
   archiveEncryption?: string;
@@ -183,6 +183,22 @@ export function useContainerBackupRuns(containerId: string) {
   });
 }
 
+export function useContainerBackupRun(containerId: string, runId?: string) {
+  const envId = useEnvironmentStore((s) => s.currentId);
+  return useQuery({
+    queryKey: ['container-backup-run', envId, containerId, runId],
+    queryFn: () =>
+      api
+        .get<ContainerBackupRun>(
+          `/container-backups/runs/${encodeURIComponent(runId ?? '')}`,
+          envId ? { env: envId } : {},
+        )
+        .then((r) => r.data),
+    enabled: !!containerId && !!runId,
+    refetchInterval: (query) => (query.state.data?.status === 'running' ? 1000 : false),
+  });
+}
+
 export function useRunContainerBackup(containerId: string) {
   const queryClient = useQueryClient();
   const envId = useEnvironmentStore((s) => s.currentId);
@@ -270,6 +286,37 @@ export function useDeleteContainerBackupRun() {
     meta: { success: () => t('backups.toast.runDeleted') },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
+    },
+  });
+}
+
+export function useCancelContainerBackupRun() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('containers');
+
+  return useMutation({
+    mutationFn: (id: string) =>
+      api
+        .post<ContainerBackupRun>(`/container-backups/runs/${id}/cancel`)
+        .then(assertSuccess),
+    meta: { success: () => t('backups.toast.runCancelled') },
+    onSuccess: (run, id) => {
+      // Optimistically reflect the cancelled state in the runs list and
+      // the focused run query so the UI updates without waiting for the
+      // next refetch.
+      queryClient.setQueryData<ContainerBackupRun[]>(
+        ['container-backup-runs'],
+        (current) =>
+          (current ?? []).map((entry) =>
+            entry.id === id ? { ...entry, ...run } : entry,
+          ),
+      );
+      queryClient.setQueryData<ContainerBackupRun>(
+        ['container-backup-run', undefined, undefined, id],
+        (current) => (current ? { ...current, ...run } : run),
+      );
+      queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
+      queryClient.invalidateQueries({ queryKey: ['container-backup-run'] });
     },
   });
 }

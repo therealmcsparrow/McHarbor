@@ -1,0 +1,28 @@
+{
+    "slug":  "swagger-editor",
+    "name":  "Swagger Editor",
+    "description":  "Swagger Editor for designing, defining, and documenting REST APIs in OpenAPI.",
+    "category":  "Developer Tools",
+    "image":  "swaggerapi/swagger-editor:latest",
+    "logo":  "https://icon.horse/icon/editor.swagger.io",
+    "website":  "https://editor.swagger.io",
+    "docsUrl":  "https://github.com/swagger-api/swagger-editor/blob/develop/README.md",
+    "ports":  [
+                  {
+                      "host":  8080,
+                      "container":  8080,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    }
+                ],
+    "version":  "latest"
+}

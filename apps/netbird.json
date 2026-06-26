@@ -1,0 +1,51 @@
+{
+  "slug": "netbird",
+  "name": "NetBird",
+  "description": "Zero-config WireGuard mesh networking with SSO, ACLs, and a management UI.",
+  "category": "Networking",
+  "image": "netbirdio/netbird:latest",
+  "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/netbird.png",
+  "website": "https://netbird.io",
+  "docsUrl": "https://docs.netbird.io",
+  "ports": [
+    {
+      "host": 80,
+      "container": 80,
+      "protocol": "tcp"
+    },
+    {
+      "host": 51820,
+      "container": 51820,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/netbird/config",
+      "container": "/etc/netbird"
+    },
+    {
+      "host": "/opt/appdata/netbird/data",
+      "container": "/var/lib/netbird"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "NB_DOMAIN",
+      "default": "netbird.example.com",
+      "description": "Public domain"
+    },
+    {
+      "key": "NB_LISTEN_ADDRESS",
+      "default": "0.0.0.0:80",
+      "description": "HTTP listen address"
+    },
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "minMemory": "256MB",
+  "version": "latest"
+}

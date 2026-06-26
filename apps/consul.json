@@ -1,0 +1,40 @@
+{
+  "slug": "consul",
+  "name": "HashiCorp Consul",
+  "description": "Service networking platform with service discovery, health checking, and KV store.",
+  "category": "Networking",
+  "image": "hashicorp/consul:latest",
+  "logo": "https://www.consul.io/_astro/consul-logo.DxynKyKW.svg",
+  "website": "https://www.consul.io",
+  "docsUrl": "https://developer.hashicorp.com/consul/docs",
+  "ports": [
+    {
+      "host": 8500,
+      "container": 8500,
+      "protocol": "tcp"
+    },
+    {
+      "host": 8600,
+      "container": 8600,
+      "protocol": "udp"
+    }
+  ],
+  "volumes": [
+    {
+      "host": "/opt/appdata/consul/config",
+      "container": "/consul/config"
+    },
+    {
+      "host": "/opt/appdata/consul/data",
+      "container": "/consul/data"
+    }
+  ],
+  "envVars": [
+    {
+      "key": "TZ",
+      "default": "Etc/UTC",
+      "description": "Timezone"
+    }
+  ],
+  "version": "latest"
+}

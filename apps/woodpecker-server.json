@@ -1,0 +1,52 @@
+{
+    "slug":  "woodpecker-server",
+    "name":  "Woodpecker CI Server",
+    "description":  "Community-driven fork of Drone CI focused on simplicity and extensibility.",
+    "category":  "Developer Tools",
+    "image":  "woodpeckerci/woodpecker-server:latest",
+    "logo":  "https://icon.horse/icon/woodpecker-ci.org",
+    "website":  "https://woodpecker-ci.org",
+    "docsUrl":  "https://woodpecker-ci.org/docs/intro",
+    "ports":  [
+                  {
+                      "host":  8000,
+                      "container":  8000,
+                      "protocol":  "tcp"
+                  },
+                  {
+                      "host":  9000,
+                      "container":  9000,
+                      "protocol":  "tcp"
+                  }
+              ],
+    "volumes":  [
+                    {
+                        "host":  "/opt/appdata/woodpecker-server/data",
+                        "container":  "/var/lib/woodpecker"
+                    }
+                ],
+    "envVars":  [
+                    {
+                        "key":  "TZ",
+                        "default":  "Etc/UTC",
+                        "description":  "Timezone"
+                    },
+                    {
+                        "key":  "WOODPECKER_OPEN",
+                        "default":  "true",
+                        "description":  "Enable open registration"
+                    },
+                    {
+                        "key":  "WOODPECKER_HOST",
+                        "default":  "http://localhost:8000",
+                        "description":  "Public URL of the server"
+                    },
+                    {
+                        "key":  "WOODPECKER_AGENT_SECRET",
+                        "default":  "",
+                        "description":  "Shared secret with agents",
+                        "secret":  true
+                    }
+                ],
+    "version":  "latest"
+}
