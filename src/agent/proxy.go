@@ -44,7 +44,7 @@ type Proxy struct {
 
 // NewProxy creates a new Docker API proxy.
 func NewProxy(dockerHost string, logger *slog.Logger) *Proxy {
-	transport := &http.Transport{}
+	transport := &http.Transport{DisableCompression: true}
 
 	if strings.HasPrefix(dockerHost, "unix://") {
 		socketPath := strings.TrimPrefix(dockerHost, "unix://")
@@ -97,12 +97,12 @@ func (p *Proxy) Prune(ctx context.Context, payload PrunePayload) (PrunePayload, 
 			return 0, 0, fmt.Errorf("prune %s returned status %d: %s", path, resp.StatusCode, strings.TrimSpace(string(respBody)))
 		}
 		var report struct {
-			SpaceReclaimed      int64    `json:"SpaceReclaimed"`
-			ContainersDeleted   []string `json:"ContainersDeleted"`
-			ImagesDeleted       []string `json:"ImagesDeleted"`
-			VolumesDeleted      []string `json:"VolumesDeleted"`
-			NetworksDeleted     []string `json:"NetworksDeleted"`
-			CachesDeleted       []string `json:"CachesDeleted"`
+			SpaceReclaimed    int64    `json:"SpaceReclaimed"`
+			ContainersDeleted []string `json:"ContainersDeleted"`
+			ImagesDeleted     []string `json:"ImagesDeleted"`
+			VolumesDeleted    []string `json:"VolumesDeleted"`
+			NetworksDeleted   []string `json:"NetworksDeleted"`
+			CachesDeleted     []string `json:"CachesDeleted"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&report); err != nil {
 			return 0, 0, fmt.Errorf("decoding prune response: %w", err)

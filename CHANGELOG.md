@@ -2,6 +2,21 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [1.6.4] - 2026-06-27
+
+### Added
+- Added **Edit schedule** action to each entry in the Saved Schedules list on the container Backups tab. Clicking the pencil opens the existing `BackupSelectionFields` form pre-filled with the plan's current name, destinations, log tail, cron, retention count/days, and enabled flag, and PUTs the changes through the existing `PUT /api/container-backups/{planId}` endpoint (which already supports pointer-based partial updates via `UpdateBackupPlanInput`). The "log tail lines" field is now editable from the UI on both create and edit. The save toast (`backups.toast.scheduleUpdated`) confirms success and the plans query is invalidated so the list reflects the new state immediately. New i18n keys `backups.editSchedule`, `backups.editScheduleTitle`, `backups.editScheduleDescription`, `backups.saveChanges`, and `backups.toast.scheduleUpdated` ship in all six locales (en, nl, de, es, fr, pt).
+- Added **container-name resolution** for stale container ids on the agent side. `Proxy.resolveContainerForBackup` inspects by id first and falls back to a `ContainerList`-by-name lookup on 404, mirroring the server-side resolver so an agent-env plan whose `container_id` has rotated (`docker compose up` reassigns ids) is rescued automatically without operator intervention.
+- Added a new `backups.actions.resume` i18n key across all six locales. The containers detail header and container card now render a "Resume" action for paused containers, dispatching to the `unpause` endpoint instead of `start` (which Docker rejects for paused containers with `409 Conflict: Failed to start container`).
+
+### Changed
+- Bumped McHarbor and the remote agent to `1.6.4`.
+- Centralized the agent-env backup upload path. `executeAgentCentralizedBackup` (renamed from `executeAgentLocalBackup`) no longer requires all destinations to be local. The agent now uploads the encrypted archive only to a single McHarbor-side temp path (`$DATA_DIR/backups/containers/<runID>/mcharbor.tar`) via the existing `agent-archives` endpoint, and the McHarbor server runs the same `uploadArchiveDestinations` pipeline as the local flow to fan the archive out to every configured destination (local, OneDrive, SharePoint, ...) in parallel with retry-with-backoff and per-destination byte progress. The agent no longer needs OAuth tokens for OneDrive / SharePoint, the per-destination progress / retry logic that already powered local-env backups now applies to agent-env backups, and the "local destinations only" constraint has been removed. The `canRunAgentCentralizedBackup` pre-flight (renamed from `canRunAgentLocalBackup`) now accepts any destination type.
+
+### Fixed
+- Fixed agent-env backups failing to write the archive with `gzip: invalid checksum` from `archive/tar` during the `mounts/config.tar` entry. The agent's `http.Transport` was using Go's default `DisableCompression: false`, which made Go send `Accept-Encoding: gzip` to the local Docker socket and transparently decompress gzip-encoded responses. Docker returns raw tar bytes from `/containers/{id}/archive`; when Go auto-decompressed the response the stream fed into `archive/tar` had already lost its CRC integrity. `NewProxy` now constructs the transport with `DisableCompression: true` so the agent always receives raw Docker response bytes.
+- Fixed the container detail header and container card sending `POST /containers/{id}/start` when the user clicked the action button on a paused container. Both components now compute the state from `container.State?.Status` and render a "Resume" button (action: `unpause`) for `paused`, "Stop" for `running`, and "Start" only for stopped / exited / created. Previously paused containers were silently routed to `/start` which Docker rejects with `409 Conflict: Failed to start container`.
+
 ## [1.6.3] - 2026-06-26
 
 ### Added
