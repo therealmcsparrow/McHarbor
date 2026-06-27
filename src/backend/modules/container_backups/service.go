@@ -2516,11 +2516,23 @@ func (w *backupProgressWriter) flush() {
 }
 
 func (s *Service) backupDir() string {
-	return filepath.Join(s.dataDir, "backups", "containers")
+	// Always resolve to an absolute path so downstream consumers like
+	// cleanLocalBackupPath (used by the agent-archives upload handler)
+	// accept it. The default DATA_DIR is "./data" (relative), which
+	// would otherwise be rejected by the absolute-path check.
+	abs, err := filepath.Abs(filepath.Join(s.dataDir, "backups", "containers"))
+	if err != nil {
+		return filepath.Join(s.dataDir, "backups", "containers")
+	}
+	return abs
 }
 
 func (s *Service) backupTempDir() string {
-	return filepath.Join(s.dataDir, "backups", "tmp")
+	abs, err := filepath.Abs(filepath.Join(s.dataDir, "backups", "tmp"))
+	if err != nil {
+		return filepath.Join(s.dataDir, "backups", "tmp")
+	}
+	return abs
 }
 
 func (s *Service) hydratePlanStorageLocations(ctx context.Context, plan *BackupPlan) error {

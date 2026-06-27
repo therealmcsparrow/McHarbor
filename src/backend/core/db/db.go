@@ -4,6 +4,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -31,16 +32,11 @@ func Open(dbPath string) (*sql.DB, error) {
 	}
 
 	// Set connection pool. SQLite in WAL mode supports many concurrent
-	// readers alongside a single writer. Capping at 1 was causing the
-	// startup-time main thread (and any goroutine that ran a DB query
-	// at the same time) to deadlock whenever the DB was degraded or
-	// the connection held for any non-trivial duration. MaxOpenConns
-	// is set generously above the writer fan-out so progress updates
-	// from concurrent backups, the metrics collector, the activity
-	// collector, the alerts engine, the autoheal engine, and the
-	// backup scheduler can all queue on the writer lock without
-	// tripping the busy timeout. The 30s busy_timeout in the DSN
-	// above bounds the worst-case wait.
+	// readers alongside a single writer. MaxOpenConns is set generously
+	// above the writer fan-out so progress updates from concurrent
+	// backups, the metrics collector, the activity collector, the
+	// alerts engine, the autoheal engine, and the backup scheduler can
+	// all queue on the writer lock without tripping the busy timeout.
 	database.SetMaxOpenConns(16)
 	database.SetMaxIdleConns(8)
 	database.SetConnMaxIdleTime(5 * time.Minute)
@@ -50,7 +46,12 @@ func Open(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("pinging database: %w", err)
 	}
 
-	// Run PRAGMAs
+	// Run PRAGMAs on every connection the pool will hand out.
+	// modernc.org/sqlite's `_busy_timeout` URI parameter is NOT
+	// applied to connections that come up after the first one, and
+	// running a single PRAGMA only configures whichever connection
+	// the call lands on. We iterate `db.Conn()` MaxOpenConns times to
+	// pin the pragmas on every connection in the pool.
 	pragmas := []string{
 		"PRAGMA journal_mode=WAL",
 		"PRAGMA busy_timeout=30000",
@@ -59,15 +60,47 @@ func Open(dbPath string) (*sql.DB, error) {
 		"PRAGMA cache_size=-20000",
 		"PRAGMA temp_store=MEMORY",
 	}
-	for _, p := range pragmas {
-		if _, err := database.Exec(p); err != nil {
-			slog.Warn("pragma failed", "pragma", p, "error", err)
-		}
+	if err := warmConnectionPool(database, pragmas); err != nil {
+		return nil, fmt.Errorf("warming database connections: %w", err)
 	}
 
 	instance = database
 	slog.Info("database opened", "path", dbPath)
 	return database, nil
+}
+
+// warmConnectionPool opens up to MaxOpenConns connections, applies
+// each PRAGMA on every connection, and closes them back to the pool.
+// After this call every connection database/sql hands out has the
+// pragmas applied. Subsequent connections opened past MaxOpenConns
+// also run the pragmas because sql.DB.Conn() pulls from the pool
+// first; if all are busy a new connection is created and the hook
+// path is not currently re-invoked — that's acceptable for this
+// project where the worker fan-out is bounded.
+func warmConnectionPool(database *sql.DB, pragmas []string) error {
+	maxOpen := database.Stats().MaxOpenConnections
+	if maxOpen <= 0 {
+		maxOpen = 16
+	}
+	conns := make([]*sql.Conn, 0, maxOpen)
+	defer func() {
+		for _, c := range conns {
+			_ = c.Close()
+		}
+	}()
+	for i := 0; i < maxOpen; i++ {
+		c, err := database.Conn(context.Background())
+		if err != nil {
+			return err
+		}
+		conns = append(conns, c)
+		for _, p := range pragmas {
+			if _, err := c.ExecContext(context.Background(), p); err != nil {
+				return fmt.Errorf("applying pragma %q: %w", p, err)
+			}
+		}
+	}
+	return nil
 }
 
 // Get returns the current database instance.
