@@ -24,7 +24,7 @@ func Open(dbPath string) (*sql.DB, error) {
 		return nil, fmt.Errorf("creating database directory: %w", err)
 	}
 
-	dsn := fmt.Sprintf("file:%s?_journal_mode=WAL&_busy_timeout=5000&_foreign_keys=ON&_synchronous=NORMAL", dbPath)
+	dsn := fmt.Sprintf("file:%s?_journal_mode=WAL&_busy_timeout=30000&_foreign_keys=ON&_synchronous=NORMAL", dbPath)
 	database, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("opening database: %w", err)
@@ -34,9 +34,15 @@ func Open(dbPath string) (*sql.DB, error) {
 	// readers alongside a single writer. Capping at 1 was causing the
 	// startup-time main thread (and any goroutine that ran a DB query
 	// at the same time) to deadlock whenever the DB was degraded or
-	// the connection held for any non-trivial duration.
-	database.SetMaxOpenConns(8)
-	database.SetMaxIdleConns(4)
+	// the connection held for any non-trivial duration. MaxOpenConns
+	// is set generously above the writer fan-out so progress updates
+	// from concurrent backups, the metrics collector, the activity
+	// collector, the alerts engine, the autoheal engine, and the
+	// backup scheduler can all queue on the writer lock without
+	// tripping the busy timeout. The 30s busy_timeout in the DSN
+	// above bounds the worst-case wait.
+	database.SetMaxOpenConns(16)
+	database.SetMaxIdleConns(8)
 	database.SetConnMaxIdleTime(5 * time.Minute)
 
 	// Verify connection
@@ -47,7 +53,7 @@ func Open(dbPath string) (*sql.DB, error) {
 	// Run PRAGMAs
 	pragmas := []string{
 		"PRAGMA journal_mode=WAL",
-		"PRAGMA busy_timeout=5000",
+		"PRAGMA busy_timeout=30000",
 		"PRAGMA foreign_keys=ON",
 		"PRAGMA synchronous=NORMAL",
 		"PRAGMA cache_size=-20000",

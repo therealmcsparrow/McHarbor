@@ -436,7 +436,7 @@ func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]Ba
 func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID string) error {
 	cutoff := time.Now().UTC().Add(-backupRunProgressStaleAfter).Format(time.RFC3339)
 	query := `
-		SELECT id, started_at
+		SELECT id, started_at, COALESCE(environment_id, ''), COALESCE(container_id, '')
 		FROM container_backup_runs
 		WHERE status = 'running'
 		  AND COALESCE(operation, 'backup') = 'backup'
@@ -458,13 +458,15 @@ func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID s
 	}
 
 	type abandonedRun struct {
-		id      string
-		started string
+		id           string
+		started      string
+		environmentID string
+		containerID  string
 	}
 	runs := []abandonedRun{}
 	for rows.Next() {
 		var run abandonedRun
-		if err := rows.Scan(&run.id, &run.started); err != nil {
+		if err := rows.Scan(&run.id, &run.started, &run.environmentID, &run.containerID); err != nil {
 			rows.Close()
 			return fmt.Errorf("scanning abandoned backup run: %w", err)
 		}
@@ -482,6 +484,13 @@ func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID s
 		if backupRunIsActive(run.id) {
 			continue
 		}
+		// Best-effort unpause before finalising so a backup that crashed
+		// during the archive-write phase does not leave the container in a
+		// paused state on the Docker daemon. We use a fresh background
+		// context so a near-deadline parent does not cancel the release.
+		if run.environmentID != "" && run.containerID != "" {
+			s.releaseStuckContainerPause(run.environmentID, run.containerID)
+		}
 		if err := s.recoverAbandonedRun(ctx, run.id); err != nil && s.logger != nil {
 			s.logger.Warn("container backup abandoned run recovery failed", "run", run.id, "started", run.started, "error", err)
 		}
@@ -493,6 +502,35 @@ func (s *Service) RecoverAbandonedRuns(ctx context.Context, envID, containerID s
 		return err
 	}
 	return nil
+}
+
+// releaseStuckContainerPause asks the Docker daemon (or remote agent) to
+// unpause a container that was paused for snapshot consistency before the
+// backup goroutine crashed. Errors are swallowed: a 404 / 304 / "not paused"
+// response means the container is already in a healthy state and the
+// orphaned pause is gone.
+func (s *Service) releaseStuckContainerPause(envID, containerID string) {
+	if s.pool == nil {
+		return
+	}
+	cli, err := s.pool.Get(envID)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Debug("abandoned backup: docker client unavailable for unpause", "env", envID, "container", containerID, "error", err)
+		}
+		return
+	}
+	unpauseCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := cli.ContainerUnpause(unpauseCtx, containerID); err != nil {
+		if s.logger != nil {
+			s.logger.Info("abandoned backup: release paused container", "container", containerID, "result", err.Error())
+		}
+		return
+	}
+	if s.logger != nil {
+		s.logger.Info("abandoned backup: released stuck container pause", "env", envID, "container", containerID)
+	}
 }
 
 // RunPlan executes a saved backup plan synchronously.
@@ -594,8 +632,8 @@ func (s *Service) executeRun(ctx context.Context, plan *BackupPlan, runID string
 	done := markBackupRunActive(runID)
 	defer done()
 
-	if s.canRunAgentLocalBackup(ctx, plan) {
-		return s.executeAgentLocalBackup(ctx, plan, runID)
+	if s.canRunAgentCentralizedBackup(ctx, plan) {
+		return s.executeAgentCentralizedBackup(ctx, plan, runID)
 	}
 
 	archive, execErr := s.writeArchive(ctx, plan, runID)
@@ -605,7 +643,14 @@ func (s *Service) executeRun(ctx context.Context, plan *BackupPlan, runID string
 	return s.finishRun(ctx, runID, archive, execErr)
 }
 
-func (s *Service) canRunAgentLocalBackup(ctx context.Context, plan *BackupPlan) bool {
+// canRunAgentCentralizedBackup reports whether this plan should run through
+// the agent-centralized pipeline: the agent creates the archive on the
+// remote host, uploads it to a McHarbor-side temp path, and then the
+// McHarbor server fans the archive out to every configured destination.
+// This works for any destination type (local, OneDrive, SharePoint, ...)
+// because the agent only needs to talk to the McHarbor server, never to
+// the destination directly.
+func (s *Service) canRunAgentCentralizedBackup(ctx context.Context, plan *BackupPlan) bool {
 	if s.backupCrypto == nil || plan == nil || !s.pool.IsAgentEnv(plan.EnvironmentID) || !s.pool.AgentAtLeast(plan.EnvironmentID, agentBackupMinVersion) {
 		return false
 	}
@@ -617,58 +662,59 @@ func (s *Service) canRunAgentLocalBackup(ctx context.Context, plan *BackupPlan) 
 	if err != nil || len(locations) != len(ids) {
 		return false
 	}
-	for _, location := range locations {
-		if location.LocationType != "local" {
-			return false
-		}
-	}
 	return true
 }
 
-func (s *Service) executeAgentLocalBackup(ctx context.Context, plan *BackupPlan, runID string) (*BackupRun, error) {
-	locations, err := s.backupStorageDestinations(ctx, backupStorageLocationIDs(plan.StorageLocationID, plan.StorageLocationIDs))
-	if err != nil {
-		return s.finishRun(ctx, runID, archiveResult{}, err)
-	}
-	if len(locations) == 0 {
-		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("backup storage location is required for agent-side backup"))
-	}
+// executeAgentCentralizedBackup drives an agent-side backup through the
+// centralized-upload pipeline:
+//
+//  1. Pre-compute the McHarbor-side temp archive path ($DATA_DIR/backups/
+//     containers/<runID>/mcharbor.tar) so the agent has a single,
+//     known upload target.
+//  2. Hand the agent a one-use upload transfer entry pointing at the
+//     temp path; the agent creates the encrypted archive on its local
+//     host and uploads it once via the standard agent-archives
+//     endpoint, which lands the file on McHarbor.
+//  3. After the agent completes, hand the on-disk archive to the
+//     existing uploadArchiveDestinations pipeline, which fans it out
+//     to every configured destination (local, OneDrive, SharePoint,
+//     ...) in parallel with per-destination retry and progress.
+//
+// The agent no longer needs OAuth tokens for OneDrive/SharePoint — the
+// server side already holds them — and the per-destination progress /
+// retry logic that already powers local-env backups is now reused
+// verbatim for agent-env backups.
+func (s *Service) executeAgentCentralizedBackup(ctx context.Context, plan *BackupPlan, runID string) (*BackupRun, error) {
 	agentConn, ok := s.pool.AgentConnection(plan.EnvironmentID)
 	if !ok || agentConn.Transport == nil {
 		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("agent not connected for environment %s", plan.EnvironmentID))
 	}
+	if err := os.MkdirAll(s.backupDir(), 0750); err != nil {
+		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("creating backup directory: %w", err))
+	}
+	runDir := filepath.Join(s.backupDir(), safeArchiveName.ReplaceAllString(runID, "-"))
+	if err := os.MkdirAll(runDir, 0750); err != nil {
+		return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("creating backup run directory: %w", err))
+	}
+	tempArchivePath := filepath.Join(runDir, "mcharbor.tar")
 
-	destinations := make([]coreagent.BackupStorageDestination, 0, len(locations))
-	destinationIDs := make(map[string]string, len(locations))
-	remotePaths := make(map[string]string, len(locations))
-	for _, location := range locations {
-		remotePath := backupStorageRemotePath(location, plan, runID)
-		destinationID, createErr := s.createRunDestination(ctx, runID, location, remotePath)
-		if createErr != nil {
-			return s.finishRun(ctx, runID, archiveResult{}, createErr)
-		}
-		destinationIDs[location.ID] = destinationID
-		remotePaths[location.ID] = remotePath
-		if !location.Enabled {
-			uploadErr := fmt.Errorf("backup storage location is disabled")
-			if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", uploadErr); markErr != nil && s.logger != nil {
-				s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
-			}
-			return s.finishRun(ctx, runID, archiveResult{}, fmt.Errorf("uploading backup destination %s: %w", location.Name, uploadErr))
-		}
-		entry, transferErr := agentArchiveTransfers.createUpload(runID, remotePath)
-		if transferErr != nil {
-			return s.finishRun(ctx, runID, archiveResult{}, transferErr)
-		}
-		defer agentArchiveTransfers.cancel(entry.ID)
-		destinations = append(destinations, coreagent.BackupStorageDestination{
-			ID:           location.ID,
-			Name:         location.Name,
-			LocationType: location.LocationType,
-			UploadURL:    "/api/container-backups/internal/agent-archives/" + entry.ID,
-			Token:        entry.Token,
-			RemotePath:   remotePath,
-		})
+	entry, transferErr := agentArchiveTransfers.createUpload(runID, tempArchivePath)
+	if transferErr != nil {
+		return s.finishRun(ctx, runID, archiveResult{}, transferErr)
+	}
+	defer agentArchiveTransfers.cancel(entry.ID)
+
+	// The agent receives a single StorageDestination pointing at the
+	// McHarbor-side temp path. It does not need to know about the
+	// user's real storage locations; the server-side fan-out handles
+	// them after the upload completes.
+	destination := coreagent.BackupStorageDestination{
+		ID:           "mcharbor-temp",
+		Name:         "mcharbor-temp",
+		LocationType: "local",
+		UploadURL:    "/api/container-backups/internal/agent-archives/" + entry.ID,
+		Token:        entry.Token,
+		RemotePath:   tempArchivePath,
 	}
 
 	payload := coreagent.BackupPayload{
@@ -681,7 +727,7 @@ func (s *Service) executeAgentLocalBackup(ctx context.Context, plan *BackupPlan,
 		IncludeImage:        plan.IncludeImage,
 		SelectedMounts:      plan.SelectedMounts,
 		EncryptionKey:       s.backupCrypto.KeyMaterialBase64(),
-		StorageDestinations: destinations,
+		StorageDestinations: []coreagent.BackupStorageDestination{destination},
 	}
 	s.updateRunProgress(ctx, runID, "agent_backup", "Agent is creating the backup archive locally.")
 	result, execErr := agentConn.Transport.StartBackupRun(ctx, payload, func(progress coreagent.BackupPayload) {
@@ -693,27 +739,22 @@ func (s *Service) executeAgentLocalBackup(ctx context.Context, plan *BackupPlan,
 		s.updateRunProgress(ctx, runID, stage, message)
 	})
 
-	archive := archiveResult{encryption: backupcrypto.Algorithm, keyID: s.backupCrypto.KeyID()}
+	archive := archiveResult{
+		path:       tempArchivePath,
+		encryption: backupcrypto.Algorithm,
+		keyID:      s.backupCrypto.KeyID(),
+	}
 	if result != nil {
 		archive.size = result.Size
 	}
-	for _, location := range locations {
-		destinationID := destinationIDs[location.ID]
-		remotePath := remotePaths[location.ID]
-		if execErr != nil {
-			if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", execErr); markErr != nil && s.logger != nil {
-				s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
-			}
-			continue
-		}
-		if archive.path == "" {
-			archive.path = remotePath
-		}
-		if err := s.finishRunDestination(ctx, destinationID, "success", remotePath, nil); err != nil && execErr == nil {
-			execErr = err
-		}
+	if execErr != nil {
+		return s.finishRun(ctx, runID, archive, execErr)
 	}
-	return s.finishRun(ctx, runID, archive, execErr)
+	// Fan the on-disk archive out to every configured destination in
+	// parallel. uploadArchiveDestinations creates the per-destination
+	// rows, runs the upload, and writes success/failure per destination.
+	uploadErr := s.uploadArchiveDestinations(ctx, plan, runID, archive)
+	return s.finishRun(ctx, runID, archive, uploadErr)
 }
 
 func (s *Service) startBackgroundRun(plan *BackupPlan, runID string) {

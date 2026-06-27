@@ -60,6 +60,7 @@ export function ContainerCard({
   const { t: tc } = useTranslation('common');
   const name = c.Names?.[0]?.replace(/^\//, '') ?? c.Id.slice(0, 12);
   const isRunning = c.State === 'running';
+  const isPaused = c.State === 'paused';
   const locked = isProtectedContainer(c);
   const webUrl = isRunning ? getContainerWebUrl(c.Ports) : null;
   const ip = getContainerIP(c);
@@ -161,6 +162,13 @@ export function ContainerCard({
             onClick={() => onAction(c.Id, 'stop')}
             disabled={locked}
             icon={<IconPlayerStop className="h-3.5 w-3.5 text-amber-500" />}
+          />
+        ) : isPaused ? (
+          <ActionButton
+            label={t('actions.resume')}
+            onClick={() => onAction(c.Id, 'unpause')}
+            disabled={locked}
+            icon={<IconPlayerPlay className="h-3.5 w-3.5 text-emerald-500" />}
           />
         ) : (
           <ActionButton

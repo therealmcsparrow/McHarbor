@@ -158,6 +158,20 @@ export function BackupSelectionFields({
               label={t("backups.scheduleReadable")}
               hint={t("backups.cronHint")}
             />
+            <div>
+              <Label className="mb-1 text-xs text-muted-foreground">
+                {t("backups.logTailLines")}
+              </Label>
+              <NumberInput
+                value={value.logTailLines ?? 10000}
+                onChange={(logTailLines) => onChange({ logTailLines })}
+                min={0}
+                size="sm"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("backups.logTailLinesHint")}
+              </p>
+            </div>
             <div className="rounded-lg border border-border bg-background p-3">
               <div className="mb-3">
                 <h3 className="text-sm font-medium text-foreground">

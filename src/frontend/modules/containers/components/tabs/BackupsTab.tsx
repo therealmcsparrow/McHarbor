@@ -11,6 +11,7 @@ import {
   IconClock,
   IconDatabaseExport,
   IconDownload,
+  IconPencil,
   IconPlayerPlay,
   IconPlayerStop,
   IconRestore,
@@ -56,6 +57,7 @@ import {
   useRestoreContainerBackup,
   useRunContainerBackup,
   useRunContainerBackupPlan,
+  useUpdateContainerBackupPlan,
   useUploadRestoreContainerBackup,
 } from "../../hooks/useContainerBackups";
 
@@ -130,6 +132,24 @@ function withMandatoryStorage(
     ...input,
     storageLocationId: input.storageLocationId || storageLocationId,
     storageLocationIds,
+  };
+}
+
+function planToInput(plan: ContainerBackupPlan): ContainerBackupInput {
+  return {
+    name: plan.name,
+    storageLocationId: plan.storageLocationId ?? plan.storageLocationIds[0] ?? "",
+    storageLocationIds: plan.storageLocationIds ?? [],
+    includeConfig: plan.includeConfig,
+    includeLogs: plan.includeLogs,
+    includeFilesystem: plan.includeFilesystem,
+    includeImage: plan.includeImage,
+    selectedMounts: plan.selectedMounts ?? [],
+    logTailLines: plan.logTailLines,
+    cron: plan.cron ?? "",
+    enabled: plan.enabled,
+    retentionCount: plan.retentionCount,
+    retentionDays: plan.retentionDays,
   };
 }
 
@@ -365,6 +385,7 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
     useStorageLocations();
   const runManual = useRunContainerBackup(containerId);
   const createPlan = useCreateContainerBackupPlan(containerId);
+  const updatePlan = useUpdateContainerBackupPlan();
   const runPlan = useRunContainerBackupPlan();
   const deletePlan = useDeleteContainerBackupPlan();
   const deleteRun = useDeleteContainerBackupRun();
@@ -379,6 +400,8 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
   });
   const [manualOpen, setManualOpen] = useState(true);
   const [scheduleOpen, setScheduleOpen] = useState(true);
+  const [editTarget, setEditTarget] = useState<ContainerBackupPlan | null>(null);
+  const [editInput, setEditInput] = useState<ContainerBackupInput>(DEFAULT_INPUT);
   const [deleteTarget, setDeleteTarget] = useState<ContainerBackupPlan | null>(
     null,
   );
@@ -451,6 +474,37 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
       ),
     );
   }, [containerName, options, requiredLocalStorageId]);
+
+  useEffect(() => {
+    if (!editTarget) return;
+    setEditInput(
+      withMandatoryStorage(planToInput(editTarget), requiredLocalStorageId),
+    );
+  }, [editTarget, requiredLocalStorageId]);
+
+  function updateEditInput(patch: Partial<ContainerBackupInput>) {
+    setEditInput((current) =>
+      withMandatoryStorage({ ...current, ...patch }, requiredLocalStorageId),
+    );
+  }
+
+  function openEditPlan(plan: ContainerBackupPlan) {
+    setEditTarget(plan);
+  }
+
+  function closeEditPlan() {
+    setEditTarget(null);
+  }
+
+  function saveEditPlan() {
+    if (!editTarget) return;
+    updatePlan.mutate(
+      { id: editTarget.id, body: editInput },
+      {
+        onSuccess: () => setEditTarget(null),
+      },
+    );
+  }
 
   useEffect(() => {
     if (!restoreOptions) return;
@@ -741,6 +795,15 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
                       <Button
                         variant="ghost"
                         size="icon-sm"
+                        aria-label={t("backups.editSchedule")}
+                        onClick={() => openEditPlan(plan)}
+                        disabled={updatePlan.isPending}
+                      >
+                        <IconPencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
                         aria-label={t("backups.deleteSchedule")}
                         onClick={() => setDeleteTarget(plan)}
                       >
@@ -899,6 +962,54 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
             });
           }}
         />
+      )}
+      {editTarget && (
+        <Dialog
+          open={!!editTarget}
+          onOpenChange={(open) => {
+            if (!open && !updatePlan.isPending) closeEditPlan();
+          }}
+        >
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{t("backups.editScheduleTitle")}</DialogTitle>
+              <DialogDescription>
+                {t("backups.editScheduleDescription")}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogBody className="space-y-4">
+              <BackupSelectionFields
+                value={editInput}
+                options={options}
+                storageLocations={storageLocations}
+                mandatoryStorageLocationId={requiredLocalStorageId}
+                showCron
+                onChange={updateEditInput}
+              />
+            </DialogBody>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={closeEditPlan}
+                disabled={updatePlan.isPending}
+              >
+                {t("backups.cancelRestore")}
+              </Button>
+              <Button
+                onClick={saveEditPlan}
+                disabled={
+                  updatePlan.isPending ||
+                  editInput.name.trim() === "" ||
+                  !editInput.cron?.trim()
+                }
+              >
+                {updatePlan.isPending
+                  ? t("backups.saving")
+                  : t("backups.saveChanges")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
       {deleteRunTarget && (
         <ConfirmDialog

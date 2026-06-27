@@ -46,6 +46,7 @@ func (s *Scheduler) check(ctx context.Context, now time.Time) {
 	rows, err := s.service.db.QueryContext(ctx, `
 		SELECT id, name, environment_id, container_id, container_name, COALESCE(storage_location_id, ''),
 		       include_config, include_logs, include_filesystem, include_image, selected_mounts,
+		       log_tail_lines,
 		       COALESCE(cron, ''), enabled, retention_count, retention_days, COALESCE(last_run_at, ''), COALESCE(next_run_at, ''),
 		       created_at, updated_at
 		FROM container_backup_plans

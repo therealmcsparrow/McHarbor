@@ -39,6 +39,7 @@
     "restart": "Neustarten",
     "pause": "Pausieren",
     "kill": "Beenden",
+    "resume": "Fortsetzen",
     "remove": "Entfernen",
     "terminal": "Terminal",
     "logs": "Protokolle",
@@ -444,6 +445,8 @@
     "cron": "Zeitplan",
     "scheduleReadable": "Zeitplan",
     "cronHint": "Nutzen Sie die lesbaren Felder oder wechseln Sie bei Bedarf zu erweitertem Cron.",
+    "logTailLines": "Log-Zeilen",
+    "logTailLinesHint": "Maximale Anzahl aktueller Log-Zeilen, die in jedes Backup aufgenommen werden. 0 behält das alte 'Alle'-Verhalten; Standard ist 10000.",
     "whatToBackup": "Was sichern",
     "manualTitle": "Manuelles Backup",
     "manualDescription": "Jetzt ein Archiv dieses Containers erstellen.",
@@ -737,3 +740,4 @@
     }
   }
 }
+

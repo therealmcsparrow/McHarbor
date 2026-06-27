@@ -39,6 +39,7 @@
     "restart": "Reanudar",
     "pause": "Pausa",
     "kill": "Matar",
+    "resume": "Reanudar",
     "remove": "Eliminar",
     "terminal": "Terminal",
     "logs": "Registros",
@@ -433,6 +434,8 @@
     "cron": "Programacion",
     "scheduleReadable": "Programacion",
     "cronHint": "Use los controles legibles, o cambie a cron avanzado cuando sea necesario.",
+    "logTailLines": "Lineas de registro",
+    "logTailLinesHint": "Numero maximo de lineas de registro recientes incluidas en cada copia. 0 mantiene el comportamiento 'todas' antiguo; el valor predeterminado es 10000.",
     "whatToBackup": "Que copiar",
     "manualTitle": "Copia manual",
     "manualDescription": "Crear ahora un archivo de este contenedor.",
@@ -715,3 +718,4 @@
     }
   }
 }
+

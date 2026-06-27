@@ -271,6 +271,93 @@ func (p *Proxy) InspectContainer(ctx context.Context, containerID string) (Docke
 	return inspect, nil
 }
 
+// dockerContainerListEntry is a subset of the Docker /containers/json
+// response we need to fall back to a name-based lookup when the plan's
+// stored container id has rotated (typical of `docker compose up`).
+type dockerContainerListEntry struct {
+	ID    string   `json:"Id"`
+	Names []string `json:"Names"`
+}
+
+// ListContainersByName returns the live id of the container whose name
+// matches `name` (without the leading slash) or "" if no match is found.
+// Used as the fallback path of resolveContainerForBackup when the
+// stored container id no longer exists.
+func (p *Proxy) ListContainersByName(ctx context.Context, name string) (string, error) {
+	name = strings.TrimPrefix(strings.TrimSpace(name), "/")
+	if name == "" {
+		return "", nil
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://docker/containers/json?all=1", nil)
+	if err != nil {
+		return "", fmt.Errorf("building container list request: %w", err)
+	}
+	resp, err := p.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("listing containers: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+		return "", fmt.Errorf("listing containers returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(body)))
+	}
+	var entries []dockerContainerListEntry
+	if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+		return "", fmt.Errorf("decoding container list: %w", err)
+	}
+	for _, entry := range entries {
+		for _, rawName := range entry.Names {
+			if strings.TrimPrefix(rawName, "/") == name {
+				return entry.ID, nil
+			}
+		}
+	}
+	return "", nil
+}
+
+// resolveContainerForBackup looks up the live container for `payload`.
+// It tries ContainerInspect first; on 404 (e.g. the stored id has been
+// rotated by `docker compose up`) it falls back to a name-based lookup
+// against ContainerList. The returned id is what subsequent pause/
+// export/copy operations should use, and the original payload is
+// unchanged so the manifest inside the archive keeps recording the
+// plan's stored id for traceability.
+func (p *Proxy) resolveContainerForBackup(ctx context.Context, payload BackupPayload) (DockerContainerInspect, string, error) {
+	inspect, err := p.InspectContainer(ctx, payload.ContainerID)
+	if err == nil {
+		return inspect, payload.ContainerID, nil
+	}
+	if !isContainerNotFound(err) {
+		return DockerContainerInspect{}, payload.ContainerID, err
+	}
+	if payload.ContainerName == "" {
+		return DockerContainerInspect{}, payload.ContainerID, fmt.Errorf("inspecting container for backup: %w", err)
+	}
+	resolvedID, listErr := p.ListContainersByName(ctx, payload.ContainerName)
+	if listErr != nil {
+		return DockerContainerInspect{}, payload.ContainerID, fmt.Errorf("resolving container by name: %w", listErr)
+	}
+	if resolvedID == "" {
+		return DockerContainerInspect{}, payload.ContainerID, fmt.Errorf("no live container named %q for backup", payload.ContainerName)
+	}
+	inspect, err = p.InspectContainer(ctx, resolvedID)
+	if err != nil {
+		return DockerContainerInspect{}, resolvedID, fmt.Errorf("inspecting resolved container %s: %w", resolvedID, err)
+	}
+	return inspect, resolvedID, nil
+}
+
+// isContainerNotFound reports whether `err` from InspectContainer is a
+// 404 / "No such container" response. Anything else (network error,
+// 500, decode failure, etc.) is treated as a hard error.
+func isContainerNotFound(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "returned status 404") || strings.Contains(msg, "No such container")
+}
+
 func (p *Proxy) ContainerLogs(ctx context.Context, containerID string) (io.ReadCloser, error) {
 	containerID = strings.TrimSpace(containerID)
 	if containerID == "" {

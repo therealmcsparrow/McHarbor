@@ -39,6 +39,7 @@
     "restart": "Restart",
     "pause": "Pause",
     "kill": "Kill",
+    "resume": "Resume",
     "remove": "Remove",
     "terminal": "Terminal",
     "logs": "Logs",
@@ -444,6 +445,8 @@
     "cron": "Schedule",
     "scheduleReadable": "Schedule",
     "cronHint": "Use the readable controls, or switch to advanced cron when needed.",
+    "logTailLines": "Log tail lines",
+    "logTailLinesHint": "Maximum number of recent log lines included in each backup. 0 keeps the legacy 'all' behavior; default is 10000.",
     "whatToBackup": "What to backup",
     "manualTitle": "Manual backup",
     "manualDescription": "Create an archive from this container now.",
@@ -547,6 +550,10 @@
     },
     "deleteScheduleTitle": "Delete backup schedule",
     "deleteScheduleDescription": "This removes the schedule. Existing backup archives are not deleted.",
+    "editSchedule": "Edit schedule",
+    "editScheduleTitle": "Edit backup schedule",
+    "editScheduleDescription": "Update what is included, where it is stored, and how often the schedule runs. Existing backup archives are not modified.",
+    "saveChanges": "Save changes",
     "deleteRunTitle": "Delete backup?",
     "deleteRunDescription": "This permanently deletes the backup run and its local archive file when present. This action cannot be undone.",
     "cancelRun": "Cancel",
@@ -556,6 +563,7 @@
     "toast": {
       "started": "Backup started",
       "scheduleCreated": "Backup schedule saved",
+      "scheduleUpdated": "Backup schedule updated",
       "scheduleDeleted": "Backup schedule deleted",
       "runDeleted": "Backup deleted",
       "runCancelled": "Backup cancelled",
@@ -737,3 +745,4 @@
     }
   }
 }
+

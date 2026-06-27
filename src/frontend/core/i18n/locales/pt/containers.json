@@ -39,6 +39,7 @@
     "restart": "Reiniciar",
     "pause": "Pausa",
     "kill": "Matar",
+    "resume": "Retomar",
     "remove": "Remover",
     "terminal": "terminal",
     "logs": "Registros",
@@ -433,6 +434,8 @@
     "cron": "Agenda",
     "scheduleReadable": "Agenda",
     "cronHint": "Use os controles legiveis, ou mude para cron avancado quando necessario.",
+    "logTailLines": "Linhas de log",
+    "logTailLinesHint": "Numero maximo de linhas de log recentes incluidas em cada backup. 0 mantem o comportamento antigo 'todas'; o padrao e 10000.",
     "whatToBackup": "O que salvar",
     "manualTitle": "Backup manual",
     "manualDescription": "Criar agora um arquivo deste container.",
@@ -715,3 +718,4 @@
     }
   }
 }
+

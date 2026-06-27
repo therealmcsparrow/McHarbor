@@ -39,6 +39,7 @@
     "restart": "Herstarten",
     "pause": "Pauzeren",
     "kill": "Beëindigen",
+    "resume": "Hervatten",
     "remove": "Verwijderen",
     "terminal": "Terminal",
     "logs": "Logboeken",
@@ -444,6 +445,8 @@
     "cron": "Schema",
     "scheduleReadable": "Schema",
     "cronHint": "Gebruik de leesbare velden, of schakel naar geavanceerde cron wanneer nodig.",
+    "logTailLines": "Logregels",
+    "logTailLinesHint": "Maximum aantal recente logregels dat in elke back-up wordt opgenomen. 0 behoudt het oude 'alles'-gedrag; standaard is 10000.",
     "whatToBackup": "Wat back-uppen",
     "manualTitle": "Handmatige back-up",
     "manualDescription": "Maak nu een archief van deze container.",
@@ -547,6 +550,10 @@
     },
     "deleteScheduleTitle": "Back-upschema verwijderen",
     "deleteScheduleDescription": "Dit verwijdert het schema. Bestaande back-uparchieven worden niet verwijderd.",
+    "editSchedule": "Schema bewerken",
+    "editScheduleTitle": "Back-upschema bewerken",
+    "editScheduleDescription": "Wijzig wat er wordt meegenomen, waar het wordt opgeslagen en hoe vaak het schema draait. Bestaande back-uparchieven worden niet aangepast.",
+    "saveChanges": "Wijzigingen opslaan",
     "deleteRunTitle": "Back-up verwijderen?",
     "deleteRunDescription": "Dit verwijdert de back-uprun en het lokale archiefbestand permanent wanneer aanwezig. Deze actie kan niet ongedaan worden gemaakt.",
     "cancelRun": "Annuleren",
@@ -556,6 +563,7 @@
     "toast": {
       "started": "Back-up gestart",
       "scheduleCreated": "Back-upschema opgeslagen",
+      "scheduleUpdated": "Back-upschema bijgewerkt",
       "scheduleDeleted": "Back-upschema verwijderd",
       "runDeleted": "Back-up verwijderd",
       "runCancelled": "Back-up geannuleerd",
@@ -737,3 +745,4 @@
     }
   }
 }
+

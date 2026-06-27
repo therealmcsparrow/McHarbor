@@ -172,9 +172,19 @@ func unpauseAgentContainerAfterBackup(ctx context.Context, proxy *Proxy, contain
 
 func (a *Agent) writeAgentBackupArchive(ctx context.Context, conn *websocket.Conn, writer io.Writer, cryptoSvc *backupCryptoService, payload BackupPayload) error {
 	sendBackupProgress(conn, payload.TransferID, "agent_backup", "", 0, 0)
-	inspect, err := a.proxy.InspectContainer(ctx, payload.ContainerID)
+	inspect, resolvedID, err := a.proxy.resolveContainerForBackup(ctx, payload)
 	if err != nil {
 		return err
+	}
+	if resolvedID != payload.ContainerID {
+		a.logger.Info(
+			"agent backup: resolved stale container id to current id (Compose restart likely)",
+			"transfer", payload.TransferID,
+			"old_id", payload.ContainerID,
+			"new_id", resolvedID,
+		)
+		// Subsequent operations (pause, export, copy) need the live id.
+		payload.ContainerID = resolvedID
 	}
 	encryptedWriter, _, err := cryptoSvc.EncryptWriter(writer)
 	if err != nil {

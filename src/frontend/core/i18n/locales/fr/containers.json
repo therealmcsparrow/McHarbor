@@ -39,6 +39,7 @@
     "restart": "Redémarrage",
     "pause": "Pause",
     "kill": "Tuer",
+    "resume": "Reprendre",
     "remove": "Retirer",
     "terminal": "Terminal",
     "logs": "Journaux",
@@ -433,6 +434,8 @@
     "cron": "Planification",
     "scheduleReadable": "Planification",
     "cronHint": "Utilisez les controles lisibles, ou passez au cron avance si necessaire.",
+    "logTailLines": "Lignes de journal",
+    "logTailLinesHint": "Nombre maximum de lignes de journal recentes incluses dans chaque sauvegarde. 0 conserve l'ancien comportement 'toutes'; la valeur par defaut est 10000.",
     "whatToBackup": "Elements a sauvegarder",
     "manualTitle": "Sauvegarde manuelle",
     "manualDescription": "Creer maintenant une archive de ce conteneur.",
@@ -715,3 +718,4 @@
     }
   }
 }
+

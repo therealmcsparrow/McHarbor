@@ -121,6 +121,7 @@ export default function ContainerDetailPage() {
   }
   const name = (container.Name ?? '').replace(/^\//, '');
   const isRunning = (container.State?.Status ?? 'unknown') === 'running';
+  const isPaused = (container.State?.Status ?? 'unknown') === 'paused';
   const webURL = isRunning ? getInspectWebUrl(container.NetworkSettings?.Ports) : null;
   const linkedStackName = stackLink?.stackName ?? container.Config?.Labels?.['com.docker.compose.project'] ?? null;
   const isComposeManaged = !!container.Config?.Labels?.['com.docker.compose.project'];
@@ -135,6 +136,7 @@ export default function ContainerDetailPage() {
           <ContainerDetailHeader
             container={container}
             isRunning={isRunning}
+            isPaused={isPaused}
             name={name}
             webUrl={webURL}
             editing={edit.editing}

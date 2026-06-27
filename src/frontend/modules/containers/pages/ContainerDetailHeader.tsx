@@ -106,6 +106,7 @@ function HeaderActionButton({
 type ContainerDetailHeaderProps = {
   container: ContainerInspect;
   isRunning: boolean;
+  isPaused: boolean;
   name: string;
   webUrl: string | null;
   editing: boolean;
@@ -129,6 +130,7 @@ type ContainerDetailHeaderProps = {
 export function ContainerDetailHeader({
   container,
   isRunning,
+  isPaused,
   name,
   webUrl,
   editing,
@@ -254,6 +256,14 @@ export function ContainerDetailHeader({
                 onClick={() => onAction('stop')}
                 disabled={actionLocked}
                 icon={<IconPlayerStop className="size-3.5" />}
+              />
+            ) : isPaused ? (
+              <HeaderActionButton
+                tooltip={t('actions.resume')}
+                onClick={() => onAction('unpause')}
+                variant="default"
+                disabled={actionLocked}
+                icon={<IconPlayerPlay className="size-3.5" />}
               />
             ) : (
               <HeaderActionButton

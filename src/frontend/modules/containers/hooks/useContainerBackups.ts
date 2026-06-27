@@ -35,6 +35,7 @@ export type ContainerBackupPlan = {
   includeFilesystem: boolean;
   includeImage: boolean;
   selectedMounts: string[];
+  logTailLines?: number;
   cron?: string;
   enabled: boolean;
   retentionCount: number;
@@ -122,6 +123,7 @@ export type ContainerBackupInput = {
   includeFilesystem: boolean;
   includeImage: boolean;
   selectedMounts: string[];
+  logTailLines?: number;
   cron?: string;
   enabled?: boolean;
   retentionCount: number;
@@ -258,6 +260,20 @@ export function useCreateContainerBackupPlan(containerId: string) {
         .post<ContainerBackupPlan>(`/container-backups${envQuery(envId)}`, { ...body, containerId })
         .then(assertSuccess),
     meta: { success: () => t('backups.toast.scheduleCreated') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['container-backup-plans'] });
+    },
+  });
+}
+
+export function useUpdateContainerBackupPlan() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('containers');
+
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: ContainerBackupInput }) =>
+      api.put<ContainerBackupPlan>(`/container-backups/${encodeURIComponent(id)}`, body).then(assertSuccess),
+    meta: { success: () => t('backups.toast.scheduleUpdated') },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['container-backup-plans'] });
     },
