@@ -27,13 +27,16 @@ func NewScheduler(service *Service, logger *slog.Logger) *Scheduler {
 func (s *Scheduler) Start(ctx context.Context) {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
-	s.check(ctx, time.Now().UTC())
+	// Interpret cron schedules in the server's local timezone so a
+	// `0 1 * * *` schedule triggers at 01:00 local time, not 01:00
+	// UTC. The container's `TZ` env var drives `time.Local`.
+	s.check(ctx, time.Now())
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case now := <-ticker.C:
-			s.check(ctx, now.UTC())
+			s.check(ctx, now)
 		}
 	}
 }
@@ -119,7 +122,10 @@ func (s *Scheduler) runPlan(planID string) {
 	// parent context does not fail the bookkeeping write.
 	tsCtx, tsCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer tsCancel()
-	now := time.Now().UTC()
+	// Store timestamps in the same timezone the cron parser uses so
+	// `last_run_at` and `next_run_at` round-trip consistently. `time.RFC3339`
+	// includes the offset, so the UI shows the local clock time.
+	now := time.Now()
 	next := ""
 	var cronSpec string
 	if err := s.service.db.QueryRowContext(tsCtx, "SELECT COALESCE(cron, '') FROM container_backup_plans WHERE id = ?", planID).Scan(&cronSpec); err == nil && cronSpec != "" {

@@ -217,10 +217,10 @@ func (s *Service) CreatePlan(ctx context.Context, envID string, input CreateBack
 		return nil, fmt.Errorf("encoding selected mounts: %w", err)
 	}
 	id := xid.New().String()
-	now := time.Now().UTC().Format(time.RFC3339)
+	now := time.Now().Format(time.RFC3339)
 	nextRun := ""
 	if input.Enabled && strings.TrimSpace(input.Cron) != "" {
-		nextRun = nextCronRun(input.Cron, time.Now().UTC()).Format(time.RFC3339)
+		nextRun = nextCronRun(input.Cron, time.Now()).Format(time.RFC3339)
 	}
 	storageIDs, err := s.requiredBackupStorageLocationIDs(ctx, input.StorageLocationID, input.StorageLocationIDs)
 	if err != nil {
@@ -369,7 +369,7 @@ func (s *Service) UpdatePlan(ctx context.Context, id string, input UpdateBackupP
 		}
 		nextRun := ""
 		if enabled && cron != "" {
-			nextRun = nextCronRun(cron, time.Now().UTC()).Format(time.RFC3339)
+			nextRun = nextCronRun(cron, time.Now()).Format(time.RFC3339)
 		}
 		if _, err := s.db.ExecContext(ctx, "UPDATE container_backup_plans SET cron = ?, enabled = ?, next_run_at = ?, updated_at = ? WHERE id = ?", nullString(cron), enabled, nullString(nextRun), now, id); err != nil {
 			return nil, fmt.Errorf("updating backup plan schedule: %w", err)

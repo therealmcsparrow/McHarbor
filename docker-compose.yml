@@ -12,6 +12,12 @@ services:
       - "8705:5474"
     environment:
       - LOG_LEVEL=info
+      # Timezone for cron schedules, run timestamps, and any other
+      # server-side time math. Pick an IANA tz (e.g. Europe/Amsterdam,
+      # America/New_York, UTC). Defaults to UTC when unset. Must be
+      # honored by the base image — the multi-stage Dockerfile uses
+      # alpine, which respects TZ via /etc/localtime.
+      - TZ=${TZ:-UTC}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - mcharbor-data:/app/data

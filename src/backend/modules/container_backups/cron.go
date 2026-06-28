@@ -34,7 +34,11 @@ func validCronSpec(spec string) bool {
 }
 
 func nextCronRun(spec string, from time.Time) time.Time {
-	start := from.UTC().Truncate(time.Minute).Add(time.Minute)
+	// Interpret the spec in the server's local timezone so users can
+	// write `0 1 * * *` and have it run at 01:00 local. The container's
+	// `TZ` env var drives `time.Local` — set it in docker-compose.yml
+	// (e.g. `TZ=Europe/Amsterdam`). When unset, Go falls back to UTC.
+	start := from.In(time.Local).Truncate(time.Minute).Add(time.Minute)
 	for i := 0; i < 366*24*60; i++ {
 		candidate := start.Add(time.Duration(i) * time.Minute)
 		if cronMatches(spec, candidate) {
