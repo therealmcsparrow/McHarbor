@@ -125,6 +125,7 @@ func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, p
 	var lastErr error
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
 		if ctx.Err() != nil {
+			s.recordDestinationCancelled(runID, destinationID, ctx.Err())
 			return ctx.Err()
 		}
 		uploadCtx, cancel := context.WithTimeout(ctx, backupUploadTimeout)
@@ -151,6 +152,7 @@ func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, p
 			}
 			select {
 			case <-ctx.Done():
+				s.recordDestinationCancelled(runID, destinationID, ctx.Err())
 				return ctx.Err()
 			case <-time.After(backoff):
 			}
@@ -161,10 +163,42 @@ func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, p
 	if s.logger != nil {
 		s.logger.Error("container backup storage upload failed", "run", runID, "storage", location.ID, "name", location.Name, "type", location.LocationType, "error", lastErr)
 	}
-	if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", lastErr); markErr != nil && s.logger != nil {
+	// If the parent run context was cancelled (e.g. the user pressed
+	// Cancel in the UI), the in-flight HTTP request to OneDrive /
+	// S3 / etc unwinds with "context canceled". That isn't a real
+	// upload failure — the operator didn't ask for the upload to be
+	// retried, they asked for the run to stop — so record a clear
+	// "Cancelled by user" message instead of a generic failure.
+	finalErr := lastErr
+	if parentErr := ctx.Err(); parentErr != nil {
+		finalErr = fmt.Errorf("cancelled by user: %w", parentErr)
+	}
+	// Use a fresh context for the destination-status write — when
+	// `ctx` is cancelled, passing it to s.db.ExecContext causes
+	// "context canceled" errors and leaves the destination stuck on
+	// `uploading` even though the run row already says `cancelled`.
+	if parentErr := ctx.Err(); parentErr != nil {
+		s.recordDestinationCancelled(runID, destinationID, parentErr)
+	} else {
+		if markErr := s.finishRunDestination(ctx, destinationID, "failure", "", finalErr); markErr != nil && s.logger != nil {
+			s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
+		}
+	}
+	return fmt.Errorf("uploading backup destination %s: %w", location.Name, finalErr)
+}
+
+// recordDestinationCancelled marks a destination row as failed with a
+// clear "Cancelled by user" message, using a fresh context so the DB
+// write succeeds even when the run's own context is already cancelled.
+// Without this, the destination row is left in `uploading` state and
+// the UI shows a half-finished backup.
+func (s *Service) recordDestinationCancelled(runID, destinationID string, cause error) {
+	bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	errMsg := fmt.Errorf("cancelled by user: %w", cause)
+	if markErr := s.finishRunDestination(bgCtx, destinationID, "failure", "", errMsg); markErr != nil && s.logger != nil {
 		s.logger.Warn("container backup destination failure update failed", "run", runID, "destination", destinationID, "error", markErr)
 	}
-	return fmt.Errorf("uploading backup destination %s: %w", location.Name, lastErr)
 }
 
 // isRetryableUploadError returns true for transient failures that are
@@ -556,7 +590,13 @@ func (s *Service) finishRunDestination(ctx context.Context, id, status, remotePa
 	errorText := ""
 	uploadedAt := sql.NullString{}
 	if uploadErr != nil {
-		errorText = "Upload failed. Check McHarbor logs."
+		// Surface the real error to the operator instead of a generic
+		// stub. Callers may pass either a transport-level error from
+		// the uploader or a cancellation sentinel from the run's
+		// parent context; the message we persist lets the UI tell
+		// those apart ("Cancelled by user" vs. "uploading OneDrive
+		// chunk returned status 503: ...").
+		errorText = uploadErr.Error()
 	} else if status == "success" {
 		uploadedAt = sql.NullString{String: now, Valid: true}
 	}

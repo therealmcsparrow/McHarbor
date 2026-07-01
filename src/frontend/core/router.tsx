@@ -43,6 +43,7 @@ const StacksPage = lazy(() => import('@modules/stacks/pages/StacksPage'));
 const StackDetailPage = lazy(() => import('@modules/stacks/pages/StackDetailPage'));
 const TerminalPage = lazy(() => import('@modules/terminal/pages/TerminalPage'));
 const LogsPage = lazy(() => import('@modules/logs/pages/LogsPage'));
+const BackupsPage = lazy(() => import('@modules/containers/pages/BackupsPage'));
 const EnvironmentsPage = lazy(() => import('@modules/environments/pages/EnvironmentsPage'));
 const EnvironmentDetailPage = lazy(() => import('@modules/environments/pages/EnvironmentDetailPage'));
 const BlueprintsPage = lazy(() => import('@modules/blueprints/pages/BlueprintsPage'));
@@ -113,6 +114,7 @@ const routes: RouteObject[] = [
       { path: 'stacks', element: <SuspenseWrapper><StacksPage /></SuspenseWrapper> },
       { path: 'stacks/:name', element: <SuspenseWrapper><StackDetailPage /></SuspenseWrapper> },
       { path: 'terminal', element: <SuspenseWrapper><TerminalPage /></SuspenseWrapper> },
+      { path: 'backups', element: <SuspenseWrapper><BackupsPage /></SuspenseWrapper> },
       { path: 'logs', element: <SuspenseWrapper><LogsPage /></SuspenseWrapper> },
       { path: 'environments', element: <SuspenseWrapper><EnvironmentsPage /></SuspenseWrapper> },
       { path: 'environments/:id', element: <SuspenseWrapper><EnvironmentDetailPage /></SuspenseWrapper> },

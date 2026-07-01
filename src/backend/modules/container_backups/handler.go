@@ -226,7 +226,10 @@ func (h *Handler) HandleRunPlan(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, run)
 }
 
-// HandleListRuns lists recent backup runs for one container.
+// HandleListRuns lists recent backup runs for an environment.
+// `containerId` is optional: omit it to fetch every container's
+// runs (used by the Backups overview page); supply it to scope to
+// one container (used by the per-container Backups tab).
 func (h *Handler) HandleListRuns(w http.ResponseWriter, r *http.Request) {
 	if user := auth.RequireAuth(r); user == nil {
 		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
@@ -330,10 +333,45 @@ func (h *Handler) HandleDeleteRun(w http.ResponseWriter, r *http.Request) {
 	response.NoContent(w)
 }
 
-// HandleCancelRun cancels a running backup or restore run. The run is
-// transitioned to a terminal "cancelled" state and the background
-// goroutine's context is cancelled so in-flight Docker, agent, and
-// storage calls are aborted.
+// HandleRetryDestinationUpload re-uploads the on-disk archive of an
+// existing backup run to one previously-failed storage destination.
+// The request returns immediately with the destination row in
+// `uploading` state; the actual upload runs in a background
+// goroutine and the operator polls the regular run query to watch
+// progress through the destination's bytes_uploaded / bytes_total
+// columns.
+func (h *Handler) HandleRetryDestinationUpload(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	runID := chi.URLParam(r, "runId")
+	destinationID := chi.URLParam(r, "destinationId")
+	if strings.TrimSpace(runID) == "" || strings.TrimSpace(destinationID) == "" {
+		response.BadRequestCode(w, r, i18n.ErrContainerActionFailed)
+		return
+	}
+	destination, err := h.service.RetryDestinationUpload(r.Context(), runID, destinationID)
+	if err != nil {
+		if errors.Is(err, ErrRetryUploadNotEligible) {
+			response.ConflictCode(w, r, i18n.ErrContainerActionFailed)
+			return
+		}
+		h.app.Logger.Error(
+			"retry destination upload failed",
+			"run", runID, "destination", destinationID, "error", err,
+		)
+		response.InternalErrorCode(w, r, i18n.ErrContainerActionFailed)
+		return
+	}
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "backup.retry_destination",
+		EntityType: "container",
+		EntityID:   runID,
+		Details:    fmt.Sprintf("retry upload for destination %s", destinationID),
+	})
+	response.OK(w, destination)
+}
 func (h *Handler) HandleCancelRun(w http.ResponseWriter, r *http.Request) {
 	if user := auth.RequireAuth(r); user == nil {
 		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)

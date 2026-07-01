@@ -969,7 +969,7 @@ func buildPaths() map[string]any {
 			op(operationSpec{
 				Method:      "DELETE",
 				Summary:     "Delete a container backup run",
-				Description: "Deletes a completed or failed backup run and removes its local archive directory when present. Running backup jobs cannot be deleted.",
+				Description: "Deletes a completed or failed backup run and removes the archive file from every storage destination (local + remote providers like OneDrive / SharePoint that McHarbor can delete from). The local archive directory is removed when present. Per-destination deletes are best-effort: failures are recorded in the audit log and the operator may need to clean up remote stragglers by hand. Running backup jobs cannot be deleted.",
 				OperationID: "containerBackupRunsDelete",
 				Tags:        []string{"containers", "storage"},
 				Parameters:  []any{pathParam("runId", "Container backup run identifier")},
@@ -1034,6 +1034,26 @@ func buildPaths() map[string]any {
 					"400": errorResponse("Backup restore secret is missing or invalid"),
 					"403": errorResponse("Permission denied"),
 					"404": errorResponse("Backup archive not found"),
+				},
+			}),
+		),
+		"/container-backups/runs/{runId}/destinations/{destinationId}/retry-upload": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Retry upload to a failed backup destination",
+				Description: "Re-uploads the on-disk archive of an existing backup run to one previously-failed storage destination. The local archive must still exist on disk (i.e. at least one destination succeeded locally). Returns the destination row in `uploading` state immediately; the actual upload runs in a background goroutine. Poll the run query to watch per-destination progress through the `bytes_uploaded` / `bytes_total` columns.",
+				OperationID: "containerBackupRunsDestinationsRetryUpload",
+				Tags:        []string{"containers", "storage"},
+				Parameters: []any{
+					pathParam("runId", "Container backup run identifier"),
+					pathParam("destinationId", "Backup destination identifier"),
+				},
+				Responses: map[string]any{
+					"200": okResponse("Destination row now uploading", schemaRef("BackupRunDestination")),
+					"400": errorResponse("Run or destination identifier missing"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Run or destination not found"),
+					"409": errorResponse("Destination is not eligible for retry (already uploading, already success, or another retry is in flight)"),
 				},
 			}),
 		),

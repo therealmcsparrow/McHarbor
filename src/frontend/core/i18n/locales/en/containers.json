@@ -543,10 +543,23 @@
       "local": "Local storage",
       "external": "External storage"
     },
-    "storageStatus": {
+"storageStatus": {
       "uploading": "Uploading",
       "success": "Stored",
       "failure": "Failed"
+    },
+    "destinationMenu": {
+      "restore": "Restore backup",
+      "delete": "Delete backup",
+      "download": "Download backup"
+    },
+    "destinationFailure": {
+      "title": "Storage upload failed",
+      "close": "Close",
+      "retry": "Retry upload",
+      "retryHint": "Retry re-uploads the local backup to this destination only. Other destinations are not affected.",
+      "retryUploading": "Uploading",
+      "unknownError": "No error details available."
     },
     "deleteScheduleTitle": "Delete backup schedule",
     "deleteScheduleDescription": "This removes the schedule. Existing backup archives are not deleted.",
@@ -554,12 +567,68 @@
     "editScheduleTitle": "Edit backup schedule",
     "editScheduleDescription": "Update what is included, where it is stored, and how often the schedule runs. Existing backup archives are not modified.",
     "saveChanges": "Save changes",
-    "deleteRunTitle": "Delete backup?",
-    "deleteRunDescription": "This permanently deletes the backup run and its local archive file when present. This action cannot be undone.",
+"deleteRunTitle": "Delete backup?",
+    "deleteRunDescription": "This permanently deletes the backup run and removes the archive file from every storage destination (local and remote). This action cannot be undone.",
     "cancelRun": "Cancel",
     "cancelRunConfirm": "Cancel backup",
-    "cancelRunTitle": "Cancel running backup?",
+"cancelRunTitle": "Cancel running backup?",
     "cancelRunDescription": "The running backup will be stopped. Any in-progress Docker, agent, or storage operations will be aborted. The backup run will be marked as cancelled and can then be deleted.",
+    "tabs": {
+      "runs": "Backup list",
+      "plans": "Scheduled backups"
+    },
+    "runs": {
+      "emptyTitle": "No backup runs yet",
+      "emptyHint": "Trigger a manual backup or wait for a scheduled plan to run.",
+      "table": {
+        "container": "Container",
+        "environment": "Environment",
+        "status": "Status",
+        "destinations": "Destinations",
+        "size": "Size",
+        "startedAt": "Started",
+        "duration": "Duration",
+        "open": "Open",
+        "restore": "Restore backup",
+        "download": "Download backup",
+        "delete": "Delete backup",
+        "runningHint": "uploading…",
+        "failedHint": "with failures"
+      }
+    },
+    "bulkSelectAllRuns": "Select all backup runs",
+    "bulkSelectRunRow": "Select {{name}}",
+    "bulkRunsSelected": "{{count}} selected",
+    "bulkRunsDownload": "Download {{count}}",
+    "bulkRunsDeleteTitle": "Delete backup runs?",
+    "bulkRunsDeleteDescription": "This permanently deletes {{count}} backup run(s) and removes the archive file from every storage destination (local and remote). This action cannot be undone.",
+    "bulkRunsDeleteConfirm": "Delete {{count}} backup(s)",
+    "plans": {
+      "emptyTitle": "No scheduled backups",
+      "emptyHint": "Open a container's Backups tab and create a scheduled plan.",
+      "table": {
+        "name": "Name",
+        "environment": "Environment",
+        "container": "Container",
+        "schedule": "Schedule",
+        "destinations": "Destinations",
+        "retention": "Retention",
+        "nextRun": "Next run",
+        "enabled": "State",
+        "open": "Open",
+        "edit": "Edit schedule",
+        "delete": "Delete schedule"
+      }
+    },
+    "bulkSelectAll": "Select all scheduled backups",
+    "bulkSelectRow": "Select {{name}}",
+    "bulkSelected": "{{count}} selected",
+    "bulkOfTotal": "of {{total}} total",
+    "bulkClear": "Clear selection",
+    "bulkDelete": "Delete selected",
+    "bulkDeleteTitle": "Delete scheduled backups?",
+    "bulkDeleteDescription": "This permanently deletes {{count}} scheduled backup plan(s). Existing backup archives are not deleted.",
+    "bulkDeleteConfirm": "Delete {{count}} plan(s)",
     "toast": {
       "started": "Backup started",
       "scheduleCreated": "Backup schedule saved",
@@ -568,7 +637,8 @@
       "runDeleted": "Backup deleted",
       "runCancelled": "Backup cancelled",
       "restoreStarted": "Restore started",
-      "restored": "Backup restored"
+      "restored": "Backup restored",
+      "retryUploadStarted": "Upload retry started"
     }
   },
   "stats": {

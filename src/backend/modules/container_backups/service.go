@@ -393,15 +393,36 @@ func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]Ba
 		s.logger.Warn("container backup abandoned run recovery failed", "env", envID, "container", containerID, "error", err)
 	}
 
-	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, COALESCE(plan_id, ''), COALESCE(operation, 'backup'), COALESCE(source_run_id, ''), environment_id, container_id, status, COALESCE(archive_path, ''),
-		       archive_size, COALESCE(archive_encryption, ''), COALESCE(archive_key_id, ''), COALESCE(error, ''),
-		       COALESCE(progress_stage, ''), COALESCE(progress_message, ''), COALESCE(progress_updated_at, ''),
-		       started_at, COALESCE(completed_at, ''), duration_ms, created_at, updated_at
-		FROM container_backup_runs
-		WHERE environment_id = ? AND container_id = ?
-		ORDER BY started_at DESC
-		LIMIT 100`, envID, containerID)
+	// Build the query dynamically so callers can list all runs for
+	// an environment (no container filter), one container's runs
+	// (the original path), or a single run by id. The Backups page
+	// hits the env-only path so it can show every container's recent
+	// runs side-by-side; the per-container Backups tab uses the
+	// container-scoped path; deep-links use the by-id path.
+	//
+	// LEFT JOIN container_backup_plans on plan_id so the response
+	// carries the human-readable container name without forcing the
+	// frontend to chase plan ids. Ad-hoc runs (plan_id IS NULL)
+	// get an empty container_name which the UI falls back to the
+	// short container id for.
+	query := `
+		SELECT r.id, COALESCE(r.plan_id, ''), COALESCE(r.operation, 'backup'), COALESCE(r.source_run_id, ''),
+		       r.environment_id, r.container_id, r.status, COALESCE(r.archive_path, ''),
+		       r.archive_size, COALESCE(r.archive_encryption, ''), COALESCE(r.archive_key_id, ''), COALESCE(r.error, ''),
+		       COALESCE(r.progress_stage, ''), COALESCE(r.progress_message, ''), COALESCE(r.progress_updated_at, ''),
+		       r.started_at, COALESCE(r.completed_at, ''), r.duration_ms, r.created_at, r.updated_at,
+		       COALESCE(p.container_name, '') AS container_name
+		FROM container_backup_runs r
+		LEFT JOIN container_backup_plans p ON r.plan_id = p.id
+		WHERE r.environment_id = ?`
+	args := []any{envID}
+	if containerID != "" {
+		query += " AND r.container_id = ?"
+		args = append(args, containerID)
+	}
+	query += " ORDER BY started_at DESC LIMIT 1000"
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("listing backup runs: %w", err)
 	}
@@ -1080,14 +1101,22 @@ func (s *Service) recoverAbandonedRestoreRuns(ctx context.Context, envID, contai
 
 func (s *Service) recoverOrphanUploadingDestinations(ctx context.Context) error {
 	now := time.Now().UTC().Format(time.RFC3339)
+	// Skip destinations updated within the last 5 minutes: those are
+	// either in-flight uploads from the original backup run or an
+	// operator-triggered destination retry upload. Without this guard
+	// the reaper races the retry goroutine and marks its `uploading`
+	// destination as `failure` mid-upload, hiding the live byte
+	// progress from the operator.
+	reaperCutoff := time.Now().UTC().Add(-5 * time.Minute).Format(time.RFC3339)
 	_, err := s.db.ExecContext(ctx, `
 		UPDATE container_backup_run_destinations
 		SET status = 'failure',
 		    error = CASE WHEN COALESCE(error, '') = '' THEN 'Upload did not finish before the backup run ended.' ELSE error END,
 		    updated_at = ?
 		WHERE status = 'uploading'
+		  AND updated_at < ?
 		  AND run_id IN (SELECT id FROM container_backup_runs WHERE status <> 'running')`,
-		now)
+		now, reaperCutoff)
 	if err != nil {
 		return fmt.Errorf("recovering unfinished backup destinations: %w", err)
 	}
@@ -1133,11 +1162,15 @@ func (s *Service) updateRunProgress(ctx context.Context, runID, stage, message s
 
 func (s *Service) runByID(ctx context.Context, id string) (*BackupRun, error) {
 	row := s.db.QueryRowContext(ctx, `
-		SELECT id, COALESCE(plan_id, ''), COALESCE(operation, 'backup'), COALESCE(source_run_id, ''), environment_id, container_id, status, COALESCE(archive_path, ''),
-		       archive_size, COALESCE(archive_encryption, ''), COALESCE(archive_key_id, ''), COALESCE(error, ''),
-		       COALESCE(progress_stage, ''), COALESCE(progress_message, ''), COALESCE(progress_updated_at, ''),
-		       started_at, COALESCE(completed_at, ''), duration_ms, created_at, updated_at
-		FROM container_backup_runs WHERE id = ?`, id)
+		SELECT r.id, COALESCE(r.plan_id, ''), COALESCE(r.operation, 'backup'), COALESCE(r.source_run_id, ''),
+		       r.environment_id, r.container_id, r.status, COALESCE(r.archive_path, ''),
+		       r.archive_size, COALESCE(r.archive_encryption, ''), COALESCE(r.archive_key_id, ''), COALESCE(r.error, ''),
+		       COALESCE(r.progress_stage, ''), COALESCE(r.progress_message, ''), COALESCE(r.progress_updated_at, ''),
+		       r.started_at, COALESCE(r.completed_at, ''), r.duration_ms, r.created_at, r.updated_at,
+		       COALESCE(p.container_name, '') AS container_name
+		FROM container_backup_runs r
+		LEFT JOIN container_backup_plans p ON r.plan_id = p.id
+		WHERE r.id = ?`, id)
 	run, err := scanRun(row)
 	if err != nil {
 		return nil, err
@@ -1190,7 +1223,15 @@ func (s *Service) WaitForRun(ctx context.Context, runID string) error {
 	}
 }
 
-// DeleteRun deletes a finished or failed backup run and its local archive files.
+// DeleteRun deletes a finished or failed backup run and removes the
+// archive from every storage destination (local + remote providers
+// like OneDrive / SharePoint that we have a delete function for).
+//
+// Per-destination deletes are best-effort: failures are logged but do
+// not stop the run row from being removed. The operator still gets
+// the local archive and the database row gone; they can clean up
+// remote stragglers by hand using the audit log entry that records
+// which destinations failed to delete.
 func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
 	run, err := s.runByID(ctx, id)
 	if err == sql.ErrNoRows {
@@ -1201,6 +1242,51 @@ func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
 	}
 	if run.Status == "running" {
 		return false, ErrBackupRunActive
+	}
+
+	// Remove the archive from every destination before touching the
+	// local archive directory. We load destinations + their storage
+	// location configs so we have OAuth credentials handy for the
+	// Microsoft Graph delete calls.
+	if err := s.hydrateRunDestinations(ctx, run); err != nil {
+		if s.logger != nil {
+			s.logger.Warn("container backup destination hydrate before delete failed", "run", id, "error", err)
+		}
+	}
+	locationsByID := map[string]*backupStorageDestination{}
+	for _, dest := range run.Destinations {
+		if strings.TrimSpace(dest.StorageLocationID) == "" {
+			continue
+		}
+		if _, ok := locationsByID[dest.StorageLocationID]; ok {
+			continue
+		}
+		location, err := s.backupStorageDestination(ctx, dest.StorageLocationID)
+		if err != nil {
+			if s.logger != nil {
+				s.logger.Warn("container backup destination load before delete failed",
+					"run", id, "destination", dest.ID, "storage", dest.StorageLocationID, "error", err)
+			}
+			continue
+		}
+		if location == nil {
+			continue
+		}
+		locationsByID[dest.StorageLocationID] = location
+	}
+	for _, dest := range run.Destinations {
+		var location *backupStorageDestination
+		if strings.TrimSpace(dest.StorageLocationID) != "" {
+			location = locationsByID[dest.StorageLocationID]
+		}
+		if err := s.deleteDestinationFile(ctx, dest, location, s.logger); err != nil {
+			if s.logger != nil {
+				s.logger.Warn("container backup destination delete failed",
+					"run", id, "destination", dest.ID,
+					"type", dest.LocationType, "name", dest.StorageLocationName,
+					"path", dest.Path, "error", err)
+			}
+		}
 	}
 
 	if strings.TrimSpace(run.ArchivePath) != "" {
@@ -2681,6 +2767,7 @@ func scanRun(scanner interface{ Scan(dest ...any) error }) (BackupRun, error) {
 		&run.ArchivePath, &run.ArchiveSize, &run.ArchiveEncryption, &run.ArchiveKeyID,
 		&run.Error, &run.ProgressStage, &run.ProgressMessage, &run.ProgressUpdatedAt, &run.StartedAt,
 		&run.CompletedAt, &run.DurationMS, &run.CreatedAt, &run.UpdatedAt,
+		&run.ContainerName,
 	); err != nil {
 		return BackupRun{}, err
 	}

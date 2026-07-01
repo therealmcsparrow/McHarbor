@@ -4,8 +4,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  IconAlertTriangle,
-  IconCheck,
   IconChevronDown,
   IconChevronRight,
   IconClock,
@@ -20,7 +18,6 @@ import {
 } from "@tabler/icons-react";
 import { Badge } from "@resources/components/ui/Badge";
 import { Button } from "@resources/components/ui/Button";
-import { Checkbox } from "@resources/components/ui/Checkbox";
 import { ConfirmDialog } from "@resources/components/ui/ConfirmDialog";
 import {
   Dialog,
@@ -39,11 +36,17 @@ import { describeCron } from "@resources/utils/schedule";
 import { useStorageLocations } from "../../../settings/hooks/useStorageLocations";
 import { BackupSelectionFields } from "../BackupSelectionFields";
 import {
+  mandatoryLocalStorage,
+  planToInput,
+  withMandatoryStorage,
+} from "../plan-utils";
+import { BackupRunDestinations } from "./BackupRunDestinations";
+import { RestoreProgressView, RestoreRunDialog } from "../RestoreRunDialog";
+import {
   type ContainerBackupInput,
   type ContainerBackupOption,
   type ContainerBackupPlan,
   type ContainerBackupRun,
-  type ContainerBackupRunDestination,
   containerBackupDownloadUrl,
   useCancelContainerBackupRun,
   useContainerBackupOptions,
@@ -53,10 +56,9 @@ import {
   useCreateContainerBackupPlan,
   useDeleteContainerBackupPlan,
   useDeleteContainerBackupRun,
-  useContainerBackupRestoreOptions,
-  useRestoreContainerBackup,
   useRunContainerBackup,
   useRunContainerBackupPlan,
+  useRetryDestinationUpload,
   useUpdateContainerBackupPlan,
   useUploadRestoreContainerBackup,
 } from "../../hooks/useContainerBackups";
@@ -100,56 +102,6 @@ function defaultInput(
     selectedMounts: options
       .filter((option) => option.key.startsWith("mount:") && option.default)
       .map((option) => option.key.slice("mount:".length)),
-  };
-}
-
-function mandatoryLocalStorage(
-  locations: { id: string; locationType: string; basePath?: string }[],
-) {
-  return (
-    locations.find((location) => location.id === "default-local-backup") ??
-    locations.find(
-      (location) =>
-        location.locationType === "local" &&
-        location.basePath === "/mnt/backup",
-    ) ??
-    locations.find((location) => location.locationType === "local") ??
-    null
-  );
-}
-
-function withMandatoryStorage(
-  input: ContainerBackupInput,
-  storageLocationId?: string,
-): ContainerBackupInput {
-  if (!storageLocationId) {
-    return input;
-  }
-  const ids = new Set(input.storageLocationIds ?? []);
-  ids.add(storageLocationId);
-  const storageLocationIds = Array.from(ids);
-  return {
-    ...input,
-    storageLocationId: input.storageLocationId || storageLocationId,
-    storageLocationIds,
-  };
-}
-
-function planToInput(plan: ContainerBackupPlan): ContainerBackupInput {
-  return {
-    name: plan.name,
-    storageLocationId: plan.storageLocationId ?? plan.storageLocationIds[0] ?? "",
-    storageLocationIds: plan.storageLocationIds ?? [],
-    includeConfig: plan.includeConfig,
-    includeLogs: plan.includeLogs,
-    includeFilesystem: plan.includeFilesystem,
-    includeImage: plan.includeImage,
-    selectedMounts: plan.selectedMounts ?? [],
-    logTailLines: plan.logTailLines,
-    cron: plan.cron ?? "",
-    enabled: plan.enabled,
-    retentionCount: plan.retentionCount,
-    retentionDays: plan.retentionDays,
   };
 }
 
@@ -197,180 +149,17 @@ function backupProgressDescription(
   });
 }
 
-function destinationLabel(
-  destination: ContainerBackupRunDestination,
-  t: (key: string, options?: Record<string, unknown>) => string,
-) {
-  if (destination.locationType === "local") {
-    if (destination.storageLocationId || destination.storageLocationName) {
-      return destination.storageLocationName || t("backups.storage.external");
-    }
-    return t("backups.storage.local");
-  }
-  return destination.storageLocationName || t("backups.storage.external");
-}
-
 // Human-readable mapping for restore_* progress stages emitted by the
 // backend. The container_backup service writes these to the run record
 // throughout the restore pipeline.
-const RESTORE_STAGE_LABELS: Record<string, string> = {
-  restore_connecting: "backups.progress.restore_connecting",
-  restore_inspecting: "backups.progress.restore_inspecting",
-  restore_scanning: "backups.progress.restore_scanning",
-  restore_image: "backups.progress.restore_image",
-  restore_filesystem: "backups.progress.restore_filesystem",
-  restore_mounts: "backups.progress.restore_mounts",
-};
-
-function describeRestoreStage(
-  stage: string | undefined,
-  t: (key: string, options?: Record<string, unknown>) => string,
-) {
-  if (!stage) return "";
-  const key = RESTORE_STAGE_LABELS[stage];
-  if (key) {
-    return t(key, { defaultValue: stage });
-  }
-  return t(`backups.progress.${stage}`, { defaultValue: stage });
-}
-
-// Visual progress for the active restore run. While running we show a
-// spinner and the latest backend progress stage/message. Once the run
-// reaches a terminal state we show a success or failure banner with the
-// run error if any.
-function RestoreProgressView({
-  run,
-  loading,
-  startedAt,
-}: {
-  run?: ContainerBackupRun;
-  loading: boolean;
-  startedAt: string;
-}) {
-  const { t } = useTranslation("containers");
-  const isRunning = run?.status === "running";
-  const isSuccess = run?.status === "success";
-  const isFailure = run?.status === "failure";
-  const stageLabel = describeRestoreStage(run?.progressStage, t);
-  const message = run?.progressMessage ?? "";
-  const startedLabel = useMemo(() => {
-    try {
-      return new Date(startedAt).toLocaleString();
-    } catch {
-      return startedAt;
-    }
-  }, [startedAt]);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-start gap-3 rounded-lg border border-border bg-background p-4">
-        {isSuccess ? (
-          <IconCheck
-            className="mt-0.5 size-5 shrink-0 text-emerald-500"
-            aria-hidden="true"
-          />
-        ) : isFailure ? (
-          <IconAlertTriangle
-            className="mt-0.5 size-5 shrink-0 text-destructive"
-            aria-hidden="true"
-          />
-        ) : (
-          <Spinner size="md" className="mt-0.5 shrink-0" />
-        )}
-        <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-sm font-medium text-foreground">
-            {isSuccess
-              ? t("backups.restoreCompleteHeading")
-              : isFailure
-                ? t("backups.restoreFailedHeading")
-                : t("backups.restoringHeading")}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {t("backups.startedAt", { value: startedLabel })}
-          </p>
-          {isRunning && (
-            <div className="space-y-1 pt-1">
-              {stageLabel && (
-                <p className="text-xs font-medium text-foreground">
-                  {stageLabel}
-                </p>
-              )}
-              {message && message !== stageLabel && (
-                <p className="break-words text-xs text-muted-foreground">
-                  {message}
-                </p>
-              )}
-            </div>
-          )}
-          {isFailure && run?.error && (
-            <p className="break-words text-xs text-destructive">
-              {run.error}
-            </p>
-          )}
-          {isSuccess && (
-            <p className="text-xs text-emerald-600 dark:text-emerald-400">
-              {t("backups.restoreCompleteHint")}
-            </p>
-          )}
-          {loading && !run && (
-            <p className="text-xs text-muted-foreground">
-              {t("backups.restoreChoicesLoading")}
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BackupRunDestinations({
-  run,
-  t,
-}: {
-  run: ContainerBackupRun;
-  t: (key: string, options?: Record<string, unknown>) => string;
-}) {
-  const destinations = run.destinations ?? [];
-
-  if (destinations.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="mt-2 space-y-1">
-      {destinations.map((destination) => (
-        <div key={destination.id} className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-muted-foreground">
-              {destinationLabel(destination, t)}
-            </span>
-            <Badge
-              variant={
-                destination.status === "success"
-                  ? "success"
-                  : destination.status === "failure"
-                    ? "destructive"
-                    : "secondary"
-              }
-            >
-              {t(`backups.storageStatus.${destination.status}`)}
-            </Badge>
-          </div>
-          {destination.path && (
-            <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">
-              {destination.path}
-            </p>
-          )}
-          {destination.error && (
-            <p className="mt-0.5 text-xs text-destructive">
-              {destination.error}
-            </p>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
+//
+// Kept here so BackupsTab can still map stage codes for any code
+// path that uses describeRestoreStage directly. The full restore
+// dialog now lives in RestoreRunDialog.tsx and uses the same map.
+//
+// (Removed inline RestoreProgressView — moved to
+// RestoreRunDialog.tsx so the cross-environment Backups page can
+// reuse it without copy-paste.)
 
 export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
   const { t } = useTranslation("containers");
@@ -390,8 +179,8 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
   const deletePlan = useDeleteContainerBackupPlan();
   const deleteRun = useDeleteContainerBackupRun();
   const cancelRun = useCancelContainerBackupRun();
-  const restoreBackup = useRestoreContainerBackup(containerId);
   const uploadRestoreBackup = useUploadRestoreContainerBackup(containerId);
+  const retryDestinationUpload = useRetryDestinationUpload();
   const [manualInput, setManualInput] =
     useState<ContainerBackupInput>(DEFAULT_INPUT);
   const [scheduleInput, setScheduleInput] = useState<ContainerBackupInput>({
@@ -411,10 +200,6 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
     useState<ContainerBackupRun | null>(null);
   const [restoreTarget, setRestoreTarget] = useState<ContainerBackupRun | null>(
     null,
-  );
-  const [restoreSecretKey, setRestoreSecretKey] = useState("");
-  const [restoreSelectedItems, setRestoreSelectedItems] = useState<string[]>(
-    [],
   );
   const [uploadRestoreOpen, setUploadRestoreOpen] = useState(false);
   const [uploadRestoreFile, setUploadRestoreFile] = useState<File | null>(null);
@@ -440,25 +225,6 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
       ),
     [runs],
   );
-  const restoreOptionsEnabled =
-    !!restoreTarget &&
-    (!restoreTarget.requiresSecretKey || restoreSecretKey.trim() !== "");
-  const {
-    data: restoreOptions,
-    isFetching: restoreOptionsLoading,
-    isError: restoreOptionsError,
-  } = useContainerBackupRestoreOptions(
-    restoreTarget?.id,
-    restoreSecretKey,
-    restoreOptionsEnabled,
-  );
-  // While the restore is in progress, the mutation returns the new restore run.
-  // We track it separately so the dialog knows which phase to render and which
-  // run to poll for live progress.
-  const [restoreRunId, setRestoreRunId] = useState<string | null>(null);
-  const { data: restoreRun, isLoading: restoreRunLoading } =
-    useContainerBackupRun(containerId, restoreRunId ?? undefined);
-  const restoreIsActive = restoreRun?.status === "running";
   const { data: uploadRestoreRun, isLoading: uploadRestoreRunLoading } =
     useContainerBackupRun(containerId, uploadRestoreRunId ?? undefined);
   const uploadRestoreIsActive = uploadRestoreRun?.status === "running";
@@ -507,13 +273,11 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
   }
 
   useEffect(() => {
-    if (!restoreOptions) return;
-    setRestoreSelectedItems(
-      restoreOptions.items
-        .filter((item) => item.default || item.required)
-        .map((item) => item.key),
+    if (!editTarget) return;
+    setEditInput(
+      withMandatoryStorage(planToInput(editTarget), requiredLocalStorageId),
     );
-  }, [restoreOptions]);
+  }, [editTarget, requiredLocalStorageId]);
 
   function updateManualInput(patch: Partial<ContainerBackupInput>) {
     setManualInput((current) =>
@@ -541,36 +305,7 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
   }
 
   function handleRestore(run: ContainerBackupRun) {
-    setRestoreSecretKey("");
-    setRestoreSelectedItems([]);
     setRestoreTarget(run);
-  }
-
-  function restoreWithCurrentKey() {
-    if (!restoreTarget) return;
-    restoreBackup.mutate(
-      {
-        id: restoreTarget.id,
-        secretKey: restoreSecretKey,
-        restoreItems: restoreSelectedItems,
-      },
-      {
-        onSuccess: (run) => {
-          // Keep the dialog open and switch to the progress view. The
-          // server returns a new run for the restore; we poll that run to
-          // surface live progress, then keep the dialog open with a Close
-          // button once the run reaches a terminal state.
-          setRestoreRunId(run.id);
-        },
-      },
-    );
-  }
-
-  function closeRestoreDialog() {
-    setRestoreTarget(null);
-    setRestoreRunId(null);
-    setRestoreSecretKey("");
-    setRestoreSelectedItems([]);
   }
 
   function closeUploadRestoreDialog() {
@@ -578,15 +313,6 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
     setUploadRestoreFile(null);
     setUploadRestoreKey("");
     setUploadRestoreRunId(null);
-  }
-
-  function toggleRestoreItem(key: string, checked: boolean) {
-    setRestoreSelectedItems((current) => {
-      if (checked) {
-        return current.includes(key) ? current : [...current, key];
-      }
-      return current.filter((item) => item !== key);
-    });
   }
 
   function restoreUploadedBackup() {
@@ -869,12 +595,18 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
                           {backupProgressDescription(run, t)}
                         </p>
                       )}
-                      <BackupRunDestinations run={run} t={t} />
-                      {run.error && (
-                        <p className="mt-1 text-xs text-destructive">
-                          {run.error}
-                        </p>
-                      )}
+                      <BackupRunDestinations
+                        run={run}
+                        onRestore={handleRestore}
+                        onDelete={(target) => setDeleteRunTarget(target)}
+                        onRetryUpload={(destination) => {
+                          retryDestinationUpload.mutate({
+                            runId: run.id,
+                            destinationId: destination.id,
+                          });
+                        }}
+                        retryPendingFor={retryDestinationUpload.isPending ? retryDestinationUpload.variables?.destinationId : undefined}
+                      />
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <span className="text-xs text-muted-foreground">
@@ -883,16 +615,6 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
                       {run.operation === "backup" &&
                         run.status === "success" &&
                         run.archivePath && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label={t("backups.restore")}
-                            onClick={() => handleRestore(run)}
-                            disabled={restoreBackup.isPending}
-                          >
-                            <IconRestore className="size-4" />
-                          </Button>
                           <Button
                             variant="ghost"
                             size="icon-sm"
@@ -906,8 +628,7 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
                               <IconDownload className="size-4" />
                             </a>
                           </Button>
-                        </>
-                      )}
+                        )}
                       {run.status === "running" && (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -1045,194 +766,11 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
           }}
         />
       )}
-      {restoreTarget && (
-        <Dialog
-          open={!!restoreTarget}
-          onOpenChange={(open) => {
-            // While a restore is running, ignore outside clicks so the
-            // user keeps the progress view. They can still press the
-            // Close button once the run reaches a terminal state.
-            if (!open && (restoreIsActive || restoreRunId === null)) {
-              closeRestoreDialog();
-            }
-          }}
-        >
-          <DialogContent>
-            <DialogHeader>
-              {restoreRunId ? (
-                <DialogTitle>
-                  {restoreRun?.status === "failure"
-                    ? t("backups.restoreFailedTitle")
-                    : restoreIsActive
-                      ? t("backups.restoringTitle")
-                      : t("backups.restoreCompleteTitle")}
-                </DialogTitle>
-              ) : (
-                <DialogTitle>{t("backups.restoreTitle")}</DialogTitle>
-              )}
-              {restoreRunId ? null : (
-                <DialogDescription>
-                  {t("backups.restoreDescription")}
-                </DialogDescription>
-              )}
-            </DialogHeader>
-            <DialogBody className="space-y-4">
-              {restoreRunId ? (
-                <RestoreProgressView
-                  run={restoreRun}
-                  loading={restoreRunLoading}
-                  startedAt={restoreTarget.startedAt}
-                />
-              ) : (
-                <>
-                  {restoreTarget.requiresSecretKey && (
-                    <div>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                        {t("backups.restoreUploadKey")}
-                      </label>
-                      <Input
-                        type="password"
-                        value={restoreSecretKey}
-                        onChange={(event) =>
-                          setRestoreSecretKey(event.target.value)
-                        }
-                        placeholder={t("backups.restoreSecretPlaceholder")}
-                        autoComplete="off"
-                      />
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {t("backups.restoreSecretDescription")}
-                      </p>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium uppercase text-muted-foreground">
-                      {t("backups.restoreChoices")}
-                    </p>
-                    {!restoreOptionsEnabled && (
-                      <p className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-                        {t("backups.restoreChoicesNeedKey")}
-                      </p>
-                    )}
-                    {restoreOptionsEnabled && restoreOptionsLoading && (
-                      <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-                        <Spinner size="sm" />
-                        {t("backups.restoreChoicesLoading")}
-                      </div>
-                    )}
-                    {restoreOptionsError && (
-                      <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                        {t("backups.restoreChoicesFailed")}
-                      </p>
-                    )}
-                    {restoreOptions && restoreOptions.items.length === 0 && (
-                      <p className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-                        {t("backups.restoreChoicesEmpty")}
-                      </p>
-                    )}
-                    {restoreOptions && restoreOptions.items.length > 0 && (
-                      <div className="space-y-2 rounded-lg border border-border bg-background p-3">
-                        {restoreOptions.items.map((item) => (
-                          <label
-                            key={item.key}
-                            className="flex items-start gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
-                          >
-                            <Checkbox
-                              checked={restoreSelectedItems.includes(item.key)}
-                              disabled={
-                                item.required || restoreBackup.isPending
-                              }
-                              onCheckedChange={(checked) =>
-                                toggleRestoreItem(item.key, checked === true)
-                              }
-                              aria-label={item.label}
-                              className="mt-0.5"
-                            />
-                            <span className="min-w-0">
-                              <span className="block text-sm font-medium text-foreground">
-                                {item.label}
-                              </span>
-                              <span className="block text-xs text-muted-foreground">
-                                {item.description}
-                              </span>
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {t("backups.restoreWarning")}
-                  </p>
-                </>
-              )}
-            </DialogBody>
-            <DialogFooter>
-              {restoreRunId ? (
-                <>
-                  {restoreIsActive && (
-                    <Button
-                      variant="destructive"
-                      onClick={() => {
-                        if (restoreRun) {
-                          cancelRun.mutate(restoreRun.id, {
-                            onSuccess: () => {
-                              // Keep dialog open so the user sees the
-                              // final cancelled state in the progress
-                              // view before closing.
-                            },
-                          });
-                        }
-                      }}
-                      disabled={cancelRun.isPending}
-                      data-testid="restore-cancel"
-                    >
-                      <IconPlayerStop className="size-4" />
-                      {cancelRun.isPending
-                        ? t("backups.cancelRunConfirm")
-                        : t("backups.cancelRunConfirm")}
-                    </Button>
-                  )}
-                  <Button
-                    onClick={closeRestoreDialog}
-                    disabled={restoreIsActive}
-                    data-testid="restore-close"
-                  >
-                    {restoreIsActive
-                      ? t("backups.restoring")
-                      : t("backups.closeRestore")}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={closeRestoreDialog}
-                    disabled={restoreBackup.isPending}
-                  >
-                    {t("backups.cancelRestore")}
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={restoreWithCurrentKey}
-                    disabled={
-                      restoreBackup.isPending ||
-                      restoreOptionsLoading ||
-                      restoreSelectedItems.length === 0 ||
-                      (restoreTarget.requiresSecretKey &&
-                        restoreSecretKey.trim() === "")
-                    }
-                  >
-                    <IconRestore className="size-4" />
-                    {restoreBackup.isPending
-                      ? t("backups.restoring")
-                      : t("backups.restore")}
-                  </Button>
-                </>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      <RestoreRunDialog
+        run={restoreTarget}
+        containerId={containerId}
+        onClose={() => setRestoreTarget(null)}
+      />
       <Dialog
         open={uploadRestoreOpen}
         onOpenChange={(open) => {

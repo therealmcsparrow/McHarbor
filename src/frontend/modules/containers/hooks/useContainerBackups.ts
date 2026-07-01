@@ -1,7 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api, type ApiResponse } from '@core/api/client';
 import { useEnvironmentStore } from '@resources/stores/environment';
@@ -53,6 +53,7 @@ export type ContainerBackupRun = {
   sourceRunId?: string;
   environmentId: string;
   containerId: string;
+  containerName?: string;
   status: 'running' | 'success' | 'failure' | 'cancelled';
   archivePath?: string;
   archiveSize: number;
@@ -67,6 +68,8 @@ export type ContainerBackupRun = {
   startedAt: string;
   completedAt?: string;
   durationMs: number;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type ContainerBackupRunDestination = {
@@ -79,6 +82,8 @@ export type ContainerBackupRunDestination = {
   path: string;
   error?: string;
   uploadedAt?: string;
+  bytesUploaded?: number;
+  bytesTotal?: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -172,6 +177,42 @@ export function useContainerBackupPlans(containerId: string) {
   });
 }
 
+// useAllContainerBackupPlans returns backup plans across all
+// environments (or one environment if `envId` is provided). When
+// `envId === ''` (the global "All environments" selection in the
+// header) the hook fans out one request per environment in parallel
+// via useQueries and aggregates the results; with a single envId it
+// falls back to one request, matching the existing single-env hook.
+export function useAllContainerBackupPlans(envId: string | undefined | null) {
+  const environments = useEnvironmentStore((s) => s.environments);
+  const envs =
+    envId && envId.length > 0
+      ? environments.filter((env) => env.id === envId)
+      : environments;
+  const queries = useQueries({
+    queries: envs.map((env) => ({
+      queryKey: ['container-backup-plans-all', env.id],
+      queryFn: () =>
+        api
+          .get<ContainerBackupPlan[]>(
+            `/container-backups?env=${encodeURIComponent(env.id)}`,
+          )
+          .then((r) => r.data ?? []),
+      staleTime: 15_000,
+    })),
+    combine: (results) => {
+      const plans: ContainerBackupPlan[] = [];
+      for (const r of results) {
+        if (r.data) plans.push(...r.data);
+      }
+      plans.sort((a, b) => a.name.localeCompare(b.name));
+      const isLoading = results.some((r) => r.isLoading);
+      return { data: plans, isLoading };
+    },
+  });
+  return queries as { data: ContainerBackupPlan[]; isLoading: boolean };
+}
+
 export function useContainerBackupRuns(containerId: string) {
   const envId = useEnvironmentStore((s) => s.currentId);
   return useQuery({
@@ -181,8 +222,69 @@ export function useContainerBackupRuns(containerId: string) {
         .get<ContainerBackupRun[]>('/container-backups/runs', envId ? { env: envId, containerId } : { containerId })
         .then((r) => r.data ?? []),
     enabled: !!containerId,
-    refetchInterval: (query) => (query.state.data?.some((run) => run.status === 'running') ? 5000 : false),
+    // Poll while a backup is running OR while any destination is
+    // uploading. The latter covers destination retry uploads that
+    // run against a previously-completed run (so run.status is
+    // 'success' / 'cancelled' / 'failure') — without this branch
+    // the operator never sees byte progress for a retry because
+    // the run status alone doesn't change.
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (!data) return false;
+      const hasRunningRun = data.some((run) => run.status === 'running');
+      const hasUploadingDestination = data.some((run) =>
+        (run.destinations ?? []).some((destination) => destination.status === 'uploading'),
+      );
+      return hasRunningRun || hasUploadingDestination ? 2000 : false;
+    },
   });
+}
+
+// useAllContainerBackupRuns returns recent runs across all
+// environments (or one if `envId` is set). Like its plans sibling,
+// polls while any run is uploading so live progress is visible.
+export function useAllContainerBackupRuns(envId: string | undefined | null) {
+  const environments = useEnvironmentStore((s) => s.environments);
+  const envs =
+    envId && envId.length > 0
+      ? environments.filter((env) => env.id === envId)
+      : environments;
+  const queries = useQueries({
+    queries: envs.map((env) => ({
+      queryKey: ['container-backup-runs-all', env.id],
+      queryFn: () =>
+        api
+          .get<ContainerBackupRun[]>(
+            `/container-backups/runs?env=${encodeURIComponent(env.id)}`,
+          )
+          .then((r) => r.data ?? []),
+      staleTime: 10_000,
+      refetchInterval: (query: {
+        state: { data?: ContainerBackupRun[] | undefined };
+      }) => {
+        const data = query.state.data;
+        if (!data) return false;
+        const hasRunning = data.some((run) => run.status === 'running');
+        const hasUploading = data.some((run) =>
+          (run.destinations ?? []).some((destination) => destination.status === 'uploading'),
+        );
+        return hasRunning || hasUploading ? 2000 : false;
+      },
+    })),
+    combine: (results) => {
+      const runs: ContainerBackupRun[] = [];
+      for (const r of results) {
+        if (r.data) runs.push(...r.data);
+      }
+      runs.sort(
+        (a, b) =>
+          new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime(),
+      );
+      const isLoading = results.some((r) => r.isLoading);
+      return { data: runs, isLoading };
+    },
+  });
+  return queries as { data: ContainerBackupRun[]; isLoading: boolean };
 }
 
 export function useContainerBackupRun(containerId: string, runId?: string) {
@@ -227,6 +329,8 @@ export function useRunContainerBackup(containerId: string) {
           destinations: [],
           startedAt: new Date().toISOString(),
           durationMs: 0,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
         ...current.filter((run) => run.id !== optimisticRunId),
       ]);
@@ -431,6 +535,34 @@ export function useUploadRestoreContainerBackup(containerId: string) {
     meta: { success: () => t('backups.toast.restored') },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
+    },
+  });
+}
+
+// Retry upload of the on-disk archive to one previously-failed
+// destination. The HTTP call returns immediately with the destination
+// in `uploading` state; the actual upload runs in the background.
+// The runs list query is refetched on settle so the destination row
+// (status, bytes_uploaded, bytes_total) updates through the regular
+// polling loop — that's how the inline progress bar tracks bytes.
+export function useRetryDestinationUpload() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('containers');
+
+  return useMutation({
+    mutationFn: ({ runId, destinationId }: { runId: string; destinationId: string }) =>
+      api
+        .post<ContainerBackupRunDestination>(
+          `/container-backups/runs/${encodeURIComponent(runId)}/destinations/${encodeURIComponent(destinationId)}/retry-upload`,
+        )
+        .then(assertSuccess),
+    meta: { success: () => t('backups.toast.retryUploadStarted') },
+    onSuccess: () => {
+      // Kick the runs query immediately so the destination row
+      // flips to `uploading` and the polling loop picks up byte
+      // progress without waiting for the next refetchInterval tick.
+      queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
+      queryClient.invalidateQueries({ queryKey: ['container-backup-run'] });
     },
   });
 }

@@ -13,6 +13,7 @@ import {
   IconNetwork,
   IconStack2,
   IconTerminal,
+  IconArchive,
   IconFileText,
   IconWorld,
   IconBook,
@@ -53,6 +54,7 @@ const dockerItems: NavItem[] = [
   { to: '/networks', labelKey: 'nav.networks', icon: IconNetwork },
   { to: '/environments', labelKey: 'nav.environments', icon: IconWorld },
   { to: '/terminal', labelKey: 'nav.terminal', icon: IconTerminal },
+  { to: '/backups', labelKey: 'nav.backups', icon: IconArchive },
   { to: '/logs', labelKey: 'nav.logs', icon: IconFileText },
   { to: '/activity', labelKey: 'nav.activity', icon: IconActivity },
   { to: '/audit', labelKey: 'nav.audit', icon: IconClipboardList },
@@ -68,10 +70,12 @@ const k8sItems: NavItem[] = [
   { to: '/deployments', labelKey: 'nav.deployments', icon: IconRocket },
   { to: '/k8s-services', labelKey: 'nav.services', icon: IconServer },
   { to: '/namespaces', labelKey: 'nav.namespaces', icon: IconFolders },
+  { to: '/backups', labelKey: 'nav.backups', icon: IconArchive },
 ];
 
 const commonAfter: NavItem[] = [
   { to: '/environments', labelKey: 'nav.environments', icon: IconWorld },
+  { to: '/backups', labelKey: 'nav.backups', icon: IconArchive },
   { to: '/activity', labelKey: 'nav.activity', icon: IconActivity },
   { to: '/audit', labelKey: 'nav.audit', icon: IconClipboardList },
   { to: '/reconciler', labelKey: 'nav.reconciler', icon: IconRefresh },

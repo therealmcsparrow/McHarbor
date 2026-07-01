@@ -36,6 +36,7 @@ type BackupRun struct {
 	SourceRunID       string                 `json:"sourceRunId,omitempty"`
 	EnvironmentID     string                 `json:"environmentId"`
 	ContainerID       string                 `json:"containerId"`
+	ContainerName     string                 `json:"containerName,omitempty"`
 	Status            string                 `json:"status"`
 	ArchivePath       string                 `json:"archivePath,omitempty"`
 	ArchiveSize       int64                  `json:"archiveSize"`

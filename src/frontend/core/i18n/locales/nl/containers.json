@@ -543,10 +543,23 @@
       "local": "Lokale opslag",
       "external": "Externe opslag"
     },
-    "storageStatus": {
+"storageStatus": {
       "uploading": "Uploaden",
       "success": "Opgeslagen",
       "failure": "Mislukt"
+    },
+    "destinationMenu": {
+      "restore": "Back-up herstellen",
+      "delete": "Back-up verwijderen",
+      "download": "Back-up downloaden"
+    },
+    "destinationFailure": {
+      "title": "Opslagupload mislukt",
+      "close": "Sluiten",
+      "retry": "Upload opnieuw proberen",
+      "retryHint": "De retry uploadt de lokale back-up alleen naar deze bestemming. Andere bestemmingen worden niet beïnvloed.",
+      "retryUploading": "Uploaden",
+      "unknownError": "Geen foutdetails beschikbaar."
     },
     "deleteScheduleTitle": "Back-upschema verwijderen",
     "deleteScheduleDescription": "Dit verwijdert het schema. Bestaande back-uparchieven worden niet verwijderd.",
@@ -554,12 +567,68 @@
     "editScheduleTitle": "Back-upschema bewerken",
     "editScheduleDescription": "Wijzig wat er wordt meegenomen, waar het wordt opgeslagen en hoe vaak het schema draait. Bestaande back-uparchieven worden niet aangepast.",
     "saveChanges": "Wijzigingen opslaan",
-    "deleteRunTitle": "Back-up verwijderen?",
-    "deleteRunDescription": "Dit verwijdert de back-uprun en het lokale archiefbestand permanent wanneer aanwezig. Deze actie kan niet ongedaan worden gemaakt.",
+"deleteRunTitle": "Back-up verwijderen?",
+    "deleteRunDescription": "Dit verwijdert de back-uprun en verwijdert het archiefbestand van elke opslagbestemming (lokaal en extern). Deze actie kan niet ongedaan worden gemaakt.",
     "cancelRun": "Annuleren",
     "cancelRunConfirm": "Back-up annuleren",
-    "cancelRunTitle": "Lopende back-up annuleren?",
+"cancelRunTitle": "Lopende back-up annuleren?",
     "cancelRunDescription": "De lopende back-up wordt gestopt. Docker-, agent- of opslagbewerkingen die bezig zijn, worden afgebroken. De back-up wordt gemarkeerd als geannuleerd en kan daarna worden verwijderd.",
+    "tabs": {
+      "runs": "Back-uplijst",
+      "plans": "Geplande back-ups"
+    },
+    "runs": {
+      "emptyTitle": "Nog geen back-upruns",
+      "emptyHint": "Start een handmatige back-up of wacht op een gepland schema.",
+      "table": {
+        "container": "Container",
+        "environment": "Omgeving",
+        "status": "Status",
+        "destinations": "Bestemmingen",
+        "size": "Grootte",
+        "startedAt": "Gestart",
+        "duration": "Duur",
+        "open": "Openen",
+        "restore": "Back-up herstellen",
+        "download": "Back-up downloaden",
+        "delete": "Back-up verwijderen",
+        "runningHint": "uploaden…",
+        "failedHint": "met fouten"
+      }
+    },
+    "bulkSelectAllRuns": "Selecteer alle back-upruns",
+    "bulkSelectRunRow": "Selecteer {{name}}",
+    "bulkRunsSelected": "{{count}} geselecteerd",
+    "bulkRunsDownload": "Download {{count}}",
+    "bulkRunsDeleteTitle": "Back-upruns verwijderen?",
+    "bulkRunsDeleteDescription": "Dit verwijdert permanent {{count}} back-uprun(s) en verwijdert het archiefbestand van elke opslagbestemming (lokaal en extern). Deze actie kan niet ongedaan worden gemaakt.",
+    "bulkRunsDeleteConfirm": "Verwijder {{count}} back-up(s)",
+    "plans": {
+      "emptyTitle": "Geen geplande back-ups",
+      "emptyHint": "Open de Back-ups-tab van een container en maak een gepland schema.",
+      "table": {
+        "name": "Naam",
+        "environment": "Omgeving",
+        "container": "Container",
+        "schedule": "Schema",
+        "destinations": "Bestemmingen",
+        "retention": "Bewaartermijn",
+        "nextRun": "Volgende run",
+        "enabled": "Status",
+        "open": "Openen",
+        "edit": "Schema bewerken",
+        "delete": "Schema verwijderen"
+      }
+    },
+    "bulkSelectAll": "Selecteer alle geplande back-ups",
+    "bulkSelectRow": "Selecteer {{name}}",
+    "bulkSelected": "{{count}} geselecteerd",
+    "bulkOfTotal": "van {{total}} in totaal",
+    "bulkClear": "Selectie wissen",
+    "bulkDelete": "Geselecteerde verwijderen",
+    "bulkDeleteTitle": "Geplande back-ups verwijderen?",
+    "bulkDeleteDescription": "Dit verwijdert permanent {{count}} gepland back-upschema(s). Bestaande back-uparchieven worden niet verwijderd.",
+    "bulkDeleteConfirm": "Verwijder {{count}} schema(s)",
     "toast": {
       "started": "Back-up gestart",
       "scheduleCreated": "Back-upschema opgeslagen",
@@ -568,7 +637,8 @@
       "runDeleted": "Back-up verwijderd",
       "runCancelled": "Back-up geannuleerd",
       "restoreStarted": "Herstel gestart",
-      "restored": "Back-up hersteld"
+      "restored": "Back-up hersteld",
+      "retryUploadStarted": "Upload-retry gestart"
     }
   },
   "stats": {

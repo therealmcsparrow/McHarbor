@@ -30,6 +30,7 @@ const ENV_SELECTOR_ROUTES = new Set([
   '/networks',
   '/stacks',
   '/terminal',
+  '/backups',
   '/logs',
   '/pods',
   '/deployments',

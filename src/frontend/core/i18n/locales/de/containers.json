@@ -543,19 +543,88 @@
       "local": "Lokaler Speicher",
       "external": "Externer Speicher"
     },
-    "storageStatus": {
+"storageStatus": {
       "uploading": "Wird hochgeladen",
       "success": "Gespeichert",
       "failure": "Fehlgeschlagen"
     },
+    "destinationMenu": {
+      "restore": "Backup wiederherstellen",
+      "delete": "Backup loeschen",
+      "download": "Backup herunterladen"
+    },
+    "destinationFailure": {
+      "title": "Speicher-Upload fehlgeschlagen",
+      "close": "Schliessen",
+      "retry": "Upload erneut versuchen",
+      "retryHint": "Der Retry laedt das lokale Backup nur in dieses Ziel hoch. Andere Ziele sind nicht betroffen.",
+      "retryUploading": "Wird hochgeladen",
+      "unknownError": "Keine Fehlerdetails verfuegbar."
+    },
     "deleteScheduleTitle": "Backup-Zeitplan loeschen",
     "deleteScheduleDescription": "Dies entfernt den Zeitplan. Bestehende Backup-Archive werden nicht geloescht.",
-    "deleteRunTitle": "Backup loeschen?",
-    "deleteRunDescription": "Dies loescht den Backup-Lauf und die lokale Archivdatei dauerhaft, sofern vorhanden. Diese Aktion kann nicht rueckgaengig gemacht werden.",
+"deleteRunTitle": "Backup loeschen?",
+    "deleteRunDescription": "Dies loescht den Backup-Lauf und entfernt die Archivdatei von allen Speicherzielen (lokal und remote). Diese Aktion kann nicht rueckgaengig gemacht werden.",
     "cancelRun": "Abbrechen",
     "cancelRunConfirm": "Backup abbrechen",
-    "cancelRunTitle": "Laufendes Backup abbrechen?",
+"cancelRunTitle": "Laufendes Backup abbrechen?",
     "cancelRunDescription": "Das laufende Backup wird gestoppt. Laufende Docker-, Agent- oder Speicheroperationen werden abgebrochen. Das Backup wird als abgebrochen markiert und kann anschließend gelöscht werden.",
+    "tabs": {
+      "runs": "Backup-Liste",
+      "plans": "Geplante Backups"
+    },
+    "runs": {
+      "emptyTitle": "Noch keine Backup-Laeufe",
+      "emptyHint": "Starte ein manuelles Backup oder warte auf einen geplanten Zeitplan.",
+      "table": {
+        "container": "Container",
+        "environment": "Umgebung",
+        "status": "Status",
+        "destinations": "Ziele",
+        "size": "Groesse",
+        "startedAt": "Gestartet",
+        "duration": "Dauer",
+        "open": "Oeffnen",
+        "restore": "Backup wiederherstellen",
+        "download": "Backup herunterladen",
+        "delete": "Backup loeschen",
+        "runningHint": "laedt hoch…",
+        "failedHint": "mit Fehlern"
+      }
+    },
+    "bulkSelectAllRuns": "Alle Backup-Laeufe auswaehlen",
+    "bulkSelectRunRow": "{{name}} auswaehlen",
+    "bulkRunsSelected": "{{count}} ausgewaehlt",
+    "bulkRunsDownload": "{{count}} herunterladen",
+    "bulkRunsDeleteTitle": "Backup-Laeufe loeschen?",
+    "bulkRunsDeleteDescription": "Dies loescht dauerhaft {{count}} Backup-Lauf/Laeufe und entfernt die Archivdatei von allen Speicherzielen (lokal und remote). Diese Aktion kann nicht rueckgaengig gemacht werden.",
+    "bulkRunsDeleteConfirm": "{{count}} Backup(s) loeschen",
+    "plans": {
+      "emptyTitle": "Keine geplanten Backups",
+      "emptyHint": "Oeffne den Backup-Tab eines Containers und erstelle einen Zeitplan.",
+      "table": {
+        "name": "Name",
+        "environment": "Umgebung",
+        "container": "Container",
+        "schedule": "Zeitplan",
+        "destinations": "Ziele",
+        "retention": "Aufbewahrung",
+        "nextRun": "Naechster Lauf",
+        "enabled": "Status",
+        "open": "Oeffnen",
+        "edit": "Zeitplan bearbeiten",
+        "delete": "Zeitplan loeschen"
+      }
+    },
+    "bulkSelectAll": "Alle geplanten Backups auswaehlen",
+    "bulkSelectRow": "{{name}} auswaehlen",
+    "bulkSelected": "{{count}} ausgewaehlt",
+    "bulkOfTotal": "von {{total}} gesamt",
+    "bulkClear": "Auswahl aufheben",
+    "bulkDelete": "Ausgewaehlte loeschen",
+    "bulkDeleteTitle": "Geplante Backups loeschen?",
+    "bulkDeleteDescription": "Dies loescht dauerhaft {{count}} geplante Backup-Zeitplaene. Bestehende Backup-Archive werden nicht geloescht.",
+    "bulkDeleteConfirm": "{{count}} Zeitplan/Zeitplaene loeschen",
     "toast": {
       "started": "Backup gestartet",
       "scheduleCreated": "Backup-Zeitplan gespeichert",
@@ -563,7 +632,8 @@
       "runDeleted": "Backup geloescht",
       "runCancelled": "Backup abgebrochen",
       "restoreStarted": "Wiederherstellung gestartet",
-      "restored": "Backup wiederhergestellt"
+      "restored": "Backup wiederhergestellt",
+      "retryUploadStarted": "Upload-Wiederholung gestartet"
     }
   },
   "stats": {
