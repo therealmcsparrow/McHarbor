@@ -39,6 +39,7 @@ func Mount(app *router.AppDeps) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Put("/{planId}", h.HandleUpdatePlan)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Delete("/{planId}", h.HandleDeletePlan)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/{planId}/run", h.HandleRunPlan)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermContainersManage)).Post("/admin/relink-all", h.HandleRelinkAllContainerLinks)
 		})
 	})
 }

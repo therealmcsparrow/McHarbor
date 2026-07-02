@@ -191,7 +191,14 @@ func (s *Service) ListPlans(ctx context.Context, envID, containerID string) ([]B
 		if err := s.hydratePlanStorageLocations(ctx, &plan); err != nil {
 			return nil, err
 		}
-		plans = append(plans, plan)
+		// Auto-refresh stale container_id. Failures are swallowed
+		// (logged via refreshPlanContainerID) so a flaky
+		// orchestrator never breaks the list endpoint. The
+		// returned `stale` flag tells the UI to show the
+		// "Re-linked" badge on this request.
+		refreshedPlan, stale := s.refreshPlanContainerID(ctx, plan)
+		refreshedPlan.ContainerIDStale = stale
+		plans = append(plans, refreshedPlan)
 	}
 	return plans, rows.Err()
 }
@@ -435,6 +442,18 @@ func (s *Service) ListRuns(ctx context.Context, envID, containerID string) ([]Ba
 			return nil, err
 		}
 		s.annotateRunKeyRequirement(&run)
+		// Auto-refresh stale container_id. For runs the lookup uses
+		// the plan's container_name (the run row itself doesn't
+		// carry the name). Failures are swallowed so a single
+		// broken env doesn't fail the whole list.
+		runStale := false
+		if refreshed, _ := s.refreshPlanContainerIDForRun(ctx, &run); refreshed {
+			runStale = true
+		}
+		if runRefreshed, _ := s.refreshRunContainerID(ctx, &run); runRefreshed {
+			runStale = true
+		}
+		run.ContainerIDStale = runStale
 		runs = append(runs, run)
 	}
 	if err := rows.Err(); err != nil {
@@ -1176,6 +1195,15 @@ func (s *Service) runByID(ctx context.Context, id string) (*BackupRun, error) {
 		return nil, err
 	}
 	s.annotateRunKeyRequirement(&run)
+	// Auto-refresh stale container_id (plan + run side). Same
+	// resilience contract as ListRuns: failures are swallowed so a
+	// single broken env doesn't fail the run lookup.
+	if planRefreshed, _ := s.refreshPlanContainerIDForRun(ctx, &run); planRefreshed {
+		run.ContainerIDStale = true
+	}
+	if runRefreshed, _ := s.refreshRunContainerID(ctx, &run); runRefreshed {
+		run.ContainerIDStale = true
+	}
 	if err := s.hydrateRunDestinations(ctx, &run); err != nil {
 		return nil, err
 	}

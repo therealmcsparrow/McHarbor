@@ -11,6 +11,7 @@ import {
   IconDownload,
   IconExternalLink,
   IconHistory,
+  IconLink,
   IconPencil,
   IconRefresh,
   IconRestore,
@@ -45,6 +46,7 @@ import {
   useAllContainerBackupRuns,
   useDeleteContainerBackupPlan,
   useDeleteContainerBackupRun,
+  useRelinkAllContainerBackups,
   type ContainerBackupPlan,
   type ContainerBackupRun,
   type ContainerBackupRunDestination,
@@ -112,6 +114,7 @@ export default function BackupsPage() {
   const plansQuery = useAllContainerBackupPlans(envId);
   const deletePlan = useDeleteContainerBackupPlan();
   const deleteRun = useDeleteContainerBackupRun();
+  const relinkAll = useRelinkAllContainerBackups();
   const [editTarget, setEditTarget] = useState<ContainerBackupPlan | null>(
     null,
   );
@@ -278,20 +281,39 @@ export default function BackupsPage() {
             : tc("header.allEnvironments")
         }
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (tab === "runs") {
-                void runsQuery.data;
-              } else {
-                void plansQuery.data;
-              }
-            }}
-            aria-label={tc("common.refresh")}
-          >
-            <IconRefresh className="size-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                relinkAll.mutate();
+              }}
+              disabled={relinkAll.isPending}
+              data-testid="backups-relink-all"
+              aria-label={t("backups.relinkAll")}
+            >
+              {relinkAll.isPending ? (
+                <Spinner size="sm" className="mr-1.5" />
+              ) : (
+                <IconLink className="size-4" />
+              )}
+              {t("backups.relinkAll")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (tab === "runs") {
+                  void runsQuery.data;
+                } else {
+                  void plansQuery.data;
+                }
+              }}
+              aria-label={tc("common.refresh")}
+            >
+              <IconRefresh className="size-4" />
+            </Button>
+          </div>
         }
       />
 
@@ -710,10 +732,15 @@ function BackupRunsTable({
                         event.preventDefault();
                         onOpenContainer(run.environmentId, run.containerId);
                       }}
-                      className="flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                      className="flex flex-col items-start gap-1 font-medium text-foreground hover:text-primary"
                     >
-                      {run.containerName || run.containerId.slice(0, 12)}
-                      <IconExternalLink className="size-3.5 opacity-60" aria-hidden="true" />
+                      <span className="flex items-center gap-1">
+                        {run.containerName || run.containerId.slice(0, 12)}
+                        <IconExternalLink className="size-3.5 opacity-60" aria-hidden="true" />
+                      </span>
+                      {run.containerIdStale && (
+                        <StaleIdBadge />
+                      )}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{envName}</td>
@@ -970,10 +997,13 @@ function BackupPlansTable({
                         event.preventDefault();
                         onOpenContainer(plan.environmentId, plan.containerId);
                       }}
-                      className="flex items-center gap-1 text-foreground hover:text-primary"
+                      className="flex flex-col items-start gap-1 text-foreground hover:text-primary"
                     >
-                      {plan.containerName || plan.containerId.slice(0, 12)}
-                      <IconExternalLink className="size-3.5 opacity-60" aria-hidden="true" />
+                      <span className="flex items-center gap-1">
+                        {plan.containerName || plan.containerId.slice(0, 12)}
+                        <IconExternalLink className="size-3.5 opacity-60" aria-hidden="true" />
+                      </span>
+                      {plan.containerIdStale && <StaleIdBadge />}
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
@@ -1065,4 +1095,30 @@ function retentionText(
     return t("backups.retentionDaysOnly", { days: plan.retentionDays });
   }
   return t("backups.retentionForever");
+}
+
+// StaleIdBadge surfaces the containerIdStale flag the server
+// sets when the auto-refresh on read changed the container_id
+// because the stored id no longer matched a live container. The
+// persisted row has already been updated by the time the flag is
+// set, so the UI just shows a small "Re-linked" badge to make the
+// re-link visible to the operator.
+function StaleIdBadge() {
+  const { t } = useTranslation("containers");
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-600 dark:text-amber-400"
+          data-testid="stale-id-badge"
+        >
+          <IconLink className="size-3" aria-hidden="true" />
+          {t("backups.staleIdRelinked")}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>
+        {t("backups.staleIdTooltip")}
+      </TooltipContent>
+    </Tooltip>
+  );
 }

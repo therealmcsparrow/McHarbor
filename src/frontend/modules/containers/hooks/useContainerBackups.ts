@@ -28,6 +28,11 @@ export type ContainerBackupPlan = {
   environmentId: string;
   containerId: string;
   containerName: string;
+  // containerIdStale is true when the server refreshed the
+  // container_id on this read because the stored id no longer
+  // matched a live container. The persisted row has already been
+  // updated, so the UI just surfaces a small "Re-linked" badge.
+  containerIdStale?: boolean;
   storageLocationId?: string;
   storageLocationIds: string[];
   includeConfig: boolean;
@@ -54,6 +59,8 @@ export type ContainerBackupRun = {
   environmentId: string;
   containerId: string;
   containerName?: string;
+  // See ContainerBackupPlan.containerIdStale.
+  containerIdStale?: boolean;
   status: 'running' | 'success' | 'failure' | 'cancelled';
   archivePath?: string;
   archiveSize: number;
@@ -86,6 +93,15 @@ export type ContainerBackupRunDestination = {
   bytesTotal?: number;
   createdAt: string;
   updatedAt: string;
+};
+
+export type ContainerBackupRelinkAllResult = {
+  plansChecked: number;
+  plansRefreshed: number;
+  runsChecked: number;
+  runsRefreshed: number;
+  refreshedRunIds?: string[];
+  refreshedPlanIds?: string[];
 };
 
 export type ContainerBackupRestoreInput = {
@@ -191,7 +207,11 @@ export function useAllContainerBackupPlans(envId: string | undefined | null) {
       : environments;
   const queries = useQueries({
     queries: envs.map((env) => ({
-      queryKey: ['container-backup-plans-all', env.id],
+      // Nest under the same root key as the per-container
+      // `container-backup-plans` query so the run/plan mutations'
+      // broad `invalidateQueries(['container-backup-plans'])`
+      // invalidations match every env's row.
+      queryKey: ['container-backup-plans', 'all', env.id],
       queryFn: () =>
         api
           .get<ContainerBackupPlan[]>(
@@ -251,7 +271,11 @@ export function useAllContainerBackupRuns(envId: string | undefined | null) {
       : environments;
   const queries = useQueries({
     queries: envs.map((env) => ({
-      queryKey: ['container-backup-runs-all', env.id],
+      // See the comment in useAllContainerBackupPlans — nest
+      // under the same root key so broad invalidations hit this
+      // query too (otherwise the Backups page table never
+      // refetches after a delete / cancel / etc.).
+      queryKey: ['container-backup-runs', 'all', env.id],
       queryFn: () =>
         api
           .get<ContainerBackupRun[]>(
@@ -391,7 +415,28 @@ export function useDeleteContainerBackupPlan() {
   return useMutation({
     mutationFn: (id: string) => api.del(`/container-backups/${id}`).then(assertSuccess),
     meta: { success: () => t('backups.toast.scheduleDeleted') },
-    onSuccess: () => {
+    onMutate: async (id) => {
+      // Optimistic removal: drop the plan from every cached query
+      // so the table row disappears immediately. The rollback
+      // restores the previous snapshot if the delete fails.
+      await queryClient.cancelQueries({ queryKey: ['container-backup-plans'] });
+      const previous = queryClient.getQueriesData<ContainerBackupPlan[]>({
+        queryKey: ['container-backup-plans'],
+      });
+      queryClient.setQueriesData<ContainerBackupPlan[]>(
+        { queryKey: ['container-backup-plans'] },
+        (current) => (current ?? []).filter((plan) => plan.id !== id),
+      );
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      // Rollback the optimistic removal.
+      if (!context) return;
+      for (const [key, snapshot] of context.previous) {
+        queryClient.setQueryData<ContainerBackupPlan[]>(key, snapshot);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['container-backup-plans'] });
     },
   });
@@ -404,7 +449,28 @@ export function useDeleteContainerBackupRun() {
   return useMutation({
     mutationFn: (id: string) => api.del(`/container-backups/runs/${id}`).then(assertSuccess),
     meta: { success: () => t('backups.toast.runDeleted') },
-    onSuccess: () => {
+    onMutate: async (id) => {
+      // Optimistic removal: drop the run from every cached query
+      // so the table row disappears immediately. We snapshot the
+      // prior state so onError can roll back if the server rejects
+      // the delete (e.g. a dependency still references the run).
+      await queryClient.cancelQueries({ queryKey: ['container-backup-runs'] });
+      const previous = queryClient.getQueriesData<ContainerBackupRun[]>({
+        queryKey: ['container-backup-runs'],
+      });
+      queryClient.setQueriesData<ContainerBackupRun[]>(
+        { queryKey: ['container-backup-runs'] },
+        (current) => (current ?? []).filter((run) => run.id !== id),
+      );
+      return { previous };
+    },
+    onError: (_error, _id, context) => {
+      if (!context) return;
+      for (const [key, snapshot] of context.previous) {
+        queryClient.setQueryData<ContainerBackupRun[]>(key, snapshot);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
     },
   });
@@ -563,6 +629,37 @@ export function useRetryDestinationUpload() {
       // progress without waiting for the next refetchInterval tick.
       queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
       queryClient.invalidateQueries({ queryKey: ['container-backup-run'] });
+    },
+  });
+}
+
+// useRelinkAllContainerBackups runs a one-shot reconciliation
+// pass against the orchestrator: every plan and run with a stale
+// container_id gets its id refreshed to the live one. Designed
+// for after a bulk container recreate (docker compose up). The
+// list endpoints already auto-refresh on read, so the bulk action
+// is mostly for batch-fixing rows the user hasn't loaded yet.
+export function useRelinkAllContainerBackups() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('containers');
+
+  return useMutation({
+    mutationFn: () =>
+      api
+        .post<ContainerBackupRelinkAllResult>(
+          '/container-backups/admin/relink-all',
+        )
+        .then(assertSuccess),
+    meta: {
+      success: (result: ContainerBackupRelinkAllResult | undefined) => {
+        const refreshed =
+          (result?.plansRefreshed ?? 0) + (result?.runsRefreshed ?? 0);
+        return t('backups.toast.relinkAllSuccess', { count: refreshed });
+      },
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['container-backup-plans'] });
+      queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
     },
   });
 }

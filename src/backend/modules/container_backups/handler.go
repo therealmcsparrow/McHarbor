@@ -4,6 +4,7 @@
 package container_backups
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -202,6 +203,39 @@ func (h *Handler) HandleDeletePlan(w http.ResponseWriter, r *http.Request) {
 	}
 	h.app.AuditLog.Log(r, audit.Entry{Action: "backup_plan.deleted", EntityType: "container", EntityID: id})
 	response.NoContent(w)
+}
+
+// HandleRelinkAllContainerLinks runs a one-shot reconciliation
+// pass: every plan and run gets its container_id resolved against
+// the live orchestrator and persisted if stale. Designed to be
+// invoked from the Backups overview page's "Re-link stale" button
+// after a bulk container recreate (e.g. docker compose up).
+func (h *Handler) HandleRelinkAllContainerLinks(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	// Bound the operation so a stuck orchestrator doesn't pin a
+	// request indefinitely. The helper itself uses per-row
+	// sub-contexts, but the outer context caps total wall time.
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Minute)
+	defer cancel()
+	result, err := h.service.RelinkAllStaleContainerLinks(ctx)
+	if err != nil {
+		h.app.Logger.Error("bulk container link relink failed", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "backup.relink_all",
+		EntityType: "container",
+		Details: fmt.Sprintf(
+			"plans checked=%d plans refreshed=%d runs checked=%d runs refreshed=%d",
+			result.PlansChecked, result.PlansRefreshed,
+			result.RunsChecked, result.RunsRefreshed,
+		),
+	})
+	response.OK(w, result)
 }
 
 // HandleRunPlan runs a saved backup plan.

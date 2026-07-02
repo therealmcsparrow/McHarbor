@@ -1120,6 +1120,19 @@ func buildPaths() map[string]any {
 				},
 			}),
 		),
+		"/container-backups/admin/relink-all": path(
+			op(operationSpec{
+				Method:      "POST",
+				Summary:     "Re-link stale container backups",
+				Description: "Iterates every backup plan and run, resolves the live container_id against the orchestrator (Docker), and persists the change when the stored id no longer matches. Designed for after a bulk container recreate (docker compose up) — the list endpoints already refresh single rows on read; this endpoint refreshes every row in one shot.",
+				OperationID: "containerBackupAdminRelinkAll",
+				Tags:        []string{"containers", "storage"},
+				Responses: map[string]any{
+					"200": okResponse("Reconciliation summary", schemaRef("ContainerBackupRelinkAllResult")),
+					"403": errorResponse("Permission denied"),
+				},
+			}),
+		),
 		"/images/": path(
 			op(operationSpec{
 				Method:      "GET",
@@ -3285,6 +3298,7 @@ func buildSchemas() map[string]any {
 				"environmentId":      map[string]any{"type": "string"},
 				"containerId":        map[string]any{"type": "string"},
 				"containerName":      map[string]any{"type": "string"},
+				"containerIdStale":   map[string]any{"type": "boolean", "description": "True when the server refreshed the container_id on this read because the stored id no longer matched a live container. The persisted row has already been updated."},
 				"storageLocationId":  map[string]any{"type": "string"},
 				"storageLocationIds": arrayOf(map[string]any{"type": "string"}),
 				"includeConfig":      map[string]any{"type": "boolean"},
@@ -3365,6 +3379,7 @@ func buildSchemas() map[string]any {
 				"sourceRunId":       map[string]any{"type": "string", "description": "Source backup run used by a restore operation."},
 				"environmentId":     map[string]any{"type": "string"},
 				"containerId":       map[string]any{"type": "string"},
+				"containerIdStale":  map[string]any{"type": "boolean", "description": "True when the server refreshed the container_id on this read because the stored id no longer matched a live container. The persisted row has already been updated."},
 				"status":            map[string]any{"type": "string", "enum": []string{"running", "success", "failure"}},
 				"archivePath":       map[string]any{"type": "string", "description": "Local path to the encrypted mcharbor.tar archive."},
 				"archiveSize":       map[string]any{"type": "integer", "format": "int64"},
@@ -3383,6 +3398,19 @@ func buildSchemas() map[string]any {
 				"updatedAt":         map[string]any{"type": "string", "format": "date-time"},
 			},
 			"required": []string{"id", "operation", "environmentId", "containerId", "status", "archiveSize", "destinations", "startedAt", "durationMs", "createdAt", "updatedAt"},
+		},
+		"ContainerBackupRelinkAllResult": map[string]any{
+			"type":        "object",
+			"description": "Summary of a bulk container-link reconciliation pass.",
+			"properties": map[string]any{
+				"plansChecked":     map[string]any{"type": "integer"},
+				"plansRefreshed":   map[string]any{"type": "integer"},
+				"runsChecked":      map[string]any{"type": "integer"},
+				"runsRefreshed":    map[string]any{"type": "integer"},
+				"refreshedRunIds":  arrayOf(map[string]any{"type": "string"}),
+				"refreshedPlanIds": arrayOf(map[string]any{"type": "string"}),
+			},
+			"required": []string{"plansChecked", "plansRefreshed", "runsChecked", "runsRefreshed"},
 		},
 		"BackupRunDestination": map[string]any{
 			"type":        "object",

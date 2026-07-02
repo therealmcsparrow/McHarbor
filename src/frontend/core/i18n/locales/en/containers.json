@@ -577,6 +577,9 @@
       "runs": "Backup list",
       "plans": "Scheduled backups"
     },
+    "relinkAll": "Re-link stale containers",
+    "staleIdRelinked": "Re-linked",
+    "staleIdTooltip": "The stored container id was stale (the container was recreated). McHarbor resolved the live id and updated this row.",
     "runs": {
       "emptyTitle": "No backup runs yet",
       "emptyHint": "Trigger a manual backup or wait for a scheduled plan to run.",
@@ -638,7 +641,8 @@
       "runCancelled": "Backup cancelled",
       "restoreStarted": "Restore started",
       "restored": "Backup restored",
-      "retryUploadStarted": "Upload retry started"
+      "retryUploadStarted": "Upload retry started",
+      "relinkAllSuccess": "Re-linked {{count}} backup(s) to live containers"
     }
   },
   "stats": {

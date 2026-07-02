@@ -10,6 +10,12 @@ type BackupPlan struct {
 	EnvironmentID      string   `json:"environmentId"`
 	ContainerID        string   `json:"containerId"`
 	ContainerName      string   `json:"containerName"`
+	// ContainerIDStale is true when the server refreshed the
+	// container_id on this read because the stored id no longer
+	// matched a live container (e.g. Docker reassigned the id on
+	// recreate). The persisted row has already been updated by the
+	// time the flag is set, so the UI just shows a small badge.
+	ContainerIDStale   bool     `json:"containerIdStale,omitempty"`
 	StorageLocationID  string   `json:"storageLocationId,omitempty"`
 	StorageLocationIDs []string `json:"storageLocationIds"`
 	IncludeConfig      bool     `json:"includeConfig"`
@@ -37,6 +43,8 @@ type BackupRun struct {
 	EnvironmentID     string                 `json:"environmentId"`
 	ContainerID       string                 `json:"containerId"`
 	ContainerName     string                 `json:"containerName,omitempty"`
+	// See BackupPlan.ContainerIDStale.
+	ContainerIDStale  bool                   `json:"containerIdStale,omitempty"`
 	Status            string                 `json:"status"`
 	ArchivePath       string                 `json:"archivePath,omitempty"`
 	ArchiveSize       int64                  `json:"archiveSize"`

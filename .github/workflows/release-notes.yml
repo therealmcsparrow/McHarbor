@@ -1,0 +1,106 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+name: Release Notes
+
+# Fires when a release tag is pushed (e.g. `git push origin v1.6.6`).
+# Extracts the matching section from CHANGELOG.md and uses it as
+# the public release body on GitHub Releases. The job is
+# idempotent: it creates the release if it doesn't exist yet and
+# updates the body if it does, so a re-pushed tag or a post-hoc
+# CHANGELOG edit both end up reflected in the published notes.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to update (e.g. v1.6.6). Leave empty to use the latest reachable tag."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release-notes:
+    name: Sync release body with CHANGELOG.md
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Resolve target tag
+        id: tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Prefer the workflow_dispatch input if provided, then fall
+          # back to the tag that triggered the push event. GITHUB_REF_NAME
+          # is `vX.Y.Z` for `push: tags: v*` events, so we use it directly.
+          if [[ -n "${{ inputs.tag }}" ]]; then
+            tag="${{ inputs.tag }}"
+          else
+            tag="${GITHUB_REF_NAME:-}"
+          fi
+          if [[ -z "${tag:-}" ]]; then
+            echo "::error::No tag resolved; set workflow_dispatch tag input or push a v* tag."
+            exit 1
+          fi
+          # Strip leading 'v' so the version matches the CHANGELOG
+          # heading, e.g. v1.6.6 -> 1.6.6.
+          version="${tag#v}"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract CHANGELOG section for the version
+        id: extract
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.tag.outputs.version }}"
+          if [[ ! -f CHANGELOG.md ]]; then
+            echo "::error::CHANGELOG.md not found."
+            exit 1
+          fi
+          # awk walks the file, starts printing when it sees the
+          # matching `## [version]` heading, and stops at the next
+          # `## [` heading. Empty trailing lines are stripped.
+          notes="$(awk -v ver="## [${version}]" '
+            $0 ~ ver {flag=1; next}
+            flag && /^## \[/ {flag=0}
+            flag {print}
+          ' CHANGELOG.md)"
+          # Drop leading blank lines so the release body doesn't
+          # start with whitespace.
+          notes="$(printf '%s' "$notes" | sed -e '/./,$!d')"
+          if [[ -z "$notes" ]]; then
+            echo "::warning::No CHANGELOG entry found for version ${version}; falling back to generic body."
+            notes="Release ${version} — see CHANGELOG.md for the full set of changes."
+          fi
+          {
+            echo "notes<<DELIM"
+            printf '%s\n' "$notes"
+            echo "DELIM"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create or update the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "Release ${{ steps.tag.outputs.version }}"
+          body: ${{ steps.extract.outputs.notes }}
+          # `action_type: auto` is the default and lets the action
+          # decide between create / update based on whether the
+          # release already exists, so a re-pushed tag or
+          # workflow_dispatch rerun both update the body in place.
+          action_type: auto
+          fail_on_unmatched_filter: true
+          # No artifacts — the GHCR images are published by the
+          # separate publish-images workflow. Linking them here
+          # would race with the image build and the link would often
+          # be empty at the time this workflow runs.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
