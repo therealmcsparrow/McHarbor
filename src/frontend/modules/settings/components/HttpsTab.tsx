@@ -15,7 +15,7 @@ import { Textarea } from '@resources/components/ui/Textarea';
 import { Switch } from '@resources/components/ui/Switch';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { formatDateOnly } from '@resources/utils/format';
-import { useTLSStatus, useSaveTLS, getCertExpiryStatus } from '../hooks/useTLS';
+import { useTLSStatus, useSaveTLS, getCertExpiryStatus } from '@resources/hooks/useTLS';
 
 export function HttpsTab() {
   const { t } = useTranslation('settings');

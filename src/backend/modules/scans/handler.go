@@ -4,11 +4,13 @@
 package scans
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/therealmcsparrow/mcharbor/core/audit"
+	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
@@ -136,6 +138,40 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response.OKMsg(w, r, i18n.MsgScanDeleted)
+}
+
+// HandlePurge deletes every scan (and its vulnerabilities) older
+// than the configured retention cutoff. The action is recorded as
+// a new audit entry so the user can see when the purge happened.
+// When the ?vacuum=true query parameter is set the handler also
+// triggers a WAL checkpoint + background VACUUM.
+func (h *Handler) HandlePurge(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	deleted, days, err := h.service.PurgeByRetention(r.Context())
+	if err != nil {
+		h.app.Logger.Error("scans: purge failed", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "purge",
+		EntityType: "scans",
+		Details:    fmt.Sprintf("cleared %d scans older than %d days", deleted, days),
+	})
+	vacuuming := false
+	if r.URL.Query().Get("vacuum") == "true" && h.app.Compact != nil {
+		_ = h.app.Compact.CheckpointAndVacuum(r.Context())
+		vacuuming = true
+	}
+	response.OK(w, map[string]any{
+		"deleted":       deleted,
+		"retentionDays": days,
+		"vacuuming":     vacuuming,
+	})
 }
 
 // HandleAvailableScanners returns a list of scanners that are enabled in settings and available.

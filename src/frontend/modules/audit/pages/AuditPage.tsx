@@ -118,7 +118,7 @@ export default function AuditPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <PageHeader title={t('audit.title')} description={t('audit.description')} />
       <SearchFilterToolbar
         query={query}
@@ -152,72 +152,73 @@ export default function AuditPage() {
         }
       />
 
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      ) : filteredEntries.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <IconClipboardList className="mb-2 h-8 w-8" />
-          <p>{query.trim() ? t('filters.noMatches') : t('audit.noEntries')}</p>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnTimestamp')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnUser')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnAction')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEntity')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEnvironment')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnDetails')}</th>
-                  <th className="px-4 py-2.5 text-right font-medium text-muted-foreground" />
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEntries.map((entry) => (
-                  <tr key={entry.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
-                    <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(entry.timestamp)}</td>
-                    <td className="px-4 py-2.5 font-medium text-foreground">{entry.username ?? '-'}</td>
-                    <td className="px-4 py-2.5">
-                      <Badge variant={ACTION_VARIANTS[entry.action] ?? 'secondary'}>{entry.action}</Badge>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-foreground truncate max-w-48">{entry.entityName ?? entry.entityType ?? '-'}</span>
-                        {entry.entityId && <span className="font-mono text-xs text-muted-foreground">{truncateId(entry.entityId)}</span>}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-muted-foreground">{envName(entry.environmentId)}</td>
-                    <td className="px-4 py-2.5 text-muted-foreground max-w-48 truncate">{entry.details ?? '-'}</td>
-                    <td className="px-4 py-2.5 text-right">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="outline" size="icon-sm" onClick={() => setSelected(entry)} aria-label={t('audit.viewDetails')}>
-                            <IconEye className="size-3.5" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{t('audit.viewDetails')}</TooltipContent>
-                      </Tooltip>
-                    </td>
+      <div className="flex min-h-0 flex-1 flex-col">
+        {isLoading ? (
+          <div className="flex flex-1 items-center justify-center">
+            <Spinner size="lg" />
+          </div>
+        ) : filteredEntries.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center py-16 text-muted-foreground">
+            <IconClipboardList className="mb-2 h-8 w-8" />
+            <p>{query.trim() ? t('filters.noMatches') : t('audit.noEntries')}</p>
+          </div>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10 bg-muted">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnTimestamp')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnUser')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnAction')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEntity')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnEnvironment')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('audit.columnDetails')}</th>
+                    <th className="px-4 py-2.5 text-right font-medium text-muted-foreground" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {filteredEntries.map((entry) => (
+                    <tr key={entry.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
+                      <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(entry.timestamp)}</td>
+                      <td className="px-4 py-2.5 font-medium text-foreground">{entry.username ?? '-'}</td>
+                      <td className="px-4 py-2.5">
+                        <Badge variant={ACTION_VARIANTS[entry.action] ?? 'secondary'}>{entry.action}</Badge>
+                      </td>
+                      <td className="px-4 py-2.5">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground truncate max-w-48">{entry.entityName ?? entry.entityType ?? '-'}</span>
+                          {entry.entityId && <span className="font-mono text-xs text-muted-foreground">{truncateId(entry.entityId)}</span>}
+                        </div>
+                      </td>
+                      <td className="px-4 py-2.5 text-muted-foreground">{envName(entry.environmentId)}</td>
+                      <td className="px-4 py-2.5 text-muted-foreground max-w-48 truncate">{entry.details ?? '-'}</td>
+                      <td className="px-4 py-2.5 text-right">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline" size="icon-sm" onClick={() => setSelected(entry)} aria-label={t('audit.viewDetails')}>
+                              <IconEye className="size-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t('audit.viewDetails')}</TooltipContent>
+                        </Tooltip>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div ref={sentinelRef} className="flex h-12 shrink-0 items-center justify-center text-xs text-muted-foreground">
+              {isFetchingNextPage && (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  {t('common:list.loadingMore')}
+                </span>
+              )}
+            </div>
           </div>
-          <div ref={sentinelRef} className="flex h-12 items-center justify-center text-xs text-muted-foreground">
-            {isFetchingNextPage && (
-              <span className="flex items-center gap-2">
-                <Spinner size="sm" />
-                {t('common:list.loadingMore')}
-              </span>
-            )}
-            {!hasNextPage && !isFetchingNextPage && entries.length > 0 && t('common:list.endOfList')}
-          </div>
-        </>
-      )}
+        )}
+      </div>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-2xl p-0">

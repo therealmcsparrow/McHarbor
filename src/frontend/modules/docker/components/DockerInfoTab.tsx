@@ -4,7 +4,7 @@
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { Badge } from '@resources/components/ui/Badge';
-import { useDockerInfo } from '../hooks/useDockerInfo';
+import { useDockerInfo } from '@resources/hooks/useDockerInfo';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';

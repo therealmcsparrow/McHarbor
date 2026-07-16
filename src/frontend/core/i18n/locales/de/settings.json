@@ -25,7 +25,21 @@
     "themeDescription": "Wählen Sie das Erscheinungsbild der Oberfläche.",
     "appName": "Anwendungsname",
     "autoRefreshInterval": "Automatisches Aktualisierungsintervall (Sekunden)",
-    "saving": "Speichern..."
+    "saving": "Speichern...",
+    "defaultApplicationLanguage": "Standard-Anwendungssprache",
+    "defaultApplicationLanguageDescription": "Sprache der McHarbor-Oberfläche vor der Anmeldung oder wenn der Benutzer keine bevorzugte Sprache ausgewählt hat.",
+    "preferencesSaved": "Einstellungen gespeichert",
+    "preferencesSaveFailed": "Einstellungen konnten nicht gespeichert werden",
+    "defaultLanguageSaved": "Standardsprache gespeichert",
+    "defaultLanguageSaveFailed": "Standardsprache konnte nicht gespeichert werden",
+    "userInterfacePreferences": "Oberflächeneinstellungen",
+    "userInterfacePreferencesDescription": "Wählen Sie, wie Datums- und Zeitangaben in der Anwendung dargestellt werden.",
+    "timeFormat": "Zeitformat",
+    "timeFormat24h": "24-Stunden (13:30)",
+    "timeFormat12h": "12-Stunden (1:30 PM)",
+    "dateFormat": "Datumsformat",
+    "dateFormatDDMMYYYY": "TT/MM/JJJJ (31.12.2025)",
+    "dateFormatMMDDYYYY": "MM/TT/JJJJ (12.31.2025)"
   },
   "retention": {
     "title": "Datenaufbewahrung",
@@ -44,7 +58,19 @@
     "clearAuditDescription": "Alle Audit-Log-Einträge älter als {{days}} Tage dauerhaft löschen. Die Anzahl der gelöschten Einträge wird nach dem Vorgang angezeigt. Dies kann nicht rückgängig gemacht werden.",
     "clearActivityTitle": "Aktivitäts-Log löschen?",
     "clearActivityDescription": "Alle Aktivitätsereignisse älter als {{days}} Tage dauerhaft löschen. Die Anzahl der gelöschten Ereignisse wird nach dem Vorgang angezeigt. Dies kann nicht rückgängig gemacht werden.",
-    "keepForever": "Aufbewahrung auf eine positive Zahl setzen, um das Löschen zu aktivieren."
+    "keepForever": "Aufbewahrung auf eine positive Zahl setzen, um das Löschen zu aktivieren.",
+    "lifecycleDays": "Lebenszyklusprotokoll-Aufbewahrung",
+    "lifecycleDaysDescription": "Tage, die Lebenszyklusereignisse vor dem nächsten Bereinigungslauf aufbewahrt werden. 0 = für immer aufbewahren.",
+    "backupLogDays": "Sicherungsprotokoll-Aufbewahrung",
+    "backupLogDaysDescription": "Tage, die Sicherungs-Protokollzeilen vor dem nächsten Bereinigungslauf aufbewahrt werden. 0 = für immer aufbewahren.",
+    "scanDays": "Aufbewahrung von Sicherheitsscans",
+    "scanDaysDescription": "Tage, die Schwachstellenscans (und Ergebnisse) vor dem nächsten Bereinigungslauf aufbewahrt werden. 0 = für immer aufbewahren.",
+    "clearLifecycleTitle": "Lebenszyklusprotokoll bereinigen?",
+    "clearLifecycleDescription": "Alle Lebenszyklusereignisse, die älter als {{days}} Tage sind, dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "clearBackupLogTitle": "Sicherungsprotokoll bereinigen?",
+    "clearBackupLogDescription": "Alle Sicherungs-Protokollzeilen, die älter als {{days}} Tage sind, dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden.",
+    "clearScansTitle": "Sicherheitsscans bereinigen?",
+    "clearScansDescription": "Alle Schwachstellenscans (und Ergebnisse), die älter als {{days}} Tage sind, dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden."
   },
   "auth": {
     "description": "Konfigurieren Sie Authentifizierungsanbieter und Sitzungseinstellungen.",
@@ -780,7 +806,18 @@
     "currentVersionLabel": "Aktuell",
     "upToDate": "Sie verwenden die neueste Version.",
     "viewRelease": "Release anzeigen",
-    "checkFailed": "Update-Pruefung fehlgeschlagen. Versuchen Sie es spaeter erneut."
+    "checkFailed": "Update-Pruefung fehlgeschlagen. Versuchen Sie es spaeter erneut.",
+    "selfUpdate": {
+      "title": "Selbst-Update-Prüfung",
+      "subtitle": "Prüft regelmäßig den GitHub-Release-Feed und zeigt neue Versionen in der App an.",
+      "enabledLabel": "Auf neue Releases prüfen",
+      "enabledHint": "Führt eine Hintergrundprüfung im unten angegebenen Intervall durch und zeigt ein Banner, sobald eine neuere Version verfügbar ist.",
+      "intervalLabel": "Prüfintervall",
+      "intervalSuffix": "Stunden",
+      "channelsLabel": "Diese Kanäle bei einem neuen Release benachrichtigen",
+      "channelsHint": "Leer lassen, um nur das In-App-Banner anzuzeigen.",
+      "noChannels": "Keine aktivierten Benachrichtigungskanäle. Unter Einstellungen → Benachrichtigungen konfigurieren."
+    }
   },
   "toast": {
     "updated": "Einstellungen aktualisiert",
@@ -826,6 +863,76 @@
     "backupKeySetupCopied": "Backup-Einrichtungsbefehl kopiert",
     "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
     "storageBackupsMigrated": "Backups migriert: {{migrated}} kopiert, {{skipped}} ubersprungen, {{failed}} fehlgeschlagen",
-    "storageBackupsMigrationFailed": "Backup-Migration fehlgeschlagen"
+    "storageBackupsMigrationFailed": "Backup-Migration fehlgeschlagen",
+    "lifecycleLogPurged": "Lebenszyklusprotokoll geleert ({{count}} Ereignisse)",
+    "lifecycleLogPurgedVacuuming": "Lebenszyklusprotokoll geleert ({{count}} Ereignisse). Datenbank wird im Hintergrund komprimiert...",
+    "backupLogPurged": "Sicherungsprotokoll geleert ({{count}} Einträge)",
+    "backupLogPurgedVacuuming": "Sicherungsprotokoll geleert ({{count}} Einträge). Datenbank wird im Hintergrund komprimiert...",
+    "scanHistoryPurged": "Scan-Verlauf geleert ({{count}} Scans)",
+    "scanHistoryPurgedVacuuming": "Scan-Verlauf geleert ({{count}} Scans). Datenbank wird im Hintergrund komprimiert...",
+    "updateCheckSettingsSaved": "Selbst-Update-Einstellungen gespeichert",
+    "updateCheckDismissed": "Update-Hinweis geschlossen"
+  },
+  "lifecycle": {
+    "title": "Lebenszyklusprotokoll",
+    "description": "Alle Lebenszyklusereignisse für Container, Images, Volumes, Netzwerke und Stacks einsehen.",
+    "searchPlaceholder": "Nach Objekten, Ereignissen oder Meldungen suchen",
+    "subjectTypeLabel": "Objekttyp",
+    "severityLabel": "Schweregrad",
+    "headerSubject": "Objekt",
+    "headerDetail": "Detail",
+    "headerSeverity": "Schweregrad",
+    "headerTime": "Zeit",
+    "empty": "Keine Lebenszyklusereignisse passen zu diesen Filtern.",
+    "localEnvironment": "Lokale Umgebung",
+    "collapse": "Details einklappen",
+    "expand": "Details ausklappen",
+    "source": "Quelle: {{source}}",
+    "detailId": "Ereignis-ID",
+    "detailSubject": "Objekt",
+    "detailEvent": "Ereignis / Aktion",
+    "detailState": "Status",
+    "detailAttributes": "Attribute",
+    "pageOf": "Seite {{page}} von {{totalPages}}",
+    "total": "{{total}} Lebenszyklusereignisse",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "subjectType": {
+      "all": "Alle Objekte",
+      "container": "Container",
+      "image": "Image",
+      "volume": "Volume",
+      "network": "Netzwerk",
+      "stack": "Stack"
+    },
+    "severity": {
+      "all": "Beliebiger Schweregrad",
+      "success": "Erfolg",
+      "info": "Info",
+      "warning": "Warnung",
+      "error": "Fehler"
+    }
+  },
+  "common": {
+    "updateCheck": {}
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {
+        "selfUpdateTitle": "Selbst-Update-Prüfung",
+        "selfUpdateSubtitle": "Prüft regelmäßig den GitHub-Release-Feed und zeigt neue Versionen in der App an.",
+        "enabledLabel": "Auf neue Releases prüfen",
+        "enabledHint": "Führt eine Hintergrundprüfung im unten angegebenen Intervall durch und zeigt ein Banner, sobald eine neuere Version verfügbar ist.",
+        "intervalLabel": "Prüfintervall",
+        "intervalSuffix": "Stunden",
+        "channelsLabel": "Diese Kanäle bei einem neuen Release benachrichtigen",
+        "channelsHint": "Leer lassen, um nur das In-App-Banner anzuzeigen.",
+        "noChannels": "Keine aktivierten Benachrichtigungskanäle. Unter Einstellungen → Benachrichtigungen konfigurieren."
+      }
+    },
+    "toast": {
+      "updateCheckSettingsSaved": "Selbst-Update-Einstellungen gespeichert",
+      "updateCheckDismissed": "Update-Hinweis geschlossen"
+    }
   }
 }

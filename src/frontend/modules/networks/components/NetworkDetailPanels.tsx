@@ -226,7 +226,7 @@ export function NetworkConnectedContainersSection({
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead>
+            <thead className="bg-muted">
               <tr className="border-b border-border">
                 <th className="px-3 py-2 text-xs font-medium text-muted-foreground">{t('detail.containerName')}</th>
                 <th className="px-3 py-2 text-xs font-medium text-muted-foreground">{t('detail.endpointId')}</th>

@@ -93,6 +93,27 @@ export function Header() {
   }, [environmentsQuery.data, setEnvironments]);
 
   useEffect(() => {
+    if (!environmentsQuery.data || environmentsQuery.data.length === 0) {
+      return;
+    }
+    // Make the topbar environment selector always render with a
+    // concrete environment selected. Without this, a stale
+    // persisted currentId (empty or pointing at a deleted env)
+    // leaves the selector with no matching option. Prefer the
+    // explicit default env when present; fall back to the first
+    // item in the list.
+    const current = environmentsQuery.data.find((env) => env.id === currentId);
+    if (current) {
+      return;
+    }
+    const preferred =
+      environmentsQuery.data.find((env) => env.isDefault) ?? environmentsQuery.data[0];
+    if (preferred && preferred.id !== currentId) {
+      setCurrentId(preferred.id);
+    }
+  }, [environmentsQuery.data, currentId, setCurrentId]);
+
+  useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const tag = (e.target as HTMLElement)?.tagName;
@@ -164,7 +185,6 @@ export function Header() {
                 onChange={(e) => setCurrentId(e.target.value)}
                 className="shrink-0 rounded-lg border border-border bg-card px-3 py-2 pe-9 text-sm text-foreground focus:border-primary focus:ring-primary"
               >
-                <option value="">{t('header.allEnvironments')}</option>
                 {environments.map((env) => (
                   <option key={env.id} value={env.id}>
                     {env.name}

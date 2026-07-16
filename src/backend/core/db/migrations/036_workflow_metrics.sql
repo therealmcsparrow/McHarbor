@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS workflow_metrics (
     value_json TEXT NOT NULL DEFAULT 'null',
     numeric_value REAL,
     labels TEXT NOT NULL DEFAULT '{}',
-    recorded_at TEXT NOT NULL DEFAULT (datetime('now')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    recorded_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE INDEX IF NOT EXISTS idx_workflow_metrics_workflow_metric_time

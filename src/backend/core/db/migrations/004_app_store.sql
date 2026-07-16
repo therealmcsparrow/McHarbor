@@ -21,8 +21,8 @@ CREATE TABLE IF NOT EXISTS appstore_catalog (
     min_memory TEXT NOT NULL DEFAULT '',
     source TEXT NOT NULL DEFAULT 'bundled' CHECK(source IN ('bundled','remote')),
     version TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_appstore_catalog_slug ON appstore_catalog(slug);
 CREATE INDEX IF NOT EXISTS idx_appstore_catalog_category ON appstore_catalog(category);
@@ -34,9 +34,9 @@ CREATE TABLE IF NOT EXISTS appstore_installed (
     stack_id TEXT NOT NULL,
     stack_name TEXT NOT NULL DEFAULT '',
     environment_id TEXT,
-    installed_at TEXT NOT NULL DEFAULT (datetime('now')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    installed_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     FOREIGN KEY (stack_id) REFERENCES stacks(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_appstore_installed_slug ON appstore_installed(catalog_slug);
@@ -50,6 +50,6 @@ CREATE TABLE IF NOT EXISTS appstore_sync (
     error TEXT NOT NULL DEFAULT '',
     apps_added INTEGER NOT NULL DEFAULT 0,
     apps_updated INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );

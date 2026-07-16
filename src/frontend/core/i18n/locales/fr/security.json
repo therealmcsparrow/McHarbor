@@ -335,5 +335,32 @@
     "testFailed": "Le test de connexion a échoué",
     "scannerSettingsSaved": "Paramètres du scanner enregistrés",
     "userCreated": "Utilisateur cr??"
+  },
+  "scanHistory": {
+    "title": "Analyses de sécurité",
+    "description": "Inspectez chaque analyse de vulnérabilités de conteneurs dans tous les environnements et images.",
+    "emptyTitle": "Aucune analyse ne correspond à ces filtres.",
+    "emptyHint": "Lancez une analyse depuis la page de détails d’une image pour remplir l’historique.",
+    "total": "{{total}} analyses",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "pageOf": "Page {{page}} sur {{totalPages}}",
+    "status": {
+      "all": "Tout statut",
+      "running": "En cours",
+      "pending": "En attente",
+      "completed": "Terminée",
+      "failed": "Échouée"
+    },
+    "table": {
+      "time": "Heure",
+      "status": "Statut",
+      "scanner": "Scanner",
+      "image": "Image",
+      "severity": "Gravité",
+      "total": "Résultats",
+      "delete": "Supprimer l’analyse",
+      "viewDetails": "Voir les détails"
+    }
   }
 }

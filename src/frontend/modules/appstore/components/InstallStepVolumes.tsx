@@ -19,7 +19,7 @@ export function InstallStepVolumes({ volumes, onVolumeChange }: InstallStepVolum
   return (
     <div className="space-y-3">
       <table className="w-full text-sm">
-        <thead>
+        <thead className="bg-muted">
           <tr className="border-b border-border text-left">
             <th className="pb-2 font-medium text-foreground">{t('appStore.hostPath')}</th>
             <th className="pb-2 font-medium text-foreground">{t('appStore.containerPath')}</th>

@@ -25,7 +25,21 @@
     "themeDescription": "Kies het uiterlijk van de interface.",
     "appName": "Applicatienaam",
     "autoRefreshInterval": "Automatisch verversingsinterval (seconden)",
-    "saving": "Opslaan..."
+    "saving": "Opslaan...",
+    "defaultApplicationLanguage": "Standaard applicatietaal",
+    "defaultApplicationLanguageDescription": "Taal die de McHarbor-interface gebruikt voordat een gebruiker inlogt of wanneer de gebruiker geen voorkeurstaal heeft gekozen.",
+    "preferencesSaved": "Voorkeuren opgeslagen",
+    "preferencesSaveFailed": "Voorkeuren opslaan mislukt",
+    "defaultLanguageSaved": "Standaardtaal opgeslagen",
+    "defaultLanguageSaveFailed": "Standaardtaal opslaan mislukt",
+    "userInterfacePreferences": "Voorkeuren gebruikersinterface",
+    "userInterfacePreferencesDescription": "Kies hoe datums en tijden in de applicatie worden weergegeven.",
+    "timeFormat": "Tijdnotatie",
+    "timeFormat24h": "24-uur (13:30)",
+    "timeFormat12h": "12-uur (1:30 PM)",
+    "dateFormat": "Datumnotatie",
+    "dateFormatDDMMYYYY": "DD/MM/JJJJ (31/12/2025)",
+    "dateFormatMMDDYYYY": "MM/DD/JJJJ (12/31/2025)"
   },
   "retention": {
     "title": "Gegevensbewaring",
@@ -44,7 +58,19 @@
     "clearAuditDescription": "Verwijder permanent alle auditlogvermeldingen ouder dan {{days}} dagen. Het aantal verwijderde items wordt na de bewerking getoond. Dit kan niet ongedaan worden gemaakt.",
     "clearActivityTitle": "Activiteitslog wissen?",
     "clearActivityDescription": "Verwijder permanent alle activiteitsgebeurtenissen ouder dan {{days}} dagen. Het aantal verwijderde gebeurtenissen wordt na de bewerking getoond. Dit kan niet ongedaan worden gemaakt.",
-    "keepForever": "Stel bewaartermijn in op een positief getal om wissen in te schakelen."
+    "keepForever": "Stel bewaartermijn in op een positief getal om wissen in te schakelen.",
+    "lifecycleDays": "Levenscycluslogboek-bewaring",
+    "lifecycleDaysDescription": "Dagen dat levenscyclusgebeurtenissen worden bewaard voor de volgende opschoning. Stel 0 in om alles te bewaren.",
+    "backupLogDays": "Back-up logboek-bewaring",
+    "backupLogDaysDescription": "Dagen dat back-uplogboekregels worden bewaard voor de volgende opschoning. Stel 0 in om alles te bewaren.",
+    "scanDays": "Bewaartermijn beveiligingsscans",
+    "scanDaysDescription": "Dagen dat kwetsbaarhedenscans (en bevindingen) worden bewaard voor de volgende opschoning. Stel 0 in om alles te bewaren.",
+    "clearLifecycleTitle": "Levenscycluslogboek opschonen?",
+    "clearLifecycleDescription": "Verwijder permanent alle levenscyclusgebeurtenissen ouder dan {{days}} dagen. Dit kan niet ongedaan worden gemaakt.",
+    "clearBackupLogTitle": "Back-uplogboek opschonen?",
+    "clearBackupLogDescription": "Verwijder permanent alle back-uplogboekregels ouder dan {{days}} dagen. Dit kan niet ongedaan worden gemaakt.",
+    "clearScansTitle": "Beveiligingsscans opschonen?",
+    "clearScansDescription": "Verwijder permanent alle kwetsbaarhedenscans (en bevindingen) ouder dan {{days}} dagen. Dit kan niet ongedaan worden gemaakt."
   },
   "auth": {
     "description": "Configureer authenticatieproviders en sessie-instellingen.",
@@ -780,7 +806,18 @@
     "currentVersionLabel": "Huidig",
     "upToDate": "U draait de nieuwste versie.",
     "viewRelease": "Release bekijken",
-    "checkFailed": "Kan niet controleren op updates. Probeer het later opnieuw."
+    "checkFailed": "Kan niet controleren op updates. Probeer het later opnieuw.",
+    "selfUpdate": {
+      "title": "Zelf-updatecontrole",
+      "subtitle": "Controleer periodiek de GitHub-releasefeed en toon nieuwe versies in de app.",
+      "enabledLabel": "Controleren op nieuwe releases",
+      "enabledHint": "Draait een achtergrondcontrole volgens het interval hieronder en toont een banner wanneer een nieuwere versie beschikbaar is.",
+      "intervalLabel": "Controle-interval",
+      "intervalSuffix": "uur",
+      "channelsLabel": "Notificeer deze kanalen bij een nieuwe release",
+      "channelsHint": "Laat leeg om alleen de in-app banner te tonen.",
+      "noChannels": "Geen ingeschakelde meldingskanalen. Configureer er een onder Instellingen → Meldingen."
+    }
   },
   "toast": {
     "updated": "Instellingen bijgewerkt",
@@ -826,6 +863,76 @@
     "backupKeySetupCopied": "Back-upinstallatieopdracht gekopieerd",
     "copyFailed": "Kan niet naar klembord kopiëren",
     "storageBackupsMigrated": "Back-ups gemigreerd: {{migrated}} gekopieerd, {{skipped}} overgeslagen, {{failed}} mislukt",
-    "storageBackupsMigrationFailed": "Back-upmigratie mislukt"
+    "storageBackupsMigrationFailed": "Back-upmigratie mislukt",
+    "lifecycleLogPurged": "Levenscycluslogboek gewist ({{count}} gebeurtenissen)",
+    "lifecycleLogPurgedVacuuming": "Levenscycluslogboek gewist ({{count}} gebeurtenissen). Database wordt op de achtergrond gecomprimeerd...",
+    "backupLogPurged": "Back-uplogboek gewist ({{count}} vermeldingen)",
+    "backupLogPurgedVacuuming": "Back-uplogboek gewist ({{count}} vermeldingen). Database wordt op de achtergrond gecomprimeerd...",
+    "scanHistoryPurged": "Scangeschiedenis gewist ({{count}} scans)",
+    "scanHistoryPurgedVacuuming": "Scangeschiedenis gewist ({{count}} scans). Database wordt op de achtergrond gecomprimeerd...",
+    "updateCheckSettingsSaved": "Zelf-update-instellingen opgeslagen",
+    "updateCheckDismissed": "Update-melding gesloten"
+  },
+  "lifecycle": {
+    "title": "Levenscycluslogboek",
+    "description": "Bekijk elke levenscyclusgebeurtenis van containers, images, volumes, netwerken en stacks.",
+    "searchPlaceholder": "Zoek op onderwerp, gebeurtenis of bericht",
+    "subjectTypeLabel": "Onderwerptype",
+    "severityLabel": "Ernst",
+    "headerSubject": "Onderwerp",
+    "headerDetail": "Detail",
+    "headerSeverity": "Ernst",
+    "headerTime": "Tijd",
+    "empty": "Geen levenscyclusgebeurtenissen voldoen aan deze filters.",
+    "localEnvironment": "Lokale omgeving",
+    "collapse": "Details sluiten",
+    "expand": "Details openen",
+    "source": "Bron: {{source}}",
+    "detailId": "Gebeurtenis-ID",
+    "detailSubject": "Onderwerp",
+    "detailEvent": "Gebeurtenis / actie",
+    "detailState": "Status",
+    "detailAttributes": "Kenmerken",
+    "pageOf": "Pagina {{page}} van {{totalPages}}",
+    "total": "{{total}} levenscyclusgebeurtenissen",
+    "previous": "Vorige",
+    "next": "Volgende",
+    "subjectType": {
+      "all": "Alle onderwerpen",
+      "container": "Container",
+      "image": "Image",
+      "volume": "Volume",
+      "network": "Netwerk",
+      "stack": "Stack"
+    },
+    "severity": {
+      "all": "Elke ernst",
+      "success": "Gelukt",
+      "info": "Info",
+      "warning": "Waarschuwing",
+      "error": "Fout"
+    }
+  },
+  "common": {
+    "updateCheck": {}
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {
+        "selfUpdateTitle": "Zelf-updatecontrole",
+        "selfUpdateSubtitle": "Controleer periodiek de GitHub-releasefeed en toon nieuwe versies in de app.",
+        "enabledLabel": "Controleren op nieuwe releases",
+        "enabledHint": "Draait een achtergrondcontrole volgens het interval hieronder en toont een banner wanneer een nieuwere versie beschikbaar is.",
+        "intervalLabel": "Controle-interval",
+        "intervalSuffix": "uur",
+        "channelsLabel": "Notificeer deze kanalen bij een nieuwe release",
+        "channelsHint": "Laat leeg om alleen de in-app banner te tonen.",
+        "noChannels": "Geen ingeschakelde meldingskanalen. Configureer er een onder Instellingen → Meldingen."
+      }
+    },
+    "toast": {
+      "updateCheckSettingsSaved": "Zelf-update-instellingen opgeslagen",
+      "updateCheckDismissed": "Update-melding gesloten"
+    }
   }
 }

@@ -310,7 +310,8 @@ const (
 
 // --- Users ---
 const (
-	ErrUserNotFound          MsgCode = "err.user.not_found"
+	ErrUserNotFound               MsgCode = "err.user.not_found"
+	ErrProfileIdentityProviderLocked MsgCode = "err.profile.identity_provider_locked"
 	ErrUserListFailed        MsgCode = "err.user.list_failed"
 	ErrUserCreateFailed      MsgCode = "err.user.create_failed"
 	ErrUserUpdateFailed      MsgCode = "err.user.update_failed"

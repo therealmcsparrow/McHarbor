@@ -335,5 +335,32 @@
     "testFailed": "Falha no teste de conexão",
     "scannerSettingsSaved": "Configurações do scanner salvas",
     "userCreated": "Usu?rio criado"
+  },
+  "scanHistory": {
+    "title": "Análises de segurança",
+    "description": "Inspecione cada análise de vulnerabilidades de contentores em todos os ambientes e imagens.",
+    "emptyTitle": "Nenhuma análise corresponde a estes filtros.",
+    "emptyHint": "Inicie uma análise a partir da página de detalhes de uma imagem para preencher o histórico.",
+    "total": "{{total}} análises",
+    "previous": "Anterior",
+    "next": "Seguinte",
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "status": {
+      "all": "Qualquer estado",
+      "running": "Em curso",
+      "pending": "Pendente",
+      "completed": "Concluída",
+      "failed": "Falhada"
+    },
+    "table": {
+      "time": "Hora",
+      "status": "Estado",
+      "scanner": "Scanner",
+      "image": "Imagem",
+      "severity": "Gravidade",
+      "total": "Resultados",
+      "delete": "Eliminar análise",
+      "viewDetails": "Ver detalhes"
+    }
   }
 }

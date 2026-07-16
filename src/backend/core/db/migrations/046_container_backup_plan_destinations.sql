@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS container_backup_plan_storage_locations (
 CREATE INDEX IF NOT EXISTS idx_container_backup_plan_storage_locations_storage
     ON container_backup_plan_storage_locations(storage_location_id);
 
-INSERT OR IGNORE INTO container_backup_plan_storage_locations (plan_id, storage_location_id, created_at)
+INSERT INTO container_backup_plan_storage_locations (plan_id, storage_location_id, created_at)
 SELECT id, storage_location_id, created_at
 FROM container_backup_plans
-WHERE storage_location_id IS NOT NULL AND TRIM(storage_location_id) <> '';
+WHERE storage_location_id IS NOT NULL AND TRIM(storage_location_id) <> ''
+ON CONFLICT (plan_id, storage_location_id) DO NOTHING;

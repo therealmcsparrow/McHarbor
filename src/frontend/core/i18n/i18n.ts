@@ -68,7 +68,20 @@ function normalizeLanguage(value: string | null | undefined): SupportedLanguage 
   return supportedLanguages.includes(short as SupportedLanguage) ? (short as SupportedLanguage) : 'en';
 }
 
-function detectInitialLanguage(): SupportedLanguage {
+let cachedDefaultLanguage: string | null = null;
+
+function setCachedDefaultLanguage(value: string | undefined): void {
+  if (value && value.length > 0) {
+    cachedDefaultLanguage = value;
+  }
+}
+
+export function getCachedDefaultLanguage(): string | null {
+  return cachedDefaultLanguage;
+}
+
+async function detectInitialLanguage(): Promise<SupportedLanguage> {
+  // 1. localStorage override set by the user previously.
   try {
     const stored = window.localStorage.getItem('mcharbor-i18next-lang');
     if (stored) {
@@ -78,6 +91,31 @@ function detectInitialLanguage(): SupportedLanguage {
     // Ignore localStorage access failures.
   }
 
+  // 2. App-wide default set by an admin in Settings → General.
+  //    The status endpoint is fetched once at boot and cached.
+  if (cachedDefaultLanguage === null) {
+    try {
+      const res = await fetch('/api/auth/status', { credentials: 'omit' });
+      if (res.ok) {
+        const data = (await res.json()) as { defaultLanguage?: string };
+        if (data?.defaultLanguage) {
+          setCachedDefaultLanguage(data.defaultLanguage);
+        }
+      }
+    } catch {
+      // Network failure falls through to the browser / hard-coded
+      // defaults. The auth-module's checkSession will refresh the
+      // value on the next login round-trip.
+    }
+    if (cachedDefaultLanguage === null) {
+      cachedDefaultLanguage = 'en';
+    }
+  }
+  if (cachedDefaultLanguage) {
+    return normalizeLanguage(cachedDefaultLanguage);
+  }
+
+  // 3. Browser language as a final fallback.
   try {
     return normalizeLanguage(window.navigator.language);
   } catch {
@@ -138,7 +176,7 @@ export async function initializeI18n() {
     return;
   }
 
-  const initialLang = detectInitialLanguage();
+  const initialLang = await detectInitialLanguage();
 
   await i18n
     .use(LanguageDetector)

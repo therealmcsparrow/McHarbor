@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS container_stack_links (
     container_id TEXT NOT NULL,
     stack_name TEXT NOT NULL,
     service_name TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
     UNIQUE(environment_id, container_id)
 );
 

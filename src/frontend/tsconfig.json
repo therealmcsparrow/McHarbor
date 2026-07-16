@@ -36,8 +36,7 @@
       "recharts": ["./node_modules/recharts"],
       "sonner": ["./node_modules/sonner"],
       "zod": ["./node_modules/zod"]
-    },
-    "baseUrl": "."
+    }
   },
   "include": ["**/*.ts", "**/*.tsx"]
 }

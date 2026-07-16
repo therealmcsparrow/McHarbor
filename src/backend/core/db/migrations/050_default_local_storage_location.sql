@@ -16,8 +16,8 @@ SELECT
     'local',
     1,
     '/mnt/backup',
-    datetime('now'),
-    datetime('now')
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
 WHERE NOT EXISTS (
     SELECT 1
     FROM storage_locations

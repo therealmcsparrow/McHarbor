@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS in_app_notifications (
     action TEXT,
     entity_type TEXT,
     entity_id TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE INDEX IF NOT EXISTS idx_in_app_notifications_created_at
@@ -20,9 +20,9 @@ CREATE TABLE IF NOT EXISTS in_app_notification_reads (
     id TEXT PRIMARY KEY,
     notification_id TEXT NOT NULL REFERENCES in_app_notifications(id) ON DELETE CASCADE,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    read_at TEXT NOT NULL DEFAULT (datetime('now')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    read_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_in_app_notification_reads_unique

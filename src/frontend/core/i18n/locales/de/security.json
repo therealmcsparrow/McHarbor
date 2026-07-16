@@ -334,5 +334,32 @@
     "testFailed": "Verbindungstest fehlgeschlagen",
     "scannerSettingsSaved": "Scanner-Einstellungen gespeichert",
     "userCreated": "Benutzer erstellt"
+  },
+  "scanHistory": {
+    "title": "Sicherheitsscans",
+    "description": "Alle Container-Schwachstellenscans in allen Umgebungen und Images einsehen.",
+    "emptyTitle": "Keine Scans passen zu diesen Filtern.",
+    "emptyHint": "Starten Sie einen Scan auf einer Image-Detailseite, um den Verlauf zu füllen.",
+    "total": "{{total}} Scans",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "pageOf": "Seite {{page}} von {{totalPages}}",
+    "status": {
+      "all": "Beliebiger Status",
+      "running": "Läuft",
+      "pending": "Wartet",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen"
+    },
+    "table": {
+      "time": "Zeit",
+      "status": "Status",
+      "scanner": "Scanner",
+      "image": "Image",
+      "severity": "Schweregrad",
+      "total": "Ergebnisse",
+      "delete": "Scan löschen",
+      "viewDetails": "Details anzeigen"
+    }
   }
 }

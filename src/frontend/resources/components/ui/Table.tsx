@@ -19,7 +19,7 @@ Table.displayName = 'Table';
 
 const TableHeader = forwardRef<HTMLTableSectionElement, HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={cn('[&_tr]:border-b', className)} {...props} />
+    <thead ref={ref} className={cn('bg-muted [&_tr]:border-b', className)} {...props} />
   )
 );
 TableHeader.displayName = 'TableHeader';

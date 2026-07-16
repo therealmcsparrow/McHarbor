@@ -11,6 +11,8 @@ import { Button } from "@resources/components/ui/Button";
 import { Checkbox } from "@resources/components/ui/Checkbox";
 import { Input } from "@resources/components/ui/Input";
 import { Spinner } from "@resources/components/ui/Spinner";
+import { formatDate } from "@resources/utils/format";
+import { useLocaleFormat } from "@resources/hooks/useLocaleFormat";
 import {
   Dialog,
   DialogBody,
@@ -66,6 +68,7 @@ export function RestoreProgressView({
   startedAt: string;
 }) {
   const { t } = useTranslation("containers");
+  const formatPrefs = useLocaleFormat();
   const isRunning = run?.status === "running";
   const isSuccess = run?.status === "success";
   const isFailure = run?.status === "failure";
@@ -73,11 +76,12 @@ export function RestoreProgressView({
   const message = run?.progressMessage ?? "";
   const startedLabel = useMemo(() => {
     try {
-      return new Date(startedAt).toLocaleString();
+      const formatted = formatDate(startedAt, formatPrefs);
+      return formatted === "-" ? startedAt : formatted;
     } catch {
       return startedAt;
     }
-  }, [startedAt]);
+  }, [startedAt, formatPrefs]);
 
   return (
     <div className="space-y-4">

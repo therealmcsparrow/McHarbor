@@ -25,7 +25,21 @@
     "themeDescription": "Choisissez l'apparence de l'interface.",
     "appName": "Nom de la demande",
     "autoRefreshInterval": "Intervalle de rafraîchissement automatique (secondes)",
-    "saving": "Économie..."
+    "saving": "Enregistrement...",
+    "defaultApplicationLanguage": "Langue par défaut de l’application",
+    "defaultApplicationLanguageDescription": "Langue utilisée par l’interface McHarbor avant la connexion ou lorsque l’utilisateur n’a pas choisi de langue préférée.",
+    "preferencesSaved": "Préférences enregistrées",
+    "preferencesSaveFailed": "Impossible d’enregistrer les préférences",
+    "defaultLanguageSaved": "Langue par défaut enregistrée",
+    "defaultLanguageSaveFailed": "Impossible d’enregistrer la langue par défaut",
+    "userInterfacePreferences": "Préférences de l’interface utilisateur",
+    "userInterfacePreferencesDescription": "Choisissez la façon dont les dates et heures sont affichées dans l’application.",
+    "timeFormat": "Format horaire",
+    "timeFormat24h": "24 heures (13:30)",
+    "timeFormat12h": "12 heures (1:30 PM)",
+    "dateFormat": "Format de date",
+    "dateFormatDDMMYYYY": "JJ/MM/AAAA (31/12/2025)",
+    "dateFormatMMDDYYYY": "MM/JJ/AAAA (12/31/2025)"
   },
   "retention": {
     "title": "Conservation des données",
@@ -44,7 +58,19 @@
     "clearAuditDescription": "Supprimer définitivement toutes les entrées du journal d'audit de plus de {{days}} jours. Le nombre d'entrées supprimées sera affiché après l'opération. Action irréversible.",
     "clearActivityTitle": "Effacer le journal d'activité ?",
     "clearActivityDescription": "Supprimer définitivement tous les événements d'activité de plus de {{days}} jours. Le nombre d'événements supprimés sera affiché après l'opération. Action irréversible.",
-    "keepForever": "Définissez la rétention sur un nombre positif pour activer l'effacement."
+    "keepForever": "Définissez la rétention sur un nombre positif pour activer l'effacement.",
+    "lifecycleDays": "Rétention du journal du cycle de vie",
+    "lifecycleDaysDescription": "Nombre de jours de conservation des événements du cycle de vie avant la prochaine purge. Mettez 0 pour tout conserver indéfiniment.",
+    "backupLogDays": "Rétention du journal des sauvegardes",
+    "backupLogDaysDescription": "Nombre de jours de conservation des lignes du journal des sauvegardes avant la prochaine purge. Mettez 0 pour tout conserver indéfiniment.",
+    "scanDays": "Rétention de l’historique des analyses de sécurité",
+    "scanDaysDescription": "Nombre de jours de conservation des analyses de vulnérabilités (et de leurs résultats) avant la prochaine purge. Mettez 0 pour tout conserver indéfiniment.",
+    "clearLifecycleTitle": "Purger le journal du cycle de vie ?",
+    "clearLifecycleDescription": "Supprimer définitivement tous les événements du cycle de vie de plus de {{days}} jours. Cette action est irréversible.",
+    "clearBackupLogTitle": "Purger le journal des sauvegardes ?",
+    "clearBackupLogDescription": "Supprimer définitivement toutes les lignes du journal des sauvegardes de plus de {{days}} jours. Cette action est irréversible.",
+    "clearScansTitle": "Purger l’historique des analyses de sécurité ?",
+    "clearScansDescription": "Supprimer définitivement toutes les analyses de vulnérabilités (et leurs résultats) de plus de {{days}} jours. Cette action est irréversible."
   },
   "auth": {
     "description": "Configurez les fournisseurs d'authentification et les paramètres de session.",
@@ -780,7 +806,18 @@
     "currentVersionLabel": "Actuel",
     "upToDate": "Vous utilisez la dernière version.",
     "viewRelease": "Voir la version",
-    "checkFailed": "Impossible de verifier les mises a jour. Reessayez plus tard."
+    "checkFailed": "Impossible de verifier les mises a jour. Reessayez plus tard.",
+    "selfUpdate": {
+      "title": "Vérificateur de mise à jour",
+      "subtitle": "Vérifie périodiquement le flux des releases GitHub et affiche les nouvelles versions dans l'app.",
+      "enabledLabel": "Rechercher les nouvelles releases",
+      "enabledHint": "Exécute une vérification en arrière-plan à l'intervalle ci-dessous et affiche une bannière lorsqu'une version plus récente est disponible.",
+      "intervalLabel": "Intervalle de vérification",
+      "intervalSuffix": "heures",
+      "channelsLabel": "Notifier ces canaux lors d'une nouvelle release",
+      "channelsHint": "Laissez vide pour n'afficher que la bannière dans l'app.",
+      "noChannels": "Aucun canal de notification activé. Configurez-en un dans Paramètres → Notifications."
+    }
   },
   "toast": {
     "updated": "Paramètres mis à jour",
@@ -826,6 +863,76 @@
     "copyFailed": "Impossible de copier dans le presse-papiers",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
     "storageBackupsMigrated": "Sauvegardes migrees : {{migrated}} copiees, {{skipped}} ignorees, {{failed}} echouees",
-    "storageBackupsMigrationFailed": "Echec de la migration des sauvegardes"
+    "storageBackupsMigrationFailed": "Echec de la migration des sauvegardes",
+    "lifecycleLogPurged": "Journal du cycle de vie vidé ({{count}} événements)",
+    "lifecycleLogPurgedVacuuming": "Journal du cycle de vie vidé ({{count}} événements). Compactage de la base de données en arrière-plan...",
+    "backupLogPurged": "Journal des sauvegardes vidé ({{count}} entrées)",
+    "backupLogPurgedVacuuming": "Journal des sauvegardes vidé ({{count}} entrées). Compactage de la base de données en arrière-plan...",
+    "scanHistoryPurged": "Historique des analyses vidé ({{count}} analyses)",
+    "scanHistoryPurgedVacuuming": "Historique des analyses vidé ({{count}} analyses). Compactage de la base de données en arrière-plan...",
+    "updateCheckSettingsSaved": "Paramètres de mise à jour enregistrés",
+    "updateCheckDismissed": "Avis de mise à jour fermé"
+  },
+  "lifecycle": {
+    "title": "Journal du cycle de vie",
+    "description": "Inspecter chaque événement du cycle de vie sur les conteneurs, images, volumes, réseaux et stacks.",
+    "searchPlaceholder": "Rechercher par sujet, événement ou message",
+    "subjectTypeLabel": "Type de sujet",
+    "severityLabel": "Gravité",
+    "headerSubject": "Sujet",
+    "headerDetail": "Détail",
+    "headerSeverity": "Gravité",
+    "headerTime": "Heure",
+    "empty": "Aucun événement du cycle de vie ne correspond à ces filtres.",
+    "localEnvironment": "Environnement local",
+    "collapse": "Réduire les détails",
+    "expand": "Développer les détails",
+    "source": "Source : {{source}}",
+    "detailId": "ID de l’événement",
+    "detailSubject": "Sujet",
+    "detailEvent": "Événement / action",
+    "detailState": "État",
+    "detailAttributes": "Attributs",
+    "pageOf": "Page {{page}} sur {{totalPages}}",
+    "total": "{{total}} événements du cycle de vie",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "subjectType": {
+      "all": "Tous les sujets",
+      "container": "Conteneur",
+      "image": "Image",
+      "volume": "Volume",
+      "network": "Réseau",
+      "stack": "Stack"
+    },
+    "severity": {
+      "all": "Toute gravité",
+      "success": "Succès",
+      "info": "Info",
+      "warning": "Avertissement",
+      "error": "Erreur"
+    }
+  },
+  "common": {
+    "updateCheck": {}
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {
+        "selfUpdateTitle": "Vérificateur de mise à jour",
+        "selfUpdateSubtitle": "Vérifie périodiquement le flux des releases GitHub et affiche les nouvelles versions dans l'app.",
+        "enabledLabel": "Rechercher les nouvelles releases",
+        "enabledHint": "Exécute une vérification en arrière-plan à l'intervalle ci-dessous et affiche une bannière lorsqu'une version plus récente est disponible.",
+        "intervalLabel": "Intervalle de vérification",
+        "intervalSuffix": "heures",
+        "channelsLabel": "Notifier ces canaux lors d'une nouvelle release",
+        "channelsHint": "Laissez vide pour n'afficher que la bannière dans l'app.",
+        "noChannels": "Aucun canal de notification activé. Configurez-en un dans Paramètres → Notifications."
+      }
+    },
+    "toast": {
+      "updateCheckSettingsSaved": "Paramètres de mise à jour enregistrés",
+      "updateCheckDismissed": "Aviso de atualização fechado"
+    }
   }
 }

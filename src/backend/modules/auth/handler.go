@@ -45,7 +45,9 @@ type setupRequest struct {
 }
 
 type preferencesRequest struct {
-	PreferredLanguage string `json:"preferredLanguage"`
+	PreferredLanguage *string `json:"preferredLanguage,omitempty"`
+	TimeFormat        *string `json:"timeFormat,omitempty"`
+	DateFormat        *string `json:"dateFormat,omitempty"`
 }
 
 type profileRequest struct {
@@ -141,7 +143,12 @@ func (h *Handler) HandleSession(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, user)
 }
 
-// HandleUpdatePreferences updates preferences for the current authenticated user.
+// HandleUpdatePreferences updates per-user preferences for the current
+// authenticated user. The request may include any subset of
+// {preferredLanguage, timeFormat, dateFormat}; absent fields are
+// left unchanged. The auth service normalizes each value to a
+// known set, so an unknown time format silently falls back to
+// "24h" rather than failing the request.
 func (h *Handler) HandleUpdatePreferences(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	if user == nil {
@@ -154,12 +161,16 @@ func (h *Handler) HandleUpdatePreferences(w http.ResponseWriter, r *http.Request
 		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
 		return
 	}
-	if !isSupportedPreferredLanguage(req.PreferredLanguage) {
+	if req.PreferredLanguage != nil && !isSupportedPreferredLanguage(*req.PreferredLanguage) {
 		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
 		return
 	}
 
-	updated, err := h.app.AuthService.UpdatePreferredLanguage(user.ID, req.PreferredLanguage)
+	updated, err := h.app.AuthService.UpdatePreferences(user.ID, auth.UserPreferences{
+		PreferredLanguage: req.PreferredLanguage,
+		TimeFormat:        req.TimeFormat,
+		DateFormat:        req.DateFormat,
+	})
 	if err != nil {
 		h.app.Logger.Error("auth: update preferences error", "error", err, "userId", user.ID)
 		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
@@ -204,6 +215,14 @@ func (h *Handler) HandleUpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	updated, err := h.app.AuthService.UpdateProfile(user.ID, displayName, email)
 	if err != nil {
+		// Identity-provider users cannot change displayName or
+		// email from McHarbor — the IdP owns those fields. The
+		// service returns a clear error so the frontend can show
+		// the same message under the inputs.
+		if user.IdentityProviderID != "" {
+			response.BadRequestCode(w, r, i18n.ErrProfileIdentityProviderLocked)
+			return
+		}
 		h.app.Logger.Error("auth: update profile error", "error", err, "userId", user.ID)
 		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
 		return
@@ -232,7 +251,7 @@ func isSupportedPreferredLanguage(value string) bool {
 	}
 }
 
-// HandleStatus returns public auth status (needsSetup, authDisabled, oidcProviders).
+// HandleStatus returns public auth status (needsSetup, authDisabled, oidcProviders, defaultLanguage).
 // This is a public endpoint — no auth required.
 func (h *Handler) HandleStatus(w http.ResponseWriter, r *http.Request) {
 	providers, err := h.service.EnabledOIDCProviders()
@@ -242,9 +261,10 @@ func (h *Handler) HandleStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, map[string]any{
-		"needsSetup":    !h.app.AuthService.HasAnyUser(),
-		"authDisabled":  h.app.Config.AuthDisable,
-		"oidcProviders": providers,
+		"needsSetup":      !h.app.AuthService.HasAnyUser(),
+		"authDisabled":    h.app.Config.AuthDisable,
+		"oidcProviders":   providers,
+		"defaultLanguage": h.app.AuthService.DefaultLanguage(r.Context()),
 	})
 }
 

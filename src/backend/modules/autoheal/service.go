@@ -48,10 +48,10 @@ func NewService(pool *docker.ClientPool, db *sql.DB) *Service {
 	}
 }
 
-// GetPreference returns the in-memory preference for a container. The
+// Preference returns the in-memory preference for a container. The
 // source of truth for whether a container is opted in is the Docker label
 // on the container itself; this method just surfaces the runtime state.
-func (s *Service) GetPreference(envID, containerID string) Preference {
+func (s *Service) Preference(envID, containerID string) Preference {
 	key := prefKey(envID, containerID)
 	s.mu.Lock()
 	defer s.mu.Unlock()

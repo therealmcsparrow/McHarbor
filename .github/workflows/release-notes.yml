@@ -2,12 +2,12 @@
 # McHarbor is licensed under the McHarbor License. See LICENSE for details.
 name: Release Notes
 
-# Fires when a release tag is pushed (e.g. `git push origin v1.6.6`).
-# Extracts the matching section from CHANGELOG.md and uses it as
-# the public release body on GitHub Releases. The job is
-# idempotent: it creates the release if it doesn't exist yet and
-# updates the body if it does, so a re-pushed tag or a post-hoc
-# CHANGELOG edit both end up reflected in the published notes.
+# Fires when a release tag is pushed (e.g. `git push origin v1.6.6`)
+# and writes the matching section of CHANGELOG.md as the public
+# release body on GitHub Releases. The job is idempotent: it
+# creates the release if it doesn't exist yet and updates the body
+# if it does, so a re-pushed tag or a post-hoc CHANGELOG edit both
+# end up reflected in the published notes.
 on:
   push:
     tags:
@@ -18,6 +18,11 @@ on:
         description: "Tag to update (e.g. v1.6.6). Leave empty to use the latest reachable tag."
         required: false
         type: string
+      dry_run:
+        description: "When true, only prints the body to the workflow log; the GitHub release is not touched. Useful for previewing the extract."
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -38,8 +43,8 @@ jobs:
         run: |
           set -euo pipefail
           # Prefer the workflow_dispatch input if provided, then fall
-          # back to the tag that triggered the push event. GITHUB_REF_NAME
-          # is `vX.Y.Z` for `push: tags: v*` events, so we use it directly.
+          # back to the tag that triggered the push event.
+          # GITHUB_REF_NAME is `vX.Y.Z` for `push: tags: v*` events.
           if [[ -n "${{ inputs.tag }}" ]]; then
             tag="${{ inputs.tag }}"
           else
@@ -55,6 +60,35 @@ jobs:
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
           echo "version=${version}" >> "$GITHUB_OUTPUT"
 
+      - name: Verify VERSION file matches the tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ steps.tag.outputs.version }}"
+          if [[ ! -f VERSION ]]; then
+            echo "::error::VERSION file not found at repo root."
+            exit 1
+          fi
+          repo_version="$(tr -d '[:space:]' < VERSION)"
+          if [[ "$repo_version" != "$version" ]]; then
+            echo "::error::VERSION file ($repo_version) does not match tag ($version). Update VERSION and re-push the tag."
+            exit 1
+          fi
+          # Also verify the agent version stays in lockstep so a
+          # single release tag describes both the server and the
+          # agent. Drift here has caused bad releases in the past.
+          agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
+          frontend_version="$(sed -n 's/.*"version": "\(.*\)".*/\1/p' src/frontend/package.json | head -n1)"
+          if [[ "$agent_version" != "$version" ]]; then
+            echo "::error::src/agent/agent.go agentVersion ($agent_version) does not match tag ($version)."
+            exit 1
+          fi
+          if [[ "$frontend_version" != "$version" ]]; then
+            echo "::error::src/frontend/package.json version ($frontend_version) does not match tag ($version)."
+            exit 1
+          fi
+          echo "All version sources match tag $version."
+
       - name: Extract CHANGELOG section for the version
         id: extract
         shell: bash
@@ -67,7 +101,9 @@ jobs:
           fi
           # awk walks the file, starts printing when it sees the
           # matching `## [version]` heading, and stops at the next
-          # `## [` heading. Empty trailing lines are stripped.
+          # `## [` heading. This captures every sub-section
+          # (### Added / ### Changed / ### Fixed) of the target
+          # version, in order.
           notes="$(awk -v ver="## [${version}]" '
             $0 ~ ver {flag=1; next}
             flag && /^## \[/ {flag=0}
@@ -77,16 +113,30 @@ jobs:
           # start with whitespace.
           notes="$(printf '%s' "$notes" | sed -e '/./,$!d')"
           if [[ -z "$notes" ]]; then
-            echo "::warning::No CHANGELOG entry found for version ${version}; falling back to generic body."
-            notes="Release ${version} — see CHANGELOG.md for the full set of changes."
+            # Fail loudly instead of publishing a generic body:
+            # the operator almost certainly forgot to add a
+            # CHANGELOG entry, and a release without notes is worse
+            # than a failed job they have to investigate.
+            echo "::error::No CHANGELOG entry found for version ${version}. Add '## [${version}] - <date>' to CHANGELOG.md before tagging."
+            exit 1
           fi
+          echo "Extracted CHANGELOG section for $version ($(printf '%s' "$notes" | wc -l) lines, $(printf '%s' "$notes" | wc -c) bytes)."
           {
             echo "notes<<DELIM"
             printf '%s\n' "$notes"
             echo "DELIM"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Preview body in workflow log
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "----- BEGIN release body for ${{ steps.tag.outputs.tag }} -----"
+          printf '%s\n' '${{ steps.extract.outputs.notes }}'
+          echo "----- END release body -----"
+
       - name: Create or update the GitHub Release
+        if: ${{ inputs.dry_run != true }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
@@ -97,10 +147,10 @@ jobs:
           # release already exists, so a re-pushed tag or
           # workflow_dispatch rerun both update the body in place.
           action_type: auto
-          fail_on_unmatched_filter: true
           # No artifacts — the GHCR images are published by the
           # separate publish-images workflow. Linking them here
-          # would race with the image build and the link would often
-          # be empty at the time this workflow runs.
+          # would race with the image build and the link would
+          # often be empty at the time this workflow runs.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

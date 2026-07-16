@@ -335,5 +335,32 @@
     "testFailed": "La prueba de conexión falló",
     "scannerSettingsSaved": "Configuración del escáner guardada",
     "userCreated": "Usuario creado"
+  },
+  "scanHistory": {
+    "title": "Escaneos de seguridad",
+    "description": "Inspecciona cada escaneo de vulnerabilidades de contenedores en todos los entornos e imágenes.",
+    "emptyTitle": "Ningún escaneo coincide con estos filtros.",
+    "emptyHint": "Inicie un escaneo desde la página de detalles de una imagen para rellenar el historial.",
+    "total": "{{total}} escaneos",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "status": {
+      "all": "Cualquier estado",
+      "running": "En curso",
+      "pending": "Pendiente",
+      "completed": "Completado",
+      "failed": "Fallido"
+    },
+    "table": {
+      "time": "Hora",
+      "status": "Estado",
+      "scanner": "Escáner",
+      "image": "Imagen",
+      "severity": "Gravedad",
+      "total": "Hallazgos",
+      "delete": "Eliminar escaneo",
+      "viewDetails": "Ver detalles"
+    }
   }
 }

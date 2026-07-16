@@ -196,7 +196,7 @@ export function OverviewTab({ container }: OverviewTabProps) {
             <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('overview.ulimits')}</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead>
+                <thead className="bg-muted">
                   <tr className="border-b border-border">
                     <th className="px-2 py-1.5 font-medium text-muted-foreground">{t('overview.ulimitName')}</th>
                     <th className="px-2 py-1.5 font-medium text-muted-foreground">{t('overview.ulimitSoft')}</th>

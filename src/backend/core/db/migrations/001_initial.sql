@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS environments (
     is_active INTEGER NOT NULL DEFAULT 1,
     docker_version TEXT,
     last_connected TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_environments_default ON environments(is_default);
 
@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS users (
     auth_provider TEXT NOT NULL DEFAULT 'local',
     is_active INTEGER NOT NULL DEFAULT 1,
     last_login TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username);
 
@@ -51,8 +51,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     provider TEXT NOT NULL DEFAULT 'local',
     expires_at TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_user_expires ON sessions(user_id, expires_at);
 
@@ -62,8 +62,8 @@ CREATE TABLE IF NOT EXISTS auth_settings (
     auth_enabled INTEGER NOT NULL DEFAULT 1,
     default_provider TEXT NOT NULL DEFAULT 'local',
     session_timeout INTEGER NOT NULL DEFAULT 86400,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 -- ─── Roles ────────────────────────────────────────────────────────────
@@ -72,8 +72,8 @@ CREATE TABLE IF NOT EXISTS roles (
     name TEXT NOT NULL UNIQUE,
     description TEXT,
     permissions TEXT NOT NULL DEFAULT '{}',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 -- ─── User Roles ───────────────────────────────────────────────────────
@@ -82,8 +82,8 @@ CREATE TABLE IF NOT EXISTS user_roles (
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role_id TEXT NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
     environment_id TEXT REFERENCES environments(id) ON DELETE CASCADE,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_user_roles_user ON user_roles(user_id);
 
@@ -95,8 +95,8 @@ CREATE TABLE IF NOT EXISTS registries (
     username TEXT,
     password TEXT,
     is_default INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 -- ─── Settings ─────────────────────────────────────────────────────────
@@ -105,8 +105,8 @@ CREATE TABLE IF NOT EXISTS settings (
     key TEXT NOT NULL UNIQUE,
     value TEXT,
     category TEXT DEFAULT 'general',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 -- ─── Stacks ───────────────────────────────────────────────────────────
@@ -118,8 +118,8 @@ CREATE TABLE IF NOT EXISTS stacks (
     compose_file TEXT NOT NULL DEFAULT 'docker-compose.yml',
     status TEXT NOT NULL DEFAULT 'unknown' CHECK(status IN ('running','stopped','partial','unknown')),
     description TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_stacks_env ON stacks(environment_id);
 
@@ -130,8 +130,8 @@ CREATE TABLE IF NOT EXISTS stack_environment_variables (
     key TEXT NOT NULL,
     value TEXT,
     is_secret INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_stack_env_vars_stack ON stack_environment_variables(stack_id);
 
@@ -143,8 +143,8 @@ CREATE TABLE IF NOT EXISTS stack_sources (
     source_path TEXT,
     git_url TEXT,
     git_branch TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 -- ─── Container Events ─────────────────────────────────────────────────
@@ -156,9 +156,9 @@ CREATE TABLE IF NOT EXISTS container_events (
     event_type TEXT NOT NULL,
     action TEXT NOT NULL,
     metadata TEXT,
-    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    timestamp TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_container_events_env ON container_events(environment_id);
 CREATE INDEX IF NOT EXISTS idx_container_events_timestamp ON container_events(timestamp);
@@ -171,9 +171,9 @@ CREATE TABLE IF NOT EXISTS host_metrics (
     memory_percent INTEGER,
     memory_used INTEGER,
     memory_total INTEGER,
-    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    timestamp TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_host_metrics_env_time ON host_metrics(environment_id, timestamp);
 
@@ -189,9 +189,9 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     details TEXT,
     ip_address TEXT,
     environment_id TEXT,
-    timestamp TEXT NOT NULL DEFAULT (datetime('now')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    timestamp TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id);
@@ -204,8 +204,8 @@ CREATE TABLE IF NOT EXISTS notification_channels (
     type TEXT NOT NULL CHECK(type IN ('webhook','email','slack','discord','telegram')),
     config TEXT NOT NULL DEFAULT '{}',
     enabled INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 -- ─── Environment Notifications ────────────────────────────────────────
@@ -214,8 +214,8 @@ CREATE TABLE IF NOT EXISTS environment_notifications (
     environment_id TEXT NOT NULL REFERENCES environments(id) ON DELETE CASCADE,
     notification_id TEXT NOT NULL REFERENCES notification_channels(id) ON DELETE CASCADE,
     events TEXT NOT NULL DEFAULT '[]',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_env_notifications_env ON environment_notifications(environment_id);
 
@@ -231,8 +231,8 @@ CREATE TABLE IF NOT EXISTS schedules (
     enabled INTEGER NOT NULL DEFAULT 1,
     last_run_at TEXT,
     next_run_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 -- ─── Schedule Executions ──────────────────────────────────────────────
@@ -242,9 +242,9 @@ CREATE TABLE IF NOT EXISTS schedule_executions (
     status TEXT NOT NULL CHECK(status IN ('success','failure','running')),
     output TEXT,
     duration INTEGER NOT NULL DEFAULT 0,
-    executed_at TEXT NOT NULL DEFAULT (datetime('now')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    executed_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_schedule_exec_schedule ON schedule_executions(schedule_id);
 
@@ -258,8 +258,8 @@ CREATE TABLE IF NOT EXISTS blueprints (
     env_vars TEXT DEFAULT '[]',
     icon TEXT,
     version TEXT DEFAULT '1.0.0',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_blueprints_category ON blueprints(category);
 
@@ -275,8 +275,8 @@ CREATE TABLE IF NOT EXISTS webhooks (
     headers TEXT DEFAULT '{}',
     max_retries INTEGER NOT NULL DEFAULT 3,
     timeout_seconds INTEGER NOT NULL DEFAULT 10,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE TABLE IF NOT EXISTS webhook_deliveries (
@@ -288,7 +288,7 @@ CREATE TABLE IF NOT EXISTS webhook_deliveries (
     response_body TEXT,
     success INTEGER NOT NULL DEFAULT 0,
     duration INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_webhook_deliveries_webhook ON webhook_deliveries(webhook_id);
 
@@ -305,8 +305,8 @@ CREATE TABLE IF NOT EXISTS desired_states (
     config TEXT DEFAULT '{}',
     last_reconcile TEXT,
     drift_detected INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_desired_states_env ON desired_states(env_id);
 
@@ -316,8 +316,8 @@ CREATE TABLE IF NOT EXISTS reconciliation_logs (
     action TEXT NOT NULL,
     status TEXT NOT NULL CHECK(status IN ('success','failure','skipped')),
     details TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_reconciliation_logs_state ON reconciliation_logs(desired_state_id);
 
@@ -330,8 +330,8 @@ CREATE TABLE IF NOT EXISTS alerts (
     target TEXT,
     channel_id TEXT,
     enabled INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 -- ─── Vulnerability Scans ─────────────────────────────────────────────
@@ -348,8 +348,8 @@ CREATE TABLE IF NOT EXISTS scans (
     low_count INTEGER NOT NULL DEFAULT 0,
     started_at TEXT,
     completed_at TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_scans_image ON scans(image_ref);
 
@@ -364,8 +364,8 @@ CREATE TABLE IF NOT EXISTS scan_vulnerabilities (
     title TEXT,
     description TEXT,
     url TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_scan_vulns_scan ON scan_vulnerabilities(scan_id);
 
@@ -381,8 +381,8 @@ CREATE TABLE IF NOT EXISTS update_policies (
     enabled INTEGER NOT NULL DEFAULT 1,
     last_run_at TEXT,
     last_run_status TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE TABLE IF NOT EXISTS update_history (
@@ -393,9 +393,9 @@ CREATE TABLE IF NOT EXISTS update_history (
     new_image TEXT NOT NULL,
     status TEXT NOT NULL CHECK(status IN ('success','failure','skipped','rolled_back')),
     message TEXT,
-    executed_at TEXT NOT NULL DEFAULT (datetime('now')),
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    executed_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_update_history_policy ON update_history(policy_id);
 
@@ -413,8 +413,8 @@ CREATE TABLE IF NOT EXISTS git_repos (
     env_id TEXT REFERENCES environments(id) ON DELETE CASCADE,
     last_sync_at TEXT,
     last_sync_error TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE TABLE IF NOT EXISTS git_deployments (
@@ -424,8 +424,8 @@ CREATE TABLE IF NOT EXISTS git_deployments (
     branch TEXT NOT NULL,
     status TEXT NOT NULL CHECK(status IN ('pending','deploying','success','failure','rolled_back')),
     message TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX IF NOT EXISTS idx_git_deployments_repo ON git_deployments(repo_id);
 
@@ -439,6 +439,6 @@ CREATE TABLE IF NOT EXISTS plugins (
     source TEXT NOT NULL DEFAULT '',
     config TEXT DEFAULT '{}',
     enabled INTEGER NOT NULL DEFAULT 0,
-    installed_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    installed_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );

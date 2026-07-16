@@ -96,7 +96,7 @@ export function EnvironmentTab({ stackName, editing, readOnly = false }: Environ
   return (
     <div className="overflow-hidden rounded-lg border border-border">
       <table className="w-full text-sm">
-        <thead>
+        <thead className="bg-muted">
           <tr className="border-b border-border bg-muted/50">
             <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
               {t('detail.key')}

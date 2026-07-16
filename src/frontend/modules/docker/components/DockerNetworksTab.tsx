@@ -42,7 +42,7 @@ export function DockerNetworksTab() {
       ) : (
         <div className="rounded-lg border border-border overflow-hidden">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="bg-muted">
               <tr className="border-b border-border bg-muted/50">
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('networks.columnName')}</th>
                 <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('networks.columnDriver')}</th>

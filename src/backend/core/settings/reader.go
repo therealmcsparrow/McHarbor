@@ -98,19 +98,25 @@ func DefaultScannerSettings() ScannerSettings {
 
 // RetentionSettings holds configurable data retention settings.
 type RetentionSettings struct {
-	AuditRetentionDays    int `json:"auditRetentionDays"`    // 0 = keep forever
-	ActivityRetentionDays int `json:"activityRetentionDays"` // 0 = keep forever
-	BackupRetentionCount  int `json:"backupRetentionCount"`  // 0 = keep forever
-	BackupRetentionDays   int `json:"backupRetentionDays"`   // 0 = keep forever
+	AuditRetentionDays        int `json:"auditRetentionDays"`        // 0 = keep forever
+	ActivityRetentionDays     int `json:"activityRetentionDays"`     // 0 = keep forever
+	LifecycleRetentionDays    int `json:"lifecycleRetentionDays"`    // 0 = keep forever
+	BackupLogRetentionDays    int `json:"backupLogRetentionDays"`    // 0 = keep forever
+	ScanRetentionDays         int `json:"scanRetentionDays"`         // 0 = keep forever
+	BackupRetentionCount      int `json:"backupRetentionCount"`      // 0 = keep forever
+	BackupRetentionDays       int `json:"backupRetentionDays"`       // 0 = keep forever
 }
 
 // DefaultRetentionSettings returns the default retention settings.
 func DefaultRetentionSettings() RetentionSettings {
 	return RetentionSettings{
-		AuditRetentionDays:    90,
-		ActivityRetentionDays: 30,
-		BackupRetentionCount:  0,
-		BackupRetentionDays:   0,
+		AuditRetentionDays:     90,
+		ActivityRetentionDays:  30,
+		LifecycleRetentionDays: 30,
+		BackupLogRetentionDays: 30,
+		ScanRetentionDays:      90,
+		BackupRetentionCount:   0,
+		BackupRetentionDays:    0,
 	}
 }
 
@@ -137,6 +143,18 @@ func ReadRetentionSettings(db *sql.DB) RetentionSettings {
 		case "retention_activity_days":
 			if v, err := strconv.Atoi(value); err == nil && v >= 0 && v <= 3650 {
 				s.ActivityRetentionDays = v
+			}
+		case "retention_lifecycle_days":
+			if v, err := strconv.Atoi(value); err == nil && v >= 0 && v <= 3650 {
+				s.LifecycleRetentionDays = v
+			}
+		case "retention_backup_log_days":
+			if v, err := strconv.Atoi(value); err == nil && v >= 0 && v <= 3650 {
+				s.BackupLogRetentionDays = v
+			}
+		case "retention_scan_days":
+			if v, err := strconv.Atoi(value); err == nil && v >= 0 && v <= 3650 {
+				s.ScanRetentionDays = v
 			}
 		case "retention_backup_count":
 			if v, err := strconv.Atoi(value); err == nil && v >= 0 && v <= 1000 {

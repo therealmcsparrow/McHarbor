@@ -13,7 +13,7 @@
 --   4. drop the temp table
 --   5. recreate indexes/triggers that referenced the original table
 
-PRAGMA foreign_keys = OFF;
+-- PRAGMA foreign_keys = OFF; (sqlite only)
 
 ALTER TABLE container_backup_runs RENAME TO container_backup_runs_old;
 
@@ -64,4 +64,4 @@ CREATE INDEX IF NOT EXISTS idx_container_backup_runs_progress   ON container_bac
 CREATE INDEX IF NOT EXISTS idx_container_backup_runs_operation  ON container_backup_runs(operation, status);
 CREATE INDEX IF NOT EXISTS idx_container_backup_runs_source     ON container_backup_runs(source_run_id);
 
-PRAGMA foreign_keys = ON;
+-- PRAGMA foreign_keys = ON; (sqlite only)

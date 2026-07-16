@@ -25,7 +25,7 @@ export function MountsTab({ container }: MountsTabProps) {
       <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t('detail.mounts')}</h3>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead>
+          <thead className="bg-muted">
             <tr className="border-b border-border">
               <th className="px-3 py-2 font-medium text-muted-foreground">{t('mounts.type')}</th>
               <th className="px-3 py-2 font-medium text-muted-foreground">{t('mounts.source')}</th>

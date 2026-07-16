@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import type { DockerSystemInfo } from '@core/types/docker';
 import { useHostMetrics } from '@resources/hooks/useHostMetrics';
 import { formatBytes } from '@resources/utils/format';
-import { useDockerInfo } from '@modules/docker/hooks/useDockerInfo';
+import { useDockerInfo } from '@resources/hooks/useDockerInfo';
 import { useCurrentEnvironmentActivitySettings } from './useCurrentEnvironmentActivitySettings';
 
 const BYTE_UNITS: Record<string, number> = {

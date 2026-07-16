@@ -80,20 +80,17 @@ export function EnvironmentHostLogPreview({ env }: EnvironmentHostLogPreviewProp
   }, [data]);
 
   const sourceTabs = sourceBadge.map((tab) => (
-    <button
+    <Button
       key={tab.value}
       type="button"
+      variant={source === tab.value ? 'default' : 'ghost'}
+      size="sm"
       onClick={() => setSource(tab.value as LogSource)}
-      className={
-        'rounded-md px-2 py-1 text-xs font-medium uppercase tracking-wider transition-colors ' +
-        (source === tab.value
-          ? 'bg-primary text-primary-foreground'
-          : 'text-muted-foreground hover:text-foreground')
-      }
+      className="rounded-md px-2 py-1 text-xs font-medium uppercase tracking-wider"
       aria-pressed={source === tab.value}
     >
       {tab.label}
-    </button>
+    </Button>
   ));
 
   return (

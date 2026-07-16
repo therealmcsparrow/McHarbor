@@ -40,7 +40,7 @@ func (h *Handler) HandleGetPreference(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pref := h.svc.GetPreference(envID, containerID)
+	pref := h.svc.Preference(envID, containerID)
 	if pref.ContainerName == "" {
 		// Fall back to the id so the UI can still render the row.
 		pref.ContainerName = containerID
@@ -83,7 +83,7 @@ func (h *Handler) HandleSetPreference(w http.ResponseWriter, r *http.Request) {
 		Details:       "preference=" + boolStr(req.Enabled),
 	})
 
-	response.OK(w, h.svc.GetPreference(envID, containerID))
+	response.OK(w, h.svc.Preference(envID, containerID))
 }
 
 func boolStr(v bool) string {

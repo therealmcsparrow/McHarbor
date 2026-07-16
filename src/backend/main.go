@@ -22,6 +22,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/audit"
 	"github.com/therealmcsparrow/mcharbor/core/auth"
 	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
+	"github.com/therealmcsparrow/mcharbor/core/coordinator"
 	"github.com/therealmcsparrow/mcharbor/core/config"
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
@@ -37,12 +38,14 @@ import (
 	// Module imports
 	modAgent "github.com/therealmcsparrow/mcharbor/modules/agent"
 	modAuth "github.com/therealmcsparrow/mcharbor/modules/auth"
+	"github.com/therealmcsparrow/mcharbor/modules/cluster"
 	containerbackups "github.com/therealmcsparrow/mcharbor/modules/container_backups"
 	"github.com/therealmcsparrow/mcharbor/modules/containers"
 	"github.com/therealmcsparrow/mcharbor/modules/dashboard"
 	"github.com/therealmcsparrow/mcharbor/modules/environments"
 	"github.com/therealmcsparrow/mcharbor/modules/events"
 	"github.com/therealmcsparrow/mcharbor/modules/health"
+	"github.com/therealmcsparrow/mcharbor/modules/lifecycle"
 	"github.com/therealmcsparrow/mcharbor/modules/images"
 	"github.com/therealmcsparrow/mcharbor/modules/logs"
 	"github.com/therealmcsparrow/mcharbor/modules/metrics"
@@ -81,6 +84,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/appstore"
 	"github.com/therealmcsparrow/mcharbor/modules/autoheal"
 	modAudit "github.com/therealmcsparrow/mcharbor/modules/audit"
+	"github.com/therealmcsparrow/mcharbor/modules/backup_log"
 	"github.com/therealmcsparrow/mcharbor/modules/blueprints"
 	customnodes "github.com/therealmcsparrow/mcharbor/modules/custom_nodes"
 	"github.com/therealmcsparrow/mcharbor/modules/git"
@@ -143,19 +147,40 @@ func main() {
 
 	logger.Info("starting McHarbor", "version", appversion.Current(), "port", cfg.Port)
 
-	// Open database
-	database, err := db.Open(cfg.DatabasePath)
+	// Open database. The driver is selected by env: the legacy
+	// single-file SQLite path remains the default for single-node
+	// installs; setting MCHARBOR_DB_DRIVER=postgres + MCHARBOR_DB_DSN
+	// switches the entire app to an external Postgres database
+	// (the shared state for active-active deployments).
+	driverName, pathOrDSN := cfg.DBConfig()
+	database, err := db.Open(db.Config{Driver: db.Driver(driverName), Path: pathOrDSN, DSN: pathOrDSN})
 	if err != nil {
 		logger.Error("failed to open database", "error", err)
 		os.Exit(1)
 	}
 	defer db.Close()
 
-	// Run migrations
-	if err := db.Migrate(database); err != nil {
+	// Run migrations (driver-aware: creates the right tracking
+	// table for each backend and ports the embedded SQL files to
+	// whichever database is active).
+	if err := db.Migrate(database, db.Driver(driverName)); err != nil {
 		logger.Error("failed to run migrations", "error", err)
 		os.Exit(1)
 	}
+
+	// Elect a leader for periodic singletons. On SQLite (single-
+	// node) the coordinator is a no-op so every node runs every
+	// tick — identical to the pre-HA behavior. On Postgres the
+	// coordinator opens a long-lived connection that holds the
+	// advisory lock for the lifetime of the process; releasing
+	// the connection (process exit, network drop) releases the
+	// lock so the other node can take over on the next tick.
+	coord, err := coordinator.New(database, cfg.NodeID)
+	if err != nil {
+		logger.Error("failed to start coordinator", "error", err)
+		os.Exit(1)
+	}
+	defer coord.Close()
 
 	// Init encryption
 	enc, err := encryption.New(cfg.DataDir, cfg.EncryptionKey)
@@ -233,13 +258,26 @@ func main() {
 
 	// Build app dependencies
 	app := router.NewAppDeps(cfg, database, dockerPool, k8sPool, agentPool, authSvc, rbacSvc, auditLog, enc, backupCrypto, logger)
+	app.RegisterBackgroundContext(context.Background())
+
+	// Register the cluster service so the /api/cluster/status
+	// route returns leadership state for the periodic singletons.
+	// The list passed here is the canonical set of roles the
+	// status endpoint reports on; add new entries here as new
+	// coordinator-run jobs come online.
+	clusterSvc := cluster.NewService(database, coord, logger, []cluster.SingletonRole{
+		cluster.RoleScheduler,
+	})
+	app.RegisterService("cluster", clusterSvc)
 
 	// Start container backup scheduler.
 	containerBackupSvc := containerbackups.NewService(database, dockerPool, cfg.DataDir, backupCrypto, enc, logger)
 	if err := containerBackupSvc.RecoverAbandonedRuns(context.Background(), "", ""); err != nil {
 		logger.Warn("container backup abandoned run recovery failed", "error", err)
 	}
-	containerBackupScheduler := containerbackups.NewScheduler(containerBackupSvc, logger)
+	containerBackupScheduler := containerbackups.NewSchedulerWithCoordinator(
+		containerBackupSvc, logger, coord, cfg.NodeID,
+	)
 	containerBackupCtx, containerBackupCancel := context.WithCancel(context.Background())
 	defer containerBackupCancel()
 	go containerBackupScheduler.Start(containerBackupCtx)
@@ -279,6 +317,7 @@ func main() {
 	// Protected modules
 	containers.Mount(app)
 	containerbackups.Mount(app)
+	cluster.Mount(app)
 	images.Mount(app)
 	volumes.Mount(app)
 	networks.Mount(app)
@@ -288,6 +327,7 @@ func main() {
 	terminal.Mount(app)
 	versions.Mount(app)
 	logs.Mount(app)
+	lifecycle.Mount(app)
 	events.Mount(app)
 	dashboard.Mount(app)
 	metrics.Mount(app)
@@ -299,6 +339,7 @@ func main() {
 	blueprints.Mount(app)
 	git.Mount(app)
 	webhooks.Mount(app)
+	backup_log.Mount(app)        
 	reconciler.Mount(app)
 	scans.Mount(app)
 	updates.Mount(app)
@@ -309,7 +350,7 @@ func main() {
 	notifications.Mount(app)
 	email.Mount(app)
 	communications.Mount(app)
-	storagelocations.Mount(app)
+	storagelocations.MountWithBackupMigrator(app, bootstrap.NewStorageLocationsBackupMigrator(database, dockerPool, cfg.DataDir, app.BackupCrypto, app.Encryption, logger))
 	inappnotifications.Mount(app)
 	users.Mount(app)
 	appStoreSvc := bootstrap.NewAppStoreService(database, dockerPool, cfg.DataDir, logger)
@@ -320,6 +361,9 @@ func main() {
 	workflowTrigger := workflows.NewTriggerService(app, nil)
 	workflows.MountWithTriggerService(app, workflowTrigger)
 	workflowTrigger.SetImageScanner(bootstrap.NewWorkflowScanner(database, logger))
+	workflowTrigger.SetContainerBackupRuntime(bootstrap.NewWorkflowContainerBackupRuntime(database, dockerPool, cfg.DataDir, app.BackupCrypto, app.Encryption, logger))
+	workflowTrigger.SetStackContainerLinkerRuntime(bootstrap.NewWorkflowStackContainerLinkerRuntime(database, dockerPool, cfg.DataDir))
+	workflowTrigger.SetStorageLocationRuntime(bootstrap.NewWorkflowStorageLocationRuntime(database, app.Encryption))
 
 	// Wire custom node executor into the workflow engine
 	workflowTrigger.SetCustomExecutor(customnodes.NewBridge(customNodeExecutor))

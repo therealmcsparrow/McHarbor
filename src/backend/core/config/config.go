@@ -19,6 +19,23 @@ type Config struct {
 
 	// Database
 	DatabasePath string `env:"DATABASE_PATH" envDefault:"./data/mcharbor.db"`
+	// DBDriver selects the SQL backend: "sqlite" (default, embedded
+	// single-file), "postgres", or "mysql" (covers MySQL 8+ and
+	// MariaDB 10.6+). Postgres and MySQL are external services
+	// used for active-active multi-node deployments.
+	DBDriver string `env:"MCHARBOR_DB_DRIVER" envDefault:"sqlite"`
+	// DBDSN is the connection string for the external drivers.
+	// Postgres expects a libpq-style URL
+	// (postgres://user:pw@host:5432/db?sslmode=disable). MySQL /
+	// MariaDB expects a go-sql-driver/mysql DSN
+	// (user:pw@tcp(host:3306)/db?parseTime=true&loc=UTC&tls=true).
+	// Unused for SQLite.
+	DBDSN string `env:"MCHARBOR_DB_DSN"`
+	// NodeID identifies this McHarbor instance in coordinator
+	// leader-election log lines. If unset, a random 6-char suffix
+	// is used. The same value should be reused across restarts of
+	// the same node so operators can correlate logs.
+	NodeID string `env:"MCHARBOR_NODE_ID"`
 
 	// Docker
 	DockerHost      string `env:"DOCKER_HOST" envDefault:"unix:///var/run/docker.sock"`
@@ -74,6 +91,27 @@ func (c *Config) AllowedOriginList() []string {
 		"http://localhost:8173",
 		fmt.Sprintf("http://localhost:%d", c.Port),
 		"http://localhost:8705",
+	}
+}
+
+// DBConfig returns a database.Config for the Open() helper. When
+// MCHARBOR_DB_DRIVER is unset or "sqlite", the legacy single-file
+// path is used (full backward compatibility). When the driver is
+// "postgres" or "mysql", MCHARBOR_DB_DSN is required and is
+// forwarded verbatim to the active driver.
+func (c *Config) DBConfig() (driverName, pathOrDSN string) {
+	switch strings.ToLower(strings.TrimSpace(c.DBDriver)) {
+	case "", "sqlite":
+		return "sqlite", c.DatabasePath
+	case "postgres", "postgresql":
+		return "postgres", strings.TrimSpace(c.DBDSN)
+	case "mysql", "mariadb":
+		return "mysql", strings.TrimSpace(c.DBDSN)
+	default:
+		// Unknown driver: fall back to SQLite so the operator
+		// sees a usable boot instead of a hard crash. The startup
+		// log line will note the unknown value.
+		return "sqlite", c.DatabasePath
 	}
 }
 

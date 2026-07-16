@@ -7,6 +7,7 @@
     "networks": "Réseaux",
     "stacks": "Stacks",
     "terminal": "Terminal",
+    "logging": "Journal du cycle de vie",
     "logs": "Journaux",
     "environments": "Environnements",
     "blueprints": "Plans",
@@ -26,7 +27,9 @@
     "docker": "Docker",
     "navigation": "Navigation",
     "collapseSidebar": "Réduire la barre latérale",
-    "expandSidebar": "Développer la barre latérale"
+    "expandSidebar": "Développer la barre latérale",
+    "backups": "Sauvegardes",
+    "securityScans": "Analyses de sécurité"
   },
   "actions": {
     "cancel": "Annuler",
@@ -289,6 +292,84 @@
     "endOfList": "Fin de la liste",
     "loadMore": "Charger plus"
   },
+  "lifecycle": {
+    "title": "Journal du cycle de vie",
+    "description": "Evenements du cycle de vie Docker, images, volumes, reseaux et piles pour tous les environnements.",
+    "searchPlaceholder": "Rechercher par nom de conteneur, image ou volume",
+    "subjectTypeLabel": "Type de sujet",
+    "severityLabel": "Severite",
+    "subjectType": {
+      "all": "Tous les sujets",
+      "container": "Conteneurs",
+      "image": "Images",
+      "volume": "Volumes",
+      "network": "Reseaux",
+      "stack": "Piles"
+    },
+    "severity": {
+      "all": "Toute severite",
+      "success": "Succes",
+      "info": "Info",
+      "warning": "Avertissement",
+      "error": "Erreur"
+    },
+    "state": {
+      "running": "en cours",
+      "stopped": "arrete",
+      "paused": "en pause",
+      "created": "cree",
+      "restarting": "en redemarrage",
+      "removed": "supprime",
+      "exited": "termine",
+      "available": "disponible",
+      "in_use": "en service",
+      "dangling": "orphelin",
+      "tagged": "tague",
+      "active": "actif",
+      "up": "actif",
+      "partial": "partiellement actif",
+      "errored": "en erreur"
+    },
+    "action": {
+      "start": "demarre",
+      "stop": "arrete",
+      "die": "termine",
+      "kill": "elimine",
+      "pause": "en pause",
+      "unpause": "repris",
+      "restart": "redemarre",
+      "create": "cree",
+      "destroy": "supprime",
+      "pull": "tire",
+      "load": "charge",
+      "import": "importe",
+      "tag": "tague",
+      "untag": "detague",
+      "delete": "supprime",
+      "mount": "monte",
+      "unmount": "demonte",
+      "connect": "connecte",
+      "disconnect": "deconnecte",
+      "oom": "elimine (OOM)",
+      "failed": "echoue",
+      "error": "erreur"
+    },
+    "headerSubject": "Sujet",
+    "headerDetail": "Detail",
+    "headerSeverity": "Severite",
+    "headerTime": "Heure",
+    "expand": "Afficher les details",
+    "collapse": "Masquer les details",
+    "empty": "Aucun evenement ne correspond a ces filtres.",
+    "total": "{{total}} evenements",
+    "pageOf": "Page {{page}} sur {{totalPages}}",
+    "source": "Source : {{source}}",
+    "detailId": "Id de l evenement",
+    "detailSubject": "Sujet",
+    "detailEvent": "Evenement / action",
+    "detailState": "Etat",
+    "detailAttributes": "Attributs"
+  },
   "logs": {
     "title": "Journaux",
     "description": "Afficher la sortie du journal du conteneur",
@@ -478,7 +559,7 @@
     "runs": "Fonctionne",
     "createTitle": "Nouveau flux de travail",
     "createDescription": "Créez un nouveau flux de travail d'automatisation.",
-"nameLabel": "Nom",
+    "nameLabel": "Nom",
     "descriptionLabel": "Description (facultatif)",
     "namePlaceholder": "Mon flux de travail",
     "descriptionPlaceholder": "À quoi sert ce flux de travail ?",
@@ -880,5 +961,30 @@
     "selectAndCopy": "S?lectionner et copier",
     "copied": "Copi?",
     "close": "Fermer"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "updateCheck": {
+      "title": "McHarbor v{{version}} est disponible",
+      "subtitle": "Vous exécutez v{{currentVersion}}.",
+      "viewRelease": "Voir la release",
+      "openSettings": "Paramètres",
+      "dismiss": "Fermer"
+    }
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {}
+    },
+    "toast": {}
+  },
+  "updateCheck": {
+    "banner": {
+      "title": "McHarbor v{{version}} est disponible",
+      "subtitle": "Vous exécutez v{{currentVersion}}.",
+      "viewRelease": "Voir la release",
+      "openSettings": "Paramètres",
+      "dismiss": "Fermer"
+    }
   }
 }

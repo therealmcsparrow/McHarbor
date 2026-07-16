@@ -8,6 +8,7 @@
     "stacks": "Stacks",
     "terminal": "Terminal",
     "backups": "Backups",
+    "logging": "Lifecycle-Log",
     "logs": "Protokolle",
     "environments": "Umgebungen",
     "blueprints": "Vorlagen",
@@ -27,7 +28,8 @@
     "docker": "Docker",
     "navigation": "Navigation",
     "collapseSidebar": "Seitenleiste einklappen",
-    "expandSidebar": "Seitenleiste ausklappen"
+    "expandSidebar": "Seitenleiste ausklappen",
+    "securityScans": "Sicherheitsscans"
   },
   "actions": {
     "cancel": "Abbrechen",
@@ -289,6 +291,84 @@
     "loadingMore": "Mehr laden...",
     "endOfList": "Ende der Liste",
     "loadMore": "Mehr laden"
+  },
+  "lifecycle": {
+    "title": "Lifecycle-Log",
+    "description": "Docker-, Image-, Volume-, Netzwerk- und Stack-Lifecycle-Ereignisse ueber alle Umgebungen hinweg.",
+    "searchPlaceholder": "Nach Container-, Image- oder Volume-Name suchen",
+    "subjectTypeLabel": "Subjekttyp",
+    "severityLabel": "Schweregrad",
+    "subjectType": {
+      "all": "Alle Subjekte",
+      "container": "Container",
+      "image": "Images",
+      "volume": "Volumes",
+      "network": "Netzwerke",
+      "stack": "Stacks"
+    },
+    "severity": {
+      "all": "Beliebiger Schweregrad",
+      "success": "Erfolg",
+      "info": "Info",
+      "warning": "Warnung",
+      "error": "Fehler"
+    },
+    "state": {
+      "running": "laeuft",
+      "stopped": "gestoppt",
+      "paused": "pausiert",
+      "created": "erstellt",
+      "restarting": "startet neu",
+      "removed": "entfernt",
+      "exited": "beendet",
+      "available": "verfuegbar",
+      "in_use": "in Verwendung",
+      "dangling": "verwaist",
+      "tagged": "getaggt",
+      "active": "aktiv",
+      "up": "aktiv",
+      "partial": "teilweise aktiv",
+      "errored": "fehlerhaft"
+    },
+    "action": {
+      "start": "gestartet",
+      "stop": "gestoppt",
+      "die": "gestorben",
+      "kill": "abgebrochen",
+      "pause": "pausiert",
+      "unpause": "fortgesetzt",
+      "restart": "neu gestartet",
+      "create": "erstellt",
+      "destroy": "entfernt",
+      "pull": "gepullt",
+      "load": "geladen",
+      "import": "importiert",
+      "tag": "getaggt",
+      "untag": "entfernt",
+      "delete": "geloescht",
+      "mount": "eingebunden",
+      "unmount": "ausgehaengt",
+      "connect": "verbunden",
+      "disconnect": "getrennt",
+      "oom": "abgebrochen (OOM)",
+      "failed": "fehlgeschlagen",
+      "error": "fehler"
+    },
+    "headerSubject": "Subjekt",
+    "headerDetail": "Detail",
+    "headerSeverity": "Schweregrad",
+    "headerTime": "Zeit",
+    "expand": "Details anzeigen",
+    "collapse": "Details verbergen",
+    "empty": "Keine Lifecycle-Ereignisse entsprechen diesen Filtern.",
+    "total": "{{total}} Ereignisse",
+    "pageOf": "Seite {{page}} von {{totalPages}}",
+    "source": "Quelle: {{source}}",
+    "detailId": "Ereignis-ID",
+    "detailSubject": "Subjekt",
+    "detailEvent": "Ereignis / Aktion",
+    "detailState": "Status",
+    "detailAttributes": "Attribute"
   },
   "logs": {
     "title": "Protokolle",
@@ -881,5 +961,30 @@
     "selectAndCopy": "Markieren & kopieren",
     "copied": "Kopiert",
     "close": "Schliessen"
+  },
+  "common": {
+    "loading": "Wird geladen...",
+    "updateCheck": {
+      "title": "McHarbor v{{version}} ist verfügbar",
+      "subtitle": "Sie verwenden v{{currentVersion}}.",
+      "viewRelease": "Release ansehen",
+      "openSettings": "Einstellungen",
+      "dismiss": "Schließen"
+    }
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {}
+    },
+    "toast": {}
+  },
+  "updateCheck": {
+    "banner": {
+      "title": "McHarbor v{{version}} ist verfügbar",
+      "subtitle": "Sie verwenden v{{currentVersion}}.",
+      "viewRelease": "Release ansehen",
+      "openSettings": "Einstellungen",
+      "dismiss": "Schließen"
+    }
   }
 }

@@ -8,6 +8,7 @@
     "stacks": "Stacks",
     "terminal": "Terminal",
     "backups": "Back-ups",
+    "logging": "Lifecycle Logboek",
     "logs": "Logboeken",
     "environments": "Omgevingen",
     "blueprints": "Blauwdrukken",
@@ -27,7 +28,8 @@
     "docker": "Docker",
     "navigation": "Navigatie",
     "collapseSidebar": "Zijbalk inklappen",
-    "expandSidebar": "Zijbalk uitklappen"
+    "expandSidebar": "Zijbalk uitklappen",
+    "securityScans": "Beveiligingsscans"
   },
   "actions": {
     "cancel": "Annuleren",
@@ -289,6 +291,84 @@
     "loadingMore": "Meer laden...",
     "endOfList": "Einde van de lijst",
     "loadMore": "Meer laden"
+  },
+  "lifecycle": {
+    "title": "Lifecycle Logboek",
+    "description": "Docker-, image-, volume-, netwerk- en stack-levenscyclusgebeurtenissen voor alle omgevingen.",
+    "searchPlaceholder": "Zoek op container-, image- of volumenaam",
+    "subjectTypeLabel": "Type onderwerp",
+    "severityLabel": "Ernst",
+    "subjectType": {
+      "all": "Alle onderwerpen",
+      "container": "Containers",
+      "image": "Images",
+      "volume": "Volumes",
+      "network": "Netwerken",
+      "stack": "Stacks"
+    },
+    "severity": {
+      "all": "Elke ernst",
+      "success": "Succes",
+      "info": "Info",
+      "warning": "Waarschuwing",
+      "error": "Fout"
+    },
+    "state": {
+      "running": "draaiend",
+      "stopped": "gestopt",
+      "paused": "gepauzeerd",
+      "created": "aangemaakt",
+      "restarting": "herstartend",
+      "removed": "verwijderd",
+      "exited": "afgesloten",
+      "available": "beschikbaar",
+      "in_use": "in gebruik",
+      "dangling": "zwevend",
+      "tagged": "getagd",
+      "active": "actief",
+      "up": "actief",
+      "partial": "gedeeltelijk actief",
+      "errored": "mislukt"
+    },
+    "action": {
+      "start": "gestart",
+      "stop": "gestopt",
+      "die": "gestorven",
+      "kill": "afgesloten",
+      "pause": "gepauzeerd",
+      "unpause": "hervat",
+      "restart": "herstart",
+      "create": "aangemaakt",
+      "destroy": "verwijderd",
+      "pull": "opgehaald",
+      "load": "geladen",
+      "import": "geimporteerd",
+      "tag": "getagd",
+      "untag": "onttagd",
+      "delete": "verwijderd",
+      "mount": "gekoppeld",
+      "unmount": "ontkoppeld",
+      "connect": "verbonden",
+      "disconnect": "verbroken",
+      "oom": "afgesloten (OOM)",
+      "failed": "mislukt",
+      "error": "fout opgetreden"
+    },
+    "headerSubject": "Onderwerp",
+    "headerDetail": "Detail",
+    "headerSeverity": "Ernst",
+    "headerTime": "Tijd",
+    "expand": "Details tonen",
+    "collapse": "Details verbergen",
+    "empty": "Geen levenscyclusgebeurtenissen voldoen aan deze filters.",
+    "total": "{{total}} gebeurtenissen",
+    "pageOf": "Pagina {{page}} van {{totalPages}}",
+    "source": "Bron: {{source}}",
+    "detailId": "Gebeurtenis-ID",
+    "detailSubject": "Onderwerp",
+    "detailEvent": "Gebeurtenis / actie",
+    "detailState": "Status",
+    "detailAttributes": "Kenmerken"
   },
   "logs": {
     "title": "Logboeken",
@@ -881,5 +961,30 @@
     "selectAndCopy": "Selecteer & kopieer",
     "copied": "Gekopieerd",
     "close": "Sluiten"
+  },
+  "common": {
+    "loading": "Laden...",
+    "updateCheck": {
+      "title": "McHarbor v{{version}} is beschikbaar",
+      "subtitle": "Je draait v{{currentVersion}}.",
+      "viewRelease": "Release bekijken",
+      "openSettings": "Instellingen",
+      "dismiss": "Sluiten"
+    }
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {}
+    },
+    "toast": {}
+  },
+  "updateCheck": {
+    "banner": {
+      "title": "McHarbor v{{version}} is beschikbaar",
+      "subtitle": "Je draait v{{currentVersion}}.",
+      "viewRelease": "Release bekijken",
+      "openSettings": "Instellingen",
+      "dismiss": "Sluiten"
+    }
   }
 }

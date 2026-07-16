@@ -15,6 +15,28 @@ export type VersionCheck = {
   releaseNotes?: string;
 };
 
+export type SelfUpdateState = VersionCheck & {
+  lastCheckedAt?: string;
+  lastError?: string;
+  nextCheckAt?: string;
+  intervalHours: number;
+  notifiedVersion?: string;
+};
+
+export type SelfUpdateSettings = {
+  intervalHours: number;
+  channelIds: string[];
+  lastSeenVersion: string;
+  enabled: boolean;
+};
+
+export type NotificationChannel = {
+  id: string;
+  name: string;
+  type: string;
+  enabled: boolean;
+};
+
 export type UpdatePolicy = {
   id: string;
   name: string;
@@ -61,6 +83,65 @@ export function useCheckUpdate() {
     },
     staleTime: 5 * 60_000,
     enabled: false,
+  });
+}
+
+// useSelfUpdateState polls the cached self-update result. The
+// background checker on the server keeps the result fresh, so the
+// frontend just reads it. A short polling interval lets the in-app
+// banner react within a minute of a new release appearing.
+export function useSelfUpdateState(intervalMs = 60_000) {
+  return useQuery({
+    queryKey: ['updates', 'self'],
+    queryFn: async () => {
+      const res = await api.get<SelfUpdateState>('/updates/state');
+      if (!res.success || !res.data) {
+        throw new Error(res.error ?? 'Update state unavailable');
+      }
+      return res.data;
+    },
+    refetchInterval: intervalMs,
+    refetchOnWindowFocus: true,
+    staleTime: 30_000,
+  });
+}
+
+export function useSelfUpdateSettings() {
+  return useQuery({
+    queryKey: ['updates', 'self', 'settings'],
+    queryFn: async () => {
+      const res = await api.get<SelfUpdateSettings>('/updates/settings');
+      if (!res.success || !res.data) {
+        throw new Error(res.error ?? 'Update settings unavailable');
+      }
+      return res.data;
+    },
+  });
+}
+
+export function useSaveSelfUpdateSettings() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: (input: SelfUpdateSettings) =>
+      api.put('/updates/settings', input).then(assertSuccess),
+    meta: { success: t('toast.updateCheckSettingsSaved') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['updates', 'self'] });
+    },
+  });
+}
+
+export function useDismissUpdate() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: (version: string) =>
+      api.post('/updates/dismiss', { version }).then(assertSuccess),
+    meta: { success: t('toast.updateCheckDismissed') },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['updates', 'self'] });
+    },
   });
 }
 

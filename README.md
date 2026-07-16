@@ -50,6 +50,7 @@ McHarbor is built for the work that happens after deployment.
 - **Activity and Audit History**: Keep a clearer record of what changed, who changed it, and when it happened.
 - **User Management and Pluggable Auth**: Start with local auth today and keep a path open for broader identity integration over time.
 - **Plugin-Friendly Architecture**: Grow the platform with custom nodes, plugins, and extension points instead of being locked into a fixed feature list.
+- **Self-Update Checker**: McHarbor periodically compares the running version against the latest GitHub release, surfaces an in-app banner when a newer version is available, and notifies configured channels. The check interval is configurable from Settings.
 
 ## What's New Since 1.0.0
 
@@ -114,6 +115,8 @@ McHarbor has grown from the initial public release into a broader operations pla
 - **Improved Self-Detection**: McHarbor recognizes its own container through Docker labels, compose metadata, image references, stored compose data, conventional names, and Docker inspect fallbacks.
 - **Release Version Metadata**: Runtime health/about metadata, update checks, startup logging, OpenAPI metadata, frontend package metadata, Docker image labels, and publishing workflows now use the canonical root `VERSION` file.
 - **Agent Install Commands**: Generated agent Docker install commands use the latest agent image by default, pull before restart, and mount a stable Compose workspace for agent-side stack deploys.
+- **Self-Update Checker**: McHarbor polls GitHub releases on a configurable interval (default 60 minutes, settable from Settings) and surfaces an in-app banner plus a notification whenever a newer version is available. The check is a coordinator singleton on multi-node installs, so only the leader polls; the result is replicated to followers through the shared database.
+- **Update Status API**: `GET /api/updates/status` returns `{ current, latest, available, lastCheckedAt, releaseUrl }`. Operators can trigger an immediate check via `POST /api/updates/check` and adjust the interval via `PATCH /api/updates/settings`. The endpoint is auth-protected.
 
 ### Backups and External Storage
 
@@ -220,6 +223,14 @@ Version metadata is available from:
 ```text
 GET /api/about
 GET /api/versions
+```
+
+Self-update checks are exposed through:
+
+```text
+GET    /api/updates/status          # current version, latest release, last check time
+POST   /api/updates/check           # force an immediate refresh
+PATCH  /api/updates/settings        # adjust the check interval
 ```
 
 Container backup restores use:

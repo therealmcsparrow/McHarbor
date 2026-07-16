@@ -70,14 +70,22 @@ type UpdatePolicyInput struct {
 
 // Handler holds dependencies for update HTTP handlers.
 type Handler struct {
-	app     *router.AppDeps
-	service *Service
+	app        *router.AppDeps
+	service   *Service
+	selfUpdate *SelfUpdateChecker
 }
 
 // NewHandler creates a new updates handler.
 func NewHandler(app *router.AppDeps) *Handler {
 	svc := NewService(app.DB)
-	return &Handler{app: app, service: svc}
+	return &Handler{app: app, service: svc, selfUpdate: nil}
+}
+
+// SetSelfUpdateChecker injects the background self-update
+// checker. Called from Mount() so the AppDeps wiring is complete
+// before the checker is built.
+func (h *Handler) SetSelfUpdateChecker(c *SelfUpdateChecker) {
+	h.selfUpdate = c
 }
 
 // HandleList returns a paginated list of update policies.
@@ -268,6 +276,83 @@ func compareVersions(a, b string) int {
 		}
 	}
 	return 0
+}
+
+// HandleState returns the cached self-update check result. The
+// periodic checker writes to the settings table; this endpoint
+// just reads it back so the frontend can poll for a new release
+// without hammering the GitHub API.
+func (h *Handler) HandleState(w http.ResponseWriter, r *http.Request) {
+	settings, err := h.selfUpdate.Settings(r.Context())
+	if err != nil {
+		h.app.Logger.Error("self-update: load settings for state", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrUpdateListFailed)
+		return
+	}
+	state := h.selfUpdate.State()
+	if state.LatestVersion == "" {
+		// Force a one-shot check so the first poll returns something
+		// actionable rather than a perpetual "checking..." spinner.
+		if settings.Enabled {
+			if s, err := h.selfUpdate.CheckNow(r.Context()); err == nil {
+				state = s
+			}
+		}
+	}
+	state.IntervalHours = settings.IntervalHours
+	response.OK(w, state)
+}
+
+// HandleGetSettings returns the operator-facing self-update config.
+func (h *Handler) HandleGetSettings(w http.ResponseWriter, r *http.Request) {
+	settings, err := h.selfUpdate.Settings(r.Context())
+	if err != nil {
+		h.app.Logger.Error("self-update: load settings", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrUpdateListFailed)
+		return
+	}
+	response.OK(w, settings)
+}
+
+// HandleSaveSettings persists the operator-facing self-update
+// configuration. A zero `intervalHours` resets to the default
+// (24h); values are clamped to the [1, 168] hour range.
+func (h *Handler) HandleSaveSettings(w http.ResponseWriter, r *http.Request) {
+	var in SelfUpdateSettings
+	if err := response.DecodeBody(r, &in); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	saved, err := h.selfUpdate.SaveSettings(r.Context(), in)
+	if err != nil {
+		h.app.Logger.Error("self-update: save settings", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrUpdateListFailed)
+		return
+	}
+	// Restart the ticker so the new interval takes effect
+	// immediately rather than at the next scheduled tick.
+	if in.Enabled {
+		h.selfUpdate.Restart(r.Context())
+	}
+	response.OK(w, saved)
+}
+
+// HandleDismiss records that the operator has seen the current
+// latest version so the in-app banner stops highlighting it.
+func (h *Handler) HandleDismiss(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Version string `json:"version"`
+	}
+	if err := response.DecodeBody(r, &req); err != nil {
+		response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+		return
+	}
+	if err := h.selfUpdate.Dismiss(r.Context(), req.Version); err != nil {
+		h.app.Logger.Error("self-update: dismiss", "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrUpdateListFailed)
+		return
+	}
+	response.OK(w, map[string]any{"ok": true})
 }
 
 // HandleHistory returns update execution history for a policy.

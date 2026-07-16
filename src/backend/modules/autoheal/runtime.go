@@ -196,7 +196,7 @@ func (e *Engine) maybeHeal(ctx context.Context, envID, envName, containerID, con
 	if !e.svc.IsEnabled(envID, containerID) {
 		return
 	}
-	pref := e.svc.GetPreference(envID, containerID)
+	pref := e.svc.Preference(envID, containerID)
 	if !pref.WasEverHealthy {
 		// Don't restart a container that has never reached healthy.
 		// This is the autoheal default behaviour: avoid loops for

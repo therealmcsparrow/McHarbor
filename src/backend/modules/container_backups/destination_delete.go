@@ -42,6 +42,11 @@ func (s *Service) deleteDestinationFile(
 	switch destination.LocationType {
 	case "local":
 		return deleteLocalDestinationFile(destination.Path, logger)
+	case "samba":
+		if location == nil {
+			return fmt.Errorf("samba destination %s is missing storage location config", destination.ID)
+		}
+		return s.deleteSambaDestinationFile(ctx, *location, destination.Path, logger)
 	case "onedrive_personal", "onedrive_business", "sharepoint":
 		if location == nil {
 			return fmt.Errorf("OneDrive destination %s is missing storage location config", destination.ID)

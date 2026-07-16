@@ -52,9 +52,6 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	corenotify "github.com/therealmcsparrow/mcharbor/core/notify"
 	coresettings "github.com/therealmcsparrow/mcharbor/core/settings"
-	containerbackups "github.com/therealmcsparrow/mcharbor/modules/container_backups"
-	stacksvc "github.com/therealmcsparrow/mcharbor/modules/stacks"
-	storagelocations "github.com/therealmcsparrow/mcharbor/modules/storage_locations"
 )
 
 func unusedImagePruneFilters() filters.Args {
@@ -89,6 +86,12 @@ type Service struct {
 	}
 	notifier     *corenotify.Dispatcher
 	imageScanner ImageScanner
+	// Runtime adapters for cross-module integration. Injected from
+	// main.go via the Set*Runtime methods below so this package does
+	// not import its sibling modules.
+	backupRunner   ContainerBackupRunner
+	stackLinker    StackContainerLinker
+	storageReader  StorageLocationReader
 }
 
 // NewService creates a new workflow service.
@@ -112,6 +115,24 @@ func (s *Service) SetImageScanner(scanner ImageScanner) {
 // SetLinkOutCallback registers a callback invoked when a link-out node fires.
 func (s *Service) SetLinkOutCallback(cb LinkOutCallback) {
 	s.onLinkOut = cb
+}
+
+// SetContainerBackupRuntime registers the runtime adapter that
+// fulfils container-backup workflow nodes.
+func (s *Service) SetContainerBackupRuntime(r ContainerBackupRunner) {
+	s.backupRunner = r
+}
+
+// SetStackContainerLinkerRuntime registers the runtime adapter
+// that fulfils stack-link / stack-unlink workflow nodes.
+func (s *Service) SetStackContainerLinkerRuntime(r StackContainerLinker) {
+	s.stackLinker = r
+}
+
+// SetStorageLocationRuntime registers the runtime adapter that
+// fulfils storage-location workflow nodes.
+func (s *Service) SetStorageLocationRuntime(r StorageLocationReader) {
+	s.storageReader = r
 }
 
 // List returns paginated workflows, optionally filtered by status.
@@ -2675,13 +2696,16 @@ func (s *Service) executeContainerCreate(ctx context.Context, node *CanvasNode, 
 }
 
 func (s *Service) executeContainerBackupRun(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
+	if s.backupRunner == nil {
+		return "", nil, ErrContainerBackupsUnavailable
+	}
 	containerID, _ := node.Config["container"].(string)
 	if strings.TrimSpace(containerID) == "" {
 		return "", nil, fmt.Errorf("container is required")
 	}
 
 	storageLocationID, _ := node.Config["storage_location_id"].(string)
-	input := containerbackups.RunBackupInput{
+	input := ContainerBackupInput{
 		Name:              "Workflow container backup",
 		StorageLocationID: storageLocationID,
 		IncludeConfig:     true,
@@ -2691,11 +2715,10 @@ func (s *Service) executeContainerBackupRun(ctx context.Context, node *CanvasNod
 		SelectedMounts:    configStringSlice(node.Config["selected_mounts"]),
 	}
 
-	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.enc, s.logger)
 	opCtx, cancel := context.WithTimeout(ctx, 45*time.Minute)
 	defer cancel()
 
-	run, err := backupSvc.RunAdhoc(opCtx, envID, containerID, input)
+	run, err := s.backupRunner.RunAdhoc(opCtx, envID, containerID, input)
 	if err != nil {
 		s.logger.Error("workflows: container backup failed", "error", err, "container", containerID, "envID", envID)
 		out := CloneMsg(msg)
@@ -2711,16 +2734,18 @@ func (s *Service) executeContainerBackupRun(ctx context.Context, node *CanvasNod
 }
 
 func (s *Service) executeContainerBackupPlanRun(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if s.backupRunner == nil {
+		return "", nil, ErrContainerBackupsUnavailable
+	}
 	planID, _ := node.Config["plan_id"].(string)
 	if strings.TrimSpace(planID) == "" {
 		return "", nil, fmt.Errorf("plan_id is required")
 	}
 
-	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.enc, s.logger)
 	opCtx, cancel := context.WithTimeout(ctx, 45*time.Minute)
 	defer cancel()
 
-	run, err := backupSvc.RunPlan(opCtx, planID)
+	run, err := s.backupRunner.RunPlan(opCtx, planID)
 	if err != nil {
 		s.logger.Error("workflows: container backup plan failed", "error", err, "plan", planID)
 		out := CloneMsg(msg)
@@ -2736,13 +2761,15 @@ func (s *Service) executeContainerBackupPlanRun(ctx context.Context, node *Canva
 }
 
 func (s *Service) executeContainerBackupDownload(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if s.backupRunner == nil {
+		return "", nil, ErrContainerBackupsUnavailable
+	}
 	runID, _ := node.Config["run_id"].(string)
 	if strings.TrimSpace(runID) == "" {
 		return "", nil, fmt.Errorf("run_id is required")
 	}
 
-	backupSvc := containerbackups.NewService(s.db, s.pool, s.dataDir, s.backupCrypto, s.enc, s.logger)
-	download, err := backupSvc.Download(ctx, runID)
+	download, err := s.backupRunner.Download(ctx, runID)
 	if err != nil {
 		s.logger.Error("workflows: container backup download info failed", "error", err, "run", runID)
 		out := CloneMsg(msg)
@@ -2771,6 +2798,9 @@ func (s *Service) executeContainerBackupDownload(ctx context.Context, node *Canv
 }
 
 func (s *Service) executeContainerStackLink(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
+	if s.stackLinker == nil {
+		return "", nil, ErrStackLinkerUnavailable
+	}
 	containerID, _ := node.Config["container"].(string)
 	stackName, _ := node.Config["stack_name"].(string)
 	serviceName, _ := node.Config["service_name"].(string)
@@ -2778,8 +2808,7 @@ func (s *Service) executeContainerStackLink(ctx context.Context, node *CanvasNod
 		return "", nil, fmt.Errorf("container and stack_name are required")
 	}
 
-	stackService := stacksvc.NewService(s.db, s.pool, s.dataDir)
-	link, err := stackService.LinkContainer(ctx, envID, stacksvc.LinkContainerRequest{
+	link, err := s.stackLinker.LinkContainer(ctx, envID, LinkContainerRequest{
 		ContainerID: containerID,
 		StackName:   stackName,
 		ServiceName: serviceName,
@@ -2799,13 +2828,15 @@ func (s *Service) executeContainerStackLink(ctx context.Context, node *CanvasNod
 }
 
 func (s *Service) executeContainerStackUnlink(ctx context.Context, node *CanvasNode, msg Msg, envID string) (string, Msg, error) {
+	if s.stackLinker == nil {
+		return "", nil, ErrStackLinkerUnavailable
+	}
 	containerID, _ := node.Config["container"].(string)
 	if strings.TrimSpace(containerID) == "" {
 		return "", nil, fmt.Errorf("container is required")
 	}
 
-	stackService := stacksvc.NewService(s.db, s.pool, s.dataDir)
-	if err := stackService.UnlinkContainer(envID, containerID); err != nil {
+	if err := s.stackLinker.UnlinkContainer(envID, containerID); err != nil {
 		s.logger.Error("workflows: container stack unlink failed", "error", err, "container", containerID, "envID", envID)
 		out := CloneMsg(msg)
 		out = EnsureMsgID(out)
@@ -3520,8 +3551,10 @@ func (s *Service) executeVolumeRestore(ctx context.Context, node *CanvasNode, ms
 }
 
 func (s *Service) executeStorageLocationList(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
-	storageSvc := storagelocations.NewService(s.db, s.enc)
-	items, err := storageSvc.List(ctx)
+	if s.storageReader == nil {
+		return "", nil, ErrStorageLocationsUnavailable
+	}
+	items, err := s.storageReader.List(ctx)
 	if err != nil {
 		s.logger.Error("workflows: storage location list failed", "error", err)
 		out := CloneMsg(msg)
@@ -3531,7 +3564,7 @@ func (s *Service) executeStorageLocationList(ctx context.Context, node *CanvasNo
 	}
 
 	if configBool(node.Config, "enabled_only", true) {
-		filtered := make([]storagelocations.StorageLocation, 0, len(items))
+		filtered := make([]StorageLocationSummary, 0, len(items))
 		for _, item := range items {
 			if item.Enabled {
 				filtered = append(filtered, item)
@@ -3547,13 +3580,15 @@ func (s *Service) executeStorageLocationList(ctx context.Context, node *CanvasNo
 }
 
 func (s *Service) executeStorageLocationGet(ctx context.Context, node *CanvasNode, msg Msg) (string, Msg, error) {
+	if s.storageReader == nil {
+		return "", nil, ErrStorageLocationsUnavailable
+	}
 	locationID, _ := node.Config["storage_location_id"].(string)
 	if strings.TrimSpace(locationID) == "" {
 		return "", nil, fmt.Errorf("storage_location_id is required")
 	}
 
-	storageSvc := storagelocations.NewService(s.db, s.enc)
-	item, err := storageSvc.ByID(ctx, locationID)
+	item, err := s.storageReader.ByID(ctx, locationID)
 	if err != nil {
 		s.logger.Error("workflows: storage location get failed", "error", err, "location", locationID)
 		out := CloneMsg(msg)
@@ -3930,8 +3965,10 @@ func (s *Service) fileWatchStorageLocationPayload(ctx context.Context, id string
 	if id == "" {
 		return nil
 	}
-	storageSvc := storagelocations.NewService(s.db, s.enc)
-	location, err := storageSvc.ByID(ctx, id)
+	if s.storageReader == nil {
+		return nil
+	}
+	location, err := s.storageReader.ByID(ctx, id)
 	if err != nil || location == nil {
 		return nil
 	}

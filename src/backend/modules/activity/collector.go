@@ -12,9 +12,11 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types/events"
+	"github.com/rs/xid"
 
-	"github.com/therealmcsparrow/mcharbor/core/docker"
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
+	"github.com/therealmcsparrow/mcharbor/core/db"
+	"github.com/therealmcsparrow/mcharbor/core/docker"
 )
 
 // Collector subscribes to Docker events for all active environments
@@ -85,6 +87,18 @@ func (c *Collector) run(ctx context.Context) {
 	}
 }
 
+// pruneBatchSize caps how many rows a single prune DELETE removes
+// in one transaction. Bounded deletes let other writers (metrics
+// collector, backup progress) interleave between batches so the
+// SQLite write lock is held for milliseconds per batch instead of
+// for the time it takes to scan a multi-million-row table on a
+// stale install. The collector's main loop runs prune in a tight
+// `for { pruneBatch(); ... }` cycle until the table is at or below
+// the retention cutoff, so the operator-facing behaviour is
+// identical (everything older than N days goes away), just
+// delivered in slices.
+const pruneBatchSize = 5000
+
 // prune removes events older than the configured retention period.
 //
 // The timestamp column is stored as RFC3339 ("2026-05-25T00:00:02Z"),
@@ -102,13 +116,24 @@ func (c *Collector) prune() {
 		return // 0 = keep forever
 	}
 
-	result, err := c.db.Exec("DELETE FROM container_events WHERE julianday(timestamp) < julianday('now', '-' || ? || ' days')", days)
-	if err != nil {
-		c.logger.Error("activity collector: failed to prune old events", "error", err)
-		return
+	totalDeleted := int64(0)
+	for {
+		result, err := c.db.Exec(
+			"DELETE FROM container_events WHERE id IN (SELECT id FROM container_events WHERE julianday(timestamp) < julianday('now', '-' || ? || ' days') LIMIT ?)",
+			days, pruneBatchSize,
+		)
+		if err != nil {
+			c.logger.Error("activity collector: failed to prune old events", "error", err)
+			return
+		}
+		deleted := db.RowsAffected(result)
+		totalDeleted += deleted
+		if deleted < int64(pruneBatchSize) {
+			break
+		}
 	}
-	if n, _ := result.RowsAffected(); n > 0 {
-		c.logger.Info("container events pruned", "days", days, "rows_deleted", n)
+	if totalDeleted > 0 {
+		c.logger.Info("container events pruned", "days", days, "rows_deleted", totalDeleted)
 	}
 }
 
@@ -327,28 +352,35 @@ func (c *Collector) fetchEventsBatch(ctx context.Context, envID string, since, u
 }
 
 func (c *Collector) persistEvent(envID string, event events.Message) {
-	// Only persist container events
-	if event.Type != events.ContainerEventType {
+	// Map the Docker event type to a lifecycle subject_type. The
+	// 'docker' daemon events are skipped — they're noisy and add no
+	// value to the lifecycle log.
+	subjectType, ok := dockerEventToSubjectType(event.Type)
+	if !ok {
 		return
 	}
 
-	containerName := event.Actor.Attributes["name"]
+	// Resolve the foreign-key to environments. The empty envID is
+	// the implicit default (local) environment.
 	var envPtr *string
 	if envID != "" {
 		envPtr = &envID
 	} else {
-		// Resolve default environment ID for DB foreign key
 		defaultID := c.getDefaultEnvID()
 		if defaultID != "" {
 			envPtr = &defaultID
 		}
 	}
+
+	subjectName := event.Actor.Attributes["name"]
 	var namePtr *string
-	if containerName != "" {
-		namePtr = &containerName
+	if subjectName != "" {
+		namePtr = &subjectName
 	}
 
-	// Build metadata from Docker event attributes
+	// Build metadata from the event attributes. This is what the
+	// user expands to see "container failed because OOMKilled,
+	// exit code 137" etc.
 	var metaPtr *string
 	if attrs := event.Actor.Attributes; len(attrs) > 0 {
 		meta := make(map[string]string, len(attrs))
@@ -361,17 +393,132 @@ func (c *Collector) persistEvent(envID string, event events.Message) {
 		}
 	}
 
-	_, err := c.service.Create(CreateRequest{
-		EnvironmentID: envPtr,
-		ContainerID:   event.Actor.ID,
-		ContainerName: namePtr,
-		EventType:     string(event.Type),
-		Action:        string(event.Action),
-		Metadata:      metaPtr,
-	})
-	if err != nil {
-		c.logger.Debug("activity collector: failed to persist event", "error", err)
+	severity, state := lifecycleSeverity(event.Type, string(event.Action))
+
+	// Always mirror every event into lifecycle_events so the new
+	// Logging tab in the Docker menu has a complete record
+	// regardless of subject type. The legacy container_events
+	// table is kept in sync for the /activity page so historical
+	// reads continue to work.
+	if _, err := c.db.ExecContext(context.Background(), `
+		INSERT INTO lifecycle_events
+			(id, environment_id, subject_type, subject_id, subject_name,
+			 event_type, action, state, severity, metadata, source, timestamp,
+			 created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'docker', ?, ?, ?)
+		ON CONFLICT (id) DO NOTHING`,
+		xid.New().String(), envPtr, subjectType, event.Actor.ID, namePtr,
+		string(event.Type), string(event.Action), nullIfEmpty(state), severity, metaPtr,
+		event.TimeNano, time.Now().UTC().Format(time.RFC3339), time.Now().UTC().Format(time.RFC3339),
+	); err != nil {
+		c.logger.Debug("activity collector: failed to insert lifecycle event", "error", err)
 	}
+
+	// Backward compat: keep the existing /activity page working.
+	if event.Type == events.ContainerEventType {
+		_, err := c.service.Create(CreateRequest{
+			EnvironmentID: envPtr,
+			ContainerID:   event.Actor.ID,
+			ContainerName: namePtr,
+			EventType:     string(event.Type),
+			Action:        string(event.Action),
+			Metadata:      metaPtr,
+		})
+		if err != nil {
+			c.logger.Debug("activity collector: failed to persist event", "error", err)
+		}
+	}
+}
+
+// dockerEventToSubjectType maps a Docker event.Type to the lifecycle
+// log subject_type column. Returns ("", false) for events we don't
+// care about (daemon, plugin, etc.).
+func dockerEventToSubjectType(t events.Type) (string, bool) {
+	switch t {
+	case events.ContainerEventType:
+		return "container", true
+	case events.ImageEventType:
+		return "image", true
+	case events.VolumeEventType:
+		return "volume", true
+	case events.NetworkEventType:
+		return "network", true
+	default:
+		return "", false
+	}
+}
+
+// lifecycleSeverity returns the user-facing badge color for the
+// event. The mapping is conservative: 'error' for destroy / die /
+// failed states, 'warning' for restart / pause, 'success' for
+// start / create / pull, 'info' for everything else.
+func lifecycleSeverity(t events.Type, action string) (string, string) {
+	var state string
+	switch t {
+	case events.ContainerEventType:
+		switch action {
+		case "start", "unpause":
+			state = "running"
+		case "stop", "kill":
+			state = "stopped"
+		case "die":
+			state = "exited"
+		case "pause":
+			state = "paused"
+		case "create":
+			state = "created"
+		case "restart":
+			state = "restarting"
+		case "destroy":
+			state = "removed"
+		}
+	case events.ImageEventType:
+		switch action {
+		case "pull", "load", "import":
+			state = "available"
+		case "tag", "untag":
+			state = "tagged"
+		case "delete":
+			state = "removed"
+		}
+	case events.VolumeEventType:
+		switch action {
+		case "create":
+			state = "created"
+		case "mount":
+			state = "in_use"
+		case "unmount":
+			state = "available"
+		case "destroy":
+			state = "removed"
+		}
+	case events.NetworkEventType:
+		switch action {
+		case "create":
+			state = "active"
+		case "connect", "disconnect":
+			state = "active"
+		case "destroy":
+			state = "removed"
+		}
+	}
+	severity := "info"
+	switch action {
+	case "destroy", "kill", "die", "oom", "failed", "error":
+		severity = "error"
+	case "stop", "pause", "restart", "unmount", "delete":
+		severity = "warning"
+	case "start", "create", "pull", "load", "import", "mount", "connect", "tag", "unpause":
+		severity = "success"
+	}
+	return severity, state
+}
+
+func nullIfEmpty(s string) interface{} {
+	if s == "" {
+		return nil
+	}
+	return s
 }
 
 func (c *Collector) getDefaultEnvID() string {

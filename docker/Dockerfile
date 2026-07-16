@@ -2,7 +2,7 @@
 # McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 # Stage 1: Go backend
-FROM golang:1.26.4-alpine AS backend
+FROM golang:1.26.5-alpine AS backend
 RUN apk add --no-cache git
 WORKDIR /app
 COPY src/backend/go.mod ./
@@ -15,7 +15,11 @@ RUN go mod tidy && CGO_ENABLED=0 go build -ldflags="-s -w" -o /mcharbor ./main.g
 FROM node:22-bookworm-slim AS frontend
 WORKDIR /app
 COPY src/frontend/package.json src/frontend/package-lock.json* ./
-RUN npm install
+# --legacy-peer-deps lets typescript@7 install alongside the latest
+# typescript-eslint, which has not yet shipped a peer range covering
+# TypeScript 7. The runtime type-checker (tsc) and the Vite build
+# both work fine on TS 7 today.
+RUN npm install --legacy-peer-deps
 COPY src/frontend/ .
 COPY nodes/ /nodes/
 COPY widgets/ /widgets/

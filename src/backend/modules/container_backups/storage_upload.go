@@ -32,17 +32,24 @@ const (
 )
 
 type backupStorageDestination struct {
-	ID           string
-	Name         string
-	LocationType string
-	Enabled      bool
-	BasePath     string
-	DriveID      string
-	TenantID     string
-	ClientID     string
-	ClientSecret string
-	RefreshToken string
-	Token        string
+	ID              string
+	Name            string
+	LocationType    string
+	Enabled         bool
+	BasePath        string
+	Host            string
+	Port            int
+	Username        string
+	Password        string
+	ShareName       string
+	DriveID         string
+	TenantID        string
+	ClientID        string
+	ClientSecret    string
+	RefreshToken    string
+	Token           string
+	AccessKeyID     string
+	SecretAccessKey string
 }
 
 func (s *Service) uploadArchiveDestinations(ctx context.Context, plan *BackupPlan, runID string, archive archiveResult) error {
@@ -105,7 +112,16 @@ func (s *Service) uploadArchiveDestinations(ctx context.Context, plan *BackupPla
 // failure, missing destination, 4xx) fail immediately — retrying those
 // would just waste time and bandwidth.
 func (s *Service) uploadToSingleDestination(ctx context.Context, runID string, plan *BackupPlan, location backupStorageDestination, archive archiveResult) error {
-	remotePath := backupStorageRemotePath(location, plan, runID)
+	envSegment, err := s.resolveBackupEnvironmentSegment(ctx, plan.EnvironmentID)
+	if err != nil {
+		if s.logger != nil {
+			s.logger.Warn(
+				"backup environment segment lookup failed; falling back to environment id",
+				"run", runID, "env", plan.EnvironmentID, "error", err,
+			)
+		}
+	}
+	remotePath := backupStorageRemotePath(location, plan, runID, envSegment)
 	destinationID, err := s.createRunDestination(ctx, runID, location, remotePath)
 	if err != nil {
 		return err
@@ -280,7 +296,14 @@ func (s *Service) MigrateCompletedRunsToLocalStorage(ctx context.Context, storag
 		for _, run := range runs {
 			lastID = run.ID
 			result.Total++
-			targetPath := backupMigrationRemotePath(*location, run)
+			migEnvSegment, migEnvErr := s.resolveBackupEnvironmentSegment(ctx, run.EnvironmentID)
+			if migEnvErr != nil && s.logger != nil {
+				s.logger.Warn(
+					"backup migration environment segment lookup failed; falling back to environment id",
+					"run", run.ID, "env", run.EnvironmentID, "error", migEnvErr,
+				)
+			}
+			targetPath := backupMigrationRemotePath(*location, run, migEnvSegment)
 			sourcePath, err := s.cleanBackupArchiveSource(run.ArchivePath)
 			if err == nil {
 				err = s.copyBackupFileAtomic(ctx, sourcePath, targetPath, run.ArchiveSize, nil)
@@ -487,7 +510,7 @@ func (s *Service) cleanBackupArchiveSource(sourcePath string) (string, error) {
 	return archivePath, nil
 }
 
-func backupMigrationRemotePath(location backupStorageDestination, run backupMigrationRun) string {
+func backupMigrationRemotePath(location backupStorageDestination, run backupMigrationRun, envSegment string) string {
 	basePath := location.BasePath
 	if location.LocationType == "local" {
 		basePath = localBackupBasePath(basePath)
@@ -501,7 +524,7 @@ func backupMigrationRemotePath(location backupStorageDestination, run backupMigr
 		startedAt = parsed.UTC()
 	}
 	fileName := startedAt.Format("20060102T150405Z") + "-" + safeArchiveName.ReplaceAllString(run.ID, "-") + ".tar"
-	return path.Join("/", strings.TrimSpace(basePath), "containers", containerName, fileName)
+	return path.Join("/", strings.TrimSpace(basePath), envSegment, "containers", containerName, fileName)
 }
 
 func (s *Service) backupStorageDestinations(ctx context.Context, ids []string) ([]backupStorageDestination, error) {
@@ -523,13 +546,24 @@ func (s *Service) backupStorageDestination(ctx context.Context, id string) (*bac
 		return nil, fmt.Errorf("storage credential encryption service is not configured")
 	}
 	var item backupStorageDestination
-	var basePath, driveID, tenantID, clientID, clientSecret, refreshToken, token sql.NullString
+	var basePath, host, username, password, shareName, driveID, tenantID sql.NullString
+	var clientID, clientSecret, refreshToken, token, accessKeyID, secretAccessKey sql.NullString
+	var port sql.NullInt64
 	err := s.db.QueryRowContext(ctx, `
-		SELECT id, name, location_type, enabled, COALESCE(base_path, ''), COALESCE(drive_id, ''),
-		       COALESCE(tenant_id, ''), client_id, client_secret, refresh_token, token
+		SELECT id, name, location_type, enabled,
+		       COALESCE(base_path, ''), COALESCE(host, ''), COALESCE(port, 0),
+		       COALESCE(username, ''), COALESCE(password, ''), COALESCE(share_name, ''),
+		       COALESCE(drive_id, ''), COALESCE(tenant_id, ''),
+		       client_id, client_secret, refresh_token, token,
+		       access_key_id, secret_access_key
 		FROM storage_locations
 		WHERE id = ?`, id,
-	).Scan(&item.ID, &item.Name, &item.LocationType, &item.Enabled, &basePath, &driveID, &tenantID, &clientID, &clientSecret, &refreshToken, &token)
+	).Scan(
+		&item.ID, &item.Name, &item.LocationType, &item.Enabled,
+		&basePath, &host, &port, &username, &password, &shareName,
+		&driveID, &tenantID, &clientID, &clientSecret, &refreshToken, &token,
+		&accessKeyID, &secretAccessKey,
+	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -537,8 +571,23 @@ func (s *Service) backupStorageDestination(ctx context.Context, id string) (*bac
 		return nil, fmt.Errorf("reading backup storage location: %w", err)
 	}
 	item.BasePath = basePath.String
+	item.Host = host.String
+	if port.Valid {
+		item.Port = int(port.Int64)
+	}
+	item.Username = username.String
+	item.ShareName = shareName.String
 	item.DriveID = driveID.String
 	item.TenantID = tenantID.String
+	// Decrypt every secret column. We never store plaintext for
+	// anything that could be a credential.
+	if password.Valid && strings.TrimSpace(password.String) != "" {
+		decrypted, err := s.enc.Decrypt(password.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting storage password: %w", err)
+		}
+		item.Password = decrypted
+	}
 	if clientID.Valid && strings.TrimSpace(clientID.String) != "" {
 		decrypted, err := s.enc.Decrypt(clientID.String)
 		if err != nil {
@@ -566,6 +615,20 @@ func (s *Service) backupStorageDestination(ctx context.Context, id string) (*bac
 			return nil, fmt.Errorf("decrypting storage access token: %w", err)
 		}
 		item.Token = decrypted
+	}
+	if accessKeyID.Valid && strings.TrimSpace(accessKeyID.String) != "" {
+		decrypted, err := s.enc.Decrypt(accessKeyID.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting storage access key: %w", err)
+		}
+		item.AccessKeyID = decrypted
+	}
+	if secretAccessKey.Valid && strings.TrimSpace(secretAccessKey.String) != "" {
+		decrypted, err := s.enc.Decrypt(secretAccessKey.String)
+		if err != nil {
+			return nil, fmt.Errorf("decrypting storage secret key: %w", err)
+		}
+		item.SecretAccessKey = decrypted
 	}
 	return &item, nil
 }
@@ -684,6 +747,8 @@ func (s *Service) uploadBackupToStorageForDestination(ctx context.Context, runID
 	switch location.LocationType {
 	case "local":
 		return s.uploadBackupToLocalWithDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
+	case "samba":
+		return s.uploadBackupToSambaWithDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
 	case "onedrive_personal", "onedrive_business", "sharepoint":
 		return s.uploadBackupToOneDriveWithDestination(ctx, runID, destinationID, location, archivePath, remotePath, size)
 	default:
@@ -1010,21 +1075,21 @@ func microsoftStorageEndpoint(location backupStorageDestination) oauth2.Endpoint
 	}
 }
 
-func backupStorageRemotePath(location backupStorageDestination, plan *BackupPlan, runID string) string {
+func backupStorageRemotePath(location backupStorageDestination, plan *BackupPlan, runID string, envSegment string) string {
 	basePath := location.BasePath
 	if location.LocationType == "local" {
 		basePath = localBackupBasePath(basePath)
 	}
-	return backupRemotePath(basePath, plan, runID)
+	return backupRemotePath(basePath, plan, runID, envSegment)
 }
 
-func backupRemotePath(basePath string, plan *BackupPlan, runID string) string {
+func backupRemotePath(basePath string, plan *BackupPlan, runID string, envSegment string) string {
 	containerName := safeArchiveName.ReplaceAllString(strings.TrimSpace(plan.ContainerName), "-")
 	if containerName == "" {
 		containerName = shortID(plan.ContainerID)
 	}
 	fileName := time.Now().UTC().Format("20060102T150405Z") + "-" + safeArchiveName.ReplaceAllString(runID, "-") + ".tar"
-	remote := path.Join("/", strings.TrimSpace(basePath), "containers", containerName, fileName)
+	remote := path.Join("/", strings.TrimSpace(basePath), envSegment, "containers", containerName, fileName)
 	return remote
 }
 

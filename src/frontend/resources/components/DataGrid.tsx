@@ -59,6 +59,11 @@ type DataGridProps<T> = {
   loading?: boolean;
   emptyMessage?: string;
   tableFixed?: boolean;
+  // fillHeight makes the table container fill the remaining vertical
+  // space of its parent flex container and scroll internally
+  // (both axes). Use this on list pages where the page should
+  // not scroll — the table does.
+  fillHeight?: boolean;
   selectable?: boolean;
   onSelectionChange?: (rows: T[]) => void;
   batchActions?: BatchAction[];
@@ -78,6 +83,7 @@ export function DataGrid<T>({
   loading = false,
   emptyMessage,
   tableFixed = false,
+  fillHeight = false,
   selectable = false,
   onSelectionChange,
   batchActions,
@@ -176,7 +182,7 @@ export function DataGrid<T>({
   const totalColSpan = columns.length + (selectable ? 1 : 0);
 
   return (
-    <div className="space-y-4">
+    <div className={cn('space-y-4', fillHeight && 'flex min-h-0 flex-col')}>
       {/* Search + Batch Toolbar */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
         {searchKey && (
@@ -253,9 +259,16 @@ export function DataGrid<T>({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-border">
+      <div
+        className={cn(
+          'rounded-xl border border-border',
+          fillHeight
+            ? 'min-h-0 flex-1 overflow-auto'
+            : 'overflow-x-auto'
+        )}
+      >
         <table className={cn('w-full divide-y divide-border', tableFixed && 'table-fixed')}>
-          <thead className="bg-muted">
+          <thead className="sticky top-0 z-10 bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {selectable && (

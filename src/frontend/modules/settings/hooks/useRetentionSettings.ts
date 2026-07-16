@@ -70,3 +70,60 @@ export function usePurgeActivityLog() {
     },
   });
 }
+
+export function usePurgeLifecycleLog() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: () => api.del<PurgeResponse>('/lifecycle', { vacuum: 'true' }).then(assertSuccess),
+    meta: {
+      success: (data: PurgeResponse | undefined) => {
+        if (data?.vacuuming) {
+          return t('toast.lifecycleLogPurgedVacuuming', { count: data.deleted ?? 0 });
+        }
+        return t('toast.lifecycleLogPurged', { count: data?.deleted ?? 0 });
+      },
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lifecycle'] });
+    },
+  });
+}
+
+export function usePurgeBackupLog() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: () => api.del<PurgeResponse>('/backup-logs', { vacuum: 'true' }).then(assertSuccess),
+    meta: {
+      success: (data: PurgeResponse | undefined) => {
+        if (data?.vacuuming) {
+          return t('toast.backupLogPurgedVacuuming', { count: data.deleted ?? 0 });
+        }
+        return t('toast.backupLogPurged', { count: data?.deleted ?? 0 });
+      },
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['backup-logs'] });
+    },
+  });
+}
+
+export function usePurgeScanHistory() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: () => api.del<PurgeResponse>('/scans', { vacuum: 'true' }).then(assertSuccess),
+    meta: {
+      success: (data: PurgeResponse | undefined) => {
+        if (data?.vacuuming) {
+          return t('toast.scanHistoryPurgedVacuuming', { count: data.deleted ?? 0 });
+        }
+        return t('toast.scanHistoryPurged', { count: data?.deleted ?? 0 });
+      },
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scans'] });
+    },
+  });
+}

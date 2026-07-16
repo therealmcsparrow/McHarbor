@@ -3,113 +3,88 @@
 
 package workflows
 
-import "time"
+import (
+	"context"
+	"errors"
+)
 
-type nodeEmission struct {
-	Port string
-	Msg  Msg
+// Runtime adapters in this file break the workflows → other-modules
+// dependency direction. The concrete implementations live in
+// `internal/bootstrap/adapters.go` and are injected from `main.go`.
+
+// ContainerBackupInput describes an ad-hoc container backup the
+// workflow node needs the container-backups module to execute.
+type ContainerBackupInput struct {
+	Name              string
+	StorageLocationID string
+	IncludeConfig     bool
+	IncludeLogs       bool
+	IncludeFilesystem bool
+	IncludeImage      bool
+	SelectedMounts    []string
 }
 
-type executionResponse struct {
-	StatusCode int
-	Headers    map[string]string
-	Body       []byte
+// ContainerBackupRunner executes container-backup operations on
+// behalf of workflow nodes.
+type ContainerBackupRunner interface {
+	RunAdhoc(ctx context.Context, envID, containerID string, input ContainerBackupInput) (any, error)
+	RunPlan(ctx context.Context, planID string) (any, error)
+	Download(ctx context.Context, runID string) (*ContainerBackupDownload, error)
 }
 
-type aggregateBuffer struct {
-	Messages []Msg
-	Expected int
+// ContainerBackupDownload is the subset of a backup-run download
+// descriptor that workflow nodes need to surface in their payload.
+type ContainerBackupDownload struct {
+	RunID       string
+	Path        string
+	FileName    string
+	ContentType string
+	Size        int64
+	ModTime     string
 }
 
-// ExecutionRuntime holds per-run state used by nodes that need to coordinate
-// across multiple messages or write an HTTP response.
-type ExecutionRuntime struct {
-	pendingEmissions map[string][]nodeEmission
-	joinBuffers      map[string][]Msg
-	aggregateBuffers map[string]*aggregateBuffer
-	rateLimitBuckets map[string][]time.Time
-	response         *executionResponse
+// LinkContainerRequest describes the link/unlink stack-container
+// workflow nodes pass to the stacks module.
+type LinkContainerRequest struct {
+	ContainerID string
+	StackName   string
+	ServiceName string
 }
 
-func newExecutionRuntime() *ExecutionRuntime {
-	return &ExecutionRuntime{
-		pendingEmissions: make(map[string][]nodeEmission),
-		joinBuffers:      make(map[string][]Msg),
-		aggregateBuffers: make(map[string]*aggregateBuffer),
-		rateLimitBuckets: make(map[string][]time.Time),
-	}
+// StackContainerLinker links or unlinks a container to/from a
+// compose stack on behalf of a workflow node.
+type StackContainerLinker interface {
+	LinkContainer(ctx context.Context, envID string, req LinkContainerRequest) (any, error)
+	UnlinkContainer(envID, containerID string) error
 }
 
-func (rt *ExecutionRuntime) setEmissions(nodeID string, emissions []nodeEmission) {
-	if rt == nil {
-		return
-	}
-	if len(emissions) == 0 {
-		delete(rt.pendingEmissions, nodeID)
-		return
-	}
-	rt.pendingEmissions[nodeID] = emissions
+// StorageLocationSummary is the subset of storage location fields
+// the workflow storage-location nodes need.
+type StorageLocationSummary struct {
+	ID           string
+	Name         string
+	LocationType string
+	BasePath     string
+	Enabled      bool
 }
 
-func (rt *ExecutionRuntime) takeEmissions(nodeID string) []nodeEmission {
-	if rt == nil {
-		return nil
-	}
-	emissions := rt.pendingEmissions[nodeID]
-	delete(rt.pendingEmissions, nodeID)
-	return emissions
+// StorageLocationReader reads storage locations on behalf of
+// workflow nodes.
+type StorageLocationReader interface {
+	List(ctx context.Context) ([]StorageLocationSummary, error)
+	ByID(ctx context.Context, id string) (*StorageLocationSummary, error)
 }
 
-func (rt *ExecutionRuntime) setResponse(statusCode int, headers map[string]string, body []byte) {
-	if rt == nil {
-		return
-	}
-	clonedHeaders := make(map[string]string, len(headers))
-	for k, v := range headers {
-		clonedHeaders[k] = v
-	}
-	clonedBody := make([]byte, len(body))
-	copy(clonedBody, body)
-	rt.response = &executionResponse{
-		StatusCode: statusCode,
-		Headers:    clonedHeaders,
-		Body:       clonedBody,
-	}
-}
+// ErrStorageLocationsUnavailable indicates the storage-location
+// runtime adapter has not been configured on the workflow service.
+// Callers should treat it as a non-fatal configuration error so
+// node execution surfaces it cleanly instead of crashing.
+var ErrStorageLocationsUnavailable = errors.New("storage location runtime adapter not configured")
 
-func (rt *ExecutionRuntime) responseSnapshot() *executionResponse {
-	if rt == nil || rt.response == nil {
-		return nil
-	}
-	headers := make(map[string]string, len(rt.response.Headers))
-	for k, v := range rt.response.Headers {
-		headers[k] = v
-	}
-	body := make([]byte, len(rt.response.Body))
-	copy(body, rt.response.Body)
-	return &executionResponse{
-		StatusCode: rt.response.StatusCode,
-		Headers:    headers,
-		Body:       body,
-	}
-}
+// ErrContainerBackupsUnavailable indicates the container-backup
+// runtime adapter has not been configured.
+var ErrContainerBackupsUnavailable = errors.New("container backup runtime adapter not configured")
 
-type workflowRunOptions struct {
-	WorkflowID         string
-	Trigger            string
-	StartNodeID        string
-	StartMsg           Msg
-	StartInputMsg      Msg
-	FallbackEnvID      string
-	AutoEnqueueLinkIns bool
-	Timeout            time.Duration
-}
-
-type workflowRunResult struct {
-	Status        string
-	DurationMs    int64
-	NodesExecuted int
-	LastOutput    Msg
-	Error         string
-	Response      *executionResponse
-}
+// ErrStackLinkerUnavailable indicates the stack-container linker
+// runtime adapter has not been configured.
+var ErrStackLinkerUnavailable = errors.New("stack container linker runtime adapter not configured")

@@ -1,7 +1,7 @@
 -- Copyright (c) 2026 McSparrow. All rights reserved.
 -- McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
-PRAGMA foreign_keys = OFF;
+-- PRAGMA foreign_keys = OFF; (sqlite only)
 
 CREATE TABLE identity_providers_new (
     id TEXT PRIMARY KEY,
@@ -23,8 +23,8 @@ CREATE TABLE identity_providers_new (
     group_mapping_enabled INTEGER NOT NULL DEFAULT 0,
     group_mappings TEXT NOT NULL DEFAULT '[]',
     auto_import_groups INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 INSERT INTO identity_providers_new (
@@ -51,11 +51,11 @@ CREATE TABLE IF NOT EXISTS saml_requests (
     request_id TEXT NOT NULL UNIQUE,
     relay_state TEXT NOT NULL UNIQUE,
     expires_at TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE INDEX idx_saml_requests_provider ON saml_requests(provider_id);
 CREATE INDEX idx_saml_requests_relay_state ON saml_requests(relay_state);
 CREATE INDEX idx_saml_requests_expires ON saml_requests(expires_at);
 
-PRAGMA foreign_keys = ON;
+-- PRAGMA foreign_keys = ON; (sqlite only)

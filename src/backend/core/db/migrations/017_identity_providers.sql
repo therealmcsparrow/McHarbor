@@ -15,8 +15,8 @@ CREATE TABLE identity_providers (
     default_role_id TEXT REFERENCES roles(id) ON DELETE SET NULL,
     group_mapping_enabled INTEGER NOT NULL DEFAULT 0,
     group_mappings TEXT NOT NULL DEFAULT '[]',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX idx_identity_providers_type ON identity_providers(provider_type);
 CREATE INDEX idx_identity_providers_enabled ON identity_providers(enabled);
@@ -33,7 +33,7 @@ CREATE TABLE oidc_states (
     nonce TEXT NOT NULL,
     redirect_url TEXT,
     expires_at TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 CREATE INDEX idx_oidc_states_state ON oidc_states(state);
 CREATE INDEX idx_oidc_states_expires ON oidc_states(expires_at);

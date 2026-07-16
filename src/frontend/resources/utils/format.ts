@@ -7,6 +7,28 @@ function getLocale(): string {
   return i18n.language || 'en';
 }
 
+// LocaleFormat is the per-user time/date format preference the
+// formatters below read when the optional `prefs` argument is
+// supplied. Use the `useLocaleFormat` hook in components so the
+// `format*` helpers stay pure and testable.
+export type LocaleFormat = {
+  timeFormat: '12h' | '24h';
+  dateFormat: 'ddmmyyyy' | 'mmddyyyy';
+};
+
+const DEFAULT_FORMAT: LocaleFormat = {
+  timeFormat: '24h',
+  dateFormat: 'ddmmyyyy',
+};
+
+function normalizeFormat(input: Partial<LocaleFormat> | null | undefined): LocaleFormat {
+  if (!input) return DEFAULT_FORMAT;
+  return {
+    timeFormat: input.timeFormat === '12h' ? '12h' : '24h',
+    dateFormat: input.dateFormat === 'mmddyyyy' ? 'mmddyyyy' : 'ddmmyyyy',
+  };
+}
+
 export function formatBytes(bytes: number, decimals = 1): string {
   if (!bytes || bytes === 0) return '0 B';
   const k = 1024;
@@ -33,40 +55,85 @@ export function formatUptime(seconds: number): string {
   return `${mins}m`;
 }
 
-export function formatDate(dateStr: string | undefined | null): string {
+// formatDate renders an ISO 8601 timestamp as the user's chosen
+// date layout (DD/MM/YYYY or MM/DD/YYYY) plus the locale's
+// preferred time format. Pass `prefs` to honor the per-user time
+// format; omit it to fall back to defaults (24h + ddmmyyyy).
+export function formatDate(
+  dateStr: string | undefined | null,
+  prefs?: Partial<LocaleFormat>,
+): string {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '-';
-  return new Intl.DateTimeFormat(getLocale(), {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  const { timeFormat, dateFormat } = normalizeFormat(prefs);
+  const locale = getLocale();
+  const timePart = formatTimeOfDate(date, locale, timeFormat);
+  return `${dateLayout(dateFormat, date, locale)} ${timePart}`;
 }
 
-export function formatDateOnly(dateStr: string | undefined | null): string {
+// formatDateOnly renders just the calendar date using the user's
+// chosen DD/MM vs MM/DD layout.
+export function formatDateOnly(
+  dateStr: string | undefined | null,
+  prefs?: Partial<LocaleFormat>,
+): string {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '-';
-  return new Intl.DateTimeFormat(getLocale(), {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(date);
+  const { dateFormat } = normalizeFormat(prefs);
+  const locale = getLocale();
+  return dateLayout(dateFormat, date, locale);
 }
 
-export function formatTime(dateStr: string | undefined | null): string {
+// formatTime renders the time-of-day using the user's chosen 12h
+// or 24h notation.
+export function formatTime(
+  dateStr: string | undefined | null,
+  prefs?: Partial<LocaleFormat>,
+): string {
   if (!dateStr) return '-';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return '-';
-  return new Intl.DateTimeFormat(getLocale(), {
+  const { timeFormat } = normalizeFormat(prefs);
+  return formatTimeOfDate(date, getLocale(), timeFormat);
+}
+
+function formatTimeOfDate(date: Date, locale: string, timeFormat: '12h' | '24h'): string {
+  return new Intl.DateTimeFormat(locale, {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false,
+    hour12: timeFormat === '12h',
   }).format(date);
+}
+
+// dateLayout picks a date layout that matches the user's
+// `dateFormat` preference. We support two layouts: DD/MM/YYYY
+// (default) and MM/DD/YYYY. The Intl API only knows about the
+// locale's calendar conventions (e.g. en-US is "M/d/yyyy" and
+// en-GB is "d/MM/yyyy"), so for the two arbitrary choices we
+// format the parts ourselves and join with the requested
+// separators. Locale date order is preserved as the "fallback"
+// when a caller has not yet picked a preference.
+function dateLayout(
+  dateFormat: 'ddmmyyyy' | 'mmddyyyy',
+  date: Date,
+  locale: string,
+): string {
+  const localeFormatter = new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = localeFormatter.formatToParts(date);
+  const day = parts.find((p) => p.type === 'day')?.value ?? '';
+  const month = parts.find((p) => p.type === 'month')?.value ?? '';
+  const year = parts.find((p) => p.type === 'year')?.value ?? '';
+  if (dateFormat === 'mmddyyyy') {
+    return `${month}/${day}/${year}`;
+  }
+  return `${day}/${month}/${year}`;
 }
 
 export function timeAgo(dateStr: string | undefined | null): string {

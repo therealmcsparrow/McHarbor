@@ -13,6 +13,7 @@ import (
 	"github.com/rs/xid"
 
 	"github.com/therealmcsparrow/mcharbor/core/db"
+	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 )
 
 // Service handles scan business logic and database operations.
@@ -447,6 +448,40 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("scan not found: %s", id)
 	}
 	return nil
+}
+
+// PurgeByRetention deletes every scan (and its orphan
+// vulnerabilities) older than the configured retention cutoff.
+// When the retention is 0 (or unset) the call is a no-op.
+func (s *Service) PurgeByRetention(ctx context.Context) (int64, int, error) {
+	days := coreSettings.ReadRetentionSettings(s.db).ScanRetentionDays
+	if days <= 0 {
+		return 0, 0, nil
+	}
+	cutoff := time.Now().UTC().AddDate(0, 0, -days).Format(time.RFC3339)
+	result, err := s.db.ExecContext(ctx,
+		"DELETE FROM scans WHERE created_at < ?",
+		cutoff,
+	)
+	if err != nil {
+		return 0, 0, fmt.Errorf("purging scans: %w", err)
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return 0, 0, fmt.Errorf("reading rows affected: %w", err)
+	}
+	// Vulnerabilities are keyed by scan id; drop orphans that no
+	// longer have a parent scan row.
+	if _, err := s.db.ExecContext(ctx,
+		"DELETE FROM scan_vulnerabilities WHERE scan_id NOT IN (SELECT id FROM scans)",
+	); err != nil {
+		return n, days, fmt.Errorf("purging orphan scan vulnerabilities: %w", err)
+	}
+	slog.Info("scans purged", "retention_days", days, "rows_deleted", n)
+	if n == 0 {
+		return 0, days, nil
+	}
+	return n, days, nil
 }
 
 // ListByImage returns scans for a specific image, optionally filtered by environment.

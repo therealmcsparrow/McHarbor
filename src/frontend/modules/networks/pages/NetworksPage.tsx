@@ -55,7 +55,7 @@ export default function NetworksPage() {
   }, [networks]);
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <PageHeader
         title={t('title')}
         description={t('description', { count: networks.length })}
@@ -109,36 +109,41 @@ export default function NetworksPage() {
         />
       </div>
 
-      {viewMode === 'table' ? (
-        <DataGrid
-          data={filteredNetworks}
-          columns={columns}
-          searchKey="Name"
-          searchPlaceholder={t('searchPlaceholder')}
-          loading={isLoading}
-          emptyMessage={t('emptyMessage')}
-          onRowClick={(row) => navigate(`/networks/${row.Id}`)}
-          tableFixed
-          selectable
-          batchActions={batchActions}
-          getRowId={(row) => row.Id}
-          isRowDisabled={(row) => isBuiltInNetwork(row)}
-          getRowClassName={(row) =>
-            isBuiltInNetwork(row) ? 'opacity-70' : undefined
-          }
-        />
-      ) : (
-        <NetworkCardGrid
-          networks={filteredNetworks}
-          isLoading={isLoading}
-          onClick={(network) => navigate(`/networks/${network.Id}`)}
-          onRemove={(id) => {
-            const target = networks.find((n) => n.Id === id);
-            if (target && isBuiltInNetwork(target)) return;
-            setConfirmTarget(id);
-          }}
-        />
-      )}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {viewMode === 'table' ? (
+          <DataGrid
+            data={filteredNetworks}
+            columns={columns}
+            searchKey="Name"
+            searchPlaceholder={t('searchPlaceholder')}
+            loading={isLoading}
+            emptyMessage={t('emptyMessage')}
+            onRowClick={(row) => navigate(`/networks/${row.Id}`)}
+            tableFixed
+            selectable
+            batchActions={batchActions}
+            getRowId={(row) => row.Id}
+            fillHeight
+            isRowDisabled={(row) => isBuiltInNetwork(row)}
+            getRowClassName={(row) =>
+              isBuiltInNetwork(row) ? 'opacity-70' : undefined
+            }
+          />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-auto">
+            <NetworkCardGrid
+              networks={filteredNetworks}
+              isLoading={isLoading}
+              onClick={(network) => navigate(`/networks/${network.Id}`)}
+              onRemove={(id) => {
+                const target = networks.find((n) => n.Id === id);
+                if (target && isBuiltInNetwork(target)) return;
+                setConfirmTarget(id);
+              }}
+            />
+          </div>
+        )}
+      </div>
 
       <NetworkCreateDialog open={createOpen} onOpenChange={setCreateOpen} />
 
@@ -181,15 +186,16 @@ function FilterButton({ active, onClick, label, count, tone = 'default' }: Filte
         ? 'bg-primary/15 text-primary'
         : 'text-muted-foreground hover:text-foreground';
   return (
-    <button
-      type="button"
+    <Button
+      variant={active ? 'default' : 'ghost'}
+      size="sm"
       onClick={onClick}
-      className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${activeTone}`}
+      className={`gap-1.5 ${activeTone}`}
     >
       <span>{label}</span>
       <span className="rounded-full bg-background/60 px-1.5 text-[10px] tabular-nums text-muted-foreground">
         {count}
       </span>
-    </button>
+    </Button>
   );
 }

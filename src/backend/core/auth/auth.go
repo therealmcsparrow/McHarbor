@@ -4,16 +4,16 @@
 package auth
 
 import (
+	"context"
 	"crypto/rand"
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/rs/xid"
 	"golang.org/x/crypto/argon2"
-
-	"github.com/therealmcsparrow/mcharbor/core/db"
 )
 
 const (
@@ -35,6 +35,17 @@ type User struct {
 	DisplayName       *string `json:"displayName"`
 	Email             *string `json:"email"`
 	PreferredLanguage string  `json:"preferredLanguage"`
+	// IdentityProviderID is the row id of the identity_providers
+	// record the user signed in with, or empty for local users.
+	// Frontend uses this to render displayName/email as read-only
+	// (those values are managed by the IdP and not editable from
+	// McHarbor).
+	IdentityProviderID string `json:"identityProviderId,omitempty"`
+	// TimeFormat is "24h" or "12h". Defaults to "24h" when empty.
+	TimeFormat string `json:"timeFormat"`
+	// DateFormat is "ddmmyyyy" or "mmddyyyy". Defaults to
+	// "ddmmyyyy" when empty.
+	DateFormat string `json:"dateFormat"`
 }
 
 // AuthResult is returned from login/register.
@@ -53,7 +64,27 @@ type Service struct {
 
 // NewService creates a new auth service.
 func NewService(db *sql.DB) *Service {
-	return &Service{db: db, authEnabled: true}
+	return &Service{db: db}
+}
+
+// DefaultLanguage returns the application-wide default language
+// stored in the settings table by an admin in Settings → General.
+// The default is "en" when the row is missing or the stored
+// value is not a supported language. The auth handler reads this
+// from the public /auth/status endpoint so the i18n init on the
+// frontend can pick it up before login.
+func (s *Service) DefaultLanguage(ctx context.Context) string {
+	if s.db == nil {
+		return "en"
+	}
+	var value string
+	err := s.db.QueryRowContext(ctx,
+		"SELECT value FROM settings WHERE key = 'default_language' LIMIT 1",
+	).Scan(&value)
+	if err != nil || value == "" {
+		return "en"
+	}
+	return value
 }
 
 // HashPassword hashes a password with Argon2id.
@@ -119,14 +150,20 @@ func VerifyPassword(password, encoded string) (bool, error) {
 
 // Login authenticates a user with username/password.
 func (s *Service) Login(username, password string) (*AuthResult, error) {
-	var id, passwordHash, preferredLanguage string
+	var id, passwordHash, preferredLanguage, identityProviderID string
+	var timeFormat, dateFormat string
 	var displayName, email sql.NullString
 	var isActive bool
 
 	err := s.db.QueryRow(
-		"SELECT id, password_hash, display_name, email, is_active, COALESCE(preferred_language, 'en') FROM users WHERE username = ?",
+		`SELECT id, password_hash, display_name, email, is_active,
+		        COALESCE(preferred_language, 'en'),
+		        COALESCE(identity_provider_id, ''),
+		        COALESCE(time_format, '24h'),
+		        COALESCE(date_format, 'ddmmyyyy')
+		 FROM users WHERE username = ?`,
 		username,
-	).Scan(&id, &passwordHash, &displayName, &email, &isActive, &preferredLanguage)
+	).Scan(&id, &passwordHash, &displayName, &email, &isActive, &preferredLanguage, &identityProviderID, &timeFormat, &dateFormat)
 
 	if err == sql.ErrNoRows {
 		return &AuthResult{Success: false, Error: "Invalid username or password"}, nil
@@ -154,7 +191,14 @@ func (s *Service) Login(username, password string) (*AuthResult, error) {
 		return nil, fmt.Errorf("creating session: %w", err)
 	}
 
-	user := &User{ID: id, Username: username, PreferredLanguage: normalizePreferredLanguage(preferredLanguage)}
+	user := &User{
+		ID:                  id,
+		Username:            username,
+		PreferredLanguage:   normalizePreferredLanguage(preferredLanguage),
+		IdentityProviderID:  identityProviderID,
+		TimeFormat:          timeFormat,
+		DateFormat:          dateFormat,
+	}
 	if displayName.Valid {
 		user.DisplayName = &displayName.String
 	}
@@ -208,7 +252,13 @@ func (s *Service) Register(username, password string, email *string) (*AuthResul
 		return nil, fmt.Errorf("creating session: %w", err)
 	}
 
-	user := &User{ID: id, Username: username, PreferredLanguage: "en"}
+	user := &User{
+		ID:                id,
+		Username:          username,
+		PreferredLanguage: "en",
+		TimeFormat:        "24h",
+		DateFormat:        "ddmmyyyy",
+	}
 	if email != nil {
 		user.Email = email
 	}
@@ -256,13 +306,19 @@ func (s *Service) ValidateSession(sessionID string) (*User, error) {
 		return nil, nil
 	}
 
-	var username, preferredLanguage string
+	var username, preferredLanguage, identityProviderID string
+	var timeFormat, dateFormat string
 	var displayName, email sql.NullString
 	var isActive bool
 
 	err = s.db.QueryRow(
-		"SELECT username, display_name, email, is_active, COALESCE(preferred_language, 'en') FROM users WHERE id = ?", userID,
-	).Scan(&username, &displayName, &email, &isActive, &preferredLanguage)
+		`SELECT username, display_name, email, is_active,
+		        COALESCE(preferred_language, 'en'),
+		        COALESCE(identity_provider_id, ''),
+		        COALESCE(time_format, '24h'),
+		        COALESCE(date_format, 'ddmmyyyy')
+		 FROM users WHERE id = ?`, userID,
+	).Scan(&username, &displayName, &email, &isActive, &preferredLanguage, &identityProviderID, &timeFormat, &dateFormat)
 
 	if err == sql.ErrNoRows || !isActive {
 		return nil, nil
@@ -271,7 +327,14 @@ func (s *Service) ValidateSession(sessionID string) (*User, error) {
 		return nil, fmt.Errorf("querying user: %w", err)
 	}
 
-	user := &User{ID: userID, Username: username, PreferredLanguage: normalizePreferredLanguage(preferredLanguage)}
+	user := &User{
+		ID:                 userID,
+		Username:           username,
+		PreferredLanguage:  normalizePreferredLanguage(preferredLanguage),
+		IdentityProviderID: identityProviderID,
+		TimeFormat:         timeFormat,
+		DateFormat:         dateFormat,
+	}
 	if displayName.Valid {
 		user.DisplayName = &displayName.String
 	}
@@ -310,13 +373,19 @@ func (s *Service) SetAuthEnabled(enabled bool) {
 
 // ValidateUserByID loads a user by ID (for API key middleware).
 func (s *Service) ValidateUserByID(userID string) (*User, error) {
-	var username, preferredLanguage string
+	var username, preferredLanguage, identityProviderID string
+	var timeFormat, dateFormat string
 	var displayName, email sql.NullString
 	var isActive bool
 
 	err := s.db.QueryRow(
-		"SELECT username, display_name, email, is_active, COALESCE(preferred_language, 'en') FROM users WHERE id = ?", userID,
-	).Scan(&username, &displayName, &email, &isActive, &preferredLanguage)
+		`SELECT username, display_name, email, is_active,
+		        COALESCE(preferred_language, 'en'),
+		        COALESCE(identity_provider_id, ''),
+		        COALESCE(time_format, '24h'),
+		        COALESCE(date_format, 'ddmmyyyy')
+		 FROM users WHERE id = ?`, userID,
+	).Scan(&username, &displayName, &email, &isActive, &preferredLanguage, &identityProviderID, &timeFormat, &dateFormat)
 
 	if err == sql.ErrNoRows || !isActive {
 		return nil, nil
@@ -325,7 +394,14 @@ func (s *Service) ValidateUserByID(userID string) (*User, error) {
 		return nil, fmt.Errorf("querying user by id: %w", err)
 	}
 
-	user := &User{ID: userID, Username: username, PreferredLanguage: normalizePreferredLanguage(preferredLanguage)}
+	user := &User{
+		ID:                 userID,
+		Username:           username,
+		PreferredLanguage:  normalizePreferredLanguage(preferredLanguage),
+		IdentityProviderID: identityProviderID,
+		TimeFormat:         timeFormat,
+		DateFormat:         dateFormat,
+	}
 	if displayName.Valid {
 		user.DisplayName = &displayName.String
 	}
@@ -336,37 +412,75 @@ func (s *Service) ValidateUserByID(userID string) (*User, error) {
 	return user, nil
 }
 
-// UpdatePreferredLanguage stores the user's preferred UI language.
-func (s *Service) UpdatePreferredLanguage(userID string, lang string) (*User, error) {
-	normalized := normalizePreferredLanguage(lang)
-	result, err := s.db.Exec(
-		"UPDATE users SET preferred_language = ?, updated_at = ? WHERE id = ?",
-		normalized, time.Now().UTC().Format(time.RFC3339), userID,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("updating preferred language: %w", err)
+// UpdatePreferences stores per-user UI preferences. The input struct
+// is the same shape as the auth handler's preferencesRequest; the
+// service ignores fields that the user did not include so callers
+// can update any subset. The time/date format values are
+// normalized to a fixed set so the frontend never has to validate
+// them again.
+func (s *Service) UpdatePreferences(userID string, prefs UserPreferences) (*User, error) {
+	sets := []string{}
+	args := []interface{}{}
+	if prefs.PreferredLanguage != nil {
+		sets = append(sets, "preferred_language = ?")
+		args = append(args, normalizePreferredLanguage(*prefs.PreferredLanguage))
 	}
-	if db.RowsAffected(result) == 0 {
-		return nil, nil
+	if prefs.TimeFormat != nil {
+		sets = append(sets, "time_format = ?")
+		args = append(args, normalizeTimeFormat(*prefs.TimeFormat))
 	}
+	if prefs.DateFormat != nil {
+		sets = append(sets, "date_format = ?")
+		args = append(args, normalizeDateFormat(*prefs.DateFormat))
+	}
+	if len(sets) == 0 {
+		return s.ValidateUserByID(userID)
+	}
+	sets = append(sets, "updated_at = ?")
+	args = append(args, time.Now().UTC().Format(time.RFC3339))
+	args = append(args, userID)
 
+	if _, err := s.db.Exec(
+		"UPDATE users SET "+strings.Join(sets, ", ")+" WHERE id = ?",
+		args...,
+	); err != nil {
+		return nil, fmt.Errorf("updating preferences: %w", err)
+	}
 	return s.ValidateUserByID(userID)
 }
 
-// UpdateProfile stores editable profile details for a local user.
+// UpdateProfile stores editable profile details. The display name
+// and email are rejected when the user authenticates through an
+// external identity provider (OIDC / SAML) — those values are owned
+// by the IdP and can only be changed there.
 func (s *Service) UpdateProfile(userID string, displayName string, email string) (*User, error) {
-	result, err := s.db.Exec(
-		"UPDATE users SET display_name = ?, email = ?, updated_at = ? WHERE id = ?",
-		nullableString(displayName), nullableString(email), time.Now().UTC().Format(time.RFC3339), userID,
-	)
+	current, err := s.ValidateUserByID(userID)
 	if err != nil {
-		return nil, fmt.Errorf("updating profile: %w", err)
+		return nil, err
 	}
-	if db.RowsAffected(result) == 0 {
+	if current == nil {
 		return nil, nil
 	}
-
+	if current.IdentityProviderID != "" {
+		return nil, fmt.Errorf("display name and email are managed by your identity provider")
+	}
+	if _, err := s.db.Exec(
+		"UPDATE users SET display_name = ?, email = ?, updated_at = ? WHERE id = ?",
+		nullableString(displayName), nullableString(email), time.Now().UTC().Format(time.RFC3339), userID,
+	); err != nil {
+		return nil, fmt.Errorf("updating profile: %w", err)
+	}
 	return s.ValidateUserByID(userID)
+}
+
+// UserPreferences is the set of per-user UI preferences that the
+// auth handler accepts via PUT /auth/preferences. Pointer fields
+// allow the handler to differentiate "not provided" from
+// "explicitly set to empty".
+type UserPreferences struct {
+	PreferredLanguage *string
+	TimeFormat        *string
+	DateFormat        *string
 }
 
 func normalizePreferredLanguage(value string) string {
@@ -375,6 +489,24 @@ func normalizePreferredLanguage(value string) string {
 		return value
 	default:
 		return "en"
+	}
+}
+
+func normalizeTimeFormat(value string) string {
+	switch value {
+	case "12h":
+		return "12h"
+	default:
+		return "24h"
+	}
+}
+
+func normalizeDateFormat(value string) string {
+	switch value {
+	case "mmddyyyy":
+		return "mmddyyyy"
+	default:
+		return "ddmmyyyy"
 	}
 }
 

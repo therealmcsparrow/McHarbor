@@ -155,6 +155,18 @@ func buildPaths() map[string]any {
 				},
 			}),
 		),
+		"/api/cluster/status": path(
+			op(operationSpec{
+				Method:      "GET",
+				Summary:     "Read cluster status",
+				Description: "Returns the running node's identifier, the active database driver (sqlite / postgres / mysql), per-role leader flags for the registered singletons, and a database liveness probe. On a single-node SQLite install every role is reported as leader because the coordinator is a no-op. On multi-node Postgres / MySQL / MariaDB installs the active leader is the node that currently holds the corresponding named lock (pg_try_advisory_lock on Postgres, GET_LOCK on MySQL / MariaDB).",
+				OperationID: "clusterStatusRead",
+				Tags:        []string{"system", "cluster"},
+				Responses: map[string]any{
+					"200": okResponse("Cluster status", schemaRef("ClusterStatus")),
+				},
+			}),
+		),
 		"/versions": path(
 			op(operationSpec{
 				Method:      "GET",
@@ -2159,6 +2171,22 @@ func buildPaths() map[string]any {
 				},
 			}),
 		),
+		"/storage-locations/{id}/test": path(
+			op(operationSpec{
+				Method: "POST",
+				Summary: "Test a storage location end-to-end",
+				Description: "Runs the connection self-test against the storage location. For `local`, `aws`, `sftp`, and OneDrive / SharePoint the test exercises the full write → read (with content check) → change → delete cycle and reports each step as its own record. For `ftp`, `ftps`, `samba`, and `google_drive` the test runs a TCP probe plus an explicit skip step with a config hint. The test never modifies state outside the configured destination's expected prefix.",
+				OperationID: "storageLocationsTest",
+				Tags:        []string{"storage"},
+				Parameters:  []any{pathParam("id", "Storage location identifier")},
+				Responses: map[string]any{
+					"200": okResponse("Self-test result", schemaRef("StorageLocationTestResult")),
+					"400": errorResponse("Storage location is disabled or not configured for testing"),
+					"403": errorResponse("Permission denied"),
+					"404": errorResponse("Storage location not found"),
+				},
+			}),
+		),
 		"/communication-channels/capabilities": path(
 			op(operationSpec{
 				Method:      "GET",
@@ -3633,6 +3661,25 @@ func buildSchemas() map[string]any {
 				"diskUsed":    map[string]any{"type": "integer"},
 				"diskTotal":   map[string]any{"type": "integer"},
 			},
+		},
+		"ClusterStatus": map[string]any{
+			"type":        "object",
+			"description": "Per-node cluster status payload returned by GET /api/cluster/status. Single-node SQLite installs report every role as the leader because the coordinator is a no-op there. Multi-node Postgres / MySQL / MariaDB installs use the database's named-lock primitive to elect leaders per role.",
+			"properties": map[string]any{
+				"nodeId":   map[string]any{"type": "string", "description": "Stable identifier for this McHarbor instance (MCHARBOR_NODE_ID, or a random 6-char suffix when unset)."},
+				"driver":   map[string]any{"type": "string", "enum": []string{"sqlite", "postgres", "mysql"}, "description": "Active database driver."},
+				"roles":    map[string]any{"type": "object", "additionalProperties": map[string]any{"type": "boolean"}, "description": "Per-role leader flags. Each key is a singleton role; the value is true when this node currently holds the corresponding named lock."},
+				"database": map[string]any{
+					"type":        "object",
+					"description": "Database liveness probe.",
+					"properties": map[string]any{
+						"reachable": map[string]any{"type": "boolean"},
+					},
+					"required": []string{"reachable"},
+				},
+				"serverTime": map[string]any{"type": "string", "format": "date-time", "description": "Server wall clock at the moment the response was generated."},
+			},
+			"required": []string{"nodeId", "driver", "roles", "database", "serverTime"},
 		},
 	}
 }

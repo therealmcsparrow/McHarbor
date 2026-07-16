@@ -50,9 +50,11 @@ const BlueprintsPage = lazy(() => import('@modules/blueprints/pages/BlueprintsPa
 const GitPage = lazy(() => import('@modules/git/pages/GitPage'));
 const ReconcilerPage = lazy(() => import('@modules/reconciler/pages/ReconcilerPage'));
 const ActivityPage = lazy(() => import('@modules/activity/pages/ActivityPage'));
+const LifecycleLogPage = lazy(() => import('@modules/lifecycle/pages/LifecycleLogPage'));
 const AuditPage = lazy(() => import('@modules/audit/pages/AuditPage'));
 const StorePage = lazy(() => import('@modules/appstore/pages/StorePage'));
 const SecurityPage = lazy(() => import('@modules/security/pages/SecurityPage'));
+const ScanHistoryPage = lazy(() => import('@modules/security/pages/ScanHistoryPage'));
 const SettingsPage = lazy(() => import('@modules/settings/pages/SettingsPage'));
 const NotificationsPage = lazy(() => import('@modules/notifications/pages/NotificationsPage'));
 const ProfilePage = lazy(() => import('@modules/profile/pages/ProfilePage'));
@@ -122,6 +124,7 @@ const routes: RouteObject[] = [
       { path: 'git', element: <SuspenseWrapper><GitPage /></SuspenseWrapper> },
       { path: 'reconciler', element: <SuspenseWrapper><ReconcilerPage /></SuspenseWrapper> },
       { path: 'activity', element: <SuspenseWrapper><ActivityPage /></SuspenseWrapper> },
+      { path: 'lifecycle', element: <SuspenseWrapper><LifecycleLogPage /></SuspenseWrapper> },
       { path: 'audit', element: <SuspenseWrapper><AuditPage /></SuspenseWrapper> },
       { path: 'store', element: <SuspenseWrapper><StorePage /></SuspenseWrapper> },
       { path: 'docker', element: <SuspenseWrapper><DockerPage /></SuspenseWrapper> },
@@ -136,6 +139,7 @@ const routes: RouteObject[] = [
       { path: 'workflows/:id', element: <SuspenseWrapper><WorkflowEditorPage /></SuspenseWrapper> },
       { path: 'workflows/:id/runs', element: <SuspenseWrapper><WorkflowRunsPage /></SuspenseWrapper> },
       { path: 'security', element: <SuspenseWrapper><SecurityPage /></SuspenseWrapper> },
+      { path: 'security/scans', element: <SuspenseWrapper><ScanHistoryPage /></SuspenseWrapper> },
       { path: 'settings', element: <SuspenseWrapper><SettingsPage /></SuspenseWrapper> },
       { path: 'notifications', element: <SuspenseWrapper><NotificationsPage /></SuspenseWrapper> },
       { path: 'profile', element: <SuspenseWrapper><ProfilePage /></SuspenseWrapper> },

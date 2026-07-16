@@ -81,7 +81,7 @@ export function ProcessesTab({ containerId, isRunning }: ProcessesTabProps) {
         ) : servicesResult && servicesResult.services.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead>
+              <thead className="bg-muted">
                 <tr className="border-b border-border">
                   <th className="px-3 py-2 font-medium text-muted-foreground">
                     {t('processes.serviceName')}
@@ -122,7 +122,7 @@ export function ProcessesTab({ containerId, isRunning }: ProcessesTabProps) {
         ) : processes && processes.Processes.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead>
+              <thead className="bg-muted">
                 <tr className="border-b border-border">
                   {processes.Titles.map((title) => (
                     <th

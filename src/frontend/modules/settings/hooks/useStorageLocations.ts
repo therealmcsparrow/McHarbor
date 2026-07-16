@@ -88,6 +88,24 @@ export type StorageLocationBackupMigrationResult = {
   failed: number;
 };
 
+export type StorageLocationTestStep = {
+  name: string;
+  status: "pass" | "warn" | "fail" | "skip";
+  detail?: string;
+  latency?: string;
+};
+
+export type StorageLocationTestResult = {
+  storageLocationId: string;
+  locationName: string;
+  locationType: string;
+  overallStatus: "pass" | "warn" | "fail" | "skip";
+  startedAt: string;
+  completedAt: string;
+  duration: string;
+  steps: StorageLocationTestStep[];
+};
+
 export type BackupEncryptionKeyResponse = {
   key: string;
   encoding: string;
@@ -185,7 +203,7 @@ export function useAuthorizeStorageLocation() {
 
 export function useMigrateStorageLocationBackups() {
   const queryClient = useQueryClient();
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation('settings');
 
   return useMutation({
     mutationFn: (id: string) =>
@@ -197,17 +215,36 @@ export function useMigrateStorageLocationBackups() {
     meta: {
       success: (data: unknown) => {
         const result = data as StorageLocationBackupMigrationResult;
-        return t("toast.storageBackupsMigrated", {
+        return t('toast.storageBackupsMigrated', {
           migrated: result.migrated,
           skipped: result.skipped,
           failed: result.failed,
         });
       },
-      error: t("toast.storageBackupsMigrationFailed"),
+      error: t('toast.storageBackupsMigrationFailed'),
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["container-backup-runs"] });
+      queryClient.invalidateQueries({ queryKey: ['container-backup-runs'] });
     },
+  });
+}
+
+// useTestStorageLocation hits POST /storage-locations/{id}/test
+// and returns the per-step report (write / change / delete for
+// local; TCP-probe + credential-decrypt for cloud / network
+// storage). The result is always returned to the caller; the
+// caller (the card) shows a dialog with the steps and overall
+// status. We intentionally don't toast on success or failure —
+// the dialog is the source of truth because the operator needs
+// the per-step breakdown, not a single yes/no.
+export function useTestStorageLocation() {
+  return useMutation({
+    mutationFn: (id: string) =>
+      api
+        .post<StorageLocationTestResult>(
+          `/storage-locations/${id}/test`,
+        )
+        .then(assertSuccess),
   });
 }
 

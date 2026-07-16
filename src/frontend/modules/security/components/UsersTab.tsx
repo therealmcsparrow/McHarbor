@@ -51,7 +51,7 @@ export function UsersTab() {
 
         <div className="rounded-lg border border-border">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="bg-muted">
               <tr className="border-b border-border bg-muted/30">
                 <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('users.username')}</th>
                 <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('users.email')}</th>

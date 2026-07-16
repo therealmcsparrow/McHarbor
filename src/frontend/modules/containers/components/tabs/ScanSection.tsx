@@ -259,7 +259,7 @@ function VulnerabilityList({
       </h4>
       <div className="overflow-x-auto rounded-md border border-border">
         <table className="w-full text-xs">
-          <thead>
+          <thead className="bg-muted">
             <tr className="border-b border-border bg-muted/50">
               <th className="px-3 py-2 text-left font-medium text-muted-foreground">
                 {t("scan.severity")}

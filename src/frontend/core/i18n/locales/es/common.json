@@ -7,6 +7,7 @@
     "networks": "Redes",
     "stacks": "Stacks",
     "terminal": "Terminal",
+    "logging": "Registro de ciclo de vida",
     "logs": "Registros",
     "environments": "Entornos",
     "blueprints": "Blueprints",
@@ -26,7 +27,9 @@
     "docker": "Docker",
     "navigation": "Navegación",
     "collapseSidebar": "Contraer barra lateral",
-    "expandSidebar": "Expandir barra lateral"
+    "expandSidebar": "Expandir barra lateral",
+    "backups": "Copias de seguridad",
+    "securityScans": "Escaneos de seguridad"
   },
   "actions": {
     "cancel": "Cancelar",
@@ -288,6 +291,84 @@
     "loadingMore": "Cargando más...",
     "endOfList": "Fin de la lista",
     "loadMore": "Cargar más"
+  },
+  "lifecycle": {
+    "title": "Registro de ciclo de vida",
+    "description": "Eventos del ciclo de vida de Docker, imagen, volumen, red y stack en todos los entornos.",
+    "searchPlaceholder": "Buscar por nombre de contenedor, imagen o volumen",
+    "subjectTypeLabel": "Tipo de sujeto",
+    "severityLabel": "Severidad",
+    "subjectType": {
+      "all": "Todos los sujetos",
+      "container": "Contenedores",
+      "image": "Imagenes",
+      "volume": "Volumenes",
+      "network": "Redes",
+      "stack": "Stacks"
+    },
+    "severity": {
+      "all": "Cualquier severidad",
+      "success": "Exito",
+      "info": "Info",
+      "warning": "Advertencia",
+      "error": "Error"
+    },
+    "state": {
+      "running": "ejecutandose",
+      "stopped": "detenido",
+      "paused": "pausado",
+      "created": "creado",
+      "restarting": "reiniciando",
+      "removed": "eliminado",
+      "exited": "finalizado",
+      "available": "disponible",
+      "in_use": "en uso",
+      "dangling": "huerefano",
+      "tagged": "etiquetado",
+      "active": "activo",
+      "up": "activo",
+      "partial": "parcialmente activo",
+      "errored": "con error"
+    },
+    "action": {
+      "start": "iniciado",
+      "stop": "detenido",
+      "die": "finalizado",
+      "kill": "eliminado",
+      "pause": "pausado",
+      "unpause": "reanudado",
+      "restart": "reiniciado",
+      "create": "creado",
+      "destroy": "eliminado",
+      "pull": "descargado",
+      "load": "cargado",
+      "import": "importado",
+      "tag": "etiquetado",
+      "untag": "etiquetado",
+      "delete": "eliminado",
+      "mount": "montado",
+      "unmount": "desmontado",
+      "connect": "conectado",
+      "disconnect": "desconectado",
+      "oom": "eliminado (OOM)",
+      "failed": "fallido",
+      "error": "error"
+    },
+    "headerSubject": "Sujeto",
+    "headerDetail": "Detalle",
+    "headerSeverity": "Severidad",
+    "headerTime": "Hora",
+    "expand": "Mostrar detalles",
+    "collapse": "Ocultar detalles",
+    "empty": "No hay eventos que coincidan con los filtros.",
+    "total": "{{total}} eventos",
+    "pageOf": "Pagina {{page}} de {{totalPages}}",
+    "source": "Origen: {{source}}",
+    "detailId": "Id del evento",
+    "detailSubject": "Sujeto",
+    "detailEvent": "Evento / accion",
+    "detailState": "Estado",
+    "detailAttributes": "Atributos"
   },
   "logs": {
     "title": "Registros",
@@ -880,5 +961,30 @@
     "selectAndCopy": "Seleccionar y copiar",
     "copied": "Copiado",
     "close": "Cerrar"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "updateCheck": {
+      "title": "McHarbor v{{version}} está disponible",
+      "subtitle": "Estás ejecutando v{{currentVersion}}.",
+      "viewRelease": "Ver release",
+      "openSettings": "Ajustes",
+      "dismiss": "Cerrar"
+    }
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {}
+    },
+    "toast": {}
+  },
+  "updateCheck": {
+    "banner": {
+      "title": "McHarbor v{{version}} está disponible",
+      "subtitle": "Estás ejecutando v{{currentVersion}}.",
+      "viewRelease": "Ver release",
+      "openSettings": "Ajustes",
+      "dismiss": "Cerrar"
+    }
   }
 }

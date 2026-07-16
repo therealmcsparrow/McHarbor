@@ -25,7 +25,21 @@
     "themeDescription": "Escolha a aparência da interface.",
     "appName": "Nome do aplicativo",
     "autoRefreshInterval": "Intervalo de atualização automática (segundos)",
-    "saving": "Salvando..."
+    "saving": "A guardar...",
+    "defaultApplicationLanguage": "Idioma predefinido da aplicação",
+    "defaultApplicationLanguageDescription": "Idioma utilizado pela interface do McHarbor antes do início de sessão ou quando o utilizador não escolheu um idioma preferido.",
+    "preferencesSaved": "Preferências guardadas",
+    "preferencesSaveFailed": "Falha ao guardar preferências",
+    "defaultLanguageSaved": "Idioma predefinido guardado",
+    "defaultLanguageSaveFailed": "Falha ao guardar o idioma predefinido",
+    "userInterfacePreferences": "Preferências da interface",
+    "userInterfacePreferencesDescription": "Escolha como as datas e horas são apresentadas na aplicação.",
+    "timeFormat": "Formato da hora",
+    "timeFormat24h": "24 horas (13:30)",
+    "timeFormat12h": "12 horas (1:30 PM)",
+    "dateFormat": "Formato da data",
+    "dateFormatDDMMYYYY": "DD/MM/AAAA (31/12/2025)",
+    "dateFormatMMDDYYYY": "MM/DD/AAAA (12/31/2025)"
   },
   "retention": {
     "title": "Retenção de dados",
@@ -44,7 +58,19 @@
     "clearAuditDescription": "Excluir permanentemente todas as entradas do registro de auditoria com mais de {{days}} dias. A contagem de entradas excluídas será exibida após a operação. Esta ação não pode ser desfeita.",
     "clearActivityTitle": "Limpar registro de atividade?",
     "clearActivityDescription": "Excluir permanentemente todos os eventos de atividade com mais de {{days}} dias. A contagem de eventos excluídos será exibida após a operação. Esta ação não pode ser desfeita.",
-    "keepForever": "Defina a retenção como um número positivo para permitir a limpeza."
+    "keepForever": "Defina a retenção como um número positivo para permitir a limpeza.",
+    "lifecycleDays": "Retenção do registo de ciclo de vida",
+    "lifecycleDaysDescription": "Dias de conservação dos eventos de ciclo de vida antes da próxima limpeza. Defina 0 para conservar sempre.",
+    "backupLogDays": "Retenção do registo de cópias de segurança",
+    "backupLogDaysDescription": "Dias de conservação das linhas do registo de cópias de segurança antes da próxima limpeza. Defina 0 para conservar sempre.",
+    "scanDays": "Retenção do histórico de análises de segurança",
+    "scanDaysDescription": "Dias de conservação das análises de vulnerabilidades (e dos seus resultados) antes da próxima limpeza. Defina 0 para conservar sempre.",
+    "clearLifecycleTitle": "Limpar o registo de ciclo de vida?",
+    "clearLifecycleDescription": "Eliminar permanentemente todos os eventos de ciclo de vida com mais de {{days}} dias. Esta ação não pode ser revertida.",
+    "clearBackupLogTitle": "Limpar o registo de cópias de segurança?",
+    "clearBackupLogDescription": "Eliminar permanentemente todas as linhas do registo de cópias de segurança com mais de {{days}} dias. Esta ação não pode ser revertida.",
+    "clearScansTitle": "Limpar o histórico de análises de segurança?",
+    "clearScansDescription": "Eliminar permanentemente todas as análises de vulnerabilidades (e os seus resultados) com mais de {{days}} dias. Esta ação não pode ser revertida."
   },
   "auth": {
     "description": "Configure provedores de autenticação e configurações de sessão.",
@@ -780,7 +806,18 @@
     "currentVersionLabel": "Atual",
     "upToDate": "Você está executando a versão mais recente.",
     "viewRelease": "Ver versão",
-    "checkFailed": "Nao foi possivel verificar atualizacoes. Tente novamente mais tarde."
+    "checkFailed": "Nao foi possivel verificar atualizacoes. Tente novamente mais tarde.",
+    "selfUpdate": {
+      "title": "Verificador de auto-atualização",
+      "subtitle": "Verifica periodicamente o feed de releases do GitHub e mostra novas versões na aplicação.",
+      "enabledLabel": "Procurar novos releases",
+      "enabledHint": "Executa uma verificação em segundo plano no intervalo abaixo e mostra um banner quando está disponível uma versão mais recente.",
+      "intervalLabel": "Intervalo de verificação",
+      "intervalSuffix": "horas",
+      "channelsLabel": "Notificar estes canais num novo release",
+      "channelsHint": "Deixe vazio para mostrar apenas o banner na aplicação.",
+      "noChannels": "Sem canais de notificação ativos. Configure um em Definições → Notificações."
+    }
   },
   "toast": {
     "updated": "Configurações atualizadas",
@@ -826,6 +863,76 @@
     "copyFailed": "Não foi possível copiar para a área de transferência",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
     "storageBackupsMigrated": "Backups migrados: {{migrated}} copiados, {{skipped}} ignorados, {{failed}} com falha",
-    "storageBackupsMigrationFailed": "Falha na migracao dos backups"
+    "storageBackupsMigrationFailed": "Falha na migracao dos backups",
+    "lifecycleLogPurged": "Registo de ciclo de vida limpo ({{count}} eventos)",
+    "lifecycleLogPurgedVacuuming": "Registo de ciclo de vida limpo ({{count}} eventos). Compactando a base de dados em segundo plano...",
+    "backupLogPurged": "Registo de cópias de segurança limpo ({{count}} entradas)",
+    "backupLogPurgedVacuuming": "Registo de cópias de segurança limpo ({{count}} entradas). Compactando a base de dados em segundo plano...",
+    "scanHistoryPurged": "Histórico de análises limpo ({{count}} análises)",
+    "scanHistoryPurgedVacuuming": "Histórico de análises limpo ({{count}} análises). Compactando a base de dados em segundo plano...",
+    "updateCheckSettingsSaved": "Definições de auto-atualização guardadas",
+    "updateCheckDismissed": "Aviso de atualização fechado"
+  },
+  "lifecycle": {
+    "title": "Registo de ciclo de vida",
+    "description": "Inspecione cada evento de ciclo de vida em contentores, imagens, volumes, redes e stacks.",
+    "searchPlaceholder": "Pesquisar por assunto, evento ou mensagem",
+    "subjectTypeLabel": "Tipo de assunto",
+    "severityLabel": "Gravidade",
+    "headerSubject": "Assunto",
+    "headerDetail": "Detalhe",
+    "headerSeverity": "Gravidade",
+    "headerTime": "Hora",
+    "empty": "Nenhum evento de ciclo de vida corresponde a estes filtros.",
+    "localEnvironment": "Ambiente local",
+    "collapse": "Recolher detalhes",
+    "expand": "Expandir detalhes",
+    "source": "Origem: {{source}}",
+    "detailId": "ID do evento",
+    "detailSubject": "Assunto",
+    "detailEvent": "Evento / ação",
+    "detailState": "Estado",
+    "detailAttributes": "Atributos",
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "total": "{{total}} eventos de ciclo de vida",
+    "previous": "Anterior",
+    "next": "Seguinte",
+    "subjectType": {
+      "all": "Todos os assuntos",
+      "container": "Contentor",
+      "image": "Imagem",
+      "volume": "Volume",
+      "network": "Rede",
+      "stack": "Stack"
+    },
+    "severity": {
+      "all": "Qualquer gravidade",
+      "success": "Sucesso",
+      "info": "Info",
+      "warning": "Aviso",
+      "error": "Erro"
+    }
+  },
+  "common": {
+    "updateCheck": {}
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {
+        "selfUpdateTitle": "Verificador de auto-atualização",
+        "selfUpdateSubtitle": "Verifica periodicamente o feed de releases do GitHub e mostra novas versões na aplicação.",
+        "enabledLabel": "Procurar novos releases",
+        "enabledHint": "Executa uma verificação em segundo plano no intervalo abaixo e mostra um banner quando está disponível uma versão mais recente.",
+        "intervalLabel": "Intervalo de verificação",
+        "intervalSuffix": "horas",
+        "channelsLabel": "Notificar estes canais num novo release",
+        "channelsHint": "Deixe vazio para mostrar apenas o banner na aplicação.",
+        "noChannels": "Sem canais de notificação ativos. Configure um em Definições → Notificações."
+      }
+    },
+    "toast": {
+      "updateCheckSettingsSaved": "Definições de auto-atualização guardadas",
+      "updateCheckDismissed": "Aviso de atualização fechado"
+    }
   }
 }

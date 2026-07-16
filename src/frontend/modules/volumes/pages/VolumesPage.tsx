@@ -136,7 +136,7 @@ export default function VolumesPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <PageHeader
         title={t('title')}
         description={t('description', { count: volumes.length })}
@@ -171,25 +171,30 @@ export default function VolumesPage() {
         }
       />
 
-      {viewMode === 'table' ? (
-        <DataGrid
-          data={volumes}
-          columns={columns}
-          searchKey="Name"
-          searchPlaceholder={t('searchPlaceholder')}
-          loading={isLoading}
-          emptyMessage={t('emptyMessage')}
-          selectable
-          batchActions={batchActions}
-          getRowId={(row) => row.Name}
-        />
-      ) : (
-        <VolumeCardGrid
-          volumes={volumes}
-          isLoading={isLoading}
-          onRemove={setConfirmTarget}
-        />
-      )}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {viewMode === 'table' ? (
+          <DataGrid
+            data={volumes}
+            columns={columns}
+            searchKey="Name"
+            searchPlaceholder={t('searchPlaceholder')}
+            loading={isLoading}
+            emptyMessage={t('emptyMessage')}
+            selectable
+            batchActions={batchActions}
+            getRowId={(row) => row.Name}
+            fillHeight
+          />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-auto">
+            <VolumeCardGrid
+              volumes={volumes}
+              isLoading={isLoading}
+              onRemove={setConfirmTarget}
+            />
+          </div>
+        )}
+      </div>
 
       <CreateVolumeDialog
         open={createOpen}

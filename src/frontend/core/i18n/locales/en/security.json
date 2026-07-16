@@ -335,5 +335,32 @@
     "testFailed": "Connection test failed",
     "scannerSettingsSaved": "Scanner settings saved",
     "userCreated": "User created"
+  },
+  "scanHistory": {
+    "title": "Security scans",
+    "description": "Inspect every container vulnerability scan across all environments and images.",
+    "emptyTitle": "No scans match these filters.",
+    "emptyHint": "Trigger a scan from an image detail page to populate the history.",
+    "total": "{{total}} scans",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "status": {
+      "all": "Any status",
+      "running": "Running",
+      "pending": "Pending",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "table": {
+      "time": "Time",
+      "status": "Status",
+      "scanner": "Scanner",
+      "image": "Image",
+      "severity": "Severity",
+      "total": "Findings",
+      "delete": "Delete scan",
+      "viewDetails": "View details"
+    }
   }
 }

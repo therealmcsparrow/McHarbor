@@ -101,7 +101,7 @@ export default function StacksPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <PageHeader
         title={t("title")}
         description={t("description", { count: stacks.length })}
@@ -126,30 +126,35 @@ export default function StacksPage() {
         }
       />
 
-      {viewMode === "table" ? (
-        <DataGrid
-          data={stacks}
-          columns={columns}
-          searchKey="name"
-          searchPlaceholder={t("searchPlaceholder")}
-          loading={isLoading}
-          emptyMessage={t("emptyMessage")}
-          selectable
-          batchActions={batchActions}
-          getRowId={(row) => row.id}
-        />
-      ) : (
-        <StackCardView
-          stacks={stacks}
-          isLoading={isLoading}
-          statsMap={statsMap}
-          onAction={handleAction}
-          onEdit={setEditTarget}
-          onLogs={setLogsTarget}
-          onRemove={setRemoveTarget}
-          onTakeOver={setTakeOverTarget}
-        />
-      )}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {viewMode === "table" ? (
+          <DataGrid
+            data={stacks}
+            columns={columns}
+            searchKey="name"
+            searchPlaceholder={t("searchPlaceholder")}
+            loading={isLoading}
+            emptyMessage={t("emptyMessage")}
+            selectable
+            batchActions={batchActions}
+            getRowId={(row) => row.id}
+            fillHeight
+          />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-auto">
+            <StackCardView
+              stacks={stacks}
+              isLoading={isLoading}
+              statsMap={statsMap}
+              onAction={handleAction}
+              onEdit={setEditTarget}
+              onLogs={setLogsTarget}
+              onRemove={setRemoveTarget}
+              onTakeOver={setTakeOverTarget}
+            />
+          </div>
+        )}
+      </div>
 
       <CreateStackDialog open={createOpen} onOpenChange={setCreateOpen} />
 

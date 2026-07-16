@@ -7,6 +7,7 @@ import {
   IconDatabaseImport,
   IconExternalLink,
   IconPencil,
+  IconPlugConnected,
   IconTrash,
 } from "@tabler/icons-react";
 import { Badge } from "@resources/components/ui/Badge";
@@ -18,9 +19,11 @@ import {
   useAuthorizeStorageLocation,
   useDeleteStorageLocation,
   useMigrateStorageLocationBackups,
+  useTestStorageLocation,
   useUpdateStorageLocation,
 } from "../hooks/useStorageLocations";
 import { storageProvider } from "./storage-location-options";
+import { StorageLocationTestDialog } from "./StorageLocationTestDialog";
 
 type StorageLocationCardProps = {
   location: StorageLocation;
@@ -64,10 +67,12 @@ export function StorageLocationCard({
 }: StorageLocationCardProps) {
   const { t } = useTranslation("settings");
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [testOpen, setTestOpen] = useState(false);
   const authorizeLocation = useAuthorizeStorageLocation();
   const deleteLocation = useDeleteStorageLocation();
   const migrateBackups = useMigrateStorageLocationBackups();
   const updateLocation = useUpdateStorageLocation();
+  const testLocation = useTestStorageLocation();
   const provider = storageProvider(location.locationType);
   const Icon = provider.icon;
   const summary = locationSummary(location) || t("storage.noEndpoint");
@@ -89,6 +94,11 @@ export function StorageLocationCard({
 
   function handleMigrateBackups() {
     migrateBackups.mutate(location.id);
+  }
+
+  function handleTest() {
+    setTestOpen(true);
+    testLocation.mutate(location.id);
   }
 
   return (
@@ -125,6 +135,21 @@ export function StorageLocationCard({
               {t("storage.connectConsent")}
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!location.enabled || testLocation.isPending}
+            onClick={handleTest}
+            data-testid={`storage-test-${location.id}`}
+            aria-label={t("storage.test.button")}
+          >
+            {testLocation.isPending ? (
+              <span className="inline-block size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              <IconPlugConnected className="size-4" />
+            )}
+            {t("storage.test.button")}
+          </Button>
           {location.locationType === "local" && (
             <Button
               variant="outline"
@@ -174,6 +199,14 @@ export function StorageLocationCard({
         confirmLabel={t("storage.confirmDeleteLabel")}
         loading={deleteLocation.isPending}
         onConfirm={handleDelete}
+      />
+
+      <StorageLocationTestDialog
+        result={testLocation.data ?? null}
+        pending={testLocation.isPending}
+        locationName={location.name}
+        open={testOpen}
+        onOpenChange={setTestOpen}
       />
     </>
   );

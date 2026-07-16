@@ -4,15 +4,27 @@
 package container_backups
 
 import (
+	"time"
+
 	"github.com/go-chi/chi/v5"
 
 	"github.com/therealmcsparrow/mcharbor/core/rbac"
 	"github.com/therealmcsparrow/mcharbor/core/router"
 )
 
-// Mount registers container backup routes.
+// orphanSweepGracePeriod is the delay between McHarbor startup and
+// the first orphan destination cleanup sweep. Long enough that the
+// migration runner and connection-pool warmup have completed, short
+// enough that an operator's first interaction with the UI sees a
+// clean state.
+const orphanSweepGracePeriod = 30 * time.Second
+
+// Mount registers container backup routes and kicks off the
+// startup-only orphan destination reconciliation sweep.
 func Mount(app *router.AppDeps) {
 	h := NewHandler(app)
+
+	go h.service.reconcileOrphansOnStartup(app.Logger)
 
 	app.RegisterPublicRoutes(func(r chi.Router) {
 		r.Get("/container-backups/internal/transfers/{transferId}", h.HandleRestoreTransfer)

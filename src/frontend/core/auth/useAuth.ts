@@ -12,6 +12,13 @@ type User = {
   displayName: string | null;
   email: string | null;
   preferredLanguage: SupportedLanguage;
+  // identityProviderId is the row id of the identity_providers
+  // record the user signed in with, or empty for local accounts.
+  // When set, the profile page renders displayName and email as
+  // read-only because the IdP owns those fields.
+  identityProviderId?: string;
+  timeFormat: '12h' | '24h';
+  dateFormat: 'ddmmyyyy' | 'mmddyyyy';
 };
 
 export type OIDCProvider = {
@@ -54,6 +61,7 @@ export const useAuth = create<AuthState>((set) => ({
       needsSetup: boolean;
       authDisabled: boolean;
       oidcProviders: OIDCProvider[];
+      defaultLanguage?: string;
     }>('/auth/status');
 
     const oidcProviders = statusRes.data?.oidcProviders ?? [];
@@ -62,7 +70,7 @@ export const useAuth = create<AuthState>((set) => ({
     if (statusRes.success && statusRes.data?.authDisabled) {
       const language = useLanguageStore.getState().language;
       set({
-        user: { id: 'system', username: 'admin', displayName: 'Admin', email: null, preferredLanguage: language },
+        user: { id: 'system', username: 'admin', displayName: 'Admin', email: null, preferredLanguage: language, timeFormat: '24h', dateFormat: 'ddmmyyyy' },
         isAuthenticated: true,
         needsSetup: false,
         oidcProviders,

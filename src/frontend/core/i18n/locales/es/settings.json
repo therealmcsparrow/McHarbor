@@ -25,7 +25,21 @@
     "themeDescription": "Elija la apariencia de la interfaz.",
     "appName": "Nombre de la aplicación",
     "autoRefreshInterval": "Intervalo de actualización automática (segundos)",
-    "saving": "Ahorro..."
+    "saving": "Guardando...",
+    "defaultApplicationLanguage": "Idioma predeterminado de la aplicación",
+    "defaultApplicationLanguageDescription": "Idioma que utiliza la interfaz de McHarbor antes de iniciar sesión o cuando el usuario no ha elegido un idioma preferido.",
+    "preferencesSaved": "Preferencias guardadas",
+    "preferencesSaveFailed": "No se pudieron guardar las preferencias",
+    "defaultLanguageSaved": "Idioma predeterminado guardado",
+    "defaultLanguageSaveFailed": "No se pudo guardar el idioma predeterminado",
+    "userInterfacePreferences": "Preferencias de la interfaz de usuario",
+    "userInterfacePreferencesDescription": "Elija cómo se muestran las fechas y horas en la aplicación.",
+    "timeFormat": "Formato de hora",
+    "timeFormat24h": "24 horas (13:30)",
+    "timeFormat12h": "12 horas (1:30 p. m.)",
+    "dateFormat": "Formato de fecha",
+    "dateFormatDDMMYYYY": "DD/MM/AAAA (31/12/2025)",
+    "dateFormatMMDDYYYY": "MM/DD/AAAA (12/31/2025)"
   },
   "retention": {
     "title": "Retención de datos",
@@ -44,7 +58,19 @@
     "clearAuditDescription": "Eliminar permanentemente todas las entradas del registro de auditoría anteriores a {{days}} días. El número de entradas eliminadas se mostrará después de la operación. Esta acción no se puede deshacer.",
     "clearActivityTitle": "¿Limpiar registro de actividad?",
     "clearActivityDescription": "Eliminar permanentemente todos los eventos de actividad anteriores a {{days}} días. El número de eventos eliminados se mostrará después de la operación. Esta acción no se puede deshacer.",
-    "keepForever": "Establezca la retención en un número positivo para habilitar la limpieza."
+    "keepForever": "Establezca la retención en un número positivo para habilitar la limpieza.",
+    "lifecycleDays": "Retención del registro de ciclo de vida",
+    "lifecycleDaysDescription": "Días que se conservan los eventos del ciclo de vida antes de la siguiente purga. Establece 0 para conservarlos siempre.",
+    "backupLogDays": "Retención del registro de copias de seguridad",
+    "backupLogDaysDescription": "Días que se conservan las filas del registro de copias de seguridad antes de la siguiente purga. Establece 0 para conservarlas siempre.",
+    "scanDays": "Retención del historial de escaneos de seguridad",
+    "scanDaysDescription": "Días que se conservan los escaneos de vulnerabilidades (y sus hallazgos) antes de la siguiente purga. Establece 0 para conservarlos siempre.",
+    "clearLifecycleTitle": "¿Purgar el registro de ciclo de vida?",
+    "clearLifecycleDescription": "Eliminar permanentemente todos los eventos del ciclo de vida con más de {{days}} días. Esta acción no se puede deshacer.",
+    "clearBackupLogTitle": "¿Purgar el registro de copias de seguridad?",
+    "clearBackupLogDescription": "Eliminar permanentemente todas las filas del registro de copias de seguridad con más de {{days}} días. Esta acción no se puede deshacer.",
+    "clearScansTitle": "¿Purgar el historial de escaneos de seguridad?",
+    "clearScansDescription": "Eliminar permanentemente todos los escaneos de vulnerabilidades (y sus hallazgos) con más de {{days}} días. Esta acción no se puede deshacer."
   },
   "auth": {
     "description": "Configure proveedores de autenticación y ajustes de sesión.",
@@ -780,7 +806,18 @@
     "currentVersionLabel": "Actual",
     "upToDate": "Estás ejecutando la última versión.",
     "viewRelease": "Ver lanzamiento",
-    "checkFailed": "No se pudo comprobar si hay actualizaciones. Intentalo de nuevo mas tarde."
+    "checkFailed": "No se pudo comprobar si hay actualizaciones. Intentalo de nuevo mas tarde.",
+    "selfUpdate": {
+      "title": "Comprobador de auto-actualización",
+      "subtitle": "Comprueba periódicamente el feed de releases de GitHub y muestra nuevas versiones en la app.",
+      "enabledLabel": "Buscar nuevos releases",
+      "enabledHint": "Ejecuta una comprobación en segundo plano en el intervalo de abajo y muestra un banner cuando hay una versión más reciente disponible.",
+      "intervalLabel": "Intervalo de comprobación",
+      "intervalSuffix": "horas",
+      "channelsLabel": "Notificar a estos canales en un nuevo release",
+      "channelsHint": "Déjalo vacío para mostrar solo el banner en la app.",
+      "noChannels": "Sin canales de notificación activos. Configura uno en Ajustes → Notificaciones."
+    }
   },
   "toast": {
     "updated": "Configuraciones actualizadas",
@@ -826,6 +863,76 @@
     "copyFailed": "No se pudo copiar al portapapeles",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
     "storageBackupsMigrated": "Copias migradas: {{migrated}} copiadas, {{skipped}} omitidas, {{failed}} fallidas",
-    "storageBackupsMigrationFailed": "Error al migrar las copias"
+    "storageBackupsMigrationFailed": "Error al migrar las copias",
+    "lifecycleLogPurged": "Registro de ciclo de vida borrado ({{count}} eventos)",
+    "lifecycleLogPurgedVacuuming": "Registro de ciclo de vida borrado ({{count}} eventos). Compactando la base de datos en segundo plano...",
+    "backupLogPurged": "Registro de copias de seguridad borrado ({{count}} entradas)",
+    "backupLogPurgedVacuuming": "Registro de copias de seguridad borrado ({{count}} entradas). Compactando la base de datos en segundo plano...",
+    "scanHistoryPurged": "Historial de escaneos borrado ({{count}} escaneos)",
+    "scanHistoryPurgedVacuuming": "Historial de escaneos borrado ({{count}} escaneos). Compactando la base de datos en segundo plano...",
+    "updateCheckSettingsSaved": "Ajustes de auto-actualización guardados",
+    "updateCheckDismissed": "Aviso de actualización cerrado"
+  },
+  "lifecycle": {
+    "title": "Registro de ciclo de vida",
+    "description": "Inspecciona cada evento del ciclo de vida en contenedores, imágenes, volúmenes, redes y stacks.",
+    "searchPlaceholder": "Buscar por asunto, evento o mensaje",
+    "subjectTypeLabel": "Tipo de sujeto",
+    "severityLabel": "Gravedad",
+    "headerSubject": "Sujeto",
+    "headerDetail": "Detalle",
+    "headerSeverity": "Gravedad",
+    "headerTime": "Hora",
+    "empty": "Ningún evento de ciclo de vida coincide con estos filtros.",
+    "localEnvironment": "Entorno local",
+    "collapse": "Contraer detalles",
+    "expand": "Expandir detalles",
+    "source": "Origen: {{source}}",
+    "detailId": "ID del evento",
+    "detailSubject": "Sujeto",
+    "detailEvent": "Evento / acción",
+    "detailState": "Estado",
+    "detailAttributes": "Atributos",
+    "pageOf": "Página {{page}} de {{totalPages}}",
+    "total": "{{total}} eventos de ciclo de vida",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "subjectType": {
+      "all": "Todos los sujetos",
+      "container": "Contenedor",
+      "image": "Imagen",
+      "volume": "Volumen",
+      "network": "Red",
+      "stack": "Stack"
+    },
+    "severity": {
+      "all": "Cualquier gravedad",
+      "success": "Correcto",
+      "info": "Información",
+      "warning": "Advertencia",
+      "error": "Error"
+    }
+  },
+  "common": {
+    "updateCheck": {}
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {
+        "selfUpdateTitle": "Comprobador de auto-actualización",
+        "selfUpdateSubtitle": "Comprueba periódicamente el feed de releases de GitHub y muestra nuevas versiones en la app.",
+        "enabledLabel": "Buscar nuevos releases",
+        "enabledHint": "Ejecuta una comprobación en segundo plano en el intervalo de abajo y muestra un banner cuando hay una versión más reciente disponible.",
+        "intervalLabel": "Intervalo de comprobación",
+        "intervalSuffix": "horas",
+        "channelsLabel": "Notificar a estos canales en un nuevo release",
+        "channelsHint": "Déjalo vacío para mostrar solo el banner en la app.",
+        "noChannels": "Sin canales de notificación activos. Configura uno en Ajustes → Notificaciones."
+      }
+    },
+    "toast": {
+      "updateCheckSettingsSaved": "Ajustes de auto-actualización guardados",
+      "updateCheckDismissed": "Aviso de actualización cerrado"
+    }
   }
 }

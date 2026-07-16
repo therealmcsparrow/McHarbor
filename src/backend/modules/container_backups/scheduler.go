@@ -13,17 +13,69 @@ import (
 
 // Scheduler runs enabled container backup plans.
 type Scheduler struct {
-	service *Service
-	logger  *slog.Logger
-	running sync.Map
+	service  *Service
+	logger   *slog.Logger
+	running  sync.Map
+	coordinator schedulerCoordinator
+	nodeID   string
+	hasCoord bool
 }
 
-// NewScheduler creates a backup scheduler.
+// schedulerCoordinator is the subset of *coordinator.Coordinator
+// the scheduler depends on. Defining it as an interface keeps
+// the module importable in tests without dragging in the
+// coordinator package's pgx/Postgres dependencies.
+type schedulerCoordinator interface {
+	LeaderOf(ctx context.Context, name string) bool
+	NodeID() string
+}
+
+// leaderFor returns true when this node should run the plan scan
+// this tick. On SQLite (no coordinator wired in) it always
+// returns true so single-node behavior is identical to the
+// pre-HA path.
+func (s *Scheduler) leaderFor(ctx context.Context) bool {
+	if !s.hasCoord {
+		return true
+	}
+	return s.coordinator.LeaderOf(ctx, "container-backup-scheduler")
+}
+
+// NewScheduler creates a backup scheduler for the single-node
+// (no-coordinator) path. Both nodes running the same image
+// would fire backups on every tick — acceptable for SQLite dev
+// installs but not for active-active production. Use
+// NewSchedulerWithCoordinator in main() when running against
+// Postgres.
 func NewScheduler(service *Service, logger *slog.Logger) *Scheduler {
 	return &Scheduler{service: service, logger: logger}
 }
 
-// Start runs the scheduler loop until ctx is cancelled.
+// NewSchedulerWithCoordinator creates a scheduler that defers the
+// plan-launch step to whichever node currently holds the
+// `container-backup-scheduler` advisory lock. nodeID is shown in
+// log lines for debugging.
+func NewSchedulerWithCoordinator(
+	service *Service,
+	logger *slog.Logger,
+	coord schedulerCoordinator,
+	nodeID string,
+) *Scheduler {
+	return &Scheduler{
+		service:     service,
+		logger:      logger,
+		coordinator: coord,
+		nodeID:      nodeID,
+		hasCoord:    coord != nil,
+	}
+}
+
+// Start runs the scheduler loop until ctx is cancelled. When both
+// nodes of an active-active cluster are running, both Start loops
+// tick once a minute. The single tick that actually fires backups
+// is determined by the shared lock acquired in s.check (so the
+// loop body itself stays the same and the single-node code path
+// is identical to the pre-HA behavior).
 func (s *Scheduler) Start(ctx context.Context) {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
@@ -42,6 +94,23 @@ func (s *Scheduler) Start(ctx context.Context) {
 }
 
 func (s *Scheduler) check(ctx context.Context, now time.Time) {
+	// In active-active deployments, only the node that currently
+	// holds the scheduler advisory lock runs the plan scan. The
+	// other node still ticks (so the recovery code below runs on
+	// every node) but skips the plan launch path. The recovery
+	// path is per-row (UPDATE … WHERE status='running' …) so
+	// both nodes can run it concurrently without conflict.
+	if !s.leaderFor(ctx) {
+		s.logger.Debug("container backup scheduler: not leader this tick; skipping plan launch",
+			"node", s.nodeID, "now", now.Format(time.RFC3339))
+		// Still run the recovery pass so a failed run on this
+		// node gets cleaned up. The next leader's tick will then
+		// re-evaluate.
+		if err := s.service.RecoverAbandonedRuns(ctx, "", ""); err != nil {
+			s.logger.Warn("container backup scheduler: abandoned run recovery failed", "error", err)
+		}
+		return
+	}
 	if err := s.service.RecoverAbandonedRuns(ctx, "", ""); err != nil {
 		s.logger.Warn("container backup scheduler: abandoned run recovery failed", "error", err)
 	}

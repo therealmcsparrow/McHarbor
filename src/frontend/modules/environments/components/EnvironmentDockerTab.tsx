@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@resources/components/ui/Card';
 import type { DockerSystemInfo } from '@core/types/docker';
-import { useDockerInfo } from '@modules/docker/hooks/useDockerInfo';
+import { useDockerInfo } from '@resources/hooks/useDockerInfo';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';

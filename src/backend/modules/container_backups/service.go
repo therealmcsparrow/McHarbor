@@ -80,6 +80,12 @@ type Service struct {
 	backupCrypto *backupcrypto.Service
 	enc          *encryption.Service
 	logger       *slog.Logger
+
+	// runStageCache tracks the last known progress stage per run so the
+	// backup_log writer only emits a row on actual transitions, not
+	// on every progress update. The cache is read-mostly; a stale
+	// entry is harmless because the next genuine change re-syncs.
+	runStageCache sync.Map
 }
 
 var safeArchiveName = regexp.MustCompile(`[^A-Za-z0-9_.-]+`)
@@ -967,6 +973,10 @@ func (s *Service) finishRun(ctx context.Context, runID string, archive archiveRe
 	if err := s.pruneBackupPlanRuns(finishCtx, run); err != nil && s.logger != nil {
 		s.logger.Warn("container backup retention pruning failed", "plan", run.PlanID, "env", run.EnvironmentID, "container", run.ContainerID, "error", err)
 	}
+	// Emit a terminal backup_log entry so the Logging tab always
+	// reflects the run's outcome even when the last in-flight
+	// stage predates the failure (e.g. a backup that dies mid-upload).
+	s.recordFinalRunLog(finishCtx, run)
 	return run, nil
 }
 
@@ -1176,8 +1186,174 @@ func (s *Service) setRunProgress(ctx context.Context, runID, stage, message stri
 func (s *Service) updateRunProgress(ctx context.Context, runID, stage, message string) {
 	if err := s.setRunProgress(ctx, runID, stage, message); err != nil && s.logger != nil {
 		s.logger.Warn("container backup progress update failed", "run", runID, "stage", stage, "error", err)
+		return
+	}
+	// Emit a backup_log row only when the stage actually changes.
+	// The in-memory cache keeps the write rate bounded by the
+	// number of unique stages per run, not by the number of progress
+	// updates.
+	prevAny, _ := s.runStageCache.Load(runID)
+	prev, _ := prevAny.(string)
+	if prev == stage {
+		return
+	}
+	s.runStageCache.Store(runID, stage)
+	s.recordStageLog(ctx, runID, stage, message)
+}
+
+// recordStageLog writes a single backup_log row for a stage change.
+// Container id, container name, and plan name are looked up via
+// the runs join so the row is self-describing for the UI even
+// if the join is later extended.
+func (s *Service) recordStageLog(ctx context.Context, runID, stage, message string) {
+	row := s.db.QueryRowContext(ctx, `
+		SELECT COALESCE(plan_id, ''), COALESCE(container_id, ''),
+		       COALESCE(environment_id, ''),
+		       COALESCE((SELECT name FROM container_backup_plans WHERE id = plan_id), ''),
+		       COALESCE(status, 'running')
+		FROM container_backup_runs
+		WHERE id = ?`,
+		runID,
+	)
+	var planID, containerID, environmentID, planName, runStatus string
+	if err := row.Scan(&planID, &containerID, &environmentID, &planName, &runStatus); err != nil {
+		// Don't fail the progress path if the log insert is blocked;
+		// just log and move on. The run will keep progressing.
+		if s.logger != nil {
+			s.logger.Debug("container backup: log stage query failed", "run", runID, "error", err)
+		}
+		return
+	}
+	severity := severityForStage(stage, runStatus)
+	action := actionForStage(stage, runStatus)
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO container_backup_log
+			(id, environment_id, plan_id, plan_name, run_id,
+			 container_id, container_name, action, phase, severity,
+			 message, source, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'backup', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+		xid.New().String(),
+		nullableString(environmentID), nullableString(planID), nullableString(planName),
+		runID, nullableString(containerID), "",
+		action, stage, severity, nullableString(message),
+	)
+	if err != nil && s.logger != nil {
+		s.logger.Debug("container backup: log stage insert failed", "run", runID, "stage", stage, "error", err)
 	}
 }
+
+// recordFinalRunLog writes the terminal backup_log row for a
+// run once it has been finalized. This guarantees the Logging
+// tab always has an error row for failed/cancelled runs even
+// when the last in-flight stage was something like "uploading".
+func (s *Service) recordFinalRunLog(ctx context.Context, run *BackupRun) {
+	if run == nil {
+		return
+	}
+	stage := strings.TrimSpace(run.ProgressStage)
+	if stage == "" {
+		stage = "complete"
+	}
+	message := strings.TrimSpace(run.Error)
+	if message == "" {
+		switch run.Status {
+		case "success":
+			if run.Operation == "restore" {
+				message = "Restore completed"
+			} else {
+				message = "Backup completed"
+			}
+		default:
+			message = "Run finished with status " + run.Status
+		}
+	}
+	severity := severityForStage(stage, run.Status)
+	action := actionForStage(stage, run.Status)
+	// Look up the plan name so the terminal row matches the
+	// in-flight rows emitted by recordStageLog.
+	var planName sql.NullString
+	if run.PlanID != "" {
+		_ = s.db.QueryRowContext(ctx,
+			`SELECT name FROM container_backup_plans WHERE id = ?`,
+			run.PlanID,
+		).Scan(&planName)
+	}
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO container_backup_log
+			(id, environment_id, plan_id, plan_name, run_id,
+			 container_id, container_name, action, phase, severity,
+			 message, source, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'backup', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+		xid.New().String(),
+		nullableString(run.EnvironmentID), nullableString(run.PlanID),
+		nullableStringFromNull(planName),
+		run.ID, nullableString(run.ContainerID), nullableString(run.ContainerName),
+		action, stage, severity, nullableString(message),
+	)
+	if err != nil && s.logger != nil {
+		s.logger.Debug("container backup: final log insert failed", "run", run.ID, "error", err)
+	}
+}
+
+// nullableStringFromNull returns nil for an invalid (NULL) string
+// and the value for a valid one, so the SQL driver writes NULL
+// instead of '' for unknown plan names.
+func nullableStringFromNull(value sql.NullString) interface{} {
+	if !value.Valid {
+		return nil
+	}
+	return value.String
+}
+
+// severityForStage derives the UI severity from the run's stage
+// and current run status. The run status takes precedence when
+// the run has already finalized (e.g. failure or cancelled) so
+// the log table reflects the actual outcome instead of the
+// last in-flight stage.
+func severityForStage(stage, runStatus string) string {
+	switch runStatus {
+	case "failure", "cancelled":
+		return "error"
+	case "success":
+		return "success"
+	}
+	switch stage {
+	case "failed", "restore_failed", "failure":
+		return "error"
+	case "complete", "restore_complete", "success":
+		return "success"
+	}
+	return "info"
+}
+
+// actionForStage maps a stage + run status to the UI-facing
+// action label. The action key is what the i18n bundle keys off
+// (e.g. backups.logs.action.fail).
+func actionForStage(stage, runStatus string) string {
+	if runStatus == "failure" || runStatus == "cancelled" {
+		return "fail"
+	}
+	if runStatus == "success" {
+		return "complete"
+	}
+	switch stage {
+	case "failed", "restore_failed", "failure":
+		return "fail"
+	case "complete", "restore_complete", "success":
+		return "complete"
+	}
+	return stage
+}
+
+// nullableString returns the string as a pointer or nil for empty
+// values so the SQL driver writes NULL instead of ''.
+func nullableString(value string) interface{} {
+	if value == "" {
+		return nil
+	}
+	return value
+}
+
 
 func (s *Service) runByID(ctx context.Context, id string) (*BackupRun, error) {
 	row := s.db.QueryRowContext(ctx, `
@@ -1330,6 +1506,37 @@ func (s *Service) DeleteRun(ctx context.Context, id string) (bool, error) {
 		runDir := filepath.Join(s.backupDir(), safeArchiveName.ReplaceAllString(run.ID, "-"))
 		if err := os.RemoveAll(runDir); err != nil {
 			return false, fmt.Errorf("removing backup run directory: %w", err)
+		}
+	}
+
+	// Always explicitly delete the destination rows — never rely on
+	// ON DELETE CASCADE alone, because SQLite's `PRAGMA foreign_keys`
+	// is per-connection and a connection that ran a migration with
+	// `PRAGMA foreign_keys = OFF` retains the disabled state even
+	// after returning to the pool. A silent cascade failure would
+	// leave destination rows pointing at cloud files nobody will
+	// ever clean up. We delete here AND keep CASCADE in the schema
+	// as a belt-and-braces fallback for future code paths.
+	destinationIDs := make([]string, 0, len(run.Destinations))
+	for _, dest := range run.Destinations {
+		destinationIDs = append(destinationIDs, dest.ID)
+	}
+	if len(destinationIDs) > 0 {
+		// Re-enable FK on whichever connection lands this DELETE.
+		// Even on Postgres / non-SQLite drivers PRAGMA is a no-op,
+		// so this is safe to leave in unconditionally.
+		if _, err := s.db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err == nil {
+			// pragma ran; nothing else to do
+		}
+		if _, err := s.db.ExecContext(ctx,
+			"DELETE FROM container_backup_run_destinations WHERE run_id = ?", id,
+		); err != nil {
+			if s.logger != nil {
+				s.logger.Warn(
+					"container backup destination row delete failed",
+					"run", id, "error", err,
+				)
+			}
 		}
 	}
 
@@ -2196,6 +2403,34 @@ func (s *Service) downloadEnvironmentName(ctx context.Context, envID string) (st
 		return envID, nil
 	}
 	return name, nil
+}
+
+// resolveBackupEnvironmentSegment returns a path-safe segment for the
+// given environment. The backup destination layout always includes an
+// environment segment between the storage base path and the
+// `containers/<containerName>/` directory so a container named the
+// same thing on two environments doesn't collide. The slug falls
+// back to the environment id when the environment row is missing,
+// the name is empty, or the name slugs to an empty string after
+// sanitization — that way a transient database error or a renamed
+// environment never blocks a backup from uploading.
+func (s *Service) resolveBackupEnvironmentSegment(ctx context.Context, envID string) (string, error) {
+	envID = strings.TrimSpace(envID)
+	if envID == "" {
+		return "_unknown-environment", nil
+	}
+	name, err := s.downloadEnvironmentName(ctx, envID)
+	if err != nil {
+		return envID, err
+	}
+	if strings.TrimSpace(name) == "" || name == envID {
+		return safeArchiveName.ReplaceAllString(envID, "-"), nil
+	}
+	slug := safeArchiveName.ReplaceAllString(strings.TrimSpace(name), "-")
+	if slug == "" {
+		return safeArchiveName.ReplaceAllString(envID, "-"), nil
+	}
+	return slug, nil
 }
 
 func backupDownloadTimestamp(run *BackupRun) string {

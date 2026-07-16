@@ -75,6 +75,13 @@ export default function ProfilePage() {
     profileDisplayName.trim() !== (user?.displayName ?? '') ||
     profileEmail.trim() !== (user?.email ?? '');
   const canEditProfile = Boolean(user && user.id !== 'system');
+  // Identity-provider users (OIDC / SAML) authenticate against
+  // an external source of truth for displayName and email.
+  // Editing those fields in McHarbor would create a divergence
+  // between what McHarbor shows and what the IdP shows the next
+  // time the user logs in, so we render the inputs read-only
+  // and surface a banner explaining why.
+  const identityProviderLocked = Boolean(user?.identityProviderId);
 
   async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -132,6 +139,14 @@ export default function ProfilePage() {
                 <IconUserCircle className="size-4 text-muted-foreground" />
                 <h3 className="text-sm font-medium text-foreground">{t('profile.account.editTitle')}</h3>
               </div>
+              {identityProviderLocked && (
+                <div
+                  className="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300"
+                  data-testid="profile-idp-locked-banner"
+                >
+                  {t('profile.account.idpLockedDescription')}
+                </div>
+              )}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label htmlFor="profile-display-name" className="mb-1.5 text-xs">
@@ -142,7 +157,8 @@ export default function ProfilePage() {
                     value={profileDisplayName}
                     onChange={(event) => setProfileDisplayName(event.target.value)}
                     maxLength={120}
-                    disabled={!canEditProfile || savingProfile}
+                    disabled={!canEditProfile || savingProfile || identityProviderLocked}
+                    readOnly={identityProviderLocked}
                     placeholder={user?.username ?? ''}
                     variant="outline"
                   />
@@ -157,7 +173,8 @@ export default function ProfilePage() {
                     value={profileEmail}
                     onChange={(event) => setProfileEmail(event.target.value)}
                     maxLength={254}
-                    disabled={!canEditProfile || savingProfile}
+                    disabled={!canEditProfile || savingProfile || identityProviderLocked}
+                    readOnly={identityProviderLocked}
                     placeholder="name@example.com"
                     variant="outline"
                   />
@@ -169,7 +186,7 @@ export default function ProfilePage() {
               <Button
                 type="submit"
                 variant="default"
-                disabled={!canEditProfile || !profileChanged || savingProfile}
+                disabled={!canEditProfile || !profileChanged || savingProfile || identityProviderLocked}
               >
                 <IconDeviceFloppy className="size-4" />
                 {savingProfile ? t('actions.saving') : t('profile.account.saveProfile')}

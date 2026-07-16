@@ -41,7 +41,7 @@ export default function ImageDetailPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-col gap-0">
       <ImageDetailHeader
         image={image}
         onBack={() => navigate('/images')}
@@ -49,11 +49,13 @@ export default function ImageDetailPage() {
         onRemove={handleRemove}
       />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ImageOverviewCard image={image} />
-        <ImageConfigCard image={image} />
-        <ImageLabelsCard image={image} />
-        <ImageHistoryCard history={history} />
+      <div className="flex h-full min-h-0 flex-col overflow-y-auto p-5">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <ImageOverviewCard image={image} />
+          <ImageConfigCard image={image} />
+          <ImageLabelsCard image={image} />
+          <ImageHistoryCard history={history} />
+        </div>
       </div>
     </div>
   );

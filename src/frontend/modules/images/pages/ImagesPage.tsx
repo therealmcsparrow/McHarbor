@@ -55,7 +55,7 @@ export default function ImagesPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <PageHeader
         title={t('title')}
         description={t('description', { count: images.length })}
@@ -90,27 +90,32 @@ export default function ImagesPage() {
         }
       />
 
-      {viewMode === 'table' ? (
-        <DataGrid
-          data={images}
-          columns={columns}
-          searchKey="Id"
-          searchPlaceholder={t('searchPlaceholder')}
-          loading={isLoading}
-          emptyMessage={t('emptyMessage')}
-          onRowClick={(image) => navigate(`/images/${encodeURIComponent(image.Id)}`)}
-          selectable
-          batchActions={batchActions}
-          getRowId={(row) => row.Id}
-        />
-      ) : (
-        <ImageCardGrid
-          images={images}
-          isLoading={isLoading}
-          onClick={(image) => navigate(`/images/${encodeURIComponent(image.Id)}`)}
-          onRemove={setConfirmTarget}
-        />
-      )}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {viewMode === 'table' ? (
+          <DataGrid
+            data={images}
+            columns={columns}
+            searchKey="Id"
+            searchPlaceholder={t('searchPlaceholder')}
+            loading={isLoading}
+            emptyMessage={t('emptyMessage')}
+            onRowClick={(image) => navigate(`/images/${encodeURIComponent(image.Id)}`)}
+            selectable
+            batchActions={batchActions}
+            getRowId={(row) => row.Id}
+            fillHeight
+          />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-auto">
+            <ImageCardGrid
+              images={images}
+              isLoading={isLoading}
+              onClick={(image) => navigate(`/images/${encodeURIComponent(image.Id)}`)}
+              onRemove={setConfirmTarget}
+            />
+          </div>
+        )}
+      </div>
 
       <ImageImportDialog
         open={importOpen}

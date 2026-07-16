@@ -7,6 +7,7 @@ export type AppSettings = {
   autoRefreshInterval: number;
   enableRegistration: boolean;
   defaultEnvironment: string;
+  defaultLanguage?: string;
 };
 
 export type WebhookItem = {
@@ -124,6 +125,9 @@ export type DirectTransferDiagnostic = {
 export type RetentionSettingsData = {
   auditRetentionDays: number;
   activityRetentionDays: number;
+  lifecycleRetentionDays: number;
+  backupLogRetentionDays: number;
+  scanRetentionDays: number;
   backupRetentionCount: number;
   backupRetentionDays: number;
 };

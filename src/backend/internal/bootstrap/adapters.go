@@ -6,19 +6,24 @@ package bootstrap
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
+	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	"github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/encryption"
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 	"github.com/therealmcsparrow/mcharbor/modules/alerts"
 	"github.com/therealmcsparrow/mcharbor/modules/appstore"
+	"github.com/therealmcsparrow/mcharbor/modules/container_backups"
 	"github.com/therealmcsparrow/mcharbor/modules/containers"
 	dockerinfo "github.com/therealmcsparrow/mcharbor/modules/docker_info"
 	"github.com/therealmcsparrow/mcharbor/modules/metrics"
 	"github.com/therealmcsparrow/mcharbor/modules/scans"
 	"github.com/therealmcsparrow/mcharbor/modules/stacks"
+	"github.com/therealmcsparrow/mcharbor/modules/storage_locations"
 	"github.com/therealmcsparrow/mcharbor/modules/workflows"
 )
 
@@ -49,7 +54,7 @@ func (a appStoreStackInstaller) CreateInstalledStack(ctx context.Context, input 
 			cleanupErr := a.svc.RemoveStack(ctx, envID, stack.Name)
 			if cleanupErr != nil {
 				if deleteErr := a.svc.Delete(stack.Name, false); deleteErr != nil {
-					return nil, fmt.Errorf("starting stack: %s; cleanup failed: %w; metadata cleanup failed: %v", result.Error, cleanupErr, deleteErr)
+					return nil, fmt.Errorf("starting stack: %s; cleanup failed: %w; metadata cleanup failed: %w", result.Error, cleanupErr, deleteErr)
 				}
 				return nil, fmt.Errorf("starting stack: %s; resource cleanup failed: %w", result.Error, cleanupErr)
 			}
@@ -277,4 +282,154 @@ func NewAppStoreService(db *sql.DB, dockerPool *docker.ClientPool, dataDir strin
 // NewWorkflowScanner builds the workflow vulnerability scanner adapter.
 func NewWorkflowScanner(db *sql.DB, logger *slog.Logger) workflows.ImageScanner {
 	return workflowScanner{db: db, logger: logger}
+}
+
+// -----------------------------------------------------------------------------
+// Workflow ↔ Container Backups / Stacks / Storage Locations runtime adapters.
+//
+// These adapters keep the workflows package free of cross-module imports.
+// Concrete implementations live here and are injected from main.go via
+// the Set*Runtime setters on workflows.TriggerService.
+// -----------------------------------------------------------------------------
+
+// workflowContainerBackupRunner forwards workflow container-backup node
+// requests to the container_backups package.
+type workflowContainerBackupRunner struct {
+	svc *container_backups.Service
+}
+
+func (r workflowContainerBackupRunner) RunAdhoc(ctx context.Context, envID, containerID string, input workflows.ContainerBackupInput) (any, error) {
+	return r.svc.RunAdhoc(ctx, envID, containerID, container_backups.RunBackupInput{
+		Name:              input.Name,
+		StorageLocationID: input.StorageLocationID,
+		IncludeConfig:     input.IncludeConfig,
+		IncludeLogs:       input.IncludeLogs,
+		IncludeFilesystem: input.IncludeFilesystem,
+		IncludeImage:      input.IncludeImage,
+		SelectedMounts:    input.SelectedMounts,
+	})
+}
+
+func (r workflowContainerBackupRunner) RunPlan(ctx context.Context, planID string) (any, error) {
+	return r.svc.RunPlan(ctx, planID)
+}
+
+func (r workflowContainerBackupRunner) Download(ctx context.Context, runID string) (*workflows.ContainerBackupDownload, error) {
+	download, err := r.svc.Download(ctx, runID)
+	if err != nil || download == nil {
+		return nil, err
+	}
+	return &workflows.ContainerBackupDownload{
+		RunID:       download.RunID,
+		Path:        download.Path,
+		FileName:    download.FileName,
+		ContentType: download.ContentType,
+		Size:        download.Size,
+		ModTime:     download.ModTime,
+	}, nil
+}
+
+// NewWorkflowContainerBackupRuntime builds the workflow → container_backups adapter.
+func NewWorkflowContainerBackupRuntime(db *sql.DB, dockerPool *docker.ClientPool, dataDir string, backupCrypto *backupcrypto.Service, enc *encryption.Service, logger *slog.Logger) workflows.ContainerBackupRunner {
+	return workflowContainerBackupRunner{
+		svc: container_backups.NewService(db, dockerPool, dataDir, backupCrypto, enc, logger),
+	}
+}
+
+// workflowStackContainerLinker forwards workflow stack-link/unlink node
+// requests to the stacks package.
+type workflowStackContainerLinker struct {
+	svc *stacks.Service
+}
+
+func (l workflowStackContainerLinker) LinkContainer(ctx context.Context, envID string, req workflows.LinkContainerRequest) (any, error) {
+	return l.svc.LinkContainer(ctx, envID, stacks.LinkContainerRequest{
+		ContainerID: req.ContainerID,
+		StackName:   req.StackName,
+		ServiceName: req.ServiceName,
+	})
+}
+
+func (l workflowStackContainerLinker) UnlinkContainer(envID, containerID string) error {
+	return l.svc.UnlinkContainer(envID, containerID)
+}
+
+// NewWorkflowStackContainerLinkerRuntime builds the workflow → stacks adapter.
+func NewWorkflowStackContainerLinkerRuntime(db *sql.DB, dockerPool *docker.ClientPool, dataDir string) workflows.StackContainerLinker {
+	return workflowStackContainerLinker{svc: stacks.NewService(db, dockerPool, dataDir)}
+}
+
+// workflowStorageLocationReader forwards workflow storage-location node
+// requests to the storage_locations package.
+type workflowStorageLocationReader struct {
+	svc *storage_locations.Service
+}
+
+func (r workflowStorageLocationReader) List(ctx context.Context) ([]workflows.StorageLocationSummary, error) {
+	items, err := r.svc.List(ctx)
+	if err != nil {
+		return nil, err
+	}
+	summaries := make([]workflows.StorageLocationSummary, 0, len(items))
+	for _, item := range items {
+		summaries = append(summaries, workflows.StorageLocationSummary{
+			ID:           item.ID,
+			Name:         item.Name,
+			LocationType: item.LocationType,
+			BasePath:     item.BasePath,
+			Enabled:      item.Enabled,
+		})
+	}
+	return summaries, nil
+}
+
+func (r workflowStorageLocationReader) ByID(ctx context.Context, id string) (*workflows.StorageLocationSummary, error) {
+	item, err := r.svc.ByID(ctx, id)
+	if err != nil || item == nil {
+		return nil, err
+	}
+	return &workflows.StorageLocationSummary{
+		ID:           item.ID,
+		Name:         item.Name,
+		LocationType: item.LocationType,
+		BasePath:     item.BasePath,
+		Enabled:      item.Enabled,
+	}, nil
+}
+
+// NewWorkflowStorageLocationRuntime builds the workflow → storage_locations adapter.
+func NewWorkflowStorageLocationRuntime(db *sql.DB, enc *encryption.Service) workflows.StorageLocationReader {
+	return workflowStorageLocationReader{
+		svc: storage_locations.NewService(db, enc),
+	}
+}
+
+// storageLocationsBackupMigrator forwards the storage-locations migration
+// endpoint to container_backups and translates the module's sentinel
+// errors into the storage_locations package's re-exported errors so the
+// handler can use errors.Is against the storage_locations package without
+// importing container_backups.
+type storageLocationsBackupMigrator struct {
+	svc *container_backups.Service
+}
+
+func (m storageLocationsBackupMigrator) MigrateCompletedRunsToLocalStorage(ctx context.Context, locationID string) (any, error) {
+	result, err := m.svc.MigrateCompletedRunsToLocalStorage(ctx, locationID)
+	if err != nil {
+		switch {
+		case errors.Is(err, container_backups.ErrBackupMigrationStorageNotLocal):
+			return nil, storage_locations.ErrBackupMigrationStorageNotLocal
+		case errors.Is(err, container_backups.ErrBackupMigrationStorageDisabled):
+			return nil, storage_locations.ErrBackupMigrationStorageDisabled
+		}
+		return nil, err
+	}
+	return result, nil
+}
+
+// NewStorageLocationsBackupMigrator builds the storage_locations → container_backups adapter.
+func NewStorageLocationsBackupMigrator(db *sql.DB, dockerPool *docker.ClientPool, dataDir string, backupCrypto *backupcrypto.Service, enc *encryption.Service, logger *slog.Logger) storage_locations.BackupMigrator {
+	return storageLocationsBackupMigrator{
+		svc: container_backups.NewService(db, dockerPool, dataDir, backupCrypto, enc, logger),
+	}
 }

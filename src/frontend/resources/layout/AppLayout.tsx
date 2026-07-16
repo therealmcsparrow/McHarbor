@@ -10,6 +10,7 @@ import { useHeaderSlot } from '@resources/stores/headerSlot';
 import { useDockerEvents } from '@resources/hooks/useDockerEvents';
 import { useDockerDiskUsageNotifications } from '@resources/hooks/useDockerDiskUsageNotifications';
 import { Spinner } from '@resources/components/ui/Spinner';
+import { UpdateCheckBanner } from '@resources/components/UpdateCheckBanner';
 
 export function AppLayout() {
   const { isAuthenticated, isLoading, needsSetup } = useAuth();
@@ -18,7 +19,21 @@ export function AppLayout() {
   useDockerEvents();
   useDockerDiskUsageNotifications();
 
-  const routeOwnsScroll = pathname === '/store' || pathname.startsWith('/containers/');
+  // Pages render a flex-col layout that owns its own scrolling so
+  // the table area (not the whole page) scrolls when the row
+  // count exceeds the viewport. Detail / settings / security pages
+  // need a flat canvas instead — they keep `overflow-visible` and
+  // let the page itself scroll.
+  const isFlatCanvas =
+    pathname === '/store' ||
+    pathname.startsWith('/settings') ||
+    pathname === '/security' ||
+    pathname.startsWith('/security/') ||
+    pathname.startsWith('/containers/') ||
+    pathname.startsWith('/images/') ||
+    pathname.startsWith('/networks/') ||
+    pathname.startsWith('/stacks/') ||
+    pathname.startsWith('/environments/');
 
   if (isLoading) {
     return (
@@ -41,7 +56,12 @@ export function AppLayout() {
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
-        <main className={`min-h-0 flex-1 ${routeOwnsScroll ? 'overflow-hidden' : 'overflow-y-auto'} ${slotActive ? '' : 'p-6'}`}>
+        <UpdateCheckBanner />
+        <main
+          className={`flex min-h-0 flex-1 flex-col ${
+            isFlatCanvas ? 'overflow-y-auto' : 'overflow-hidden'
+          } ${slotActive ? '' : 'p-6'}`}
+        >
           <Outlet />
         </main>
         <Footer />

@@ -41,7 +41,7 @@ export function APIKeysTab() {
       {keys && keys.length > 0 ? (
         <div className="rounded-lg border border-border">
           <table className="w-full text-sm">
-            <thead>
+            <thead className="bg-muted">
               <tr className="border-b border-border bg-muted/30">
                 <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('apiKeys.name')}</th>
                 <th className="px-4 py-2 text-left font-medium text-muted-foreground">{t('apiKeys.key')}</th>

@@ -11,6 +11,7 @@ import {
 } from '@resources/components/ui/Card';
 import { Input } from '@resources/components/ui/Input';
 import { Switch } from '@resources/components/ui/Switch';
+import { Button } from '@resources/components/ui/Button';
 import { cn } from '@resources/utils/cn';
 import type { AutoUpdateDay } from '../hooks/useEnvironmentDetailState';
 import type { EnvironmentInfo } from '../hooks/useEnvironments';
@@ -35,8 +36,10 @@ type DayChipProps = {
 
 function DayChip({ day, selected, disabled, onToggle, labels }: DayChipProps) {
   return (
-    <button
+    <Button
       type="button"
+      variant={selected ? 'default' : 'outline'}
+      size="sm"
       onClick={() => onToggle(day.value)}
       disabled={disabled}
       aria-pressed={selected}
@@ -49,7 +52,7 @@ function DayChip({ day, selected, disabled, onToggle, labels }: DayChipProps) {
       )}
     >
       {labels[day.value] ?? day.short}
-    </button>
+    </Button>
   );
 }
 

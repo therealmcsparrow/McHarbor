@@ -132,14 +132,16 @@ function SuccessDestinationButton({
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenu.Trigger asChild>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               aria-label={`${t("backups.storageStatus.success")}: ${name}`}
               data-testid={`destination-success-${destination.id}`}
-              className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md transition-colors hover:bg-emerald-500/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="size-7 hover:bg-emerald-500/10"
             >
               <DestinationIcon destination={destination} />
-            </button>
+            </Button>
           </DropdownMenu.Trigger>
         </TooltipTrigger>
         <TooltipContent>{name}</TooltipContent>
@@ -211,15 +213,17 @@ function FailureDestinationButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             aria-label={`${t("backups.storageStatus.failure")}: ${name}`}
             data-testid={`destination-failure-${destination.id}`}
             onClick={() => setOpen(true)}
-            className="inline-flex size-7 cursor-pointer items-center justify-center rounded-md transition-colors hover:bg-destructive/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="size-7 hover:bg-destructive/10"
           >
             <DestinationIcon destination={destination} />
-          </button>
+          </Button>
         </TooltipTrigger>
         <TooltipContent>{name}</TooltipContent>
       </Tooltip>

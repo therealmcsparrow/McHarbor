@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -20,14 +21,13 @@ import (
 	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	"github.com/therealmcsparrow/mcharbor/core/response"
 	"github.com/therealmcsparrow/mcharbor/core/router"
-	containerbackups "github.com/therealmcsparrow/mcharbor/modules/container_backups"
 )
 
 // Handler holds dependencies for storage location handlers.
 type Handler struct {
 	app           *router.AppDeps
 	service       *Service
-	backupService *containerbackups.Service
+	backupMigrator BackupMigrator
 }
 
 // NewHandler creates a new storage location handler.
@@ -35,8 +35,15 @@ func NewHandler(app *router.AppDeps) *Handler {
 	return &Handler{
 		app:           app,
 		service:       NewService(app.DB, app.Encryption),
-		backupService: containerbackups.NewService(app.DB, app.DockerPool, app.Config.DataDir, app.BackupCrypto, app.Encryption, app.Logger),
+		backupMigrator: nil, // injected via SetBackupMigrator from main.go
 	}
+}
+
+// SetBackupMigrator registers the runtime adapter that fulfils the
+// container-backup migration flow when a non-local storage location
+// is deleted. Without this the migration endpoint returns 503.
+func (h *Handler) SetBackupMigrator(m BackupMigrator) {
+	h.backupMigrator = m
 }
 
 var validLocationTypes = map[string]bool{
@@ -230,13 +237,13 @@ func (h *Handler) HandleMigrateContainerBackups(w http.ResponseWriter, r *http.R
 	migrateCtx, cancel := context.WithTimeout(r.Context(), 2*time.Hour)
 	defer cancel()
 
-	result, err := h.backupService.MigrateCompletedRunsToLocalStorage(migrateCtx, id)
+	result, err := h.backupMigrator.MigrateCompletedRunsToLocalStorage(migrateCtx, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			response.NotFoundCode(w, r, i18n.ErrNotFound)
 			return
 		}
-		if errors.Is(err, containerbackups.ErrBackupMigrationStorageNotLocal) || errors.Is(err, containerbackups.ErrBackupMigrationStorageDisabled) {
+		if errors.Is(err, ErrBackupMigrationStorageNotLocal) || errors.Is(err, ErrBackupMigrationStorageDisabled) {
 			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
 			return
 		}
@@ -290,6 +297,42 @@ func (h *Handler) HandleOAuthAuthorize(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandleOAuthCallback stores delegated provider tokens after consent.
+// HandleTestConnection exercises write / change / delete against
+// the configured storage location and returns a per-step report.
+// For local storage the full cycle runs synchronously. For
+// cloud / network storage the endpoint is reached at the TCP
+// level so DNS, firewall, and credential-config errors surface
+// here instead of in the next scheduled backup run. The full
+// write/change/delete cycle for cloud providers is exercised by
+// the next scheduled backup run (the heavy SDKs live in the
+// container_backups module; adding them to the self-test path
+// would inflate the storage_locations dependency tree for
+// no real benefit).
+func (h *Handler) HandleTestConnection(w http.ResponseWriter, r *http.Request) {
+	if user := auth.RequireAuth(r); user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+	id := chi.URLParam(r, "id")
+	result, err := h.service.TestStorageLocation(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			response.NotFoundCode(w, r, i18n.ErrNotFound)
+			return
+		}
+		h.app.Logger.Error("storage location connection test failed", "id", id, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "storage_location.tested",
+		EntityType: "storage_location",
+		EntityID:   id,
+		Details:    fmt.Sprintf("connection test: %s", result.OverallStatus),
+	})
+	response.OK(w, result)
+}
+
 func (h *Handler) HandleOAuthCallback(w http.ResponseWriter, r *http.Request) {
 	if user := auth.RequireAuth(r); user == nil {
 		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)

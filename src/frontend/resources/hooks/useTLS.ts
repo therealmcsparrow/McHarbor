@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { api } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
-import type { TLSStatus } from '../types';
+import type { TLSStatus } from '@modules/settings/types';
 
 export function useTLSStatus() {
   return useQuery({

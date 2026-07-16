@@ -33,6 +33,8 @@ import { Spinner } from "@resources/components/ui/Spinner";
 import { Switch } from "@resources/components/ui/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@resources/components/ui/Tooltip";
 import { describeCron } from "@resources/utils/schedule";
+import { formatDate } from "@resources/utils/format";
+import { useLocaleFormat } from "@resources/hooks/useLocaleFormat";
 import { useStorageLocations } from "../../../settings/hooks/useStorageLocations";
 import { BackupSelectionFields } from "../BackupSelectionFields";
 import {
@@ -164,6 +166,7 @@ function backupProgressDescription(
 export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
   const { t } = useTranslation("containers");
   const { t: tc } = useTranslation("common");
+  const formatPrefs = useLocaleFormat();
   const { data: optionData, isLoading: optionsLoading } =
     useContainerBackupOptions(containerId);
   const { data: plans = [], isLoading: plansLoading } =
@@ -503,7 +506,7 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
                       {plan.nextRunAt && (
                         <p className="text-xs text-muted-foreground">
                           {t("backups.nextRun", {
-                            value: new Date(plan.nextRunAt).toLocaleString(),
+                            value: formatDate(plan.nextRunAt, formatPrefs),
                           })}
                         </p>
                       )}
@@ -587,7 +590,7 @@ export function BackupsTab({ containerId, containerName }: BackupsTabProps) {
                           {t(`backups.status.${run.status}`)}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(run.startedAt).toLocaleString()}
+                          {formatDate(run.startedAt, formatPrefs)}
                         </span>
                       </div>
                       {backupProgressDescription(run, t) && (

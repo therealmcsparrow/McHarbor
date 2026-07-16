@@ -52,6 +52,25 @@ export function useImageScans(imageRef: string) {
   });
 }
 
+export function useAllScans(opts: { page: number; perPage?: number; status?: string } = { page: 1 }) {
+  const envId = useEnvironmentStore((s) => s.currentId);
+  return useQuery({
+    queryKey: ['scans', 'all', envId, opts.page, opts.perPage ?? 25, opts.status ?? ''],
+    queryFn: () =>
+      api
+        .get<PaginatedData<Scan>>(
+          '/scans',
+          envParams({
+            page: String(opts.page),
+            perPage: String(opts.perPage ?? 25),
+            ...(opts.status ? { status: opts.status } : {}),
+          }),
+        )
+        .then((r) => r.data),
+    refetchInterval: 15_000,
+  });
+}
+
 export function useScanVulnerabilities(scanId: string | null) {
   return useQuery({
     queryKey: ['scans', scanId, 'vulnerabilities'],

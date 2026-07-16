@@ -25,7 +25,21 @@
     "themeDescription": "Choose the appearance of the interface.",
     "appName": "Application Name",
     "autoRefreshInterval": "Auto-refresh Interval (seconds)",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "defaultApplicationLanguage": "Default application language",
+    "defaultApplicationLanguageDescription": "Language used by the McHarbor UI before a user signs in or when the user has not picked a preferred language.",
+    "preferencesSaved": "Preferences saved",
+    "preferencesSaveFailed": "Failed to save preferences",
+    "defaultLanguageSaved": "Default language saved",
+    "defaultLanguageSaveFailed": "Failed to save default language",
+    "userInterfacePreferences": "User interface preferences",
+    "userInterfacePreferencesDescription": "Choose how dates and times are rendered across the application.",
+    "timeFormat": "Time format",
+    "timeFormat24h": "24-hour (13:30)",
+    "timeFormat12h": "12-hour (1:30 PM)",
+    "dateFormat": "Date format",
+    "dateFormatDDMMYYYY": "DD/MM/YYYY (31/12/2025)",
+    "dateFormatMMDDYYYY": "MM/DD/YYYY (12/31/2025)"
   },
   "retention": {
     "title": "Data Retention",
@@ -44,7 +58,19 @@
     "clearAuditDescription": "Permanently delete all audit log entries older than {{days}} days. The deleted count will be shown after the operation. This cannot be undone.",
     "clearActivityTitle": "Clear activity log?",
     "clearActivityDescription": "Permanently delete all activity events older than {{days}} days. The deleted count will be shown after the operation. This cannot be undone.",
-    "keepForever": "Set retention to a positive number to enable clearing."
+    "keepForever": "Set retention to a positive number to enable clearing.",
+    "lifecycleDays": "Lifecycle log retention",
+    "lifecycleDaysDescription": "Days to keep lifecycle events before the next purge. Set to 0 to keep forever.",
+    "backupLogDays": "Backup log retention",
+    "backupLogDaysDescription": "Days to keep backup-log rows before the next purge. Set to 0 to keep forever.",
+    "scanDays": "Security scan history retention",
+    "scanDaysDescription": "Days to keep vulnerability scans (and their findings) before the next purge. Set to 0 to keep forever.",
+    "clearLifecycleTitle": "Purge lifecycle log?",
+    "clearLifecycleDescription": "Permanently delete every lifecycle event older than {{days}} days. This action cannot be undone.",
+    "clearBackupLogTitle": "Purge backup log?",
+    "clearBackupLogDescription": "Permanently delete every backup log row older than {{days}} days. This action cannot be undone.",
+    "clearScansTitle": "Purge security scan history?",
+    "clearScansDescription": "Permanently delete every vulnerability scan (and its findings) older than {{days}} days. This action cannot be undone."
   },
   "auth": {
     "description": "Configure authentication providers and session settings.",
@@ -780,7 +806,18 @@
     "currentVersionLabel": "Current",
     "upToDate": "You're running the latest version.",
     "viewRelease": "View Release",
-    "checkFailed": "Could not check for updates. Try again later."
+    "checkFailed": "Could not check for updates. Try again later.",
+    "selfUpdate": {
+      "title": "Self-update checker",
+      "subtitle": "Periodically check the GitHub release feed and surface new versions in-app.",
+      "enabledLabel": "Check for new releases",
+      "enabledHint": "Runs a background check on the interval below and shows a banner when a newer version is available.",
+      "intervalLabel": "Check interval",
+      "intervalSuffix": "hours",
+      "channelsLabel": "Notify these channels on a new release",
+      "channelsHint": "Leave empty to only surface the in-app banner.",
+      "noChannels": "No enabled notification channels. Configure one under Settings → Notifications."
+    }
   },
   "toast": {
     "updated": "Settings updated",
@@ -826,6 +863,76 @@
     "backupKeySetupCopied": "Backup setup command copied",
     "copyFailed": "Could not copy to clipboard",
     "storageBackupsMigrated": "Backups migrated: {{migrated}} copied, {{skipped}} skipped, {{failed}} failed",
-    "storageBackupsMigrationFailed": "Backup migration failed"
+    "storageBackupsMigrationFailed": "Backup migration failed",
+    "lifecycleLogPurged": "Lifecycle log cleared ({{count}} events)",
+    "lifecycleLogPurgedVacuuming": "Lifecycle log cleared ({{count}} events). Compacting database in the background...",
+    "backupLogPurged": "Backup log cleared ({{count}} entries)",
+    "backupLogPurgedVacuuming": "Backup log cleared ({{count}} entries). Compacting database in the background...",
+    "scanHistoryPurged": "Scan history cleared ({{count}} scans)",
+    "scanHistoryPurgedVacuuming": "Scan history cleared ({{count}} scans). Compacting database in the background...",
+    "updateCheckSettingsSaved": "Self-update settings saved",
+    "updateCheckDismissed": "Update notice dismissed"
+  },
+  "lifecycle": {
+    "title": "Lifecycle Log",
+    "description": "Inspect every lifecycle event across containers, images, volumes, networks, and stacks.",
+    "searchPlaceholder": "Search subjects, events, or messages",
+    "subjectTypeLabel": "Subject type",
+    "severityLabel": "Severity",
+    "headerSubject": "Subject",
+    "headerDetail": "Detail",
+    "headerSeverity": "Severity",
+    "headerTime": "Time",
+    "empty": "No lifecycle events match these filters.",
+    "localEnvironment": "Local environment",
+    "collapse": "Collapse details",
+    "expand": "Expand details",
+    "source": "Source: {{source}}",
+    "detailId": "Event ID",
+    "detailSubject": "Subject",
+    "detailEvent": "Event / Action",
+    "detailState": "State",
+    "detailAttributes": "Attributes",
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "total": "{{total}} lifecycle events",
+    "previous": "Previous",
+    "next": "Next",
+    "subjectType": {
+      "all": "All subjects",
+      "container": "Container",
+      "image": "Image",
+      "volume": "Volume",
+      "network": "Network",
+      "stack": "Stack"
+    },
+    "severity": {
+      "all": "Any severity",
+      "success": "Success",
+      "info": "Info",
+      "warning": "Warning",
+      "error": "Error"
+    }
+  },
+  "common": {
+    "updateCheck": {}
+  },
+  "settings": {
+    "about": {
+      "selfUpdate": {
+        "selfUpdateTitle": "Self-update checker",
+        "selfUpdateSubtitle": "Periodically check the GitHub release feed and surface new versions in-app.",
+        "enabledLabel": "Check for new releases",
+        "enabledHint": "Runs a background check on the interval below and shows a banner when a newer version is available.",
+        "intervalLabel": "Check interval",
+        "intervalSuffix": "hours",
+        "channelsLabel": "Notify these channels on a new release",
+        "channelsHint": "Leave empty to only surface the in-app banner.",
+        "noChannels": "No enabled notification channels. Configure one under Settings → Notifications."
+      }
+    },
+    "toast": {
+      "updateCheckSettingsSaved": "Self-update settings saved",
+      "updateCheckDismissed": "Update notice dismissed"
+    }
   }
 }

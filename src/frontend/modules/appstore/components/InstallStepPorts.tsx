@@ -20,7 +20,7 @@ export function InstallStepPorts({ ports, onPortChange }: InstallStepPortsProps)
   return (
     <div className="space-y-3">
       <table className="w-full text-sm">
-        <thead>
+        <thead className="bg-muted">
           <tr className="border-b border-border text-left">
             <th className="pb-2 font-medium text-foreground">{t('appStore.hostPort')}</th>
             <th className="pb-2 font-medium text-foreground">{t('appStore.containerPort')}</th>

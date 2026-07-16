@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS workflow_kv (
     id         TEXT PRIMARY KEY,
     key        TEXT NOT NULL UNIQUE,
     value      TEXT NOT NULL DEFAULT '',
-    created_at DATETIME NOT NULL DEFAULT (datetime('now')),
-    updated_at DATETIME NOT NULL DEFAULT (datetime('now'))
+    created_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+    updated_at DATETIME NOT NULL DEFAULT (CURRENT_TIMESTAMP)
 );
 
 CREATE INDEX idx_workflow_kv_key ON workflow_kv(key);

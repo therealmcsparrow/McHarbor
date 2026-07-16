@@ -9,6 +9,7 @@ import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { api } from '@core/api/client';
 import { useCheckUpdate } from '../hooks/useUpdates';
+import { SelfUpdateSettingsCard } from './SelfUpdateSettingsCard';
 import packageJson from '../../../package.json';
 
 type AboutData = {
@@ -191,6 +192,9 @@ export function AboutTab() {
           </div>
         )}
       </div>
+
+      {/* Periodic update check */}
+      <SelfUpdateSettingsCard />
 
       {/* Backend dependencies */}
       {data && data.dependencies.length > 0 && (

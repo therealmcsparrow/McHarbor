@@ -37,6 +37,7 @@ func Mount(app *router.AppDeps) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermScansView)).Get("/by-image", h.HandleScanByImage)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermScansView)).Get("/{id}", h.HandleGetScan)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermScansManage)).Delete("/{id}", h.HandleDelete)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Delete("/", h.HandlePurge)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermScansView)).Get("/{id}/vulnerabilities", h.HandleGetVulnerabilities)
 		})
 	})

@@ -126,7 +126,7 @@ export default function ContainersPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <PageHeader
         title={t('title')}
         description={t('description', { count: containers.length })}
@@ -141,7 +141,7 @@ export default function ContainersPage() {
             onCheckUpdates={() => checkUpdates.mutate(undefined)}
             onUpdateAll={() => runContainerOperation('update', updateTargets)}
             onReinstallAll={() => setReinstallAllConfirmOpen(true)}
-            onPruneUnused={() => setPruneConfirmOpen(true)}
+                onPruneUnused={() => setPruneConfirmOpen(true)}
             onCreate={() => navigate('/containers/create')}
             onViewModeChange={setViewMode}
             t={t}
@@ -149,62 +149,67 @@ export default function ContainersPage() {
         }
       />
 
-      {viewMode === 'table' ? (
-        <DataGrid
-          data={containers}
-          columns={columns}
-          searchKey="Image"
-          searchPlaceholder={t('searchPlaceholder')}
-          loading={isLoading}
-          emptyMessage={t('noContainersFound')}
-          onRowClick={(row) => navigate(`/containers/${row.Id}`)}
-          tableFixed
-          selectable
-          batchActions={batchActions}
-          getRowId={(row) => row.Id}
-          getRowClassName={(row) =>
-            highlightedIDs.has(row.Id)
-              ? 'bg-amber-500/10 shadow-[inset_4px_0_0_rgba(251,191,36,0.95),0_0_28px_rgba(251,191,36,0.12)]'
-              : undefined
-          }
-          toolbarActions={
-            <ContainersPageActions
-              scope="toolbar"
-              viewMode={viewMode}
-              checkingUpdates={checkUpdates.isPending}
-              batchRunning={batchProgress.isRunning}
-              uploadActive={uploadActive}
-              updatesAvailable={updateTargets.length}
-              totalContainers={allTargets.length}
-              onCheckUpdates={() => checkUpdates.mutate(undefined)}
-              onUpdateAll={() => runContainerOperation('update', updateTargets)}
-              onReinstallAll={() => setReinstallAllConfirmOpen(true)}
-              onPruneUnused={() => setPruneConfirmOpen(true)}
-              onCreate={() => navigate('/containers/create')}
-              onViewModeChange={setViewMode}
-              t={t}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {viewMode === 'table' ? (
+          <DataGrid
+            data={containers}
+            columns={columns}
+            searchKey="Image"
+            searchPlaceholder={t('searchPlaceholder')}
+            loading={isLoading}
+            emptyMessage={t('noContainersFound')}
+            onRowClick={(row) => navigate(`/containers/${row.Id}`)}
+            tableFixed
+            selectable
+            batchActions={batchActions}
+            getRowId={(row) => row.Id}
+            fillHeight
+            getRowClassName={(row) =>
+              highlightedIDs.has(row.Id)
+                ? 'bg-amber-500/10 shadow-[inset_4px_0_0_rgba(251,191,36,0.95),0_0_28px_rgba(251,191,36,0.12)]'
+                : undefined
+            }
+            toolbarActions={
+              <ContainersPageActions
+                scope="toolbar"
+                viewMode={viewMode}
+                checkingUpdates={checkUpdates.isPending}
+                batchRunning={batchProgress.isRunning}
+                uploadActive={uploadActive}
+                updatesAvailable={updateTargets.length}
+                totalContainers={allTargets.length}
+                onCheckUpdates={() => checkUpdates.mutate(undefined)}
+                onUpdateAll={() => runContainerOperation('update', updateTargets)}
+                onReinstallAll={() => setReinstallAllConfirmOpen(true)}
+            onPruneUnused={() => setPruneConfirmOpen(true)}
+                onCreate={() => navigate('/containers/create')}
+                onViewModeChange={setViewMode}
+                t={t}
+              />
+            }
+          />
+        ) : (
+          <div className="min-h-0 flex-1 overflow-auto">
+            <ContainerCardGrid
+              containers={containers}
+              statsMap={statsMap}
+              highlightedIds={highlightedIDs}
+              isLoading={isLoading}
+              onAction={(id, nextAction) => {
+                const target = containers.find((container) => container.Id === id);
+                if (target && isProtectedContainer(target)) return;
+                action.mutate({ id, action: nextAction });
+              }}
+              onTerminal={setTerminalTarget}
+              onLogs={setLogsTarget}
+              onRename={setRenameTarget}
+              onMove={setMoveTarget}
+              onRemove={setRemoveTarget}
+              onClick={(container) => navigate(`/containers/${container.Id}`)}
             />
-          }
-        />
-      ) : (
-        <ContainerCardGrid
-          containers={containers}
-          statsMap={statsMap}
-          highlightedIds={highlightedIDs}
-          isLoading={isLoading}
-          onAction={(id, nextAction) => {
-            const target = containers.find((container) => container.Id === id);
-            if (target && isProtectedContainer(target)) return;
-            action.mutate({ id, action: nextAction });
-          }}
-          onTerminal={setTerminalTarget}
-          onLogs={setLogsTarget}
-          onRename={setRenameTarget}
-          onMove={setMoveTarget}
-          onRemove={setRemoveTarget}
-          onClick={(container) => navigate(`/containers/${container.Id}`)}
-        />
-      )}
+          </div>
+        )}
+      </div>
 
       <ContainerUtilityDialogs
         removeTarget={removeTarget}

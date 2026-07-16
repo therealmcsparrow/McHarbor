@@ -335,5 +335,32 @@
     "testFailed": "Verbindingstest mislukt",
     "scannerSettingsSaved": "Scannerinstellingen opgeslagen",
     "userCreated": "Gebruiker aangemaakt"
+  },
+  "scanHistory": {
+    "title": "Beveiligingsscans",
+    "description": "Bekijk elke kwetsbaarhedenscan van containers in alle omgevingen en images.",
+    "emptyTitle": "Geen scans voldoen aan deze filters.",
+    "emptyHint": "Start een scan vanaf een image-detailpagina om de geschiedenis te vullen.",
+    "total": "{{total}} scans",
+    "previous": "Vorige",
+    "next": "Volgende",
+    "pageOf": "Pagina {{page}} van {{totalPages}}",
+    "status": {
+      "all": "Elke status",
+      "running": "Bezig",
+      "pending": "In de wachtrij",
+      "completed": "Voltooid",
+      "failed": "Mislukt"
+    },
+    "table": {
+      "time": "Tijd",
+      "status": "Status",
+      "scanner": "Scanner",
+      "image": "Image",
+      "severity": "Ernst",
+      "total": "Bevindingen",
+      "delete": "Scan verwijderen",
+      "viewDetails": "Details bekijken"
+    }
   }
 }

@@ -90,7 +90,7 @@ export default function ActivityPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full min-h-0 flex-col gap-4">
       <PageHeader title={t('activity.title')} description={t('activity.description')} />
       <SearchFilterToolbar
         query={query}
@@ -120,84 +120,85 @@ export default function ActivityPage() {
         }
       />
 
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      ) : filteredEvents.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-          <IconActivity className="mb-2 h-8 w-8" />
-          <p>{query.trim() ? t('filters.noMatches') : t('activity.noEvents')}</p>
-        </div>
-      ) : (
-        <>
-          <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnTimestamp')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnEnvironment')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnAction')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnContainer')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnImage')}</th>
-                  <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnExitCode')}</th>
-                  <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">{t('activity.columnActions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEvents.map((event) => {
-                  const meta = parseMeta(event.metadata);
-                  const image = meta.image ?? null;
-                  const exitCode = meta.exitCode ?? null;
+      <div className="flex min-h-0 flex-1 flex-col">
+        {isLoading ? (
+          <div className="flex flex-1 items-center justify-center">
+            <Spinner size="lg" />
+          </div>
+        ) : filteredEvents.length === 0 ? (
+          <div className="flex flex-1 flex-col items-center justify-center py-16 text-muted-foreground">
+            <IconActivity className="mb-2 h-8 w-8" />
+            <p>{query.trim() ? t('filters.noMatches') : t('activity.noEvents')}</p>
+          </div>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-border">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 z-10 bg-muted">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnTimestamp')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnEnvironment')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnAction')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnContainer')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnImage')}</th>
+                    <th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{t('activity.columnExitCode')}</th>
+                    <th className="px-4 py-2.5 text-right font-medium text-muted-foreground">{t('activity.columnActions')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEvents.map((event) => {
+                    const meta = parseMeta(event.metadata);
+                    const image = meta.image ?? null;
+                    const exitCode = meta.exitCode ?? null;
 
-                  return (
-                    <tr key={event.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
-                      <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(event.timestamp)}</td>
-                      <td className="px-4 py-2.5 text-foreground">{envName(event.environmentId)}</td>
-                      <td className="px-4 py-2.5">
-                        <Badge variant={ACTION_VARIANTS[event.action] ?? 'secondary'}>{event.action}</Badge>
-                      </td>
-                      <td className="px-4 py-2.5">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-foreground truncate max-w-48">{event.containerName ?? truncateId(event.containerId)}</span>
-                          <span className="font-mono text-xs text-muted-foreground">{truncateId(event.containerId)}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-2.5 text-muted-foreground font-mono text-xs truncate max-w-48">{image ?? '-'}</td>
-                      <td className="px-4 py-2.5">
-                        {exitCode != null ? (
-                          <Badge variant={exitCode === '0' ? 'secondary' : 'destructive'}>{exitCode}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon-sm" onClick={() => setSelected(event)} aria-label={t('activity.viewDetails')}>
-                              <IconEye className="size-3.5" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{t('activity.viewDetails')}</TooltipContent>
-                        </Tooltip>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={event.id} className="border-b border-border last:border-0 transition-colors hover:bg-muted/30">
+                        <td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">{formatDate(event.timestamp)}</td>
+                        <td className="px-4 py-2.5 text-foreground">{envName(event.environmentId)}</td>
+                        <td className="px-4 py-2.5">
+                          <Badge variant={ACTION_VARIANTS[event.action] ?? 'secondary'}>{event.action}</Badge>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-foreground truncate max-w-48">{event.containerName ?? truncateId(event.containerId)}</span>
+                            <span className="font-mono text-xs text-muted-foreground">{truncateId(event.containerId)}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2.5 text-muted-foreground font-mono text-xs truncate max-w-48">{image ?? '-'}</td>
+                        <td className="px-4 py-2.5">
+                          {exitCode != null ? (
+                            <Badge variant={exitCode === '0' ? 'secondary' : 'destructive'}>{exitCode}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-2.5 text-right">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="icon-sm" onClick={() => setSelected(event)} aria-label={t('activity.viewDetails')}>
+                                <IconEye className="size-3.5" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{t('activity.viewDetails')}</TooltipContent>
+                          </Tooltip>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div ref={sentinelRef} className="flex h-12 shrink-0 items-center justify-center text-xs text-muted-foreground">
+              {isFetchingNextPage && (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  {t('common:list.loadingMore')}
+                </span>
+              )}
+            </div>
           </div>
-          <div ref={sentinelRef} className="flex h-12 items-center justify-center text-xs text-muted-foreground">
-            {isFetchingNextPage && (
-              <span className="flex items-center gap-2">
-                <Spinner size="sm" />
-                {t('common:list.loadingMore')}
-              </span>
-            )}
-            {!hasNextPage && !isFetchingNextPage && events.length > 0 && t('common:list.endOfList')}
-          </div>
-        </>
-      )}
+        )}
+      </div>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-2xl p-0">

@@ -71,6 +71,30 @@ func (ts *TriggerService) SetImageScanner(scanner ImageScanner) {
 	}
 }
 
+// SetContainerBackupRuntime propagates the container-backup runtime adapter to workflow services.
+func (ts *TriggerService) SetContainerBackupRuntime(r ContainerBackupRunner) {
+	ts.service.SetContainerBackupRuntime(r)
+	if ts.handler != nil {
+		ts.handler.service.SetContainerBackupRuntime(r)
+	}
+}
+
+// SetStackContainerLinkerRuntime propagates the stack linker runtime adapter to workflow services.
+func (ts *TriggerService) SetStackContainerLinkerRuntime(r StackContainerLinker) {
+	ts.service.SetStackContainerLinkerRuntime(r)
+	if ts.handler != nil {
+		ts.handler.service.SetStackContainerLinkerRuntime(r)
+	}
+}
+
+// SetStorageLocationRuntime propagates the storage-location runtime adapter to workflow services.
+func (ts *TriggerService) SetStorageLocationRuntime(r StorageLocationReader) {
+	ts.service.SetStorageLocationRuntime(r)
+	if ts.handler != nil {
+		ts.handler.service.SetStorageLocationRuntime(r)
+	}
+}
+
 // NewTriggerService creates a new background trigger service.
 func NewTriggerService(app *router.AppDeps, hub *Hub) *TriggerService {
 	svc := NewService(app.DB, app.DockerPool, app.Logger, app.Encryption, corenotify.NewDispatcher(app.DB, app.Encryption), app.Config.DataDir, app.BackupCrypto)
