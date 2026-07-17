@@ -46,6 +46,8 @@ export function StorageTab() {
   const [regenerateOpen, setRegenerateOpen] = useState(false);
   const [customKeyOpen, setCustomKeyOpen] = useState(false);
   const [customBackupKey, setCustomBackupKey] = useState('');
+  const [customProjectPath, setCustomProjectPath] = useState('');
+  const [showAdvancedInstall, setShowAdvancedInstall] = useState(false);
   const [manualCopy, setManualCopy] = useState<{ value: string; label: string } | null>(null);
 
   function handleGenerateBackupKey() {
@@ -87,18 +89,24 @@ export function StorageTab() {
 
   function handleInstallBackupKey() {
     if (!backupKey) return;
-    installBackupKey.mutate(backupKey.key);
+    installBackupKey.mutate({ key: backupKey.key });
   }
 
   function handleInstallCustomBackupKey() {
     const key = customBackupKey.trim();
-    installBackupKey.mutate(key, {
-      onSuccess: () => {
-        setCustomBackupKey('');
-        setCustomKeyOpen(false);
-        setBackupKey(null);
+    const projectPath = customProjectPath.trim();
+    installBackupKey.mutate(
+      { key, projectPath: projectPath || undefined },
+      {
+        onSuccess: () => {
+          setCustomBackupKey('');
+          setCustomProjectPath('');
+          setShowAdvancedInstall(false);
+          setCustomKeyOpen(false);
+          setBackupKey(null);
+        },
       },
-    });
+    );
   }
 
   function isValidCustomBackupKey() {
@@ -300,6 +308,29 @@ export function StorageTab() {
               autoComplete="off"
             />
             <p className="text-xs text-muted-foreground">{t('storage.enterBackupKeyHint')}</p>
+            <button
+              type="button"
+              className="text-xs text-muted-foreground underline"
+              onClick={() => setShowAdvancedInstall((v) => !v)}
+            >
+              {showAdvancedInstall ? t('storage.installAdvancedHide') : t('storage.installAdvancedShow')}
+            </button>
+            {showAdvancedInstall && (
+              <div className="rounded-md border border-border p-3">
+                <label className="mb-1 block text-xs font-medium text-foreground">
+                  {t('storage.installProjectPathLabel')}
+                </label>
+                <Input
+                  value={customProjectPath}
+                  onChange={(event) => setCustomProjectPath(event.target.value)}
+                  placeholder={t('storage.installProjectPathPlaceholder')}
+                  autoComplete="off"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t('storage.installProjectPathHint')}
+                </p>
+              </div>
+            )}
           </DialogBody>
           <DialogFooter>
             <Button
@@ -307,6 +338,8 @@ export function StorageTab() {
               onClick={() => {
                 setCustomKeyOpen(false);
                 setCustomBackupKey('');
+                setCustomProjectPath('');
+                setShowAdvancedInstall(false);
               }}
             >
               {t('storage.cancelBackupKeyEntry')}

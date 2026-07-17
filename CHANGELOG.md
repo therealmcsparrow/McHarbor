@@ -2,6 +2,18 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [Unreleased]
+
+_No unreleased changes yet._
+
+## [2.0.3] - 2026-07-17
+
+### Added
+- **Manual `projectPath` for backup-key install outside Compose.** `POST /api/settings/backup-key/install` now accepts an optional `projectPath` field in the request body. When set, the helper container uses it as the host directory to write the `secrets/mcharbor_backup_key` file into. This unblocks the install flow for operators who run McHarbor outside Docker Compose (`docker run`, Kubernetes, Podman, etc.) — for those installs the `com.docker.compose.project.working_dir` label is missing, so the previous auto-detection returned `err.settings.compose_project_missing`. When `projectPath` is omitted the endpoint behaves exactly as before and reads the Compose label. The Storage → Storage tab custom-key dialog has a new "Advanced (non-Compose install)" toggle that reveals the path input with a placeholder (`/opt/mcharbor`, `C:\\mcharbor`, ...) and a hint explaining when it's required. New `storage.installAdvancedShow` / `installAdvancedHide` / `installProjectPathLabel` / `installProjectPathPlaceholder` / `installProjectPathHint` keys added in all 6 locales.
+
+### Fixed
+- **i18n EN block contained Portuguese translations for several recent codes.** An earlier patch script put the PT translation of `ErrSettingsBackupKeyInvalid` (and `ErrSettingsComposeProjectMissing`, plus the four `system.self_update_*` codes) into the `var messagesEN = map[MsgCode]string{` block, so any English-locale client received the Portuguese message (with the `err.*` code unchanged, so the toast was untranslated for `EN` users). The wrong values were rewritten with their proper English text. Each code now resolves to the localized string of the requested `Accept-Language`.
+
 ## [2.0.2] - 2026-07-17
 
 ### Added

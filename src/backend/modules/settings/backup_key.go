@@ -45,6 +45,11 @@ var backupShortHexContainerIDRe = regexp.MustCompile(`^[0-9a-f]{12,64}$`)
 // BackupKeyInstallRequest installs the one-time key into the host-side Compose secret file.
 type BackupKeyInstallRequest struct {
 	Key string `json:"key"`
+	// ProjectPath overrides the auto-detected Compose project working
+	// directory. Required when McHarbor runs outside Compose (plain
+	// `docker run`, Kubernetes, Podman, etc.) where the
+	// `com.docker.compose.project.working_dir` label is missing.
+	ProjectPath string `json:"projectPath"`
 }
 
 // BackupKeyInstallResponse describes the scheduled Docker secret setup.
@@ -87,6 +92,15 @@ func (s *Service) BackupKeyStatus(keyPath string) BackupKeyStatusResponse {
 
 // InstallBackupKey writes the host-side Compose secret file and schedules a Compose restart.
 func (s *Service) InstallBackupKey(ctx context.Context, key string) (BackupKeyInstallResponse, error) {
+	return s.InstallBackupKeyWithPath(ctx, key, "")
+}
+
+// InstallBackupKeyWithPath is the same as InstallBackupKey but lets
+// the caller override the Compose project path. The override is
+// useful for installations where McHarbor runs outside Compose
+// (plain `docker run`, Kubernetes, Podman, etc.) and the
+// `com.docker.compose.project.working_dir` label is missing.
+func (s *Service) InstallBackupKeyWithPath(ctx context.Context, key, projectPathOverride string) (BackupKeyInstallResponse, error) {
 	key = strings.TrimSpace(key)
 	decoded, err := base64.StdEncoding.DecodeString(key)
 	if err != nil || len(decoded) != 32 {
@@ -114,7 +128,10 @@ func (s *Service) InstallBackupKey(ctx context.Context, key string) (BackupKeyIn
 	if current.Config != nil {
 		labels = current.Config.Labels
 	}
-	projectPath := strings.TrimSpace(labels["com.docker.compose.project.working_dir"])
+	projectPath := strings.TrimSpace(projectPathOverride)
+	if projectPath == "" {
+		projectPath = strings.TrimSpace(labels["com.docker.compose.project.working_dir"])
+	}
 	if projectPath == "" {
 		return BackupKeyInstallResponse{}, &ErrValidation{
 			Message: "mcharbor compose project path was not found",

@@ -270,16 +270,24 @@ export function useBackupEncryptionKeyStatus() {
   });
 }
 
+export type InstallBackupKeyInput = {
+  key: string;
+  // Optional Compose project path. Required when McHarbor runs
+  // outside Compose (plain `docker run`, Kubernetes, Podman, etc.)
+  // so the helper container knows where to write the Docker secret.
+  projectPath?: string;
+};
+
 export function useInstallBackupEncryptionKey() {
   const queryClient = useQueryClient();
   const { t } = useTranslation("settings");
 
   return useMutation({
-    mutationFn: (key: string) =>
+    mutationFn: (input: InstallBackupKeyInput) =>
       api
         .post<BackupEncryptionKeyInstallResponse>(
           "/settings/backup-key/install",
-          { key },
+          input,
         )
         .then(assertSuccess),
     meta: {

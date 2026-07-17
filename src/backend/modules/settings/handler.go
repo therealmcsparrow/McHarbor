@@ -429,7 +429,7 @@ func (h *Handler) HandleInstallBackupKey(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	result, err := h.service.InstallBackupKey(r.Context(), req.Key)
+	result, err := h.service.InstallBackupKeyWithPath(r.Context(), req.Key, req.ProjectPath)
 	if err != nil {
 		var validationErr *ErrValidation
 		if errors.As(err, &validationErr) {
