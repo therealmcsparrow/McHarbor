@@ -6,9 +6,15 @@ package docker
 import (
 	"context"
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 )
 
@@ -22,6 +28,10 @@ const (
 )
 
 var ErrProtectedResource = errors.New("protected mcharbor resource")
+
+// shortHexContainerIDRe matches Docker's short (12+ hex) container
+// id tokens used in cgroup paths and hostname.
+var shortHexContainerIDRe = regexp.MustCompile(`^[0-9a-f]{12,64}$`)
 
 // IsProtectedContainer returns true for containers McHarbor should not mutate
 // through normal container actions.
@@ -126,4 +136,125 @@ func imageRepository(ref string) string {
 		ref = ref[:idx]
 	}
 	return ref
+}
+
+// CurrentMcHarborContainerCandidates returns the container ids/names
+// that should be tried when looking up the McHarbor application
+// container from inside itself. Order is: short id from hostname,
+// any short hex tokens in mountinfo / cgroup, then the well-known
+// Compose names ("mcharbor", "mcharbor-mcharbor-1").
+//
+// Used by self-management operations (restart, backup-key install)
+// that need to address the currently-running McHarbor container.
+func CurrentMcHarborContainerCandidates() []string {
+	candidates := currentContainerIDCandidates()
+	seen := make(map[string]struct{}, len(candidates)+3)
+	for _, candidate := range candidates {
+		seen[candidate] = struct{}{}
+	}
+	for _, candidate := range []string{"mcharbor", "/mcharbor", "mcharbor-mcharbor-1"} {
+		if _, ok := seen[candidate]; ok {
+			continue
+		}
+		candidates = append(candidates, candidate)
+		seen[candidate] = struct{}{}
+	}
+	return candidates
+}
+
+// CurrentMcHarborContainer returns the inspect response for the
+// running McHarbor application container. It walks the candidates
+// returned by CurrentMcHarborContainerCandidates and returns the
+// first one that resolves to a container that passes
+// IsMcHarborContainer.
+func CurrentMcHarborContainer(ctx context.Context, cli *client.Client) (types.ContainerJSON, error) {
+	var lastErr error
+	for _, candidate := range CurrentMcHarborContainerCandidates() {
+		inspectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		current, err := cli.ContainerInspect(inspectCtx, candidate)
+		cancel()
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		if current.Config == nil {
+			lastErr = fmt.Errorf("container %s has no config", candidate)
+			continue
+		}
+		if IsMcHarborContainer([]string{current.Name}, current.Config.Image, current.Config.Labels) {
+			return current, nil
+		}
+		lastErr = fmt.Errorf("container %s is not mcharbor", candidate)
+	}
+	if lastErr != nil {
+		return types.ContainerJSON{}, lastErr
+	}
+	return types.ContainerJSON{}, fmt.Errorf("no current container candidates found")
+}
+
+func currentContainerIDCandidates() []string {
+	seen := map[string]struct{}{}
+	var candidates []string
+	add := func(value string) {
+		value = strings.TrimSpace(strings.TrimPrefix(value, "/"))
+		if value == "" {
+			return
+		}
+		if _, ok := seen[value]; ok {
+			return
+		}
+		seen[value] = struct{}{}
+		candidates = append(candidates, value)
+	}
+
+	if hostname, err := os.Hostname(); err == nil {
+		add(hostname)
+	}
+	if data, err := os.ReadFile("/etc/hostname"); err == nil {
+		add(string(data))
+	}
+
+	for _, path := range []string{"/proc/self/mountinfo", "/proc/self/cgroup"} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		for _, token := range regexp.MustCompile(`[0-9a-f]{12,64}`).FindAllString(string(data), -1) {
+			if shortHexContainerIDRe.MatchString(token) {
+				add(token)
+			}
+		}
+	}
+
+	return candidates
+}
+
+// MountForDestination returns the mount entry whose container path
+// matches destination, copying its source/name into a fresh
+// mount.Mount so callers can reuse it in a new container's HostConfig.
+// Returns ok=false when no matching mount is found.
+func MountForDestination(mounts []types.MountPoint, destination string) (mount.Mount, bool) {
+	cleaned := filepath.Clean(destination)
+	for _, mp := range mounts {
+		if filepath.Clean(mp.Destination) != cleaned {
+			continue
+		}
+		source := mp.Source
+		// Volume-backed mounts expose the volume name in mp.Name;
+		// bind mounts expose the host path in mp.Source. Either way
+		// we need the host-visible identifier for the new container.
+		if mp.Type == "volume" {
+			source = mp.Name
+		}
+		if source == "" {
+			return mount.Mount{}, false
+		}
+		return mount.Mount{
+			Type:     mount.Type(mp.Type),
+			Source:   source,
+			Target:   mp.Destination,
+			ReadOnly: !mp.RW,
+		}, true
+	}
+	return mount.Mount{}, false
 }

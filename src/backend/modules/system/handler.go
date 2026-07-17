@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -117,6 +118,48 @@ func (h *Handler) HandleOSUpdateCheck(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, result)
+}
+
+// HandleRestart schedules a self-restart of the running McHarbor
+// container. Protected by rbac.PermSystemManage (Admin role).
+// The actual Docker restart runs asynchronously so the HTTP
+// response can be delivered before the container stops.
+func (h *Handler) HandleRestart(w http.ResponseWriter, r *http.Request) {
+	user := auth.RequireAuth(r)
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	result, err := h.svc.RestartSelf(r.Context())
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrRestartNotLocal):
+			response.BadRequestCode(w, r, i18n.ErrSystemRestartNotLocal)
+		default:
+			h.app.Logger.Error("system: self-restart inspect failed", "error", err)
+			response.InternalErrorCode(w, r, i18n.ErrSystemRestartInspectFailed)
+		}
+		return
+	}
+
+	h.app.AuditLog.Log(r, audit.Entry{
+		Action:     "restart",
+		EntityType: "system",
+		EntityID:   result.ContainerID,
+		EntityName: result.ContainerName,
+		Details:    "McHarbor container restart scheduled by admin",
+	})
+
+	response.OK(w, struct {
+		Message string         `json:"message"`
+		Code    string         `json:"code"`
+		Result  RestartResult  `json:"result"`
+	}{
+		Message: i18n.T(i18n.FromRequest(r), i18n.MsgSystemRestartScheduled),
+		Code:    string(i18n.MsgSystemRestartScheduled),
+		Result:  result,
+	})
 }
 
 // HandleOSUpdateApply applies host OS package updates after explicit confirmation.

@@ -17,6 +17,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/db"
 	"github.com/therealmcsparrow/mcharbor/core/encryption"
+	"github.com/therealmcsparrow/mcharbor/core/i18n"
 	coreSettings "github.com/therealmcsparrow/mcharbor/core/settings"
 )
 
@@ -394,9 +395,13 @@ func (s *Service) TLSStatus(ctx context.Context) TLSStatus {
 	return status
 }
 
-// ErrValidation is returned when input validation fails.
+// ErrValidation is returned when input validation fails. The optional
+// Code carries an i18n.MsgCode so handlers can return a more specific
+// error code than the generic ErrInvalidBody; handlers fall back to
+// ErrInvalidBody when Code is empty (legacy call sites).
 type ErrValidation struct {
 	Message string
+	Code    i18n.MsgCode
 }
 
 func (e *ErrValidation) Error() string {

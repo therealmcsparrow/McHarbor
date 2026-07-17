@@ -22,6 +22,7 @@ data
 .vscode
 .idea
 .store
+.tools
 
 website
 *.md

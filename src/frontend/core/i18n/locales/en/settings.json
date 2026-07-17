@@ -599,8 +599,6 @@
     "driveIdLabel": "Drive ID",
     "clientIdLabel": "Client ID",
     "clientSecretLabel": "Client Secret",
-    "refreshTokenLabel": "Refresh Token",
-    "tokenLabel": "Token",
     "protocolLabel": "Protocol",
     "protocolFtp": "FTP - plain TCP 21",
     "protocolFtpsExplicit": "FTPS explicit TLS - TCP 21",
@@ -638,7 +636,6 @@
     "setupGuideTitle": "{{provider}} setup guide",
     "setupGuideDescription": "Use these steps to prepare the provider before saving this storage location.",
     "redirectUriLabel": "Authorized redirect URI",
-    "saveAndConnectGoogle": "Save and connect Google",
     "setupGuide": {
       "networkEndpoint": "Enter the storage host, port, and reachable network path from the McHarbor container.",
       "tlsEndpoint": "Use an FTPS server with a trusted certificate and TLS-enabled listener.",
@@ -700,7 +697,52 @@
     "typeLocal": "Local path",
     "typeLocalDescription": "Store files on a host-mounted path available to the McHarbor container.",
     "migrateBackups": "Migrate backups",
-    "migratingBackups": "Migrating..."
+    "migratingBackups": "Migrating...",
+    "test": {
+      "title": "Test connection: {{name}}",
+      "description": "Per-step diagnostics for {{name}}.",
+      "running": "Running test...",
+      "button": "Test connection",
+      "overallStatus": "Overall status",
+      "noSteps": "No test steps were executed.",
+      "resultPass": "Pass",
+      "resultFail": "Fail",
+      "resultWarn": "Warning",
+      "resultSkip": "Skipped",
+      "status": {
+        "pass": "Pass",
+        "fail": "Fail",
+        "warn": "Warning",
+        "skip": "Skipped"
+      },
+      "steps": {
+        "credentials": "Credentials",
+        "transport": "Transport",
+        "write": "Write",
+        "read": "Read",
+        "change": "Change",
+        "delete": "Delete",
+        "cleanup": "Cleanup"
+      }
+    },
+    "examples": {
+      "localPath": "/mnt/backup",
+      "ftpHost": "ftp.example.com",
+      "ftpPort": "21",
+      "ftpsPort": "21 / 990",
+      "remoteBasePath": "/backups",
+      "sftpHost": "sftp.example.com",
+      "sftpPort": "22",
+      "sambaHost": "fileserver.local",
+      "sambaShare": "backups",
+      "sambaPath": "/mcharbor",
+      "s3Bucket": "mcharbor-backups",
+      "s3Region": "eu-west-1",
+      "s3Endpoint": "https://s3.amazonaws.com",
+      "s3Path": "mcharbor/",
+      "cloudBasePath": "/McHarbor",
+      "sharepointUrl": "https://contoso.sharepoint.com/sites/backups"
+    }
   },
   "alerts": {
     "description": "Create alert rules with severity, target conditions, and one or more delivery destinations.",
@@ -859,6 +901,7 @@
     "activityLogPurgedVacuuming": "Activity log cleared ({{count}} events). Compacting database in the background...",
     "backupKeyGenerated": "Backup encryption key generated",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
+    "backupKeyInstallFailed": "Backup key install failed",
     "backupKeyCopied": "Backup encryption key copied",
     "backupKeySetupCopied": "Backup setup command copied",
     "copyFailed": "Could not copy to clipboard",

@@ -32,6 +32,7 @@
     "securityScans": "Sicherheitsscans"
   },
   "actions": {
+    "back": "Zurück",
     "cancel": "Abbrechen",
     "confirm": "Bestätigen",
     "remove": "Entfernen",
@@ -952,6 +953,19 @@
       "themeDarkDescription": "Nutze die dunkle McHarbor-Oberfl?che.",
       "themeSystemDescription": "Folge der Einstellung deines Browsers oder Betriebssystems.",
       "languageDescription": "Sprachaenderungen werden sofort angewendet und in Ihrem Benutzerprofil gespeichert."
+    }
+  },
+  "system": {
+    "menu": {
+      "restartMcHarbor": "McHarbor neu starten"
+    },
+    "restartDialog": {
+      "title": "McHarbor neu starten?",
+      "description": "McHarbor wird gestoppt und der Docker-Daemon startet einen neuen Container an seiner Stelle. Sie werden getrennt und müssen die Seite neu laden, sobald sie wieder online ist.",
+      "confirm": "Neu starten"
+    },
+    "toast": {
+      "restartScheduled": "McHarbor-Neustart geplant"
     }
   },
   "clipboard": {

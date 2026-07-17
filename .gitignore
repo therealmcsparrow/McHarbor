@@ -10,6 +10,7 @@ src/frontend/node_modules/
 src/frontend/dist/
 *.exe
 mcharbor
+.tools
 
 # Go
 src/backend/vendor/
@@ -59,3 +60,13 @@ website/*
 services/*
 backupagent.md
 backuplocal.md
+.tools/check_bk.py
+.tools/check_i18n.py
+.tools/fix_brace.py
+.tools/fix_dup_lifecycle.py
+.tools/fix_dup.py
+.tools/fix_i18n_all.py
+.tools/fix_i18n_complete.py
+.tools/insert_backup_i18n.py
+.tools/insert_lifecycle_i18n.py
+.tools/nest_lifecycle_i18n.py

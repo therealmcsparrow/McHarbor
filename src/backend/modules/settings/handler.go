@@ -433,7 +433,11 @@ func (h *Handler) HandleInstallBackupKey(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		var validationErr *ErrValidation
 		if errors.As(err, &validationErr) {
-			response.BadRequestCode(w, r, i18n.ErrInvalidBody)
+			code := validationErr.Code
+			if code == "" {
+				code = i18n.ErrInvalidBody
+			}
+			response.BadRequestCode(w, r, code)
 			return
 		}
 		h.app.Logger.Error("settings: backup key install failed", "error", err)

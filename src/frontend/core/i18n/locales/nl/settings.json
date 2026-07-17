@@ -599,8 +599,6 @@
     "driveIdLabel": "Drive-ID",
     "clientIdLabel": "Client-ID",
     "clientSecretLabel": "Client secret",
-    "refreshTokenLabel": "Refresh token",
-    "tokenLabel": "Token",
     "protocolLabel": "Protocol",
     "protocolFtp": "FTP - onbeveiligd TCP 21",
     "protocolFtpsExplicit": "FTPS expliciete TLS - TCP 21",
@@ -638,7 +636,6 @@
     "setupGuideTitle": "Installatiehulp voor {{provider}}",
     "setupGuideDescription": "Gebruik deze stappen om de provider voor te bereiden voordat u deze opslaglocatie opslaat.",
     "redirectUriLabel": "Geautoriseerde redirect-URI",
-    "saveAndConnectGoogle": "Opslaan en Google verbinden",
     "setupGuide": {
       "networkEndpoint": "Voer de opslaghost, poort en het bereikbare netwerkpad vanuit de McHarbor-container in.",
       "tlsEndpoint": "Gebruik een FTPS-server met een vertrouwd certificaat en TLS-listener.",
@@ -700,7 +697,52 @@
     "typeLocal": "Lokaal pad",
     "typeLocalDescription": "Sla bestanden op op een host-gemount pad dat beschikbaar is in de McHarbor-container.",
     "migrateBackups": "Back-ups migreren",
-    "migratingBackups": "Migreren..."
+    "migratingBackups": "Migreren...",
+    "test": {
+      "title": "Verbinding testen: {{name}}",
+      "description": "Stapsgewijze diagnostiek voor {{name}}.",
+      "running": "Test wordt uitgevoerd...",
+      "button": "Verbinding testen",
+      "overallStatus": "Algemene status",
+      "noSteps": "Er zijn geen teststappen uitgevoerd.",
+      "resultPass": "Geslaagd",
+      "resultFail": "Mislukt",
+      "resultWarn": "Waarschuwing",
+      "resultSkip": "Overgeslagen",
+      "status": {
+        "pass": "Geslaagd",
+        "fail": "Mislukt",
+        "warn": "Waarschuwing",
+        "skip": "Overgeslagen"
+      },
+      "steps": {
+        "credentials": "Referenties",
+        "transport": "Transport",
+        "write": "Schrijven",
+        "read": "Lezen",
+        "change": "Wijzigen",
+        "delete": "Verwijderen",
+        "cleanup": "Opruimen"
+      }
+    },
+    "examples": {
+      "localPath": "/mnt/backup",
+      "ftpHost": "ftp.example.com",
+      "ftpPort": "21",
+      "ftpsPort": "21 / 990",
+      "remoteBasePath": "/backups",
+      "sftpHost": "sftp.example.com",
+      "sftpPort": "22",
+      "sambaHost": "fileserver.local",
+      "sambaShare": "backups",
+      "sambaPath": "/mcharbor",
+      "s3Bucket": "mcharbor-backups",
+      "s3Region": "eu-west-1",
+      "s3Endpoint": "https://s3.amazonaws.com",
+      "s3Path": "mcharbor/",
+      "cloudBasePath": "/McHarbor",
+      "sharepointUrl": "https://contoso.sharepoint.com/sites/backups"
+    }
   },
   "alerts": {
     "description": "Maak waarschuwingsregels met ernst, doelcondities en een of meer bezorgbestemmingen.",
@@ -859,6 +901,7 @@
     "activityLogPurgedVacuuming": "Activiteitslogboek gewist ({{count}} gebeurtenissen). Database wordt op de achtergrond gecomprimeerd...",
     "backupKeyGenerated": "Back-upversleutelingssleutel gegenereerd",
     "backupKeyInstalled": "Back-upgeheim geinstalleerd; McHarbor-herstart gepland",
+    "backupKeyInstallFailed": "Installatie back-upsleutel mislukt",
     "backupKeyCopied": "Back-upversleutelingssleutel gekopieerd",
     "backupKeySetupCopied": "Back-upinstallatieopdracht gekopieerd",
     "copyFailed": "Kan niet naar klembord kopiëren",

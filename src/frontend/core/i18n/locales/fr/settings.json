@@ -594,8 +594,6 @@
     "driveIdLabel": "Drive ID",
     "clientIdLabel": "Client ID",
     "clientSecretLabel": "Client Secret",
-    "refreshTokenLabel": "Refresh Token",
-    "tokenLabel": "Token",
     "secretHint": "Laisser vide pour conserver le secret existant",
     "credentialsDescription": "Les champs d'identifiants sont chiffrés au repos et ne sont plus affichés après l'enregistrement.",
     "consentDescription": "Enregistrez cet emplacement, puis utilisez Connecter pour accorder le consentement du compte. McHarbor stocke les jetons retournés sous forme chiffrée.",
@@ -606,7 +604,6 @@
     "setupGuideTitle": "Guide de configuration {{provider}}",
     "setupGuideDescription": "Utilisez ces etapes pour preparer le fournisseur avant d'enregistrer cet emplacement de stockage.",
     "redirectUriLabel": "URI de redirection autorisee",
-    "saveAndConnectGoogle": "Enregistrer et connecter Google",
     "setupGuide": {
       "networkEndpoint": "Saisissez l'hote, le port et le chemin reseau accessibles depuis le conteneur McHarbor.",
       "tlsEndpoint": "Utilisez un serveur FTPS avec un certificat approuve et un listener TLS.",
@@ -700,7 +697,52 @@
     "typeLocal": "Chemin local",
     "typeLocalDescription": "Stockez les fichiers sur un chemin monte depuis l hote et disponible dans le conteneur McHarbor.",
     "migrateBackups": "Migrer les sauvegardes",
-    "migratingBackups": "Migration..."
+    "migratingBackups": "Migration...",
+    "test": {
+      "title": "Tester la connexion : {{name}}",
+      "description": "Diagnostic etape par etape pour {{name}}.",
+      "running": "Test en cours...",
+      "button": "Tester la connexion",
+      "overallStatus": "Etat global",
+      "noSteps": "Aucune etape de test n a ete executee.",
+      "resultPass": "Reussi",
+      "resultFail": "Echec",
+      "resultWarn": "Avertissement",
+      "resultSkip": "Ignore",
+      "status": {
+        "pass": "Reussi",
+        "fail": "Echec",
+        "warn": "Avertissement",
+        "skip": "Ignore"
+      },
+      "steps": {
+        "credentials": "Identifiants",
+        "transport": "Transport",
+        "write": "Ecriture",
+        "read": "Lecture",
+        "change": "Modification",
+        "delete": "Suppression",
+        "cleanup": "Nettoyage"
+      }
+    },
+    "examples": {
+      "localPath": "/mnt/backup",
+      "ftpHost": "ftp.example.com",
+      "ftpPort": "21",
+      "ftpsPort": "21 / 990",
+      "remoteBasePath": "/backups",
+      "sftpHost": "sftp.example.com",
+      "sftpPort": "22",
+      "sambaHost": "fileserver.local",
+      "sambaShare": "backups",
+      "sambaPath": "/mcharbor",
+      "s3Bucket": "mcharbor-backups",
+      "s3Region": "eu-west-1",
+      "s3Endpoint": "https://s3.amazonaws.com",
+      "s3Path": "mcharbor/",
+      "cloudBasePath": "/McHarbor",
+      "sharepointUrl": "https://contoso.sharepoint.com/sites/backups"
+    }
   },
   "alerts": {
     "description": "Créez des règles d'alerte avec la gravité, les conditions cibles et une ou plusieurs destinations de livraison.",
@@ -862,6 +904,7 @@
     "backupKeySetupCopied": "Commande de configuration des sauvegardes copiee",
     "copyFailed": "Impossible de copier dans le presse-papiers",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
+    "backupKeyInstallFailed": "L'installation de la clé de sauvegarde a échoué",
     "storageBackupsMigrated": "Sauvegardes migrees : {{migrated}} copiees, {{skipped}} ignorees, {{failed}} echouees",
     "storageBackupsMigrationFailed": "Echec de la migration des sauvegardes",
     "lifecycleLogPurged": "Journal du cycle de vie vidé ({{count}} événements)",

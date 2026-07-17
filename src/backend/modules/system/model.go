@@ -36,3 +36,13 @@ type OSUpdateApplyResult struct {
 	Output   string    `json:"output"`
 	RanAt    time.Time `json:"ranAt"`
 }
+
+// RestartResult describes the scheduled McHarbor self-restart. The
+// call returns as soon as the Docker restart request has been
+// queued; the actual container stop/start happens asynchronously
+// and the response shown to the user reflects the planned outcome.
+type RestartResult struct {
+	ContainerID   string    `json:"containerId"`
+	ContainerName string    `json:"containerName"`
+	ScheduledAt   time.Time `json:"scheduledAt"`
+}

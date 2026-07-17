@@ -114,7 +114,7 @@ export function StorageLocationFormFields({
             label={t("storage.localPathLabel")}
             value={data.basePath}
             onChange={(basePath) => onChange({ basePath })}
-            placeholder="/mnt/backup"
+            placeholder={t("storage.examples.localPath")}
             helper={t("storage.localPathHelper")}
           />
         </div>
@@ -179,7 +179,7 @@ export function StorageLocationFormFields({
             label={t("storage.hostLabel")}
             value={data.host}
             onChange={(host) => onChange({ host })}
-            placeholder="ftp.example.com"
+            placeholder={t("storage.examples.ftpHost")}
           />
           <Field
             id="storage-port"
@@ -187,7 +187,11 @@ export function StorageLocationFormFields({
             type="number"
             value={data.port ?? ""}
             onChange={(port) => onChange({ port: Number(port) || undefined })}
-            placeholder={data.locationType === "ftps" ? "21 / 990" : "21"}
+            placeholder={
+              data.locationType === "ftps"
+                ? t("storage.examples.ftpsPort")
+                : t("storage.examples.ftpPort")
+            }
             helper={
               data.locationType === "ftps"
                 ? t("storage.ftpsPortHint")
@@ -199,7 +203,7 @@ export function StorageLocationFormFields({
             label={t("storage.basePathLabel")}
             value={data.basePath}
             onChange={(basePath) => onChange({ basePath })}
-            placeholder="/backups"
+            placeholder={t("storage.examples.remoteBasePath")}
           />
           <Field
             id="storage-username"
@@ -303,7 +307,7 @@ export function StorageLocationFormFields({
             label={t("storage.hostLabel")}
             value={data.host}
             onChange={(host) => onChange({ host })}
-            placeholder="sftp.example.com"
+            placeholder={t("storage.examples.sftpHost")}
           />
           <Field
             id="storage-port"
@@ -311,7 +315,7 @@ export function StorageLocationFormFields({
             type="number"
             value={data.port ?? ""}
             onChange={(port) => onChange({ port: Number(port) || undefined })}
-            placeholder="22"
+            placeholder={t("storage.examples.sftpPort")}
             helper={t("storage.sftpPortHint")}
           />
           <Field
@@ -319,7 +323,7 @@ export function StorageLocationFormFields({
             label={t("storage.basePathLabel")}
             value={data.basePath}
             onChange={(basePath) => onChange({ basePath })}
-            placeholder="/backups"
+            placeholder={t("storage.examples.remoteBasePath")}
           />
           <Field
             id="storage-username"
@@ -373,14 +377,14 @@ export function StorageLocationFormFields({
           label={t("storage.hostLabel")}
           value={data.host}
           onChange={(host) => onChange({ host })}
-          placeholder="fileserver.local"
+          placeholder={t("storage.examples.sambaHost")}
         />
         <Field
           id="storage-share"
           label={t("storage.shareNameLabel")}
           value={data.shareName}
           onChange={(shareName) => onChange({ shareName })}
-          placeholder="backups"
+          placeholder={t("storage.examples.sambaShare")}
         />
         <Field
           id="storage-domain"
@@ -393,7 +397,7 @@ export function StorageLocationFormFields({
           label={t("storage.basePathLabel")}
           value={data.basePath}
           onChange={(basePath) => onChange({ basePath })}
-          placeholder="/mcharbor"
+          placeholder={t("storage.examples.sambaPath")}
         />
         <Field
           id="storage-username"
@@ -421,28 +425,28 @@ export function StorageLocationFormFields({
           label={t("storage.bucketLabel")}
           value={data.bucket}
           onChange={(bucket) => onChange({ bucket })}
-          placeholder="mcharbor-backups"
+          placeholder={t("storage.examples.s3Bucket")}
         />
         <Field
           id="storage-region"
           label={t("storage.regionLabel")}
           value={data.region}
           onChange={(region) => onChange({ region })}
-          placeholder="eu-west-1"
+          placeholder={t("storage.examples.s3Region")}
         />
         <Field
           id="storage-endpoint"
           label={t("storage.endpointLabel")}
           value={data.endpoint}
           onChange={(endpoint) => onChange({ endpoint })}
-          placeholder="https://s3.amazonaws.com"
+          placeholder={t("storage.examples.s3Endpoint")}
         />
         <Field
           id="storage-path"
           label={t("storage.basePathLabel")}
           value={data.basePath}
           onChange={(basePath) => onChange({ basePath })}
-          placeholder="mcharbor/"
+          placeholder={t("storage.examples.s3Path")}
         />
         <Field
           id="storage-access-key"
@@ -486,7 +490,7 @@ export function StorageLocationFormFields({
             label={t("storage.basePathLabel")}
             value={data.basePath}
             onChange={(basePath) => onChange({ basePath })}
-            placeholder="/McHarbor"
+            placeholder={t("storage.examples.cloudBasePath")}
           />
           <Field
             id="storage-client-id"
@@ -535,7 +539,7 @@ export function StorageLocationFormFields({
             label={t("storage.basePathLabel")}
             value={data.basePath}
             onChange={(basePath) => onChange({ basePath })}
-            placeholder="/McHarbor"
+            placeholder={t("storage.examples.cloudBasePath")}
           />
           <Field
             id="storage-client-id"
@@ -576,7 +580,7 @@ export function StorageLocationFormFields({
           label={t("storage.siteUrlLabel")}
           value={data.siteUrl}
           onChange={(siteUrl) => onChange({ siteUrl })}
-          placeholder="https://contoso.sharepoint.com/sites/backups"
+          placeholder={t("storage.examples.sharepointUrl")}
         />
         <Field
           id="storage-drive"
@@ -590,7 +594,7 @@ export function StorageLocationFormFields({
           label={t("storage.basePathLabel")}
           value={data.basePath}
           onChange={(basePath) => onChange({ basePath })}
-          placeholder="/McHarbor"
+          placeholder={t("storage.examples.cloudBasePath")}
         />
         <Field
           id="storage-client-id"

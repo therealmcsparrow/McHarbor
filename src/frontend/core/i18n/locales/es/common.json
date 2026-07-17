@@ -32,6 +32,7 @@
     "securityScans": "Escaneos de seguridad"
   },
   "actions": {
+    "back": "Atrás",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
     "remove": "Eliminar",
@@ -952,6 +953,19 @@
       "themeDarkDescription": "Usa la interfaz oscura de McHarbor.",
       "themeSystemDescription": "Sigue la configuraci?n del navegador o del sistema operativo.",
       "languageDescription": "Los cambios de idioma se aplican de inmediato y se guardan en tu perfil de usuario."
+    }
+  },
+  "system": {
+    "menu": {
+      "restartMcHarbor": "Reiniciar McHarbor"
+    },
+    "restartDialog": {
+      "title": "¿Reiniciar McHarbor?",
+      "description": "McHarbor se detendrá y el demonio de Docker iniciará un nuevo contenedor en su lugar. Se desconectará y deberá recargar la página cuando vuelva a estar en línea.",
+      "confirm": "Reiniciar"
+    },
+    "toast": {
+      "restartScheduled": "Reinicio de McHarbor programado"
     }
   },
   "clipboard": {

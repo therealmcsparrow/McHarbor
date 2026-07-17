@@ -32,6 +32,7 @@
     "securityScans": "Security scans"
   },
   "actions": {
+    "back": "Back",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "remove": "Remove",
@@ -952,6 +953,19 @@
       "themeDarkDescription": "Use the dark-first McHarbor interface.",
       "themeSystemDescription": "Follow your browser or operating system setting.",
       "languageDescription": "Language changes apply immediately and are saved to your user profile."
+    }
+  },
+  "system": {
+    "menu": {
+      "restartMcHarbor": "Restart McHarbor"
+    },
+    "restartDialog": {
+      "title": "Restart McHarbor?",
+      "description": "McHarbor will stop and the Docker daemon will start a new container in its place. You will be disconnected and need to reload the page after it comes back online.",
+      "confirm": "Restart"
+    },
+    "toast": {
+      "restartScheduled": "McHarbor restart scheduled"
     }
   },
   "clipboard": {

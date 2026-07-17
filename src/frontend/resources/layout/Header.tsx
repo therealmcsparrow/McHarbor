@@ -2,17 +2,27 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { lazy, Suspense } from 'react';
-import { IconLogout, IconSearch, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconInfoCircle, IconUserCircle } from '@tabler/icons-react';
+import { IconLogout, IconSearch, IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand, IconInfoCircle, IconUserCircle, IconRefresh } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { useAuth } from '@core/auth/useAuth';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@core/api/client';
+import { api, type ApiResponse } from '@core/api/client';
+import { assertSuccess } from '@resources/utils/api-mutation';
+import {
+  SYSTEM_RESTART_PERMISSION,
+  hasPermission,
+  useCurrentUserPermissions,
+  type SystemRestartResponse,
+} from '@core/auth/useCurrentUserPermissions';
 import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useSidebarStore } from '@resources/stores/sidebar';
 import { Button } from '@resources/components/ui/Button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@resources/components/ui/Tooltip';
+import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 
 const GlobalSearch = lazy(() => import('@resources/components/GlobalSearch').then((module) => ({ default: module.GlobalSearch })));
 const ContainerOverview = lazy(() => import('@resources/components/ContainerOverview').then((module) => ({ default: module.ContainerOverview })));
@@ -78,12 +88,38 @@ export function Header() {
   });
 
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchOpen, setSearchOpen] = useState(false);
   const [containerOverviewOpen, setContainerOverviewOpen] = useState(false);
   const [imageOverviewOpen, setImageOverviewOpen] = useState(false);
   const [volumeOverviewOpen, setVolumeOverviewOpen] = useState(false);
   const [stackOverviewOpen, setStackOverviewOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [restartOpen, setRestartOpen] = useState(false);
+  const userPermissions = useCurrentUserPermissions(!!user);
+  const canRestartMcHarbor = hasPermission(userPermissions.data, SYSTEM_RESTART_PERMISSION);
+
+  const restartMcHarbor = useMutation({
+    mutationFn: () =>
+      api
+        .post<SystemRestartResponse>('/system/restart')
+        .then((res: ApiResponse<SystemRestartResponse>) => {
+          if (!res.success) {
+            throw new Error(res.error ?? 'restart failed');
+          }
+          return assertSuccess(res);
+        }),
+    onSuccess: (data) => {
+      const message = data?.message ?? t('system.toast.restartScheduled');
+      toast.success(message);
+      setRestartOpen(false);
+      setMenuOpen(false);
+      void queryClient.invalidateQueries();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -274,6 +310,18 @@ export function Header() {
                     <IconInfoCircle className="size-4 text-muted-foreground" />
                     <span>{t('about.menuItem')}</span>
                   </Button>
+                  {canRestartMcHarbor && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => { setMenuOpen(false); setRestartOpen(true); }}
+                      className="w-full justify-start rounded-none px-3 py-1.5 text-sm"
+                      data-testid="restart-mcharbor-menu-item"
+                    >
+                      <IconRefresh className="size-4 text-muted-foreground" />
+                      <span>{t('system.menu.restartMcHarbor')}</span>
+                    </Button>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"
@@ -289,6 +337,25 @@ export function Header() {
           )}
         </div>
       </header>
+
+      <ConfirmDialog
+        open={restartOpen}
+        onOpenChange={(open) => {
+          setRestartOpen(open);
+          if (!open && restartMcHarbor.isPending) {
+            // Keep the spinner visible if a restart is already in flight.
+            return;
+          }
+        }}
+        title={t('system.restartDialog.title')}
+        description={t('system.restartDialog.description')}
+        confirmLabel={t('system.restartDialog.confirm')}
+        variant="destructive"
+        loading={restartMcHarbor.isPending}
+        onConfirm={() => {
+          restartMcHarbor.mutate();
+        }}
+      />
 
       {searchOpen && (
         <Suspense fallback={null}>

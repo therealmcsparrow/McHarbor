@@ -293,6 +293,8 @@ var messagesEN = map[MsgCode]string{
 	ErrSettingsNoSettings:       "No settings provided",
 	ErrSettingsTLSInvalid:       "Invalid certificate or private key",
 	ErrSettingsTLSPairReq:       "Both certificate and key must be provided together",
+	ErrSettingsBackupKeyInvalid:      "A chave de backup deve ser um valor base64 de 32 bytes",
+	ErrSettingsComposeProjectMissing: "Caminho do projeto Compose do McHarbor não encontrado; a instalação de mcharbor_backup_key requer os rótulos Compose",
 	MsgSettingsUpdated:          "Settings updated",
 	MsgAgentSettingsUpdated:     "Agent settings updated",
 	ErrAgentSettingsInvalid:     "Invalid agent settings",
@@ -461,6 +463,12 @@ var messagesEN = map[MsgCode]string{
 
 	// RBAC
 	ErrRBACPermissionDenied: "You do not have permission to perform this action",
+
+	// System
+	ErrSystemRestartNotScheduled:  "Restart was not scheduled",
+	ErrSystemRestartInspectFailed: "Failed to inspect the McHarbor container before scheduling restart",
+	ErrSystemRestartNotLocal:      "Restart is only supported when McHarbor runs as a local Docker container",
+	MsgSystemRestartScheduled:     "McHarbor restart scheduled",
 
 	// Roles
 	ErrRoleNotFound:     "Role not found",
@@ -879,6 +887,8 @@ var messagesNL = map[MsgCode]string{
 	ErrSettingsUpdateFailed:     "Kan instellingen niet bijwerken",
 	ErrSettingsNoSettings:       "Geen instellingen opgegeven",
 	ErrSettingsTLSInvalid:       "Ongeldig certificaat of priv\u00e9sleutel",
+	ErrSettingsBackupKeyInvalid:      "Back-upsleutel moet een base64-gecodeerde 32-byte waarde zijn",
+	ErrSettingsComposeProjectMissing: "McHarbor compose-projectpad is niet gevonden; de installatie van mcharbor_backup_key vereist de Compose-labels",
 	ErrSettingsTLSPairReq:       "Certificaat en sleutel moeten samen worden opgegeven",
 	MsgSettingsUpdated:          "Instellingen bijgewerkt",
 	MsgAgentSettingsUpdated:     "Agent-instellingen bijgewerkt",
@@ -1048,6 +1058,12 @@ var messagesNL = map[MsgCode]string{
 
 	// RBAC
 	ErrRBACPermissionDenied: "U heeft geen toestemming om deze actie uit te voeren",
+
+	// System
+	ErrSystemRestartNotScheduled:  "Herstart is niet ingepland",
+	ErrSystemRestartInspectFailed: "Kan de McHarbor-container niet inspecteren voordat de herstart wordt ingepland",
+	ErrSystemRestartNotLocal:      "Herstart wordt alleen ondersteund wanneer McHarbor als lokale Docker-container draait",
+	MsgSystemRestartScheduled:     "McHarbor-herstart ingepland",
 
 	// Roles
 	ErrRoleNotFound:     "Rol niet gevonden",
@@ -1466,6 +1482,8 @@ var messagesDE = map[MsgCode]string{
 	ErrSettingsUpdateFailed:     "Einstellungen konnten nicht aktualisiert werden",
 	ErrSettingsNoSettings:       "Keine Einstellungen angegeben",
 	ErrSettingsTLSInvalid:       "Ung\u00fcltiges Zertifikat oder privater Schl\u00fcssel",
+	ErrSettingsBackupKeyInvalid:      "Backup-SchlÃ¼ssel muss ein Base64-codierter 32-Byte-Wert sein",
+	ErrSettingsComposeProjectMissing: "McHarbor-Compose-Projektpfad wurde nicht gefunden; die Installation von mcharbor_backup_key erfordert die Compose-Labels",
 	ErrSettingsTLSPairReq:       "Zertifikat und Schl\u00fcssel m\u00fcssen zusammen angegeben werden",
 	MsgSettingsUpdated:          "Einstellungen aktualisiert",
 	MsgAgentSettingsUpdated:     "Agent-Einstellungen aktualisiert",
@@ -1635,6 +1653,12 @@ var messagesDE = map[MsgCode]string{
 
 	// RBAC
 	ErrRBACPermissionDenied: "Sie haben keine Berechtigung, diese Aktion auszufÃ¼hren",
+
+	// System
+	ErrSystemRestartNotScheduled:  "Neustart wurde nicht geplant",
+	ErrSystemRestartInspectFailed: "Der McHarbor-Container konnte vor dem Neustart nicht inspiziert werden",
+	ErrSystemRestartNotLocal:      "Neustart wird nur unterstÃ¼tzt, wenn McHarbor als lokaler Docker-Container lÃ¤uft",
+	MsgSystemRestartScheduled:     "McHarbor-Neustart geplant",
 
 	// Roles
 	ErrRoleNotFound:     "Rolle nicht gefunden",
@@ -2052,6 +2076,8 @@ var messagesES = map[MsgCode]string{
 	ErrSettingsUpdateFailed:     "No se pudo actualizar la configuraciÃ³n",
 	ErrSettingsNoSettings:       "No se proporcionan configuraciones",
 	ErrSettingsTLSInvalid:       "Certificado o clave privada no vÃ¡lida",
+	ErrSettingsBackupKeyInvalid:      "La clave de copia de seguridad debe ser un valor base64 de 32 bytes",
+	ErrSettingsComposeProjectMissing: "No se encontró la ruta del proyecto Compose de McHarbor; la instalación de mcharbor_backup_key requiere las etiquetas de Compose",
 	ErrSettingsTLSPairReq:       "Tanto el certificado como la clave deben proporcionarse juntos.",
 	MsgSettingsUpdated:          "Configuraciones actualizadas",
 	MsgAgentSettingsUpdated:     "ConfiguraciÃ³n del agente actualizada",
@@ -2221,6 +2247,12 @@ var messagesES = map[MsgCode]string{
 
 	// RBAC
 	ErrRBACPermissionDenied: "No tienes permiso para realizar esta acciÃ³n",
+
+	// System
+	ErrSystemRestartNotScheduled:  "El reinicio no fue programado",
+	ErrSystemRestartInspectFailed: "No se pudo inspeccionar el contenedor de McHarbor antes de programar el reinicio",
+	ErrSystemRestartNotLocal:      "El reinicio solo es compatible cuando McHarbor se ejecuta como un contenedor Docker local",
+	MsgSystemRestartScheduled:     "Reinicio de McHarbor programado",
 
 	// Roles
 	ErrRoleNotFound:     "Rol no encontrado",
@@ -2638,6 +2670,8 @@ var messagesFR = map[MsgCode]string{
 	ErrSettingsUpdateFailed:     "Ã‰chec de la mise Ã  jour des paramÃ¨tres",
 	ErrSettingsNoSettings:       "Aucun paramÃ¨tre fourni",
 	ErrSettingsTLSInvalid:       "Certificat ou clÃ© privÃ©e invalide",
+	ErrSettingsBackupKeyInvalid:      "La clé de sauvegarde doit être une valeur de 32 octets encodée en base64",
+	ErrSettingsComposeProjectMissing: "Le chemin du projet Compose de McHarbor n'a pas été trouvé ; l'installation de mcharbor_backup_key nécessite les labels Compose",
 	ErrSettingsTLSPairReq:       "Le certificat et la clÃ© doivent Ãªtre fournis ensemble",
 	MsgSettingsUpdated:          "ParamÃ¨tres mis Ã  jour",
 	MsgAgentSettingsUpdated:     "ParamÃ¨tres de l'agent mis Ã  jour",
@@ -2807,6 +2841,12 @@ var messagesFR = map[MsgCode]string{
 
 	// RBAC
 	ErrRBACPermissionDenied: "Vous n'Ãªtes pas autorisÃ© Ã  effectuer cette action",
+
+	// System
+	ErrSystemRestartNotScheduled:  "Le redÃ©marrage n'a pas Ã©tÃ© planifiÃ©",
+	ErrSystemRestartInspectFailed: "Impossible d'inspecter le conteneur McHarbor avant de planifier le redÃ©marrage",
+	ErrSystemRestartNotLocal:      "Le redÃ©marrage n'est pris en charge que lorsque McHarbor s'exÃ©cute en tant que conteneur Docker local",
+	MsgSystemRestartScheduled:     "RedÃ©marrage de McHarbor planifiÃ©",
 
 	// Roles
 	ErrRoleNotFound:     "RÃ´le introuvable",
@@ -3224,6 +3264,8 @@ var messagesPT = map[MsgCode]string{
 	ErrSettingsUpdateFailed:     "Falha ao atualizar as configuraÃ§Ãµes",
 	ErrSettingsNoSettings:       "Nenhuma configuraÃ§Ã£o fornecida",
 	ErrSettingsTLSInvalid:       "Certificado ou chave privada invÃ¡lida",
+	ErrSettingsBackupKeyInvalid:      "A chave de backup deve ser um valor base64 de 32 bytes",
+	ErrSettingsComposeProjectMissing: "Caminho do projeto Compose do McHarbor não encontrado; a instalação de mcharbor_backup_key requer os rótulos Compose",
 	ErrSettingsTLSPairReq:       "O certificado e a chave devem ser fornecidos juntos",
 	MsgSettingsUpdated:          "ConfiguraÃ§Ãµes atualizadas",
 	MsgAgentSettingsUpdated:     "ConfiguraÃ§Ãµes do agente atualizadas",
@@ -3393,6 +3435,12 @@ var messagesPT = map[MsgCode]string{
 
 	// RBAC
 	ErrRBACPermissionDenied: "VocÃª nÃ£o tem permissÃ£o para realizar esta aÃ§Ã£o",
+
+	// System
+	ErrSystemRestartNotScheduled:  "O reinÃ­cio nÃ£o foi agendado",
+	ErrSystemRestartInspectFailed: "Falha ao inspecionar o contÃªiner do McHarbor antes de agendar o reinÃ­cio",
+	ErrSystemRestartNotLocal:      "O reinÃ­cio sÃ³ Ã© compatÃ­vel quando o McHarbor roda como contÃªiner Docker local",
+	MsgSystemRestartScheduled:     "ReinÃ­cio do McHarbor agendado",
 
 	// Roles
 	ErrRoleNotFound:     "FunÃ§Ã£o nÃ£o encontrada",

@@ -599,8 +599,6 @@
     "driveIdLabel": "Drive-ID",
     "clientIdLabel": "Client-ID",
     "clientSecretLabel": "Client Secret",
-    "refreshTokenLabel": "Refresh Token",
-    "tokenLabel": "Token",
     "protocolLabel": "Protokoll",
     "protocolFtp": "FTP - unverschluesselt TCP 21",
     "protocolFtpsExplicit": "FTPS explizites TLS - TCP 21",
@@ -638,7 +636,6 @@
     "setupGuideTitle": "Einrichtungsanleitung fuer {{provider}}",
     "setupGuideDescription": "Verwenden Sie diese Schritte, um den Anbieter vor dem Speichern dieses Speicherorts vorzubereiten.",
     "redirectUriLabel": "Autorisierte Redirect-URI",
-    "saveAndConnectGoogle": "Speichern und Google verbinden",
     "setupGuide": {
       "networkEndpoint": "Geben Sie Speicher-Host, Port und den vom McHarbor-Container erreichbaren Netzwerkpfad ein.",
       "tlsEndpoint": "Verwenden Sie einen FTPS-Server mit vertrauenswuerdigem Zertifikat und TLS-Listener.",
@@ -700,7 +697,52 @@
     "typeLocal": "Lokaler Pfad",
     "typeLocalDescription": "Dateien in einem Host-Mount speichern, der im McHarbor-Container verfuegbar ist.",
     "migrateBackups": "Backups migrieren",
-    "migratingBackups": "Migrieren..."
+    "migratingBackups": "Migrieren...",
+    "test": {
+      "title": "Verbindung testen: {{name}}",
+      "description": "Schritt-fuer-Schritt-Diagnose fuer {{name}}.",
+      "running": "Test laeuft...",
+      "button": "Verbindung testen",
+      "overallStatus": "Gesamtstatus",
+      "noSteps": "Es wurden keine Testschritte ausgefuehrt.",
+      "resultPass": "Erfolgreich",
+      "resultFail": "Fehlgeschlagen",
+      "resultWarn": "Warnung",
+      "resultSkip": "Uebersprungen",
+      "status": {
+        "pass": "Erfolgreich",
+        "fail": "Fehlgeschlagen",
+        "warn": "Warnung",
+        "skip": "Uebersprungen"
+      },
+      "steps": {
+        "credentials": "Anmeldedaten",
+        "transport": "Transport",
+        "write": "Schreiben",
+        "read": "Lesen",
+        "change": "Aendern",
+        "delete": "Loeschen",
+        "cleanup": "Aufraeumen"
+      }
+    },
+    "examples": {
+      "localPath": "/mnt/backup",
+      "ftpHost": "ftp.example.com",
+      "ftpPort": "21",
+      "ftpsPort": "21 / 990",
+      "remoteBasePath": "/backups",
+      "sftpHost": "sftp.example.com",
+      "sftpPort": "22",
+      "sambaHost": "fileserver.local",
+      "sambaShare": "backups",
+      "sambaPath": "/mcharbor",
+      "s3Bucket": "mcharbor-backups",
+      "s3Region": "eu-west-1",
+      "s3Endpoint": "https://s3.amazonaws.com",
+      "s3Path": "mcharbor/",
+      "cloudBasePath": "/McHarbor",
+      "sharepointUrl": "https://contoso.sharepoint.com/sites/backups"
+    }
   },
   "alerts": {
     "description": "Erstellen Sie Warnungsregeln mit Schweregrad, Zielbedingungen und einem oder mehreren Zustellzielen.",
@@ -859,6 +901,7 @@
     "activityLogPurgedVacuuming": "Aktivitäts-Log gelöscht ({{count}} Ereignisse). Datenbank wird im Hintergrund komprimiert...",
     "backupKeyGenerated": "Backup-Verschluesselungsschluessel generiert",
     "backupKeyInstalled": "Backup-Secret installiert; McHarbor-Neustart geplant",
+    "backupKeyInstallFailed": "Installation des Backup-SchlÃ¼ssel fehlgeschlagen",
     "backupKeyCopied": "Backup-Verschluesselungsschluessel kopiert",
     "backupKeySetupCopied": "Backup-Einrichtungsbefehl kopiert",
     "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",

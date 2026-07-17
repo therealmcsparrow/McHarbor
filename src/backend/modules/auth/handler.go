@@ -143,6 +143,54 @@ func (h *Handler) HandleSession(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, user)
 }
 
+// HandleMyPermissions returns the effective permissions granted to the
+// current authenticated user across every environment. The list is
+// the union of the user's direct role assignments and the role
+// assignments inherited via group membership. A permission set
+// containing the wildcard "*" grants access to every action.
+//
+// The frontend uses this to gate UI affordances (e.g. the
+// "Restart McHarbor" avatar-menu item) without making speculative
+// requests; the server still enforces every check via the
+// rbac.RequirePermission middleware on each endpoint.
+func (h *Handler) HandleMyPermissions(w http.ResponseWriter, r *http.Request) {
+	user := auth.UserFromContext(r.Context())
+	if user == nil {
+		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	perms, err := h.app.RBACService.EffectivePermissions(user.ID, "")
+	if err != nil {
+		h.app.Logger.Error("auth: my permissions lookup failed", "userId", user.ID, "error", err)
+		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
+		return
+	}
+
+	// Surface the wildcard explicitly so the frontend can short-circuit
+	// permission checks without listing every known permission.
+	hasWildcard := false
+	for _, p := range perms {
+		if string(p) == "*" {
+			hasWildcard = true
+			break
+		}
+	}
+
+	values := make([]string, len(perms))
+	for i, p := range perms {
+		values[i] = string(p)
+	}
+
+	response.OK(w, struct {
+		Permissions []string `json:"permissions"`
+		Wildcard    bool     `json:"wildcard"`
+	}{
+		Permissions: values,
+		Wildcard:    hasWildcard,
+	})
+}
+
 // HandleUpdatePreferences updates per-user preferences for the current
 // authenticated user. The request may include any subset of
 // {preferredLanguage, timeFormat, dateFormat}; absent fields are

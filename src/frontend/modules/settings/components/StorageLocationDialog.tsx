@@ -99,6 +99,7 @@ export function StorageLocationDialog({
   location,
 }: StorageLocationDialogProps) {
   const { t } = useTranslation("settings");
+  const { t: tc } = useTranslation("common");
   const [step, setStep] = useState<"type" | "config">("type");
   const [form, setForm] = useState<StorageLocationInput>(DEFAULT_FORM);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -317,11 +318,11 @@ export function StorageLocationDialog({
             <div className="flex flex-wrap items-center justify-end gap-2">
               {!isEdit && (
                 <Button variant="outline" onClick={handleBack}>
-                  {t("common:back", "Back")}
+                  {tc("actions.back")}
                 </Button>
               )}
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
-                {t("common:cancel", "Cancel")}
+                {tc("actions.cancel")}
               </Button>
               {canSaveAndConnect && (
                 <Button
@@ -330,14 +331,14 @@ export function StorageLocationDialog({
                   disabled={!valid || saving}
                 >
                   <IconExternalLink className="size-4" />
-                  {saving ? "..." : t("storage.saveAndConnect")}
+                  {saving ? tc("actions.processing") : t("storage.saveAndConnect")}
                 </Button>
               )}
               <Button
                 onClick={() => handleSave(false)}
                 disabled={!valid || saving}
               >
-                {saving ? "..." : t("common:save", "Save")}
+                {saving ? tc("actions.processing") : tc("actions.save")}
               </Button>
             </div>
           </DialogFooter>

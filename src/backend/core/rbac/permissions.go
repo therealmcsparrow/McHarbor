@@ -151,6 +151,13 @@ const (
 	PermHostManage Permission = "host.manage"
 )
 
+// --- System ---
+// PermSystemManage covers self-management actions on the McHarbor
+// application itself (restart, stop, future install hooks). The
+// Admin system role holds it via the wildcard; custom roles must
+// be granted it explicitly.
+const PermSystemManage Permission = "system.manage"
+
 // AllPermissions is the complete list of permissions for UI display.
 var AllPermissions = []Permission{
 	PermContainersView, PermContainersManage, PermContainersDelete,
@@ -177,4 +184,5 @@ var AllPermissions = []Permission{
 	PermNamespacesView,
 	PermScansView, PermScansManage,
 	PermHostView, PermHostManage,
+	PermSystemManage,
 }

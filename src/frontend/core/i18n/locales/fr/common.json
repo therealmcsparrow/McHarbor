@@ -32,6 +32,7 @@
     "securityScans": "Analyses de sécurité"
   },
   "actions": {
+    "back": "Retour",
     "cancel": "Annuler",
     "confirm": "Confirmer",
     "remove": "Retirer",
@@ -952,6 +953,19 @@
       "themeDarkDescription": "Utilisez l'interface sombre de McHarbor.",
       "themeSystemDescription": "Suivez le r?glage du navigateur ou du syst?me d'exploitation.",
       "languageDescription": "Les changements de langue sont appliques immediatement et enregistres dans votre profil utilisateur."
+    }
+  },
+  "system": {
+    "menu": {
+      "restartMcHarbor": "Redémarrer McHarbor"
+    },
+    "restartDialog": {
+      "title": "Redémarrer McHarbor ?",
+      "description": "McHarbor va s'arrêter et le daemon Docker démarrera un nouveau conteneur à sa place. Vous serez déconnecté et devrez recharger la page une fois qu'elle sera de nouveau en ligne.",
+      "confirm": "Redémarrer"
+    },
+    "toast": {
+      "restartScheduled": "Redémarrage de McHarbor planifié"
     }
   },
   "clipboard": {

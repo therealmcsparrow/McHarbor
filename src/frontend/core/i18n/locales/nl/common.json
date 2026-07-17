@@ -32,6 +32,7 @@
     "securityScans": "Beveiligingsscans"
   },
   "actions": {
+    "back": "Terug",
     "cancel": "Annuleren",
     "confirm": "Bevestigen",
     "remove": "Verwijderen",
@@ -952,6 +953,19 @@
       "themeDarkDescription": "Gebruik de donkere McHarbor-interface.",
       "themeSystemDescription": "Volg de instelling van je browser of besturingssysteem.",
       "languageDescription": "Taalwijzigingen worden direct toegepast en opgeslagen in je gebruikersprofiel."
+    }
+  },
+  "system": {
+    "menu": {
+      "restartMcHarbor": "McHarbor herstarten"
+    },
+    "restartDialog": {
+      "title": "McHarbor herstarten?",
+      "description": "McHarbor stopt en de Docker-daemon start een nieuwe container op zijn plaats. Je wordt verbroken en moet de pagina herladen zodra deze weer online is.",
+      "confirm": "Herstarten"
+    },
+    "toast": {
+      "restartScheduled": "McHarbor-herstart ingepland"
     }
   },
   "clipboard": {

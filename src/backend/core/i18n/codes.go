@@ -299,6 +299,8 @@ const (
 	ErrSettingsNoSettings       MsgCode = "err.settings.no_settings"
 	ErrSettingsTLSInvalid       MsgCode = "err.settings.tls_invalid"
 	ErrSettingsTLSPairReq       MsgCode = "err.settings.tls_pair_required"
+	ErrSettingsBackupKeyInvalid MsgCode = "err.settings.backup_key_invalid"
+	ErrSettingsComposeProjectMissing MsgCode = "err.settings.compose_project_missing"
 	MsgSettingsUpdated          MsgCode = "msg.settings.updated"
 	MsgAgentSettingsUpdated     MsgCode = "msg.agent_settings.updated"
 	ErrAgentSettingsInvalid     MsgCode = "err.agent_settings.invalid"
@@ -505,6 +507,17 @@ const (
 // --- RBAC ---
 const (
 	ErrRBACPermissionDenied MsgCode = "err.rbac.permission_denied"
+)
+
+// --- System ---
+// Codes for self-management actions on the McHarbor application
+// (restart, future install / uninstall hooks). The endpoint that
+// schedules a restart lives in modules/system.
+const (
+	ErrSystemRestartNotScheduled MsgCode = "err.system.restart_not_scheduled"
+	ErrSystemRestartInspectFailed MsgCode = "err.system.restart_inspect_failed"
+	ErrSystemRestartNotLocal      MsgCode = "err.system.restart_not_local"
+	MsgSystemRestartScheduled     MsgCode = "msg.system.restart_scheduled"
 )
 
 // --- Roles ---

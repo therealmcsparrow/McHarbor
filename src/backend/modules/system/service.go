@@ -14,6 +14,7 @@ import (
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
+	"github.com/docker/docker/client"
 	dockerclient "github.com/docker/docker/client"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
@@ -452,4 +453,68 @@ func outputLines(output string) []string {
 		lines = append(lines, line)
 	}
 	return lines
+}
+
+// ErrRestartNotLocal is returned when RestartSelf is invoked while
+// the McHarbor container cannot be reached via the local Docker
+// socket (e.g. a remote agent is the registered environment).
+var ErrRestartNotLocal = errors.New("mcharbor self-restart requires a local Docker socket")
+
+// RestartSelf schedules a restart of the running McHarbor container
+// through the local Docker socket. It returns ErrRestartNotLocal if
+// no local Docker socket is reachable.
+//
+// The restart is fired in a background goroutine after a short delay
+// so the HTTP response is delivered to the caller before the
+// container is stopped. The Docker daemon handles the actual
+// restart independently of this process: even when the McHarbor
+// process is killed, the daemon will start the container again.
+func (s *Service) RestartSelf(ctx context.Context) (RestartResult, error) {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return RestartResult{}, fmt.Errorf("creating local docker client: %w", err)
+	}
+	defer cli.Close()
+
+	inspectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	current, err := coredocker.CurrentMcHarborContainer(inspectCtx, cli)
+	if err != nil {
+		return RestartResult{}, fmt.Errorf("inspecting current mcharbor container: %w", err)
+	}
+
+	name := ""
+	if current.Name != "" {
+		name = strings.TrimPrefix(current.Name, "/")
+	}
+
+	scheduled := time.Now().UTC()
+
+	// Brief delay gives the HTTP handler time to flush the
+	// response and the API client time to surface the success
+	// toast before the connection dies with the container stop.
+	go func() {
+		bgCtx, bgCancel := context.WithTimeout(context.Background(), 60*time.Second)
+		defer bgCancel()
+
+		delay := time.NewTimer(2 * time.Second)
+		select {
+		case <-delay.C:
+		case <-bgCtx.Done():
+			delay.Stop()
+			return
+		}
+
+		timeout := 15
+		if err := cli.ContainerRestart(bgCtx, current.ID, container.StopOptions{Timeout: &timeout}); err != nil {
+			s.logger.Error("system: mcharbor self-restart failed", "id", current.ID, "error", err)
+		}
+	}()
+
+	return RestartResult{
+		ContainerID:   current.ID,
+		ContainerName: name,
+		ScheduledAt:   scheduled,
+	}, nil
 }

@@ -20,6 +20,7 @@ func Mount(app *router.AppDeps) {
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermLogsView)).Get("/os-logs", h.HandleOSLogs)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsView)).Get("/os-updates/check", h.HandleOSUpdateCheck)
 			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSettingsManage)).Post("/os-updates/apply", h.HandleOSUpdateApply)
+			r.With(rbac.RequirePermission(app.RBACService, rbac.PermSystemManage)).Post("/restart", h.HandleRestart)
 		})
 	})
 }

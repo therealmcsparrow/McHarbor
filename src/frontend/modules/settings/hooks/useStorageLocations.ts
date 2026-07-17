@@ -282,7 +282,10 @@ export function useInstallBackupEncryptionKey() {
           { key },
         )
         .then(assertSuccess),
-    meta: { success: () => t("toast.backupKeyInstalled") },
+    meta: {
+      success: () => t("toast.backupKeyInstalled"),
+      error: (err: Error) => err.message || t("toast.backupKeyInstallFailed"),
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["backup-encryption-key-status"],

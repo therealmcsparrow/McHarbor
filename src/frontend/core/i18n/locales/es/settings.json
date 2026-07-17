@@ -594,8 +594,6 @@
     "driveIdLabel": "Drive ID",
     "clientIdLabel": "Client ID",
     "clientSecretLabel": "Client Secret",
-    "refreshTokenLabel": "Refresh Token",
-    "tokenLabel": "Token",
     "secretHint": "Dejar vacío para conservar el secreto existente",
     "credentialsDescription": "Los campos de credenciales se cifran en reposo y no se vuelven a mostrar después de guardar.",
     "consentDescription": "Guarda esta ubicación y después usa Conectar para conceder consentimiento de cuenta. McHarbor almacena cifrados los tokens devueltos.",
@@ -606,7 +604,6 @@
     "setupGuideTitle": "Guia de configuracion de {{provider}}",
     "setupGuideDescription": "Use estos pasos para preparar el proveedor antes de guardar esta ubicacion de almacenamiento.",
     "redirectUriLabel": "URI de redireccion autorizada",
-    "saveAndConnectGoogle": "Guardar y conectar Google",
     "setupGuide": {
       "networkEndpoint": "Ingrese el host, puerto y ruta de red accesible desde el contenedor de McHarbor.",
       "tlsEndpoint": "Use un servidor FTPS con un certificado confiable y listener TLS.",
@@ -700,7 +697,52 @@
     "typeLocal": "Ruta local",
     "typeLocalDescription": "Almacene archivos en una ruta montada del host disponible para el contenedor de McHarbor.",
     "migrateBackups": "Migrar copias",
-    "migratingBackups": "Migrando..."
+    "migratingBackups": "Migrando...",
+    "test": {
+      "title": "Probar conexion: {{name}}",
+      "description": "Diagnostico paso a paso para {{name}}.",
+      "running": "Ejecutando prueba...",
+      "button": "Probar conexion",
+      "overallStatus": "Estado general",
+      "noSteps": "No se ejecutaron pasos de prueba.",
+      "resultPass": "Aprobado",
+      "resultFail": "Fallido",
+      "resultWarn": "Advertencia",
+      "resultSkip": "Omitido",
+      "status": {
+        "pass": "Aprobado",
+        "fail": "Fallido",
+        "warn": "Advertencia",
+        "skip": "Omitido"
+      },
+      "steps": {
+        "credentials": "Credenciales",
+        "transport": "Transporte",
+        "write": "Escribir",
+        "read": "Leer",
+        "change": "Cambiar",
+        "delete": "Eliminar",
+        "cleanup": "Limpieza"
+      }
+    },
+    "examples": {
+      "localPath": "/mnt/backup",
+      "ftpHost": "ftp.example.com",
+      "ftpPort": "21",
+      "ftpsPort": "21 / 990",
+      "remoteBasePath": "/backups",
+      "sftpHost": "sftp.example.com",
+      "sftpPort": "22",
+      "sambaHost": "fileserver.local",
+      "sambaShare": "backups",
+      "sambaPath": "/mcharbor",
+      "s3Bucket": "mcharbor-backups",
+      "s3Region": "eu-west-1",
+      "s3Endpoint": "https://s3.amazonaws.com",
+      "s3Path": "mcharbor/",
+      "cloudBasePath": "/McHarbor",
+      "sharepointUrl": "https://contoso.sharepoint.com/sites/backups"
+    }
   },
   "alerts": {
     "description": "Cree reglas de alerta con gravedad, condiciones objetivo y uno o más destinos de entrega.",
@@ -862,6 +904,7 @@
     "backupKeySetupCopied": "Comando de preparacion de copias copiado",
     "copyFailed": "No se pudo copiar al portapapeles",
     "backupKeyInstalled": "Backup secret installed; McHarbor restart scheduled",
+    "backupKeyInstallFailed": "Error al instalar la clave de copia de seguridad",
     "storageBackupsMigrated": "Copias migradas: {{migrated}} copiadas, {{skipped}} omitidas, {{failed}} fallidas",
     "storageBackupsMigrationFailed": "Error al migrar las copias",
     "lifecycleLogPurged": "Registro de ciclo de vida borrado ({{count}} eventos)",

@@ -39,13 +39,6 @@ type StorageLocationTestDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-const STATUS_LABELS: Record<StorageLocationTestStep["status"], string> = {
-  pass: "Pass",
-  fail: "Fail",
-  warn: "Warning",
-  skip: "Skipped",
-};
-
 const STATUS_ICON: Record<
   StorageLocationTestStep["status"],
   typeof IconCheck
@@ -180,12 +173,7 @@ export function StorageLocationTestDialog({
                                         : "outline"
                                   }
                                 >
-                                  {t(
-                                    `storage.test.status.${step.status}`,
-                                    {
-                                      defaultValue: STATUS_LABELS[step.status],
-                                    },
-                                  )}
+                                  {t(`storage.test.status.${step.status}`)}
                                 </Badge>
                                 {step.latency && (
                                   <span className="font-mono">

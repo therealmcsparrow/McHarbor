@@ -25,6 +25,7 @@ import (
 
 	"github.com/therealmcsparrow/mcharbor/core/backupcrypto"
 	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
+	"github.com/therealmcsparrow/mcharbor/core/i18n"
 )
 
 const (
@@ -89,7 +90,10 @@ func (s *Service) InstallBackupKey(ctx context.Context, key string) (BackupKeyIn
 	key = strings.TrimSpace(key)
 	decoded, err := base64.StdEncoding.DecodeString(key)
 	if err != nil || len(decoded) != 32 {
-		return BackupKeyInstallResponse{}, &ErrValidation{Message: "backup key must be a base64 encoded 32-byte value"}
+		return BackupKeyInstallResponse{}, &ErrValidation{
+			Message: "backup key must be a base64 encoded 32-byte value",
+			Code:    i18n.ErrSettingsBackupKeyInvalid,
+		}
 	}
 
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -112,7 +116,10 @@ func (s *Service) InstallBackupKey(ctx context.Context, key string) (BackupKeyIn
 	}
 	projectPath := strings.TrimSpace(labels["com.docker.compose.project.working_dir"])
 	if projectPath == "" {
-		return BackupKeyInstallResponse{}, &ErrValidation{Message: "mcharbor compose project path was not found"}
+		return BackupKeyInstallResponse{}, &ErrValidation{
+			Message: "mcharbor compose project path was not found",
+			Code:    i18n.ErrSettingsComposeProjectMissing,
+		}
 	}
 
 	socketMount, ok := helperMountForDestination(current.Mounts, "/var/run/docker.sock")
@@ -222,105 +229,15 @@ func RunBackupSecretHelper(ctx context.Context) error {
 }
 
 func inspectCurrentMcHarborContainer(ctx context.Context, cli *client.Client) (types.ContainerJSON, error) {
-	var lastErr error
-	for _, candidate := range currentContainerInspectCandidates() {
-		current, err := cli.ContainerInspect(ctx, candidate)
-		if err != nil {
-			lastErr = err
-			continue
-		}
-		if current.Config == nil {
-			lastErr = fmt.Errorf("container %s has no config", candidate)
-			continue
-		}
-		if coredocker.IsMcHarborContainer([]string{current.Name}, current.Config.Image, current.Config.Labels) {
-			return current, nil
-		}
-		lastErr = fmt.Errorf("container %s is not mcharbor", candidate)
-	}
-	if lastErr != nil {
-		return types.ContainerJSON{}, lastErr
-	}
-	return types.ContainerJSON{}, fmt.Errorf("no current container candidates found")
+	return coredocker.CurrentMcHarborContainer(ctx, cli)
 }
 
 func currentContainerInspectCandidates() []string {
-	candidates := currentContainerIDCandidates()
-	seen := make(map[string]struct{}, len(candidates)+3)
-	for _, candidate := range candidates {
-		seen[candidate] = struct{}{}
-	}
-
-	for _, candidate := range []string{"mcharbor", "/mcharbor", "mcharbor-mcharbor-1"} {
-		if _, ok := seen[candidate]; ok {
-			continue
-		}
-		candidates = append(candidates, candidate)
-		seen[candidate] = struct{}{}
-	}
-
-	return candidates
-}
-
-func currentContainerIDCandidates() []string {
-	seen := map[string]struct{}{}
-	var candidates []string
-	add := func(value string) {
-		value = strings.TrimSpace(strings.TrimPrefix(value, "/"))
-		if value == "" {
-			return
-		}
-		if _, ok := seen[value]; ok {
-			return
-		}
-		seen[value] = struct{}{}
-		candidates = append(candidates, value)
-	}
-
-	if hostname, err := os.Hostname(); err == nil {
-		add(hostname)
-	}
-	if data, err := os.ReadFile("/etc/hostname"); err == nil {
-		add(string(data))
-	}
-
-	for _, path := range []string{"/proc/self/mountinfo", "/proc/self/cgroup"} {
-		data, err := os.ReadFile(path)
-		if err != nil {
-			continue
-		}
-		for _, token := range regexp.MustCompile(`[0-9a-f]{12,64}`).FindAllString(string(data), -1) {
-			if backupShortHexContainerIDRe.MatchString(token) {
-				add(token)
-			}
-		}
-	}
-
-	return candidates
+	return coredocker.CurrentMcHarborContainerCandidates()
 }
 
 func helperMountForDestination(mounts []types.MountPoint, destination string) (mount.Mount, bool) {
-	for _, mp := range mounts {
-		if filepath.Clean(mp.Destination) != destination {
-			continue
-		}
-
-		source := mp.Source
-		if mp.Type == mount.TypeVolume {
-			source = mp.Name
-		}
-		if source == "" {
-			return mount.Mount{}, false
-		}
-
-		return mount.Mount{
-			Type:     mount.Type(mp.Type),
-			Source:   source,
-			Target:   mp.Destination,
-			ReadOnly: !mp.RW,
-		}, true
-	}
-	return mount.Mount{}, false
+	return coredocker.MountForDestination(mounts, destination)
 }
 
 func helperEnv(base []string, overrides map[string]string) []string {
