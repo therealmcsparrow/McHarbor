@@ -149,6 +149,15 @@ func (h *Handler) HandleSession(w http.ResponseWriter, r *http.Request) {
 // assignments inherited via group membership. A permission set
 // containing the wildcard "*" grants access to every action.
 //
+// The synthetic `system` user (id="system") is the implicit admin
+// when auth is disabled (the middleware injects it on every request
+// without a session). It has no database role assignments, so a naive
+// query would return an empty permission set and the avatar menu's
+// "Restart McHarbor" item would never appear. We short-circuit and
+// return the wildcard for that user so the UI gates line up with
+// the server-side rbac.RequirePermission checks (which also use the
+// implicit-admin path for the synthetic user).
+//
 // The frontend uses this to gate UI affordances (e.g. the
 // "Restart McHarbor" avatar-menu item) without making speculative
 // requests; the server still enforces every check via the
@@ -157,6 +166,21 @@ func (h *Handler) HandleMyPermissions(w http.ResponseWriter, r *http.Request) {
 	user := auth.UserFromContext(r.Context())
 	if user == nil {
 		response.UnauthorizedCode(w, r, i18n.ErrAuthRequired)
+		return
+	}
+
+	// Synthetic admin user (id="system") gets full wildcard access.
+	// This applies to AUTH_DISABLE mode (no real users) and to any
+	// setup-time or dev convenience flow where the middleware injects
+	// the system user on requests that lack a real session.
+	if user.ID == "system" {
+		response.OK(w, struct {
+			Permissions []string `json:"permissions"`
+			Wildcard    bool     `json:"wildcard"`
+		}{
+			Permissions: nil,
+			Wildcard:    true,
+		})
 		return
 	}
 

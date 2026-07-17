@@ -963,6 +963,12 @@
     "about": {
       "selfUpdate": {
         "selfUpdateTitle": "Selbst-Update-Prüfung",
+    "selfUpdateScheduled": "McHarbor-Selbstaktualisierung geplant",
+    "selfUpdateFailed": "McHarbor-Selbstaktualisierung fehlgeschlagen",
+    "updateNow": "Jetzt aktualisieren",
+    "selfUpdateConfirmTitle": "McHarbor aktualisieren?",
+    "selfUpdateConfirmDescription": "McHarbor lädt das neue Image, stoppt den aktuellen Container und startet einen neuen. Sie werden getrennt und müssen die Seite neu laden, sobald sie wieder online ist.",
+    "selfUpdateConfirm": "Aktualisieren",
         "selfUpdateSubtitle": "Prüft regelmäßig den GitHub-Release-Feed und zeigt neue Versionen in der App an.",
         "enabledLabel": "Auf neue Releases prüfen",
         "enabledHint": "Führt eine Hintergrundprüfung im unten angegebenen Intervall durch und zeigt ein Banner, sobald eine neuere Version verfügbar ist.",

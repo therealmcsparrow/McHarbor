@@ -2,6 +2,16 @@
 
 All notable changes to McHarbor are documented in this file.
 
+## [2.0.2] - 2026-07-17
+
+### Added
+- **"Update now" button on the About page (Admin only).** When the background self-update checker reports `updateAvailable: true`, the About tab now renders a destructive "Update now" button next to the existing "View release" link. Clicking it opens a confirmation dialog; on confirm, the frontend calls `POST /api/versions/self-update` and the backend spawns the detached self-update helper container (`core/docker.ScheduleDetachedSelfUpdateHelperForImage`) which pulls the new image, stops the current McHarbor container, and starts a replacement with the same env / mounts / labels. The operator is disconnected and reconnects once the new image is up. New `core/i18n` codes `ErrSystemSelfUpdateFailed`, `ErrSystemSelfUpdateNotLocal`, `MsgSystemSelfUpdateScheduled` (all 6 locales). New `POST /api/versions/self-update` endpoint, locked behind the existing `system.manage` permission, accepts an optional `{ image }` body to override the target tag. The button reuses the avatar-menu's `useCurrentUserPermissions` check so non-admins never see it.
+- **`system.manage` is now listed in the Admin role's permission JSON** (in addition to the wildcard `*`). New migration `062_admin_system_manage.sql` appends the permission to the Admin role's stored array unless it is already present. The wildcard still implies it, so existing role checks are unaffected; the change makes the permission visible in the Roles UI permission list so operators can confirm that the Admin role covers the new self-management endpoints without having to deduce it from the wildcard.
+
+### Fixed
+- **Avatar menu "Restart McHarbor" item was missing in `AUTH_DISABLE` mode** because the synthetic `system` user has no role assignments in the database, so `GET /api/auth/me/permissions` returned an empty permission set and the frontend's `hasPermission` check failed. `HandleMyPermissions` now short-circuits for the synthetic admin and returns `{ wildcard: true }` when `Config.AuthDisable` is set, restoring the menu item in dev / no-auth installs.
+- **`MutationCache.onError` threw `TypeError: Cannot read properties of undefined (reading 'message')`** when a mutation had a function-form `meta.error`. `MutationMeta.error` is now typed as `string | ((err: Error) => string)`; the global error handler in `main.tsx` branches on `typeof meta.error === 'function'` and invokes the callback with the thrown error, otherwise falls back to the existing string / `error.message` chain. The same path is used by the storage-location mutations and the backup-key install mutation, so the next time any of them fails the operator now sees the translated toast instead of a console exception.
+
 ## [2.0.1] - 2026-07-17
 
 ### Added

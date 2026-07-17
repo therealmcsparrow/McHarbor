@@ -517,7 +517,10 @@ const (
 	ErrSystemRestartNotScheduled MsgCode = "err.system.restart_not_scheduled"
 	ErrSystemRestartInspectFailed MsgCode = "err.system.restart_inspect_failed"
 	ErrSystemRestartNotLocal      MsgCode = "err.system.restart_not_local"
+	ErrSystemSelfUpdateFailed     MsgCode = "err.system.self_update_failed"
+	ErrSystemSelfUpdateNotLocal  MsgCode = "err.system.self_update_not_local"
 	MsgSystemRestartScheduled     MsgCode = "msg.system.restart_scheduled"
+	MsgSystemSelfUpdateScheduled  MsgCode = "msg.system.self_update_scheduled"
 )
 
 // --- Roles ---

@@ -469,6 +469,9 @@ var messagesEN = map[MsgCode]string{
 	ErrSystemRestartInspectFailed: "Failed to inspect the McHarbor container before scheduling restart",
 	ErrSystemRestartNotLocal:      "Restart is only supported when McHarbor runs as a local Docker container",
 	MsgSystemRestartScheduled:     "McHarbor restart scheduled",
+	ErrSystemSelfUpdateFailed:     "McHarbor self-update failed",
+	ErrSystemSelfUpdateNotLocal:  "Self-update is only supported when McHarbor runs as a local Docker container",
+	MsgSystemSelfUpdateScheduled:  "McHarbor self-update scheduled",
 
 	// Roles
 	ErrRoleNotFound:     "Role not found",
@@ -1064,6 +1067,9 @@ var messagesNL = map[MsgCode]string{
 	ErrSystemRestartInspectFailed: "Kan de McHarbor-container niet inspecteren voordat de herstart wordt ingepland",
 	ErrSystemRestartNotLocal:      "Herstart wordt alleen ondersteund wanneer McHarbor als lokale Docker-container draait",
 	MsgSystemRestartScheduled:     "McHarbor-herstart ingepland",
+	ErrSystemSelfUpdateFailed:     "McHarbor-zelfupdate mislukt",
+	ErrSystemSelfUpdateNotLocal:  "Zelfupdate wordt alleen ondersteund wanneer McHarbor als lokale Docker-container draait",
+	MsgSystemSelfUpdateScheduled:  "McHarbor-zelfupdate ingepland",
 
 	// Roles
 	ErrRoleNotFound:     "Rol niet gevonden",
@@ -1659,6 +1665,9 @@ var messagesDE = map[MsgCode]string{
 	ErrSystemRestartInspectFailed: "Der McHarbor-Container konnte vor dem Neustart nicht inspiziert werden",
 	ErrSystemRestartNotLocal:      "Neustart wird nur unterstÃ¼tzt, wenn McHarbor als lokaler Docker-Container lÃ¤uft",
 	MsgSystemRestartScheduled:     "McHarbor-Neustart geplant",
+	ErrSystemSelfUpdateFailed:     "McHarbor-Selbstaktualisierung fehlgeschlagen",
+	ErrSystemSelfUpdateNotLocal:  "Selbstaktualisierung wird nur unterstützt, wenn McHarbor als lokaler Docker-Container läuft",
+	MsgSystemSelfUpdateScheduled:  "McHarbor-Selbstaktualisierung geplant",
 
 	// Roles
 	ErrRoleNotFound:     "Rolle nicht gefunden",
@@ -2253,6 +2262,9 @@ var messagesES = map[MsgCode]string{
 	ErrSystemRestartInspectFailed: "No se pudo inspeccionar el contenedor de McHarbor antes de programar el reinicio",
 	ErrSystemRestartNotLocal:      "El reinicio solo es compatible cuando McHarbor se ejecuta como un contenedor Docker local",
 	MsgSystemRestartScheduled:     "Reinicio de McHarbor programado",
+	ErrSystemSelfUpdateFailed:     "La autoactualización de McHarbor falló",
+	ErrSystemSelfUpdateNotLocal:  "La autoactualización solo es compatible cuando McHarbor se ejecuta como un contenedor Docker local",
+	MsgSystemSelfUpdateScheduled:  "Autoactualización de McHarbor programada",
 
 	// Roles
 	ErrRoleNotFound:     "Rol no encontrado",
@@ -2847,6 +2859,9 @@ var messagesFR = map[MsgCode]string{
 	ErrSystemRestartInspectFailed: "Impossible d'inspecter le conteneur McHarbor avant de planifier le redÃ©marrage",
 	ErrSystemRestartNotLocal:      "Le redÃ©marrage n'est pris en charge que lorsque McHarbor s'exÃ©cute en tant que conteneur Docker local",
 	MsgSystemRestartScheduled:     "RedÃ©marrage de McHarbor planifiÃ©",
+	ErrSystemSelfUpdateFailed:     "L'auto-mise à jour de McHarbor a échoué",
+	ErrSystemSelfUpdateNotLocal:  "L'auto-mise à jour n'est prise en charge que lorsque McHarbor s'exécute en tant que conteneur Docker local",
+	MsgSystemSelfUpdateScheduled:  "Auto-mise à jour de McHarbor planifiée",
 
 	// Roles
 	ErrRoleNotFound:     "RÃ´le introuvable",
@@ -3441,6 +3456,9 @@ var messagesPT = map[MsgCode]string{
 	ErrSystemRestartInspectFailed: "Falha ao inspecionar o contÃªiner do McHarbor antes de agendar o reinÃ­cio",
 	ErrSystemRestartNotLocal:      "O reinÃ­cio sÃ³ Ã© compatÃ­vel quando o McHarbor roda como contÃªiner Docker local",
 	MsgSystemRestartScheduled:     "ReinÃ­cio do McHarbor agendado",
+	ErrSystemSelfUpdateFailed:     "A autoatualização do McHarbor falhou",
+	ErrSystemSelfUpdateNotLocal:  "A autoatualização só é compatível quando o McHarbor roda como contêiner Docker local",
+	MsgSystemSelfUpdateScheduled:  "Autoatualização do McHarbor agendada",
 
 	// Roles
 	ErrRoleNotFound:     "FunÃ§Ã£o nÃ£o encontrada",

@@ -27,3 +27,21 @@ type VersionInfo struct {
 	McHarbor ComponentVersion `json:"mcharbor"`
 	Agents   []AgentVersion   `json:"agents"`
 }
+
+// SelfUpdateRequest is the JSON body for POST /api/versions/self-update.
+// Image is optional: when empty, the current image is reused (i.e. the
+// helper re-pulls the same tag to refresh the digest, then recreates the
+// container with the new image).
+type SelfUpdateRequest struct {
+	Image string `json:"image"`
+}
+
+// SelfUpdateResult is the response from POST /api/versions/self-update.
+// The container is scheduled to restart shortly; the operator
+// disconnects and reconnects once the new image is up.
+type SelfUpdateResult struct {
+	ContainerID   string `json:"containerId"`
+	ContainerName string `json:"containerName"`
+	TargetImage   string `json:"targetImage"`
+	Output        string `json:"output"`
+}

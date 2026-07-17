@@ -963,6 +963,12 @@
     "about": {
       "selfUpdate": {
         "selfUpdateTitle": "Verificador de auto-atualização",
+    "selfUpdateScheduled": "Autoatualização do McHarbor agendada",
+    "selfUpdateFailed": "A autoatualização do McHarbor falhou",
+    "updateNow": "Atualizar agora",
+    "selfUpdateConfirmTitle": "Atualizar o McHarbor?",
+    "selfUpdateConfirmDescription": "O McHarbor baixará a nova imagem, parará o contêiner atual e iniciará um novo. Você será desconectado e precisará recarregar a página quando voltar a ficar online.",
+    "selfUpdateConfirm": "Atualizar",
         "selfUpdateSubtitle": "Verifica periodicamente o feed de releases do GitHub e mostra novas versões na aplicação.",
         "enabledLabel": "Procurar novos releases",
         "enabledHint": "Executa uma verificação em segundo plano no intervalo abaixo e mostra um banner quando está disponível uma versão mais recente.",

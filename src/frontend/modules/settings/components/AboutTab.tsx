@@ -1,14 +1,17 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { IconRefresh, IconArrowUp, IconBrandGithub, IconCheck } from '@tabler/icons-react';
+import { IconRefresh, IconArrowUp, IconBrandGithub, IconCheck, IconDownload } from '@tabler/icons-react';
 import { Badge } from '@resources/components/ui/Badge';
 import { Button } from '@resources/components/ui/Button';
 import { Spinner } from '@resources/components/ui/Spinner';
+import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
+import { useCurrentUserPermissions, hasPermission, SYSTEM_RESTART_PERMISSION } from '@core/auth/useCurrentUserPermissions';
 import { api } from '@core/api/client';
-import { useCheckUpdate } from '../hooks/useUpdates';
+import { useCheckUpdate, useApplySelfUpdate } from '../hooks/useUpdates';
 import { SelfUpdateSettingsCard } from './SelfUpdateSettingsCard';
 import packageJson from '../../../package.json';
 
@@ -75,6 +78,8 @@ function stripVersion(v: string): string {
 
 export function AboutTab() {
   const { t } = useTranslation('settings');
+  const userPermissions = useCurrentUserPermissions();
+  const canSelfUpdate = hasPermission(userPermissions.data, SYSTEM_RESTART_PERMISSION);
 
   const { data } = useQuery({
     queryKey: ['about'],
@@ -88,6 +93,8 @@ export function AboutTab() {
     isError: checkFailed,
     isFetching: isChecking,
   } = useCheckUpdate();
+  const applySelfUpdate = useApplySelfUpdate();
+  const [selfUpdateOpen, setSelfUpdateOpen] = useState(false);
   const allDeps = { ...packageJson.dependencies, ...packageJson.devDependencies } as Record<string, string>;
 
   return (
@@ -181,6 +188,22 @@ export function AboutTab() {
                     {t('about.viewRelease')}
                   </Button>
                 )}
+                {canSelfUpdate && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => setSelfUpdateOpen(true)}
+                    disabled={applySelfUpdate.isPending}
+                    data-testid="self-update-button"
+                  >
+                    {applySelfUpdate.isPending ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      <IconDownload className="size-4" />
+                    )}
+                    {t('about.updateNow')}
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -195,6 +218,22 @@ export function AboutTab() {
 
       {/* Periodic update check */}
       <SelfUpdateSettingsCard />
+
+      <ConfirmDialog
+        open={selfUpdateOpen}
+        onOpenChange={(open) => {
+          setSelfUpdateOpen(open);
+          if (!open && applySelfUpdate.isPending) return;
+        }}
+        title={t('about.selfUpdateConfirmTitle')}
+        description={t('about.selfUpdateConfirmDescription')}
+        confirmLabel={t('about.selfUpdateConfirm')}
+        variant="destructive"
+        loading={applySelfUpdate.isPending}
+        onConfirm={() => {
+          applySelfUpdate.mutate({});
+        }}
+      />
 
       {/* Backend dependencies */}
       {data && data.dependencies.length > 0 && (

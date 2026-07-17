@@ -963,6 +963,12 @@
     "about": {
       "selfUpdate": {
         "selfUpdateTitle": "Zelf-updatecontrole",
+    "selfUpdateScheduled": "McHarbor-zelfupdate ingepland",
+    "selfUpdateFailed": "McHarbor-zelfupdate mislukt",
+    "updateNow": "Nu bijwerken",
+    "selfUpdateConfirmTitle": "McHarbor bijwerken?",
+    "selfUpdateConfirmDescription": "McHarbor haalt de nieuwe image op, stopt de huidige container en start een nieuwe. Je wordt verbroken en moet de pagina herladen zodra deze weer online is.",
+    "selfUpdateConfirm": "Bijwerken",
         "selfUpdateSubtitle": "Controleer periodiek de GitHub-releasefeed en toon nieuwe versies in de app.",
         "enabledLabel": "Controleren op nieuwe releases",
         "enabledHint": "Draait een achtergrondcontrole volgens het interval hieronder en toont een banner wanneer een nieuwere versie beschikbaar is.",

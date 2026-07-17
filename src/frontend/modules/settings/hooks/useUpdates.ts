@@ -145,6 +145,50 @@ export function useDismissUpdate() {
   });
 }
 
+export type SelfUpdateApplyResponse = {
+  message: string;
+  code: string;
+  result: {
+    containerId: string;
+    containerName: string;
+    targetImage: string;
+    output: string;
+  };
+};
+
+// useApplySelfUpdate triggers a McHarbor self-update via
+// POST /api/versions/self-update. The current process exits shortly
+// after the helper starts; the mutation's onSuccess fires before that,
+// so the toast can surface the localized "scheduled" message before
+// the websocket is torn down. The `image` field is optional; when
+// empty the current image is reused.
+export function useApplySelfUpdate() {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation('settings');
+  return useMutation({
+    mutationFn: (input: { image?: string }) =>
+      api
+        .post<SelfUpdateApplyResponse>('/versions/self-update', input)
+        .then((res) => {
+          if (!res.success) {
+            throw new Error(res.error ?? 'self-update failed');
+          }
+          return assertSuccess(res);
+        }),
+    meta: {
+      success: (data: unknown) => {
+        const r = data as SelfUpdateApplyResponse | undefined;
+        return r?.message ?? t('about.toast.selfUpdateScheduled');
+      },
+      error: (err: Error) =>
+        err.message || t('about.toast.selfUpdateFailed'),
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries();
+    },
+  });
+}
+
 export function useUpdatePolicies() {
   return useQuery({
     queryKey: ['updates', 'policies'],

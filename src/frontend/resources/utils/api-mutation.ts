@@ -5,7 +5,7 @@ import type { ApiResponse } from '@core/api/client';
 
 export type MutationMeta = {
   success?: string | ((data: unknown, variables: unknown) => string);
-  error?: string;
+  error?: string | ((err: Error) => string);
 };
 
 export function assertSuccess<T>(res: ApiResponse<T>): T {

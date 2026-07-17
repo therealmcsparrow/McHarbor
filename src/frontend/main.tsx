@@ -25,7 +25,11 @@ const mutationCache = new MutationCache({
   },
   onError: (error, _variables, _context, mutation) => {
     const meta = mutation.options.meta as MutationMeta | undefined;
-    toast.error(meta?.error ?? error.message ?? i18n.t('errors.operationFailed'));
+    const errorMsg =
+      typeof meta?.error === 'function'
+        ? meta.error(error)
+        : meta?.error ?? error.message ?? i18n.t('errors.operationFailed');
+    toast.error(errorMsg);
   },
 });
 

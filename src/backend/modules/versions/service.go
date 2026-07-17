@@ -4,12 +4,25 @@
 package versions
 
 import (
+	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/docker/docker/client"
 
 	coreagent "github.com/therealmcsparrow/mcharbor/core/agent"
+	coredocker "github.com/therealmcsparrow/mcharbor/core/docker"
 	appversion "github.com/therealmcsparrow/mcharbor/core/version"
 )
+
+// errSelfUpdateNotLocal is returned when the McHarbor container cannot
+// be reached via the local Docker socket (e.g. only remote agent
+// environments are registered).
+var errSelfUpdateNotLocal = errors.New("mcharbor self-update requires a local Docker socket")
 
 // Service collects version information for the local instance and agents.
 type Service struct {
@@ -105,4 +118,56 @@ func (s *Service) applyLiveAgentMetadata(a *AgentVersion) {
 	a.Arch = conn.Arch
 	a.AgentVersion = conn.Version
 	a.DockerVersion = conn.DockerVer
+}
+
+// SelfUpdate schedules a McHarbor self-update by spawning the detached
+// helper container (see core/docker.ScheduleDetachedSelfUpdateHelperForImage).
+// The helper stops and recreates the current McHarbor container with the
+// requested image (or the current image if none was supplied). The call
+// returns ErrSelfUpdateNotLocal when the McHarbor container is not
+// reachable via the local Docker socket.
+func (s *Service) SelfUpdate(ctx context.Context, targetImage string) (SelfUpdateResult, error) {
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return SelfUpdateResult{}, fmt.Errorf("creating local docker client: %w", err)
+	}
+	defer cli.Close()
+
+	inspectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	current, err := coredocker.CurrentMcHarborContainer(inspectCtx, cli)
+	if err != nil {
+		return SelfUpdateResult{}, errSelfUpdateNotLocal
+	}
+
+	name := ""
+	if current.Name != "" {
+		name = strings.TrimPrefix(current.Name, "/")
+	}
+
+	target := strings.TrimSpace(targetImage)
+	if target == "" {
+		target = current.Config.Image
+	}
+
+	dataDir := ""
+	if env := os.Getenv("DATA_DIR"); env != "" {
+		dataDir = env
+	}
+	dockerHost := os.Getenv("DOCKER_HOST")
+
+	output, err := coredocker.ScheduleDetachedSelfUpdateHelperForImage(
+		ctx, cli, current, dataDir, dockerHost, "update", target,
+	)
+	if err != nil {
+		return SelfUpdateResult{}, fmt.Errorf("scheduling self-update helper: %w", err)
+	}
+
+	return SelfUpdateResult{
+		ContainerID:   current.ID,
+		ContainerName: name,
+		TargetImage:   target,
+		Output:        output,
+	}, nil
 }
