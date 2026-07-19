@@ -3,11 +3,12 @@
 
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { api } from '@core/api/client';
 import { assertSuccess } from '@resources/utils/api-mutation';
 import { useEnvironmentStore } from '@resources/stores/environment';
 import { useEnvironmentList, type EnvironmentListItem } from '@resources/hooks/useEnvironmentList';
-import type { EnvironmentInfo } from './useEnvironments';
+import type { EnvironmentInfo, EnvironmentTestResult } from './useEnvironments';
 
 export { useEnvironmentList, type EnvironmentListItem };
 
@@ -68,12 +69,23 @@ export function useCreateEnvironment() {
 export function useTestEnvironment() {
   const queryClient = useQueryClient();
   const { t } = useTranslation('environments');
-  return useMutation({
-    mutationFn: (id: string) => api.post(`/environments/${id}/test`).then(assertSuccess),
-    meta: { success: t('toast.connectionSuccessful') },
-    onSuccess: (_, id) => {
+  return useMutation<EnvironmentTestResult, Error, string>({
+    mutationFn: (id: string) =>
+      api
+        .post<EnvironmentTestResult>(`/environments/${id}/test`)
+        .then((res) => {
+          if (!res.success) {
+            throw new Error(res.error ?? 'Test connection failed');
+          }
+          return assertSuccess(res);
+        }),
+    onSuccess: (result) => {
+      // Best-effort toast on top of the dialog the caller renders.
+      if (result.overall === 'pass') {
+        toast.success(t('toast.connectionSuccessful'));
+      }
       queryClient.invalidateQueries({ queryKey: ['environments'] });
-      queryClient.invalidateQueries({ queryKey: ['environments', id] });
+      queryClient.invalidateQueries({ queryKey: ['environments', result.envId] });
     },
   });
 }

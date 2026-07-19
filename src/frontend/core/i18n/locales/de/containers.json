@@ -657,7 +657,9 @@
       "runCancelled": "Backup abgebrochen",
       "restoreStarted": "Wiederherstellung gestartet",
       "restored": "Backup wiederhergestellt",
-      "retryUploadStarted": "Upload-Wiederholung gestartet"
+      "retryUploadStarted": "Upload-Wiederholung gestartet",
+      "scheduleUpdated": "Backup-Zeitplan aktualisiert",
+      "relinkAllSuccess": "{{count}} Backup(s) mit aktiven Containern neu verknüpft"
     },
     "bulkRunsDelete": "Loeschen",
     "runs.emptyTitle": "Noch keine Backup-Laeufe",
@@ -762,13 +764,17 @@
         "severity": "Schweregrad",
         "duration": "Dauer",
         "details": "Details"
-      }
+      },
+      "previousPage": "Vorherige Seite",
+      "nextPage": "Nächste Seite"
     },
     "editScheduleTitle": "Plan bearbeiten",
     "editScheduleDescription": "Aktualisieren, wann und wie oft dieser Plan laeuft.",
     "editSchedule": "Aenderungen speichern",
     "restoreConfirmTitle": "Container wiederherstellen",
-    "restoreConfirmDescription": "Die ausgewaehlten Archive werden aus ihren Speicherzielen geholt und in den Container zurueckgeschrieben."
+    "restoreConfirmDescription": "Die ausgewaehlten Archive werden aus ihren Speicherzielen geholt und in den Container zurueckgeschrieben.",
+    "saveChanges": "Änderungen speichern",
+    "relinkAll": "Veraltete Container neu verknüpfen"
   },
   "stats": {
     "cpu": "CPU",
@@ -942,5 +948,19 @@
       "scanStarted": "Schwachstellenscan gestartet",
       "scanDeleted": "Scan gelöscht"
     }
+  },
+  "containers": {
+    "backups": {
+      "saveChanges": "Änderungen speichern",
+      "relinkAll": "Veraltete Container neu verknüpfen",
+      "toast": {
+        "scheduleUpdated": "Backup-Zeitplan aktualisiert",
+        "relinkAllSuccess": "{{count}} Backup(s) mit aktiven Containern neu verknüpft"
+      }
+    }
+  },
+  "network": {
+    "removeHost": "Host entfernen",
+    "removePort": "Port entfernen"
   }
 }

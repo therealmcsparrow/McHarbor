@@ -146,7 +146,7 @@
       "host": "Host",
       "docker": "Docker",
       "processes": "Prozesse",
-"terminal": "Terminal",
+      "terminal": "Terminal",
       "logs": "Logs"
     },
     "activity": {
@@ -421,6 +421,32 @@
     "removed": "Umgebung entfernt",
     "updated": "Umgebung aktualisiert",
     "connectionSuccessful": "Verbindung erfolgreich",
+    "test": {
+      "title": "Verbindung testen: {{name}}",
+      "description": "Schritt-fÃ¼r-Schritt-Diagnose fÃ¼r {{name}}.",
+      "running": "Test lÃ¤uft...",
+      "button": "Verbindung testen",
+      "overallStatus": "Gesamtstatus",
+      "noSteps": "Es wurden keine Testschritte ausgefÃ¼hrt.",
+      "resultPass": "Erfolgreich",
+      "resultFail": "Fehlgeschlagen",
+      "resultWarn": "Warnung",
+      "resultSkip": "ÃbÃersprungen",
+      "status": {
+        "pass": "Erfolgreich",
+        "fail": "Fehlgeschlagen",
+        "warn": "Warnung",
+        "skip": "ÃbÃersprungen"
+      },
+      "steps": {
+        "load": "Umgebung laden",
+        "reset": "Client-Cache leeren",
+        "connect": "Docker-Client abrufen",
+        "ping": "Daemon-Ping",
+        "version": "Version ermitteln",
+        "persist": "Ergebnis speichern"
+      }
+    },
     "tokenRegenerated": "Token neu generiert — jetzt kopieren",
     "agentDeployed": "Agent-Bereitstellung gestartet",
     "agentDeployFailed": "Agent-Bereitstellung fehlgeschlagen",
@@ -430,5 +456,18 @@
   "confirm": {
     "removeTitle": "Umgebung entfernen",
     "removeDescription": "Hiermit wird diese Umgebung aus McHarbor entfernt."
+  },
+  "envs": {
+    "test": {
+      "title": "Verbindung testen: {{name}}",
+      "description": "Schritt-für-Schritt-Diagnose für {{name}}.",
+      "running": "Test läuft...",
+      "resultPass": "Erfolgreich",
+      "resultFail": "Fehlgeschlagen",
+      "resultWarn": "Warnung",
+      "resultSkip": "Übersprungen",
+      "noSteps": "Es wurden keine Testschritte ausgeführt.",
+      "overallStatus": "Gesamtstatus"
+    }
   }
 }

@@ -80,7 +80,7 @@ export function NetworkTabPortsSection({
                   variant="ghost"
                   size="icon"
                   onClick={() => onRemovePortMapping(index)}
-                  aria-label="Remove port"
+                  aria-label={t("network.removePort")}
                   className="size-7 text-muted-foreground hover:text-red-500"
                 >
                   <IconTrash className="size-3.5" />

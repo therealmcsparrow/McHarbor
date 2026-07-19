@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { useTranslation } from 'react-i18next';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { Input } from '@resources/components/ui/Input';
@@ -27,6 +28,7 @@ export function KeyValueRows({
   valuePlaceholder = 'Value',
   addLabel = 'Add',
 }: KeyValueRowsProps) {
+  const { t } = useTranslation('networks');
   return (
     <div className="space-y-2">
       {items.map((item, i) => (
@@ -59,7 +61,7 @@ export function KeyValueRows({
             type="button"
             variant="ghost"
             size="icon"
-            aria-label="Remove row"
+            aria-label={t("keyValue.removeRow")}
             onClick={() => onChange(items.filter((_, j) => j !== i))}
           >
             <IconTrash className="h-3.5 w-3.5 text-muted-foreground" />

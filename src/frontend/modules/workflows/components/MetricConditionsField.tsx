@@ -103,7 +103,7 @@ export function MetricConditionsField({ value, onChange }: MetricConditionsField
               variant="ghost"
               size="icon-sm"
               onClick={() => removeCondition(i)}
-              aria-label="Remove condition"
+              aria-label={t("removeCondition")}
               className="shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             >
               <IconX className="size-3.5" />

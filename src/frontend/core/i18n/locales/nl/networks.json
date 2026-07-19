@@ -145,5 +145,13 @@
     "selectContainer": "Container",
     "selectPlaceholder": "Selecteer een container...",
     "view": "Details bekijken"
+  },
+  "keyValue": {
+    "removeRow": "Rij verwijderen"
+  },
+  "networks": {
+    "create": {
+      "removeSubnet": "Subnet verwijderen"
+    }
   }
 }

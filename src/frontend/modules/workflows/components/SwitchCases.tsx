@@ -70,7 +70,7 @@ export function SwitchCases({ node }: SwitchCasesProps) {
               variant="ghost"
               size="icon-sm"
               onClick={() => removeCase(i)}
-              aria-label={t('common.remove')}
+              aria-label={t('remove')}
               className="shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             >
               <IconX className="size-3.5" />

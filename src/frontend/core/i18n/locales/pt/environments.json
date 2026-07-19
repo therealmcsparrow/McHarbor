@@ -145,7 +145,7 @@
       "host": "Host",
       "docker": "Docker",
       "processes": "Processos",
-"terminal": "Terminal",
+      "terminal": "Terminal",
       "logs": "Logs"
     },
     "activity": {
@@ -420,6 +420,32 @@
     "removed": "Ambiente removido",
     "updated": "Ambiente atualizado",
     "connectionSuccessful": "Conexão bem-sucedida",
+    "test": {
+      "title": "Testar conexão: {{name}}",
+      "description": "Diagnóstico passo a passo para {{name}}.",
+      "running": "Executando teste...",
+      "button": "Testar conexão",
+      "overallStatus": "Status geral",
+      "noSteps": "Nenhuma etapa de teste foi executada.",
+      "resultPass": "Aprovado",
+      "resultFail": "Falhou",
+      "resultWarn": "Aviso",
+      "resultSkip": "Pulado",
+      "status": {
+        "pass": "Aprovado",
+        "fail": "Falhou",
+        "warn": "Aviso",
+        "skip": "Pulado"
+      },
+      "steps": {
+        "load": "Carregar ambiente",
+        "reset": "Limpar cache do cliente",
+        "connect": "Obter cliente Docker",
+        "ping": "Ping ao daemon",
+        "version": "Resolver versão",
+        "persist": "Persistir resultado"
+      }
+    },
     "tokenRegenerated": "Token regenerado – copie agora",
     "agentDeployed": "Implantação do agente iniciada",
     "agentDeployFailed": "Falha na implantação do agente",
@@ -430,5 +456,18 @@
     "removeTitle": "Remover ambiente",
     "removeDescription": "Isso removerá este ambiente do McHarbor."
   },
-  "installAgent": "Agent installation"
+  "installAgent": "Agent installation",
+  "envs": {
+    "test": {
+      "title": "Testar conexão: {{name}}",
+      "description": "Diagnóstico passo a passo para {{name}}.",
+      "running": "Executando teste...",
+      "resultPass": "Aprovado",
+      "resultFail": "Falhou",
+      "resultWarn": "Aviso",
+      "resultSkip": "Pulado",
+      "noSteps": "Nenhuma etapa de teste foi executada.",
+      "overallStatus": "Status geral"
+    }
+  }
 }

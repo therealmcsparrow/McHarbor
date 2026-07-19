@@ -173,7 +173,8 @@
     "showing": "Affichage de {{from}} à {{to}} de {{total}}",
     "page": "Page {{current}} de {{total}}",
     "prev": "Précédent",
-    "next": "Suivant"
+    "next": "Suivant",
+    "selectAll": "Tout sélectionner"
   },
   "batch": {
     "selected": "{{count}} sélectionné",
@@ -759,7 +760,58 @@
     "mutationExportFailed": "Echec de l'export du flux de travail",
     "mutationImported": "Flux de travail importe",
     "mutationImportFailed": "Echec de l'import du flux de travail",
-    "export": "Exporter"
+    "export": "Exporter",
+    "defaultTransport": "Transport par défaut",
+    "useDefaultCommunicationChannel": "Utiliser le canal de communication par défaut",
+    "useDefaultEmailServer": "Utiliser le serveur e-mail par défaut",
+    "useLocalWorkflowFiles": "Utiliser les fichiers de workflow locaux",
+    "selectCommunicationChannel": "Sélectionner un canal de communication",
+    "selectEmailServer": "Sélectionner un serveur e-mail",
+    "selectStorageLocation": "Sélectionner un emplacement de stockage",
+    "noCommunicationChannelsFound": "Aucun canal de communication trouvé",
+    "noEmailServersFound": "Aucun serveur e-mail trouvé",
+    "noStorageLocationsFound": "Aucun emplacement de stockage trouvé",
+    "resetZoom": "Réinitialiser le zoom",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "showSensitiveField": "Afficher le champ sensible",
+    "hideSensitiveField": "Masquer le champ sensible",
+    "defaultPath": "Chemin par défaut",
+    "primarySuccessPath": "Chemin de succès principal",
+    "errorPath": "Chemin d’erreur",
+    "switchCasePath": "Chemin switch-case",
+    "conditionTruePath": "Chemin vrai",
+    "conditionFalsePath": "Chemin faux",
+    "extraConditionPath": "Chemin de condition supplémentaire",
+    "genericInputPath": "Chemin d’entrée générique",
+    "genericOutputPath": "Chemin de sortie générique",
+    "helpActionBehavior1": "Les nœuds d’action exécutent une seule opération (run, create, delete, etc.) et transmettent leur résultat au nœud suivant via le champ msg.payload.",
+    "helpActionBehavior2": "La plupart des actions sont typées (Container, Image, Network, ...) et un connecteur valide le schéma d’entrée à l’édition.",
+    "helpIntegrationBehavior1": "Les nœuds d’intégration appellent un service sous-jacent (e-mail, webhook, stockage, ...) et exposent le résultat via le même contrat msg.payload.",
+    "helpIntegrationBehavior2": "Si un nœud nécessite des identifiants (clé API, OAuth, ...), configurez-les dans le panneau de configuration du nœud avant de le câbler.",
+    "helpLogicBehavior1": "Les nœuds logiques ramifient le flux selon une comparaison, un switch ou une expression conditionnelle ; chaque branche devient un port de sortie.",
+    "helpLogicBehavior2": "Utilisez des conditions supplémentaires pour exprimer un routage à n voies (une seule branche se déclenche par exécution).",
+    "helpTriggerBehavior1": "Les nœuds déclencheur démarrent le workflow (webhook HTTP, planification, événement de conteneur, ...). Chaque workflow a exactement un nœud déclencheur.",
+    "helpTriggerBehavior2": "Les déclencheurs HTTP exposent un jeton que les appelants doivent inclure dans l’en-tête X-McHarbor-Trigger-Token ; le jeton tourne à chaque sauvegarde du déclencheur.",
+    "helpUtilityBehavior1": "Les nœuds utilitaires transforment, retardent ou filtrent la charge utile msg entre deux nœuds opérationnels.",
+    "helpUtilityBehavior2": "Les retards utilisent l’horloge du déclencheur ; debounce/cooldown sont utiles quand le déclencheur est basé sur des événements.",
+    "fieldTypeCode": "Code",
+    "fieldTypeContainerSelect": "Sélecteur de conteneur",
+    "fieldTypeCommunicationChannelSelect": "Sélecteur de canal de communication",
+    "fieldTypeCron": "Expression cron",
+    "fieldTypeEmailServerSelect": "Sélecteur de serveur e-mail",
+    "fieldTypeEnvironmentSelect": "Sélecteur d’environnement",
+    "fieldTypeExpression": "Expression",
+    "fieldTypeJson": "JSON",
+    "fieldTypeKeyValue": "Clé/valeur",
+    "fieldTypeLinkOutputSelect": "Sélecteur de sortie de lien",
+    "fieldTypeMetricConditions": "Conditions de métriques",
+    "fieldTypeNumber": "Nombre",
+    "fieldTypeSelect": "Sélection",
+    "fieldTypeText": "Texte",
+    "fieldTypeTextarea": "Zone de texte",
+    "fieldTypeToggle": "Bascule",
+    "multiInputPath": "Chemin multi-entrée"
   },
   "store": {
     "title": "Magasin",
@@ -781,7 +833,9 @@
     "widgetsCount_one": "Widget {{count}}",
     "widgetsCount_other": "Widget {{count}}",
     "searchNodes": "Rechercher des nœuds...",
-    "searchWidgets": "Rechercher des widgets..."
+    "searchWidgets": "Rechercher des widgets...",
+    "nodesCount": "Nœuds ({{count}})",
+    "widgetsCount": "Widgets ({{count}})"
   },
   "appStore": {
     "title": "Applications",
@@ -984,7 +1038,16 @@
       "viewRelease": "Voir la release",
       "openSettings": "Paramètres",
       "dismiss": "Fermer"
-    }
+    },
+    "close": "Fermer",
+    "remove": "Supprimer",
+    "profile": {
+      "account": {
+        "idpLockedDescription": "Le nom affiché et l’adresse e-mail sont gérés par votre fournisseur d’identité."
+      }
+    },
+    "expand": "Déplier",
+    "removeCondition": "Supprimer la condition"
   },
   "settings": {
     "about": {

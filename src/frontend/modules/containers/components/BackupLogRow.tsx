@@ -72,6 +72,7 @@ export function BackupLogPagination({
   onPageChange,
   labels,
 }: BackupLogPaginationProps) {
+  const { t } = useTranslation('containers');
   if (total <= 0) return null;
   return (
     <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -83,7 +84,7 @@ export function BackupLogPagination({
           size="sm"
           disabled={page <= 1 || disabled}
           onClick={() => onPageChange(Math.max(1, page - 1))}
-          aria-label="Previous page"
+          aria-label={t("backups.logs.previousPage")}
         >
           ‹
         </Button>
@@ -94,7 +95,7 @@ export function BackupLogPagination({
           size="sm"
           disabled={page >= totalPages || disabled}
           onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-          aria-label="Next page"
+          aria-label={t("backups.logs.nextPage")}
         >
           ›
         </Button>

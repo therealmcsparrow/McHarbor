@@ -421,6 +421,32 @@
     "removed": "Environment removed",
     "updated": "Environment updated",
     "connectionSuccessful": "Connection successful",
+    "test": {
+      "title": "Test connection: {{name}}",
+      "description": "Per-step diagnostics for {{name}}.",
+      "running": "Running test...",
+      "button": "Test connection",
+      "overallStatus": "Overall status",
+      "noSteps": "No test steps were executed.",
+      "resultPass": "Pass",
+      "resultFail": "Fail",
+      "resultWarn": "Warning",
+      "resultSkip": "Skipped",
+      "status": {
+        "pass": "Pass",
+        "fail": "Fail",
+        "warn": "Warning",
+        "skip": "Skipped"
+      },
+      "steps": {
+        "load": "Load environment",
+        "reset": "Reset client cache",
+        "connect": "Acquire Docker client",
+        "ping": "Daemon ping",
+        "version": "Resolve version",
+        "persist": "Persist result"
+      }
+    },
     "tokenRegenerated": "Token regenerated — copy it now",
     "agentDeployed": "Agent deployment initiated",
     "agentDeployFailed": "Agent deployment failed",
@@ -430,5 +456,18 @@
   "confirm": {
     "removeTitle": "Remove Environment",
     "removeDescription": "This will remove this environment from McHarbor."
+  },
+  "envs": {
+    "test": {
+      "title": "Test connection: {{name}}",
+      "description": "Per-step diagnostics for {{name}}.",
+      "running": "Running test...",
+      "resultPass": "Pass",
+      "resultFail": "Fail",
+      "resultWarn": "Warning",
+      "resultSkip": "Skipped",
+      "noSteps": "No test steps were executed.",
+      "overallStatus": "Overall status"
+    }
   }
 }

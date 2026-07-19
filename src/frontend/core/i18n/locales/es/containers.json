@@ -99,7 +99,8 @@
     "moved": "Contenedor movido",
     "reinstalled": "Contenedor reinstalado",
     "resumed": "Contenedor reanudado",
-    "pruned": "Recipientes no utilizados podados"
+    "pruned": "Recipientes no utilizados podados",
+    "autohealUpdated": "Preferencia de auto-curación actualizada"
   },
   "rename": {
     "title": "Renombrar contenedor",
@@ -552,7 +553,10 @@
       "runDeleted": "Copia eliminada",
       "runCancelled": "Copia cancelada",
       "restoreStarted": "Restauracion iniciada",
-      "restored": "Copia restaurada"
+      "restored": "Copia restaurada",
+      "scheduleUpdated": "Programación de backup actualizada",
+      "relinkAllSuccess": "Se volvieron a vincular {{count}} backup(s) a contenedores activos",
+      "retryUploadStarted": "Reintento de subida iniciado"
     },
     "bulkSelected": "{{count}} seleccionado(s)",
     "bulkOfTotal": "de {{total}}",
@@ -667,7 +671,9 @@
         "severity": "Severidad",
         "duration": "Duracion",
         "details": "Detalles"
-      }
+      },
+      "previousPage": "Página anterior",
+      "nextPage": "Página siguiente"
     },
     "bulkRunsDeleteTitle": "Eliminar {{count}} ejecuciones de copia?",
     "bulkRunsDeleteDescription": "Los archivos se eliminaran de cada destino de almacenamiento. Esto no se puede deshacer.",
@@ -690,7 +696,22 @@
       "table.restore": "Restaurar",
       "table.download": "Descargar",
       "table.delete": "Eliminar",
-      "table.open": "Abrir contenedor"
+      "table.open": "Abrir contenedor",
+      "table": {
+        "container": "Contenedor",
+        "environment": "Entorno",
+        "status": "Estado",
+        "destinations": "Destinos",
+        "size": "Tamaño",
+        "startedAt": "Iniciado",
+        "duration": "Duración",
+        "open": "Abrir",
+        "restore": "Restaurar backup",
+        "download": "Descargar backup",
+        "delete": "Eliminar backup",
+        "runningHint": "subiendo…",
+        "failedHint": "con errores"
+      }
     },
     "plans": {
       "emptyTitle": "Aun no hay planes de respaldo",
@@ -705,7 +726,20 @@
       "table.enabled": "Habilitado",
       "table.edit": "Editar",
       "table.delete": "Eliminar",
-      "table.open": "Abrir"
+      "table.open": "Abrir",
+      "table": {
+        "name": "Nombre",
+        "environment": "Entorno",
+        "container": "Contenedor",
+        "schedule": "Programación",
+        "destinations": "Destinos",
+        "retention": "Retención",
+        "nextRun": "Próxima ejecución",
+        "enabled": "Estado",
+        "open": "Abrir",
+        "edit": "Editar programación",
+        "delete": "Eliminar programación"
+      }
     },
     "destinationFailure": {
       "title": "Copia parcialmente fallida",
@@ -724,7 +758,13 @@
     "editScheduleDescription": "Actualizar cuando y con que frecuencia se ejecuta este plan.",
     "editSchedule": "Guardar cambios",
     "restoreConfirmTitle": "Restaurar contenedor",
-    "restoreConfirmDescription": "Los archivos seleccionados se extraeran de sus destinos de almacenamiento y se escribiran en el contenedor."
+    "restoreConfirmDescription": "Los archivos seleccionados se extraeran de sus destinos de almacenamiento y se escribiran en el contenedor.",
+    "saveChanges": "Guardar cambios",
+    "relinkAll": "Volver a vincular contenedores obsoletos",
+    "tabs": {
+      "plans": "Backups programados",
+      "runs": "Lista de backups"
+    }
   },
   "stats": {
     "cpu": "CPU",
@@ -754,7 +794,10 @@
     "removeImageDesc": "Eliminar la imagen Docker utilizada por este contenedor",
     "removeStack": "Quitar pila",
     "removeStackDesc": "Retire la pila Compose de McHarbor",
-    "removing": "Eliminando..."
+    "removing": "Eliminando...",
+    "removeNetwork": "Eliminar red",
+    "removeNetworkCount": "Eliminar {{count}} redes",
+    "removeNetworkDesc": "Eliminar la red definida por el usuario que queda huérfana"
   },
   "moveDialog": {
     "title": "Mover contenedor",
@@ -887,5 +930,90 @@
       "scanStarted": "Se inició el análisis de vulnerabilidad",
       "scanDeleted": "Escaneo eliminado"
     }
+  },
+  "containers": {
+    "backups": {
+      "saveChanges": "Guardar cambios",
+      "relinkAll": "Volver a vincular contenedores obsoletos",
+      "tabs": {
+        "plans": "Backups programados",
+        "runs": "Lista de backups"
+      },
+      "plans": {
+        "table": {
+          "name": "Nombre",
+          "environment": "Entorno",
+          "container": "Contenedor",
+          "schedule": "Programación",
+          "destinations": "Destinos",
+          "retention": "Retención",
+          "nextRun": "Próxima ejecución",
+          "enabled": "Estado",
+          "open": "Abrir",
+          "edit": "Editar programación",
+          "delete": "Eliminar programación"
+        }
+      },
+      "runs": {
+        "table": {
+          "container": "Contenedor",
+          "environment": "Entorno",
+          "status": "Estado",
+          "destinations": "Destinos",
+          "size": "Tamaño",
+          "startedAt": "Iniciado",
+          "duration": "Duración",
+          "open": "Abrir",
+          "restore": "Restaurar backup",
+          "download": "Descargar backup",
+          "delete": "Eliminar backup",
+          "runningHint": "subiendo…",
+          "failedHint": "con errores"
+        }
+      },
+      "toast": {
+        "scheduleUpdated": "Programación de backup actualizada",
+        "relinkAllSuccess": "Se volvieron a vincular {{count}} backup(s) a contenedores activos",
+        "retryUploadStarted": "Reintento de subida iniciado"
+      }
+    },
+    "bulkRemoveDialog": {
+      "title": "Eliminar contenedores",
+      "description": "Esto eliminará permanentemente <bold>{{count}}</bold> contenedores.",
+      "containers": "Contenedores",
+      "andXMore": "y {{count}} más",
+      "removeNetworkDesc": "Eliminar las redes definidas por el usuario que queden huérfanas por los contenedores seleccionados",
+      "removing": "Eliminando..."
+    },
+    "removeDialog": {
+      "removeNetwork": "Eliminar red",
+      "removeNetworkCount": "Eliminar {{count}} redes",
+      "removeNetworkDesc": "Eliminar la red definida por el usuario que queda huérfana"
+    },
+    "toast": {
+      "autohealUpdated": "Preferencia de auto-curación actualizada"
+    }
+  },
+  "autoheal": {
+    "title": "Auto-curación",
+    "enable": "Auto-curar en caso de fallo del healthcheck",
+    "enableDesc": "Reinicia el contenedor cuando su healthcheck de Docker indique unhealthy. Cooldown entre reinicios: 30s, 1m, 2m, luego 5m. La primera curación solo ocurre después de que el contenedor haya estado healthy al menos una vez.",
+    "restartCount": "{{count}} reinicio(s) por auto-curación",
+    "wasHealthy": "Ha estado healthy",
+    "neverHealthy": "Nunca ha estado healthy (la curación se omitirá hasta el primer éxito)",
+    "lastHeal": "Última curación",
+    "footnote": "El contenedor debe definir un healthcheck de Docker. La preferencia se mantiene en la memoria del proceso; recrear el contenedor la restablece. Cada curación se registra en el audit log y envía una notificación en la app."
+  },
+  "bulkRemoveDialog": {
+    "title": "Eliminar contenedores",
+    "description": "Esto eliminará permanentemente <bold>{{count}}</bold> contenedores.",
+    "containers": "Contenedores",
+    "andXMore": "y {{count}} más",
+    "removeNetworkDesc": "Eliminar las redes definidas por el usuario que queden huérfanas por los contenedores seleccionados",
+    "removing": "Eliminando..."
+  },
+  "network": {
+    "removeHost": "Eliminar host",
+    "removePort": "Eliminar puerto"
   }
 }

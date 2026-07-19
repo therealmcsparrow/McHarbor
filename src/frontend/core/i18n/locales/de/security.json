@@ -126,7 +126,8 @@
       "30days": "30 Tage",
       "90days": "90 Tage",
       "1year": "1 Jahr"
-    }
+    },
+    "copyFailed": "API-Schlüssel konnte nicht in die Zwischenablage kopiert werden"
   },
   "permissions": {
     "containers": "Container",
@@ -360,6 +361,11 @@
       "total": "Ergebnisse",
       "delete": "Scan löschen",
       "viewDetails": "Details anzeigen"
+    }
+  },
+  "security": {
+    "apiKeys": {
+      "copyFailed": "API-Schlüssel konnte nicht in die Zwischenablage kopiert werden"
     }
   }
 }

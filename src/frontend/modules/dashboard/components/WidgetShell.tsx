@@ -2,6 +2,7 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
   IconGripHorizontal,
   IconX,
@@ -30,6 +31,7 @@ export function WidgetShell({
   onResize,
   children,
 }: WidgetShellProps) {
+  const { t } = useTranslation("dashboard");
   return (
     <div
       className={cn(
@@ -52,7 +54,7 @@ export function WidgetShell({
             variant="ghost"
             size="icon-sm"
             onClick={onRemove}
-            aria-label="Remove widget"
+            aria-label={t("widget.removeWidget")}
             className="size-6 text-muted-foreground/40 hover:bg-destructive/10 hover:text-destructive"
           >
             <IconX className="h-3.5 w-3.5" />
@@ -89,7 +91,7 @@ export function WidgetShell({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label="Decrease height"
+              aria-label={t("widget.decreaseHeight")}
               onClick={() => onResize(width, Math.max(1, height - 1))}
               className="size-5 text-muted-foreground/40 hover:bg-muted hover:text-muted-foreground/60"
             >
@@ -102,7 +104,7 @@ export function WidgetShell({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label="Increase height"
+              aria-label={t("widget.increaseHeight")}
               onClick={() => onResize(width, height + 1)}
               className="size-5 text-muted-foreground/40 hover:bg-muted hover:text-muted-foreground/60"
             >

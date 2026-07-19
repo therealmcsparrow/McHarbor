@@ -121,7 +121,16 @@ McHarbor has grown from the initial public release into a broader operations pla
 ### Backups and External Storage
 
 - **Storage Location Registry**: Add reusable backup/export destinations from Settings, including FTP/FTPS, SFTP, Samba, AWS S3, Google Drive, OneDrive Personal, OneDrive Business, and SharePoint.
-- **Encrypted Container Backups**: Generate a one-time backup encryption key from Settings, copy it once, then use **Install and restart** to create `secrets/mcharbor_backup_key` and restart McHarbor with `docker-compose.secrets.yml`. The generated PowerShell setup command remains available as a manual fallback, and encrypted backup runs are written as `mcharbor.tar`.
+- **Encrypted Container Backups**: Generate a one-time backup encryption key from Settings, copy it once, then use **Install and restart** to create `secrets/mcharbor_backup_key` and restart McHarbor with `docker-compose.secrets.yml`. The generated PowerShell setup command remains available as a manual fallback, and encrypted backup runs are written as `mcharbor.tar`. **Running outside Docker Compose?** If you started McHarbor with plain `docker run` (or any runtime other than Docker Compose), the `com.docker.compose.project.working_dir` label is missing and the install returns `err.settings.compose_project_missing`. Open the key dialog, click **Advanced (non-Compose install)**, and enter the absolute host path to your `docker-compose.yml` directory (e.g. `Z:\projects\web\management\McHarbor` on Docker Desktop, `/opt/mcharbor` on Linux). The install proceeds against that path instead.
+
+#### Installing the Backup Encryption Key Outside Docker Compose
+
+By default McHarbor reads the `com.docker.compose.project.working_dir` label to discover the host directory where `secrets/mcharbor_backup_key` should be written. That label is only set by `docker compose up`, so:
+
+- **Plain `docker run`**: Click the **Advanced (non-Compose install)** toggle inside the "Enter backup encryption key" dialog and supply the host path to your `docker-compose.yml` directory.
+- **Kubernetes / Podman / other**: same — use the Advanced toggle, or migrate the workload to `docker compose` so the label is present.
+
+The full path on the host is required, including the drive letter on Windows (e.g. `C:\mcharbor` or `\mnt\McHarbor`). The dialog's hint text and `storage.installProjectPathHint` translation cover the supported formats.
 - **Selectable Restores**: Restore workflows can preview saved backup contents and choose which image, filesystem, or mounted-data entries should be restored.
 - **Restore Progress**: Filesystem and mounted-data restores report stage and byte progress, including remote-agent restores that are pulled and applied by the agent.
 - **Protocol-Aware FTP Setup**: Configure FTP and FTPS from one provider choice, then select plain FTP, explicit FTPS, or implicit FTPS with the correct port and firewall guidance.
@@ -159,6 +168,8 @@ docker compose --profile agent up -d
 ## Install From The Command Line
 
 McHarbor needs access to the host Docker socket. Without the `/var/run/docker.sock` bind mount, container management, events, and health checks against the local Docker environment will fail.
+
+> **Note on non-Compose installs:** Both the `docker compose` and the plain `docker run` examples below work for day-to-day operations, but the **encrypted container backup** install flow needs the `com.docker.compose.project.working_dir` Docker label (only set by `docker compose up`). If you start McHarbor with the plain `docker run` example and later generate a backup encryption key, use the **Advanced (non-Compose install)** toggle in the key dialog to supply the absolute host path to your `docker-compose.yml` directory. The full instructions live in [Installing the Backup Encryption Key Outside Docker Compose](#installing-the-backup-encryption-key-outside-docker-compose).
 
 Run McHarbor directly with Docker:
 

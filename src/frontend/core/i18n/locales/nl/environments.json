@@ -146,7 +146,7 @@
       "host": "Host",
       "docker": "Docker",
       "processes": "Processen",
-"terminal": "Terminal",
+      "terminal": "Terminal",
       "logs": "Logs"
     },
     "activity": {
@@ -421,6 +421,32 @@
     "removed": "Omgeving verwijderd",
     "updated": "Omgeving bijgewerkt",
     "connectionSuccessful": "Verbinding geslaagd",
+    "test": {
+      "title": "Verbinding testen: {{name}}",
+      "description": "Stapsgewijze diagnostiek voor {{name}}.",
+      "running": "Test wordt uitgevoerd...",
+      "button": "Verbinding testen",
+      "overallStatus": "Algemene status",
+      "noSteps": "Er zijn geen teststappen uitgevoerd.",
+      "resultPass": "Geslaagd",
+      "resultFail": "Mislukt",
+      "resultWarn": "Waarschuwing",
+      "resultSkip": "Overgeslagen",
+      "status": {
+        "pass": "Geslaagd",
+        "fail": "Mislukt",
+        "warn": "Waarschuwing",
+        "skip": "Overgeslagen"
+      },
+      "steps": {
+        "load": "Omgeving laden",
+        "reset": "Clientcache wissen",
+        "connect": "Docker-client ophalen",
+        "ping": "Daemon-ping",
+        "version": "Versie bepalen",
+        "persist": "Resultaat opslaan"
+      }
+    },
     "tokenRegenerated": "Token opnieuw gegenereerd — kopieer het nu",
     "agentDeployed": "Agent-implementatie gestart",
     "agentDeployFailed": "Agent-implementatie mislukt",
@@ -430,5 +456,18 @@
   "confirm": {
     "removeTitle": "Omgeving verwijderen",
     "removeDescription": "Hiermee wordt deze omgeving uit McHarbor verwijderd."
+  },
+  "envs": {
+    "test": {
+      "title": "Verbinding testen: {{name}}",
+      "description": "Stapsgewijze diagnostiek voor {{name}}.",
+      "running": "Test wordt uitgevoerd...",
+      "resultPass": "Geslaagd",
+      "resultFail": "Mislukt",
+      "resultWarn": "Waarschuwing",
+      "resultSkip": "Overgeslagen",
+      "noSteps": "Er zijn geen teststappen uitgevoerd.",
+      "overallStatus": "Algemene status"
+    }
   }
 }

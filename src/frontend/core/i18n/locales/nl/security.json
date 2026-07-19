@@ -362,5 +362,10 @@
       "delete": "Scan verwijderen",
       "viewDetails": "Details bekijken"
     }
+  },
+  "security": {
+    "apiKeys": {
+      "copyFailed": "API-sleutel kon niet naar het klembord worden gekopieerd"
+    }
   }
 }

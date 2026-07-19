@@ -11,6 +11,7 @@ import { ConfirmDialog } from '@resources/components/ui/ConfirmDialog';
 import { AgentTokenDialog } from '../components/AgentTokenDialog';
 import { CreateEnvironmentDialog } from '../components/CreateEnvironmentDialog';
 import { EnvironmentCardGrid } from '../components/EnvironmentCardGrid';
+import { EnvironmentTestDialog } from '../components/EnvironmentTestDialog';
 import { useEnvironmentColumns } from '../components/EnvironmentsColumns';
 import { useVersionInfo } from '../hooks/useEnvironments';
 import {
@@ -40,9 +41,14 @@ export default function EnvironmentsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<string | null>(null);
   const [agentTokenData, setAgentTokenData] = useState<AgentTokenData | null>(null);
+  const [testTarget, setTestTarget] = useState<{ id: string; name: string } | null>(null);
 
   const columns = useEnvironmentColumns({
-    onTest: (id) => testEnv.mutate(id),
+    onTest: (id) => {
+      const env = environments.find((entry) => entry.id === id);
+      setTestTarget({ id, name: env?.name ?? id });
+      testEnv.mutate(id);
+    },
     onInstall: (id) => {
       createInstallToken.mutate(id, {
         onSuccess: (data) => {
@@ -63,6 +69,12 @@ export default function EnvironmentsPage() {
         }
       },
     });
+  };
+
+  const handleTestFromCard = (id: string) => {
+    const env = environments.find((entry) => entry.id === id);
+    setTestTarget({ id, name: env?.name ?? id });
+    testEnv.mutate(id);
   };
 
   return (
@@ -112,7 +124,7 @@ export default function EnvironmentsPage() {
           environments={environments}
           isLoading={isLoading}
           mcharborVersion={versionInfo?.mcharbor.version}
-          onTest={(id) => testEnv.mutate(id)}
+          onTest={handleTestFromCard}
           onInstall={handleShowInstallInfo}
           onRemove={setConfirmTarget}
         />
@@ -147,6 +159,18 @@ export default function EnvironmentsPage() {
           mode={agentTokenData.mode}
         />
       )}
+
+      <EnvironmentTestDialog
+        open={testTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTestTarget(null);
+          }
+        }}
+        result={testEnv.data}
+        pending={testEnv.isPending}
+        envName={testTarget?.name ?? ''}
+      />
     </div>
   );
 }

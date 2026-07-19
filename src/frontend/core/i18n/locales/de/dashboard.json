@@ -17,5 +17,10 @@
     "monitoring": "Überwachung",
     "operations": "Operationen",
     "kubernetes": "Kubernetes"
+  },
+  "widget": {
+    "removeWidget": "Widget entfernen",
+    "decreaseHeight": "Höhe verringern",
+    "increaseHeight": "Höhe erhöhen"
   }
 }

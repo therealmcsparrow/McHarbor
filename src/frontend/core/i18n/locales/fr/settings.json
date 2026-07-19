@@ -864,6 +864,14 @@
       "channelsLabel": "Notifier ces canaux lors d'une nouvelle release",
       "channelsHint": "Laissez vide pour n'afficher que la bannière dans l'app.",
       "noChannels": "Aucun canal de notification activé. Configurez-en un dans Paramètres → Notifications."
+    },
+    "selfUpdateConfirm": "Mettre à jour maintenant",
+    "selfUpdateConfirmDescription": "McHarbor va télécharger la nouvelle image, arrêter le conteneur actuel et en démarrer un nouveau. Vous serez déconnecté et devrez recharger la page une fois qu’elle sera de nouveau en ligne.",
+    "selfUpdateConfirmTitle": "Mettre McHarbor à jour ?",
+    "updateNow": "Mettre à jour maintenant",
+    "toast": {
+      "selfUpdateFailed": "L’auto-mise à jour de McHarbor a échoué",
+      "selfUpdateScheduled": "Auto-mise à jour de McHarbor planifiée"
     }
   },
   "toast": {
@@ -968,12 +976,12 @@
     "about": {
       "selfUpdate": {
         "selfUpdateTitle": "Vérificateur de mise à jour",
-    "selfUpdateScheduled": "Auto-mise à jour de McHarbor planifiée",
-    "selfUpdateFailed": "L'auto-mise à jour de McHarbor a échoué",
-    "updateNow": "Mettre à jour maintenant",
-    "selfUpdateConfirmTitle": "Mettre McHarbor à jour ?",
-    "selfUpdateConfirmDescription": "McHarbor va télécharger la nouvelle image, arrêter le conteneur actuel et en démarrer un nouveau. Vous serez déconnecté et devrez recharger la page une fois qu'elle sera de nouveau en ligne.",
-    "selfUpdateConfirm": "Mettre à jour",
+        "selfUpdateScheduled": "Auto-mise à jour de McHarbor planifiée",
+        "selfUpdateFailed": "L'auto-mise à jour de McHarbor a échoué",
+        "updateNow": "Mettre à jour maintenant",
+        "selfUpdateConfirmTitle": "Mettre McHarbor à jour ?",
+        "selfUpdateConfirmDescription": "McHarbor va télécharger la nouvelle image, arrêter le conteneur actuel et en démarrer un nouveau. Vous serez déconnecté et devrez recharger la page une fois qu'elle sera de nouveau en ligne.",
+        "selfUpdateConfirm": "Mettre à jour",
         "selfUpdateSubtitle": "Vérifie périodiquement le flux des releases GitHub et affiche les nouvelles versions dans l'app.",
         "enabledLabel": "Rechercher les nouvelles releases",
         "enabledHint": "Exécute une vérification en arrière-plan à l'intervalle ci-dessous et affiche une bannière lorsqu'une version plus récente est disponible.",

@@ -864,6 +864,14 @@
       "channelsLabel": "Notificar estes canais num novo release",
       "channelsHint": "Deixe vazio para mostrar apenas o banner na aplicação.",
       "noChannels": "Sem canais de notificação ativos. Configure um em Definições → Notificações."
+    },
+    "selfUpdateConfirm": "Atualizar agora",
+    "selfUpdateConfirmDescription": "O McHarbor baixará a nova imagem, parará o contêiner atual e iniciará um novo. Você será desconectado e precisará recarregar a página quando voltar a ficar online.",
+    "selfUpdateConfirmTitle": "Atualizar o McHarbor?",
+    "updateNow": "Atualizar agora",
+    "toast": {
+      "selfUpdateFailed": "A autoatualização do McHarbor falhou",
+      "selfUpdateScheduled": "Autoatualização do McHarbor agendada"
     }
   },
   "toast": {
@@ -968,12 +976,12 @@
     "about": {
       "selfUpdate": {
         "selfUpdateTitle": "Verificador de auto-atualização",
-    "selfUpdateScheduled": "Autoatualização do McHarbor agendada",
-    "selfUpdateFailed": "A autoatualização do McHarbor falhou",
-    "updateNow": "Atualizar agora",
-    "selfUpdateConfirmTitle": "Atualizar o McHarbor?",
-    "selfUpdateConfirmDescription": "O McHarbor baixará a nova imagem, parará o contêiner atual e iniciará um novo. Você será desconectado e precisará recarregar a página quando voltar a ficar online.",
-    "selfUpdateConfirm": "Atualizar",
+        "selfUpdateScheduled": "Autoatualização do McHarbor agendada",
+        "selfUpdateFailed": "A autoatualização do McHarbor falhou",
+        "updateNow": "Atualizar agora",
+        "selfUpdateConfirmTitle": "Atualizar o McHarbor?",
+        "selfUpdateConfirmDescription": "O McHarbor baixará a nova imagem, parará o contêiner atual e iniciará um novo. Você será desconectado e precisará recarregar a página quando voltar a ficar online.",
+        "selfUpdateConfirm": "Atualizar",
         "selfUpdateSubtitle": "Verifica periodicamente o feed de releases do GitHub e mostra novas versões na aplicação.",
         "enabledLabel": "Procurar novos releases",
         "enabledHint": "Executa uma verificação em segundo plano no intervalo abaixo e mostra um banner quando está disponível uma versão mais recente.",

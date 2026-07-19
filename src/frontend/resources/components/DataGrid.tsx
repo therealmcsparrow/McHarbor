@@ -284,7 +284,7 @@ export function DataGrid<T>({
                       onCheckedChange={(checked) =>
                         table.toggleAllPageRowsSelected(!!checked)
                       }
-                      aria-label="Select all"
+                      aria-label={t("dataGrid.selectAll")}
                     />
                   </th>
                 )}

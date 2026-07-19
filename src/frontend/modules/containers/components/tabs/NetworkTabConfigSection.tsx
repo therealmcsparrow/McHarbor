@@ -162,7 +162,7 @@ export function NetworkTabConfigSection({
                   variant="ghost"
                   size="icon"
                   onClick={() => onRemoveExtraHost(index)}
-                  aria-label="Remove host"
+                  aria-label={t("network.removeHost")}
                   className="size-7 text-muted-foreground hover:text-red-500"
                 >
                   <IconTrash className="size-3.5" />

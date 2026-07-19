@@ -167,3 +167,31 @@ type TestResult struct {
 	K8sVersion    *string `json:"k8sVersion,omitempty"`
 	Error         string  `json:"error,omitempty"`
 }
+
+// EnvTestStep is a single named phase of an environment connection
+// test. Status mirrors the storage-location test vocabulary so the
+// frontend can render pass / fail / warn / skip with the same badge
+// styling. Latency is a Go-formatted duration ("12.3ms", "1.4s").
+type EnvTestStep struct {
+	Name    string `json:"name"`
+	Status  string `json:"status"`
+	Detail  string `json:"detail,omitempty"`
+	Latency string `json:"latency,omitempty"`
+}
+
+// EnvTestResult is the detailed per-step connection test result
+// returned to the frontend dialog. The existing TestResult type is
+// kept for backwards compatibility with any other consumer; the
+// /environments/{id}/test endpoint returns this richer shape.
+type EnvTestResult struct {
+	EnvID         string        `json:"envId"`
+	EnvName       string        `json:"envName"`
+	Orchestrator  string        `json:"orchestrator"`
+	Overall       string        `json:"overall"`
+	Steps         []EnvTestStep `json:"steps"`
+	DockerVersion *string       `json:"dockerVersion,omitempty"`
+	K8sVersion    *string       `json:"k8sVersion,omitempty"`
+	Duration      string        `json:"duration"`
+	StartedAt     string        `json:"startedAt"`
+	CompletedAt   string        `json:"completedAt"`
+}

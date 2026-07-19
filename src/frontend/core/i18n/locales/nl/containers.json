@@ -662,7 +662,8 @@
       "runCancelled": "Back-up geannuleerd",
       "restoreStarted": "Herstel gestart",
       "restored": "Back-up hersteld",
-      "retryUploadStarted": "Upload-retry gestart"
+      "retryUploadStarted": "Upload-retry gestart",
+      "relinkAllSuccess": "{{count}} backup(s) opnieuw gekoppeld aan actieve containers"
     },
     "bulkRunsDelete": "Verwijderen",
     "runs.emptyTitle": "Nog geen backup-uitvoeringen",
@@ -767,10 +768,13 @@
         "severity": "Ernst",
         "duration": "Duur",
         "details": "Details"
-      }
+      },
+      "previousPage": "Vorige pagina",
+      "nextPage": "Volgende pagina"
     },
     "restoreConfirmTitle": "Container herstellen",
-    "restoreConfirmDescription": "De geselecteerde archieven worden opgehaald uit hun opslaglocaties en terug naar de container geschreven."
+    "restoreConfirmDescription": "De geselecteerde archieven worden opgehaald uit hun opslaglocaties en terug naar de container geschreven.",
+    "relinkAll": "Verouderde containers opnieuw koppelen"
   },
   "stats": {
     "cpu": "CPU",
@@ -944,5 +948,17 @@
       "scanStarted": "Kwetsbaarheidsscan gestart",
       "scanDeleted": "Scan verwijderd"
     }
+  },
+  "containers": {
+    "backups": {
+      "relinkAll": "Verouderde containers opnieuw koppelen",
+      "toast": {
+        "relinkAllSuccess": "{{count}} backup(s) opnieuw gekoppeld aan actieve containers"
+      }
+    }
+  },
+  "network": {
+    "removeHost": "Host verwijderen",
+    "removePort": "Poort verwijderen"
   }
 }

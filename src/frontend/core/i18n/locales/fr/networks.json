@@ -140,5 +140,23 @@
     "selectContainer": "Récipient",
     "selectPlaceholder": "Sélectionnez un conteneur...",
     "view": "Afficher les détails"
+  },
+  "networks": {
+    "filters": {
+      "all": "Tous",
+      "used": "Utilisés",
+      "unused": "Inutilisés"
+    },
+    "create": {
+      "removeSubnet": "Supprimer le sous-réseau"
+    }
+  },
+  "filters": {
+    "all": "Tous",
+    "used": "Utilisés",
+    "unused": "Inutilisés"
+  },
+  "keyValue": {
+    "removeRow": "Supprimer la ligne"
   }
 }

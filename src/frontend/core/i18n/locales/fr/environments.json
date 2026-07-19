@@ -145,7 +145,7 @@
       "host": "Hôte",
       "docker": "Docker",
       "processes": "Processus",
-"terminal": "Terminal",
+      "terminal": "Terminal",
       "logs": "Logs"
     },
     "activity": {
@@ -420,6 +420,32 @@
     "removed": "Environnement supprimé",
     "updated": "Environnement mis à jour",
     "connectionSuccessful": "Connexion réussie",
+    "test": {
+      "title": "Tester la connexion : {{name}}",
+      "description": "Diagnostic étape par étape pour {{name}}.",
+      "running": "Test en cours...",
+      "button": "Tester la connexion",
+      "overallStatus": "Ãtat global",
+      "noSteps": "Aucune étape de test n'a été exécutée.",
+      "resultPass": "RÃ©ussi",
+      "resultFail": "Ãchec",
+      "resultWarn": "Avertissement",
+      "resultSkip": "Ignoré",
+      "status": {
+        "pass": "RÃ©ussi",
+        "fail": "Ãchec",
+        "warn": "Avertissement",
+        "skip": "Ignoré"
+      },
+      "steps": {
+        "load": "Charger l'environnement",
+        "reset": "Réinitialiser le cache client",
+        "connect": "Obtenir le client Docker",
+        "ping": "Ping du daemon",
+        "version": "Résoudre la version",
+        "persist": "Persister le résultat"
+      }
+    },
     "tokenRegenerated": "Jeton régénéré — copiez-le maintenant",
     "agentDeployed": "Déploiement de l'agent lancé",
     "agentDeployFailed": "Échec du déploiement de l'agent",
@@ -430,5 +456,18 @@
     "removeTitle": "Supprimer l'environnement",
     "removeDescription": "Cela supprimera cet environnement de McHarbor."
   },
-  "installAgent": "Agent installation"
+  "installAgent": "Agent installation",
+  "envs": {
+    "test": {
+      "title": "Tester la connexion : {{name}}",
+      "description": "Diagnostic étape par étape pour {{name}}.",
+      "running": "Test en cours...",
+      "resultPass": "Réussi",
+      "resultFail": "Échec",
+      "resultWarn": "Avertissement",
+      "resultSkip": "Ignoré",
+      "noSteps": "Aucune étape de test n’a été exécutée.",
+      "overallStatus": "État global"
+    }
+  }
 }

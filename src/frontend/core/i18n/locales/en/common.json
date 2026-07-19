@@ -173,7 +173,8 @@
     "showing": "Showing {{from}} to {{to}} of {{total}}",
     "page": "Page {{current}} of {{total}}",
     "prev": "Prev",
-    "next": "Next"
+    "next": "Next",
+    "selectAll": "Select all"
   },
   "batch": {
     "selected": "{{count}} selected",
@@ -759,7 +760,58 @@
     "mutationExportFailed": "Workflow export failed",
     "mutationImported": "Workflow imported",
     "mutationImportFailed": "Workflow import failed",
-    "export": "Export"
+    "export": "Export",
+    "defaultTransport": "Default transport",
+    "useDefaultCommunicationChannel": "Use default communication channel",
+    "useDefaultEmailServer": "Use default email server",
+    "useLocalWorkflowFiles": "Use local workflow files",
+    "selectCommunicationChannel": "Select communication channel",
+    "selectEmailServer": "Select email server",
+    "selectStorageLocation": "Select storage location",
+    "noCommunicationChannelsFound": "No communication channels found",
+    "noEmailServersFound": "No email servers found",
+    "noStorageLocationsFound": "No storage locations found",
+    "resetZoom": "Reset zoom",
+    "show": "Show",
+    "hide": "Hide",
+    "showSensitiveField": "Show sensitive field",
+    "hideSensitiveField": "Hide sensitive field",
+    "defaultPath": "Default path",
+    "primarySuccessPath": "Primary success path",
+    "errorPath": "Error path",
+    "switchCasePath": "Switch case path",
+    "conditionTruePath": "True path",
+    "conditionFalsePath": "False path",
+    "extraConditionPath": "Extra condition path",
+    "genericInputPath": "Generic input path",
+    "genericOutputPath": "Generic output path",
+    "helpActionBehavior1": "Action nodes perform a single operation (run, create, delete, etc.) and pass their result to the next node via the msg.payload field.",
+    "helpActionBehavior2": "Most actions are typed (Container, Image, Network, ...) and a connector validates the input schema at edit time.",
+    "helpIntegrationBehavior1": "Integration nodes call out to a backing service (email, webhook, storage, ...) and surface the result via the same msg.payload contract.",
+    "helpIntegrationBehavior2": "If a node requires credentials (API key, OAuth, ...), set them in the node's configuration panel before wiring it.",
+    "helpLogicBehavior1": "Logic nodes branch the flow based on a comparison, switch, or condition expression; each branch becomes an output port.",
+    "helpLogicBehavior2": "Use extra conditions to express n-way routing (only one branch fires per run).",
+    "helpTriggerBehavior1": "Trigger nodes start the workflow (HTTP webhook, schedule, container event, ...). Each workflow has exactly one trigger node.",
+    "helpTriggerBehavior2": "HTTP triggers expose a secret that callers must include in the X-McHarbor-Trigger-Token header; the token rotates when you re-save the trigger.",
+    "helpUtilityBehavior1": "Utility nodes transform, delay, or filter the msg payload between two operational nodes.",
+    "helpUtilityBehavior2": "Delays use the trigger's clock; debounce/cooldown are useful when the trigger is event-driven.",
+    "fieldTypeCode": "Code",
+    "fieldTypeContainerSelect": "Container select",
+    "fieldTypeCommunicationChannelSelect": "Communication channel select",
+    "fieldTypeCron": "Cron expression",
+    "fieldTypeEmailServerSelect": "Email server select",
+    "fieldTypeEnvironmentSelect": "Environment select",
+    "fieldTypeExpression": "Expression",
+    "fieldTypeJson": "JSON",
+    "fieldTypeKeyValue": "Key/value",
+    "fieldTypeLinkOutputSelect": "Link output select",
+    "fieldTypeMetricConditions": "Metric conditions",
+    "fieldTypeNumber": "Number",
+    "fieldTypeSelect": "Select",
+    "fieldTypeText": "Text",
+    "fieldTypeTextarea": "Textarea",
+    "fieldTypeToggle": "Toggle",
+    "multiInputPath": "Multi-input path"
   },
   "store": {
     "title": "Store",
@@ -781,7 +833,9 @@
     "widgetsCount_one": "{{count}} widget",
     "widgetsCount_other": "{{count}} widgets",
     "searchNodes": "Search nodes...",
-    "searchWidgets": "Search widgets..."
+    "searchWidgets": "Search widgets...",
+    "nodesCount": "Nodes ({{count}})",
+    "widgetsCount": "Widgets ({{count}})"
   },
   "appStore": {
     "title": "Apps",
@@ -944,7 +998,8 @@
       "toast": {
         "updated": "Profile updated",
         "updateFailed": "Failed to update profile"
-      }
+      },
+      "idpLockedDescription": "Display name and email are managed by your identity provider."
     },
     "preferences": {
       "title": "Preferences",
@@ -984,7 +1039,16 @@
       "viewRelease": "View release",
       "openSettings": "Settings",
       "dismiss": "Dismiss"
-    }
+    },
+    "close": "Close",
+    "remove": "Remove",
+    "profile": {
+      "account": {
+        "idpLockedDescription": "Display name and email are managed by your identity provider."
+      }
+    },
+    "expand": "Expand",
+    "removeCondition": "Remove condition"
   },
   "settings": {
     "about": {
@@ -1000,5 +1064,7 @@
       "openSettings": "Settings",
       "dismiss": "Dismiss"
     }
-  }
+  },
+  "close": "Close",
+  "remove": "Remove"
 }

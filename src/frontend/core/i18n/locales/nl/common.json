@@ -173,7 +173,8 @@
     "showing": "{{from}} tot {{to}} van {{total}}",
     "page": "Pagina {{current}} van {{total}}",
     "prev": "Vorige",
-    "next": "Volgende"
+    "next": "Volgende",
+    "selectAll": "Alles selecteren"
   },
   "batch": {
     "selected": "{{count}} geselecteerd",
@@ -759,7 +760,58 @@
     "mutationExportFailed": "Workflow exporteren mislukt",
     "mutationImported": "Workflow geimporteerd",
     "mutationImportFailed": "Workflow importeren mislukt",
-    "export": "Exporteren"
+    "export": "Exporteren",
+    "defaultTransport": "Standaard transport",
+    "useDefaultCommunicationChannel": "Gebruik standaard communicatiekanaal",
+    "useDefaultEmailServer": "Gebruik standaard e-mailserver",
+    "useLocalWorkflowFiles": "Gebruik lokale workflowbestanden",
+    "selectCommunicationChannel": "Selecteer communicatiekanaal",
+    "selectEmailServer": "Selecteer e-mailserver",
+    "selectStorageLocation": "Selecteer opslaglocatie",
+    "noCommunicationChannelsFound": "Geen communicatiekanalen gevonden",
+    "noEmailServersFound": "Geen e-mailservers gevonden",
+    "noStorageLocationsFound": "Geen opslaglocaties gevonden",
+    "resetZoom": "Zoom resetten",
+    "show": "Tonen",
+    "hide": "Verbergen",
+    "showSensitiveField": "Gevoelig veld tonen",
+    "hideSensitiveField": "Gevoelig veld verbergen",
+    "defaultPath": "Standaardpad",
+    "primarySuccessPath": "Primair succespad",
+    "errorPath": "Foutpad",
+    "switchCasePath": "Switch-case-pad",
+    "conditionTruePath": "Waar-pad",
+    "conditionFalsePath": "Onwaar-pad",
+    "extraConditionPath": "Extra conditiepad",
+    "genericInputPath": "Generiek invoerpad",
+    "genericOutputPath": "Generiek uitvoerpad",
+    "helpActionBehavior1": "Actieknopen voeren één bewerking uit (run, create, delete, ...) en geven het resultaat door aan de volgende knoop via het veld msg.payload.",
+    "helpActionBehavior2": "De meeste acties zijn getypeerd (Container, Image, Network, ...) en een connector valideert het invoerschema bij bewerken.",
+    "helpIntegrationBehavior1": "Integratieknopen roepen een achterliggende service aan (e-mail, webhook, opslag, ...) en leveren het resultaat via dezelfde msg.payload-overeenkomst.",
+    "helpIntegrationBehavior2": "Als een knoop referenties nodig heeft (API-sleutel, OAuth, ...), stel deze dan in via het configuratiepaneel van de knoop voordat je deze bedraadt.",
+    "helpLogicBehavior1": "Logica-knopen vertakken de stroom op basis van een vergelijking, switch of conditie-expressie; elke tak wordt een uitvoerpoort.",
+    "helpLogicBehavior2": "Gebruik extra condities om n-weg routering uit te drukken (slechts één tak vuurt per run).",
+    "helpTriggerBehavior1": "Triggerknopen starten de workflow (HTTP-webhook, planning, containergebeurtenis, ...). Elke workflow heeft precies één triggerknoop.",
+    "helpTriggerBehavior2": "HTTP-triggers stellen een token beschikbaar die bellers in de X-McHarbor-Trigger-Token header moeten opnemen; de token roteert wanneer je de trigger opnieuw opslaat.",
+    "helpUtilityBehavior1": "Hulpknopen transformeren, vertragen of filteren de msg-payload tussen twee operationele knopen.",
+    "helpUtilityBehavior2": "Vertragingen gebruiken de klok van de trigger; debounce/cooldown zijn handig wanneer de trigger event-gedreven is.",
+    "fieldTypeCode": "Code",
+    "fieldTypeContainerSelect": "Container selectie",
+    "fieldTypeCommunicationChannelSelect": "Communicatiekanaal selectie",
+    "fieldTypeCron": "Cron-expressie",
+    "fieldTypeEmailServerSelect": "E-mailserver selectie",
+    "fieldTypeEnvironmentSelect": "Omgeving selectie",
+    "fieldTypeExpression": "Expressie",
+    "fieldTypeJson": "JSON",
+    "fieldTypeKeyValue": "Sleutel/waarde",
+    "fieldTypeLinkOutputSelect": "Linkuitvoer selectie",
+    "fieldTypeMetricConditions": "Metric condities",
+    "fieldTypeNumber": "Nummer",
+    "fieldTypeSelect": "Selecteren",
+    "fieldTypeText": "Tekst",
+    "fieldTypeTextarea": "Tekstveld",
+    "fieldTypeToggle": "Schakelaar",
+    "multiInputPath": "Multi-invoerpad"
   },
   "store": {
     "title": "Store",
@@ -781,7 +833,9 @@
     "widgetsCount_one": "{{count}} widget",
     "widgetsCount_other": "{{count}} widgets",
     "searchNodes": "Zoek nodes...",
-    "searchWidgets": "Zoek widgets..."
+    "searchWidgets": "Zoek widgets...",
+    "nodesCount": "Knooppunten ({{count}})",
+    "widgetsCount": "Widgets ({{count}})"
   },
   "appStore": {
     "title": "Apps",
@@ -984,7 +1038,16 @@
       "viewRelease": "Release bekijken",
       "openSettings": "Instellingen",
       "dismiss": "Sluiten"
-    }
+    },
+    "close": "Sluiten",
+    "remove": "Verwijderen",
+    "profile": {
+      "account": {
+        "idpLockedDescription": "Weergavenaam en e-mail worden beheurd door uw identiteitsprovider."
+      }
+    },
+    "expand": "Uitvouwen",
+    "removeCondition": "Conditie verwijderen"
   },
   "settings": {
     "about": {

@@ -275,7 +275,10 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	response.NoContent(w)
 }
 
-// HandleTestConnection tests the Docker connection for an environment.
+// HandleTestConnection tests the Docker / Kubernetes connection for
+// an environment and returns a per-step report. The frontend dialog
+// renders the steps with status badges (pass / fail / warn / skip)
+// and an overall rolled-up badge.
 func (h *Handler) HandleTestConnection(w http.ResponseWriter, r *http.Request) {
 	user := auth.RequireAuth(r)
 	if user == nil {
@@ -285,20 +288,13 @@ func (h *Handler) HandleTestConnection(w http.ResponseWriter, r *http.Request) {
 
 	id := chi.URLParam(r, "id")
 
-	// Verify the environment exists
-	env, err := h.service.ByID(id)
-	if err != nil {
-		h.app.Logger.Error("failed to get environment for test", "id", id, "error", err)
-		response.InternalErrorCode(w, r, i18n.ErrInternalServer)
-		return
-	}
-	if env == nil {
-		response.NotFoundCode(w, r, i18n.ErrEnvNotFound)
-		return
-	}
-
 	result := h.service.TestConnection(r.Context(), id)
-	h.app.Logger.Info("environment connection test", "id", id, "success", result.Success, "user", user.Username)
+	h.app.Logger.Info(
+		"environment connection test",
+		"id", id,
+		"overall", result.Overall,
+		"user", user.Username,
+	)
 	response.OK(w, result)
 }
 

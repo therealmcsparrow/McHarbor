@@ -769,7 +769,9 @@
         "severity": "Severity",
         "duration": "Duration",
         "details": "Details"
-      }
+      },
+      "previousPage": "Previous page",
+      "nextPage": "Next page"
     },
     "restoreConfirmTitle": "Restore container",
     "restoreConfirmDescription": "The selected archives will be pulled from their storage locations and written back into the container."
@@ -946,5 +948,9 @@
       "scanStarted": "Vulnerability scan started",
       "scanDeleted": "Scan deleted"
     }
+  },
+  "network": {
+    "removeHost": "Remove host",
+    "removePort": "Remove port"
   }
 }

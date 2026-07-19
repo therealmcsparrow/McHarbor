@@ -62,7 +62,8 @@
     "optionKey": "Option key",
     "optionValue": "Option value",
     "labelKey": "Label key",
-    "labelValue": "Label value"
+    "labelValue": "Label value",
+    "removeSubnet": "Remove subnet"
   },
   "toast": {
     "created": "Network created",
@@ -145,5 +146,13 @@
     "selectContainer": "Container",
     "selectPlaceholder": "Select a container...",
     "view": "View details"
+  },
+  "keyValue": {
+    "removeRow": "Remove row"
+  },
+  "networks": {
+    "create": {
+      "removeSubnet": "Remove subnet"
+    }
   }
 }

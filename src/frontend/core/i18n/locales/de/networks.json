@@ -145,5 +145,13 @@
     "selectContainer": "Container",
     "selectPlaceholder": "Container auswählen...",
     "view": "Details anzeigen"
+  },
+  "keyValue": {
+    "removeRow": "Zeile entfernen"
+  },
+  "networks": {
+    "create": {
+      "removeSubnet": "Subnetz entfernen"
+    }
   }
 }

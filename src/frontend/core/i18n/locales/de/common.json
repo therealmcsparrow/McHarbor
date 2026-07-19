@@ -173,7 +173,8 @@
     "showing": "{{from}} bis {{to}} von {{total}}",
     "page": "Seite {{current}} von {{total}}",
     "prev": "Zurück",
-    "next": "Weiter"
+    "next": "Weiter",
+    "selectAll": "Alle auswählen"
   },
   "batch": {
     "selected": "{{count}} ausgewählt",
@@ -759,7 +760,58 @@
     "mutationExportFailed": "Workflow-Export fehlgeschlagen",
     "mutationImported": "Workflow importiert",
     "mutationImportFailed": "Workflow-Import fehlgeschlagen",
-    "export": "Exportieren"
+    "export": "Exportieren",
+    "defaultTransport": "Standard-Transport",
+    "useDefaultCommunicationChannel": "Standard-Kommunikationskanal verwenden",
+    "useDefaultEmailServer": "Standard-E-Mail-Server verwenden",
+    "useLocalWorkflowFiles": "Lokale Workflow-Dateien verwenden",
+    "selectCommunicationChannel": "Kommunikationskanal auswählen",
+    "selectEmailServer": "E-Mail-Server auswählen",
+    "selectStorageLocation": "Speicherort auswählen",
+    "noCommunicationChannelsFound": "Keine Kommunikationskanäle gefunden",
+    "noEmailServersFound": "Keine E-Mail-Server gefunden",
+    "noStorageLocationsFound": "Keine Speicherorte gefunden",
+    "resetZoom": "Zoom zurücksetzen",
+    "show": "Anzeigen",
+    "hide": "Ausblenden",
+    "showSensitiveField": "Sensible Feld anzeigen",
+    "hideSensitiveField": "Sensible Feld ausblenden",
+    "defaultPath": "Standardpfad",
+    "primarySuccessPath": "Primärer Erfolgspfad",
+    "errorPath": "Fehlerpfad",
+    "switchCasePath": "Switch-Case-Pfad",
+    "conditionTruePath": "Wahr-Pfad",
+    "conditionFalsePath": "Falsch-Pfad",
+    "extraConditionPath": "Zusätzlicher Bedingungspfad",
+    "genericInputPath": "Generischer Eingangspfad",
+    "genericOutputPath": "Generischer Ausgangspfad",
+    "helpActionBehavior1": "Aktions-Knoten führen eine einzelne Operation aus (run, create, delete, ...) und geben das Ergebnis über das Feld msg.payload an den nächsten Knoten weiter.",
+    "helpActionBehavior2": "Die meisten Aktionen sind typisiert (Container, Image, Network, ...) und ein Connector validiert das Eingabeschema beim Bearbeiten.",
+    "helpIntegrationBehavior1": "Integrations-Knoten rufen einen Backend-Service an (E-Mail, Webhook, Speicher, ...) und liefern das Ergebnis über denselben msg.payload-Vertrag.",
+    "helpIntegrationBehavior2": "Falls ein Knoten Anmeldedaten benötigt (API-Key, OAuth, ...), lege diese im Konfigurationspanel des Knotens an, bevor du ihn verdrahtest.",
+    "helpLogicBehavior1": "Logik-Knoten verzweigen den Fluss anhand eines Vergleichs, Switches oder Bedingungsausdrucks; jeder Zweig wird zu einem Ausgangsport.",
+    "helpLogicBehavior2": "Verwende zusätzliche Bedingungen, um n-Wege-Routing auszudrücken (nur ein Zweig feuert pro Lauf).",
+    "helpTriggerBehavior1": "Trigger-Knoten starten den Workflow (HTTP-Webhook, Zeitplan, Containerereignis, ...). Jeder Workflow hat genau einen Trigger-Knoten.",
+    "helpTriggerBehavior2": "HTTP-Trigger stellen ein Token bereit, das Aufrufer im X-McHarbor-Trigger-Token-Header mitsenden müssen; das Token rotiert, wenn du den Trigger neu speicherst.",
+    "helpUtilityBehavior1": "Hilfs-Knoten transformieren, verzögern oder filtern die msg-Payload zwischen zwei operativen Knoten.",
+    "helpUtilityBehavior2": "Verzögerungen nutzen die Uhrzeit des Triggers; Debounce/Cooldown sind nützlich, wenn der Trigger eventbasiert ist.",
+    "fieldTypeCode": "Code",
+    "fieldTypeContainerSelect": "Container-Auswahl",
+    "fieldTypeCommunicationChannelSelect": "Kommunikationskanal-Auswahl",
+    "fieldTypeCron": "Cron-Ausdruck",
+    "fieldTypeEmailServerSelect": "E-Mail-Server-Auswahl",
+    "fieldTypeEnvironmentSelect": "Umgebungsauswahl",
+    "fieldTypeExpression": "Ausdruck",
+    "fieldTypeJson": "JSON",
+    "fieldTypeKeyValue": "Schlüssel/Wert",
+    "fieldTypeLinkOutputSelect": "Linkausgabe-Auswahl",
+    "fieldTypeMetricConditions": "Metrik-Bedingungen",
+    "fieldTypeNumber": "Zahl",
+    "fieldTypeSelect": "Auswählen",
+    "fieldTypeText": "Text",
+    "fieldTypeTextarea": "Textbereich",
+    "fieldTypeToggle": "Schalter",
+    "multiInputPath": "Mehrfacheingangspfad"
   },
   "store": {
     "title": "Store",
@@ -781,7 +833,9 @@
     "widgetsCount_one": "{{count}} Widget",
     "widgetsCount_other": "{{count}} Widgets",
     "searchNodes": "Knoten suchen...",
-    "searchWidgets": "Widgets suchen..."
+    "searchWidgets": "Widgets suchen...",
+    "nodesCount": "Knoten ({{count}})",
+    "widgetsCount": "Widgets ({{count}})"
   },
   "appStore": {
     "title": "Apps",
@@ -984,7 +1038,16 @@
       "viewRelease": "Release ansehen",
       "openSettings": "Einstellungen",
       "dismiss": "Schließen"
-    }
+    },
+    "close": "Schließen",
+    "remove": "Entfernen",
+    "profile": {
+      "account": {
+        "idpLockedDescription": "Anzeigename und E-Mail werden von Ihrem Identitätsanbieter verwaltet."
+      }
+    },
+    "expand": "Aufklappen",
+    "removeCondition": "Bedingung entfernen"
   },
   "settings": {
     "about": {

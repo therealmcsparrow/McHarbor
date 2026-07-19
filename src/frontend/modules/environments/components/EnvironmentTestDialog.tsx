@@ -9,6 +9,8 @@ import {
   IconCircle,
   IconClock,
   IconHelp,
+  IconBrandDocker,
+  IconServer,
 } from "@tabler/icons-react";
 import { Badge } from "@resources/components/ui/Badge";
 import { Button } from "@resources/components/ui/Button";
@@ -24,58 +26,65 @@ import {
 import { Spinner } from "@resources/components/ui/Spinner";
 import { cn } from "@resources/utils/cn";
 import type {
-  StorageLocationTestResult,
-  StorageLocationTestStep,
-} from "../hooks/useStorageLocations";
+  EnvironmentTestResult,
+  EnvironmentTestStep,
+} from "../hooks/useEnvironments";
 
-type StorageLocationTestDialogProps = {
-  // The result to display. When null the dialog renders an empty
+type EnvironmentTestDialogProps = {
+  // Result to display. When null the dialog renders an empty
   // loading state (the parent passes the mutation's `data` once
   // it lands). isPending is reflected in a spinner.
-  result: StorageLocationTestResult | null | undefined;
+  result: EnvironmentTestResult | null | undefined;
   pending: boolean;
-  locationName: string;
+  envName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
 
-const STATUS_ICON: Record<
-  StorageLocationTestStep["status"],
-  typeof IconCheck
-> = {
+const STATUS_ICON: Record<EnvironmentTestStep["status"], typeof IconCheck> = {
   pass: IconCheck,
   fail: IconAlertCircle,
   warn: IconAlertTriangle,
   skip: IconHelp,
 };
 
-const STATUS_COLOR: Record<StorageLocationTestStep["status"], string> = {
+const STATUS_COLOR: Record<EnvironmentTestStep["status"], string> = {
   pass: "text-emerald-500",
   fail: "text-destructive",
   warn: "text-amber-500",
   skip: "text-muted-foreground",
 };
 
-const STATUS_BG: Record<StorageLocationTestStep["status"], string> = {
+const STATUS_BG: Record<EnvironmentTestStep["status"], string> = {
   pass: "bg-emerald-500/10 border-emerald-500/30",
   fail: "bg-destructive/10 border-destructive/30",
   warn: "bg-amber-500/10 border-amber-500/30",
   skip: "bg-muted/30 border-border",
 };
 
-export function StorageLocationTestDialog({
+// Map backend step names to a translated, user-facing label.
+// Falls back to the raw step name when the i18n key is missing (which
+// happens for new backend steps whose translations have not yet been
+// added).
+const STEP_LABEL_KEYS: Record<string, string> = {
+  load: "envs.test.steps.load",
+  reset: "envs.test.steps.reset",
+  connect: "envs.test.steps.connect",
+  ping: "envs.test.steps.ping",
+  version: "envs.test.steps.version",
+  persist: "envs.test.steps.persist",
+};
+
+export function EnvironmentTestDialog({
   result,
   pending,
-  locationName,
+  envName,
   open,
   onOpenChange,
-}: StorageLocationTestDialogProps) {
-  // The `common` namespace is added so we can resolve i18n keys
-  // that live outside the `settings` namespace (e.g. `close`,
-  // `actions.save`, etc).
-  const { t } = useTranslation(["settings", "common"]);
+}: EnvironmentTestDialogProps) {
+  const { t } = useTranslation(["environments", "common"]);
 
-  const overall = result?.overallStatus ?? (pending ? "running" : "skip");
+  const overall = result?.overall ?? (pending ? "running" : "skip");
   const overallVariant: "default" | "destructive" | "secondary" =
     overall === "pass"
       ? "default"
@@ -85,47 +94,67 @@ export function StorageLocationTestDialog({
 
   const overallLabel: string =
     overall === "pass"
-      ? t("storage.test.resultPass")
+      ? t("envs.test.resultPass")
       : overall === "fail"
-        ? t("storage.test.resultFail")
+        ? t("envs.test.resultFail")
         : overall === "warn"
-          ? t("storage.test.resultWarn")
+          ? t("envs.test.resultWarn")
           : overall === "running"
-            ? t("storage.test.running")
-            : t("storage.test.resultSkip");
+            ? t("envs.test.running")
+            : t("envs.test.resultSkip");
+
+  const OrchestratorIcon =
+    result?.orchestrator === "kubernetes" ? IconServer : IconBrandDocker;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {t("storage.test.title", { name: locationName })}
+            <span className="flex items-center gap-2">
+              <OrchestratorIcon
+                className="size-4 text-muted-foreground"
+                aria-hidden="true"
+              />
+              {t("envs.test.title", { name: envName })}
+            </span>
           </DialogTitle>
           <DialogDescription>
             {pending
-              ? t("storage.test.running")
-              : t("storage.test.description", { name: locationName })}
+              ? t("envs.test.running")
+              : t("envs.test.description", { name: envName })}
           </DialogDescription>
         </DialogHeader>
+
         <DialogBody className="space-y-3">
           {pending ? (
             <div
               className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 p-4"
-              data-testid="storage-test-running"
+              data-testid="env-test-running"
             >
               <Spinner size="md" />
               <span className="text-sm text-foreground">
-                {t("storage.test.running")}
+                {t("envs.test.running")}
               </span>
             </div>
           ) : (
-            <div data-testid="storage-test-result" className="space-y-3">
+            <div data-testid="env-test-result" className="space-y-3">
               <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 p-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {t("storage.test.overallStatus")}
+                    {t("envs.test.overallStatus")}
                   </span>
                   <Badge variant={overallVariant}>{overallLabel}</Badge>
+                  {result?.dockerVersion && (
+                    <span className="text-xs text-muted-foreground">
+                      Docker v{result.dockerVersion}
+                    </span>
+                  )}
+                  {result?.k8sVersion && (
+                    <span className="text-xs text-muted-foreground">
+                      Kubernetes v{result.k8sVersion}
+                    </span>
+                  )}
                 </div>
                 {result && (
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -134,10 +163,18 @@ export function StorageLocationTestDialog({
                   </span>
                 )}
               </div>
+
               {result && result.steps.length > 0 ? (
-                <ul className="space-y-2" data-testid="storage-test-steps">
+                <ul
+                  className="space-y-2"
+                  data-testid="env-test-steps"
+                >
                   {result.steps.map((step, index) => {
                     const StepIcon = STATUS_ICON[step.status];
+                    const labelKey = STEP_LABEL_KEYS[step.name];
+                    const label = labelKey
+                      ? t(labelKey, { defaultValue: step.name })
+                      : step.name;
                     return (
                       <li
                         key={`${step.name}-${index}`}
@@ -145,7 +182,7 @@ export function StorageLocationTestDialog({
                           "rounded-lg border p-3 text-sm",
                           STATUS_BG[step.status],
                         )}
-                        data-testid={`storage-test-step-${step.name}`}
+                        data-testid={`env-test-step-${step.name}`}
                       >
                         <div className="flex items-start gap-3">
                           <StepIcon
@@ -158,9 +195,7 @@ export function StorageLocationTestDialog({
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-center justify-between gap-2">
                               <span className="font-medium text-foreground">
-                                {t(`storage.test.steps.${step.name}`, {
-                                  defaultValue: step.name,
-                                })}
+                                {label}
                               </span>
                               <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Badge
@@ -172,7 +207,10 @@ export function StorageLocationTestDialog({
                                         : "outline"
                                   }
                                 >
-                                  {t(`storage.test.status.${step.status}`)}
+                                  {t(
+                                    `envs.test.status.${step.status}`,
+                                    { defaultValue: step.status },
+                                  )}
                                 </Badge>
                                 {step.latency && (
                                   <span className="font-mono">
@@ -195,12 +233,13 @@ export function StorageLocationTestDialog({
               ) : (
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
                   <IconCircle className="size-4" aria-hidden="true" />
-                  {t("storage.test.noSteps")}
+                  {t("envs.test.noSteps")}
                 </div>
               )}
             </div>
           )}
         </DialogBody>
+
         <DialogFooter>
           <Button
             variant="outline"

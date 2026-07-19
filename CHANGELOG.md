@@ -6,6 +6,13 @@ All notable changes to McHarbor are documented in this file.
 
 _No unreleased changes yet._
 
+## [2.0.4] - 2026-07-17
+
+### Fixed
+- **Custom-key dialog rendered `common.close` as the raw key text.** `StorageLocationTestDialog` and `EnvironmentTestDialog` were calling `t("common.close")`, which i18next resolves as the key path `common.close` in the current namespace (settings / environments). The `close` key in `common.json` lives at the top level, not nested under `common`, so the lookup fell back to the raw key and the Close button read `common.close` in every locale. Both call sites now use `t("close")`. `SwitchCases` had the same pattern with `t("common.remove")` → fixed the same way.
+- **i18n parity across locales.** Locale file `containers.json`, `networks.json`, `security.json`, and `common.json` were missing 73 keys (`containers.autoheal.*`, `containers.backups.*` plan / run / table headers, `containers.bulkRemoveDialog.*`, `containers.removeDialog.{removeNetwork,removeNetworkCount,removeNetworkDesc}`, `networks.filters.{all,used,unused}`, `security.apiKeys.copyFailed`, `workflows.*` UI labels — paths, types, fields, behaviour, dialog, help) that the source code was already calling. The `nl`, `de`, `es`, `fr`, `pt` files were all 52 keys short of `en`; `de` was 5 keys short; `nl` was 2. All 73 keys are now present in every locale (proper localized text, not English fallbacks), closing the gap that made i18next render the raw key path to the user.
+- **Readme documents the non-Compose install path.** The `Backups and External Storage` section and the `Install From The Command Line` section now describe the `Advanced (non-Compose install)` toggle and link to a new `Installing the Backup Encryption Key Outside Docker Compose` sub-section, so an operator who started McHarbor with `docker run` (or Kubernetes / Podman) sees the workaround alongside the install command rather than hitting the new `err.settings.compose_project_missing` and wondering what to do.
+
 ## [2.0.3] - 2026-07-17
 
 ### Added

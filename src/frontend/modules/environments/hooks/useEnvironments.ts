@@ -102,6 +102,26 @@ export type VersionInfo = {
 
 export type { EnvironmentInfo, DashboardStats, EnvironmentUpdateSummary };
 
+export type EnvironmentTestStep = {
+  name: string;
+  status: 'pass' | 'fail' | 'warn' | 'skip';
+  detail?: string;
+  latency?: string;
+};
+
+export type EnvironmentTestResult = {
+  envId: string;
+  envName: string;
+  orchestrator: 'docker' | 'kubernetes';
+  overall: 'pass' | 'fail' | 'warn';
+  steps: EnvironmentTestStep[];
+  dockerVersion?: string;
+  k8sVersion?: string;
+  duration: string;
+  startedAt: string;
+  completedAt: string;
+};
+
 export function useEnvironment(id: string) {
   return useQuery({
     queryKey: ['environments', id],

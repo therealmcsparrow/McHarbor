@@ -864,6 +864,14 @@
       "channelsLabel": "Notificar a estos canales en un nuevo release",
       "channelsHint": "Déjalo vacío para mostrar solo el banner en la app.",
       "noChannels": "Sin canales de notificación activos. Configura uno en Ajustes → Notificaciones."
+    },
+    "selfUpdateConfirm": "Actualizar ahora",
+    "selfUpdateConfirmDescription": "McHarbor descargará la nueva imagen, detendrá el contenedor actual e iniciará uno nuevo. Se desconectará y deberá recargar la página cuando vuelva a estar en línea.",
+    "selfUpdateConfirmTitle": "¿Actualizar McHarbor?",
+    "updateNow": "Actualizar ahora",
+    "toast": {
+      "selfUpdateFailed": "La autoactualización de McHarbor falló",
+      "selfUpdateScheduled": "Autoactualización de McHarbor programada"
     }
   },
   "toast": {
@@ -968,12 +976,12 @@
     "about": {
       "selfUpdate": {
         "selfUpdateTitle": "Comprobador de auto-actualización",
-    "selfUpdateScheduled": "Autoactualización de McHarbor programada",
-    "selfUpdateFailed": "La autoactualización de McHarbor falló",
-    "updateNow": "Actualizar ahora",
-    "selfUpdateConfirmTitle": "¿Actualizar McHarbor?",
-    "selfUpdateConfirmDescription": "McHarbor descargará la nueva imagen, detendrá el contenedor actual e iniciará uno nuevo. Se desconectará y deberá recargar la página cuando vuelva a estar en línea.",
-    "selfUpdateConfirm": "Actualizar",
+        "selfUpdateScheduled": "Autoactualización de McHarbor programada",
+        "selfUpdateFailed": "La autoactualización de McHarbor falló",
+        "updateNow": "Actualizar ahora",
+        "selfUpdateConfirmTitle": "¿Actualizar McHarbor?",
+        "selfUpdateConfirmDescription": "McHarbor descargará la nueva imagen, detendrá el contenedor actual e iniciará uno nuevo. Se desconectará y deberá recargar la página cuando vuelva a estar en línea.",
+        "selfUpdateConfirm": "Actualizar",
         "selfUpdateSubtitle": "Comprueba periódicamente el feed de releases de GitHub y muestra nuevas versiones en la app.",
         "enabledLabel": "Buscar nuevos releases",
         "enabledHint": "Ejecuta una comprobación en segundo plano en el intervalo de abajo y muestra un banner cuando hay una versión más reciente disponible.",

@@ -540,62 +540,194 @@ func (s *Service) Delete(id string) error {
 	return nil
 }
 
-// TestConnection pings the Docker daemon or Kubernetes cluster for the given environment.
-func (s *Service) TestConnection(ctx context.Context, id string) *TestResult {
-	// Look up orchestrator type
-	var orchestratorType string
-	err := s.db.QueryRow("SELECT orchestrator_type FROM environments WHERE id = ?", id).Scan(&orchestratorType)
+// TestConnection pings the Docker daemon or Kubernetes cluster for the
+// given environment and returns a per-step report suitable for the
+// frontend dialog. The report lists each connection phase (pool reset,
+// client acquisition, daemon ping, version parse, DB persist) with
+// its own pass/fail status and latency, plus an overall rolled-up
+// status and the resolved Docker / Kubernetes version when the test
+// succeeds.
+func (s *Service) TestConnection(ctx context.Context, id string) *EnvTestResult {
+	// Look up environment basics so the dialog can show the name.
+	env, err := s.ByID(id)
 	if err != nil {
-		return &TestResult{Success: false, Error: "environment not found"}
+		return &EnvTestResult{
+			EnvID:   id,
+			Overall: "fail",
+			Steps: []EnvTestStep{{
+				Name:   "load",
+				Status: "fail",
+				Detail: "environment not found",
+			}},
+			StartedAt:   time.Now().UTC().Format(time.RFC3339),
+			CompletedAt: time.Now().UTC().Format(time.RFC3339),
+		}
 	}
 
-	now := time.Now().UTC().Format(time.RFC3339)
-
-	if orchestratorType == "kubernetes" {
-		return s.testK8sConnection(ctx, id, now)
+	if env == nil {
+		return &EnvTestResult{
+			EnvID:   id,
+			Overall: "fail",
+			Steps: []EnvTestStep{{
+				Name:   "load",
+				Status: "fail",
+				Detail: "environment not found",
+			}},
+			StartedAt:   time.Now().UTC().Format(time.RFC3339),
+			CompletedAt: time.Now().UTC().Format(time.RFC3339),
+		}
 	}
-	return s.testDockerConnection(ctx, id, now)
+
+	startedAt := time.Now().UTC()
+	now := startedAt.Format(time.RFC3339)
+
+	var result *EnvTestResult
+	if env.OrchestratorType == "kubernetes" {
+		result = s.testK8sConnection(ctx, id, now)
+	} else {
+		result = s.testDockerConnection(ctx, id, now)
+	}
+	result.EnvID = id
+	result.EnvName = env.Name
+	result.Orchestrator = env.OrchestratorType
+	result.StartedAt = now
+	result.CompletedAt = time.Now().UTC().Format(time.RFC3339)
+	result.Duration = result.CompletedAt
+	started, _ := time.Parse(time.RFC3339, now)
+	if !started.IsZero() {
+		result.Duration = time.Since(started).String()
+	}
+	return result
 }
 
-func (s *Service) testDockerConnection(ctx context.Context, id string, now string) *TestResult {
-	s.dockerPool.Remove(id)
+// appendStep records a single connection-test phase. Latency is
+// measured automatically; the caller just supplies name, status,
+// and an optional detail string.
+func appendStep(steps *[]EnvTestStep, name, status, detail string, started time.Time) *EnvTestStep {
+	latency := time.Since(started).String()
+	s := EnvTestStep{Name: name, Status: status, Detail: detail, Latency: latency}
+	*steps = append(*steps, s)
+	return &s
+}
 
+// rollupStatus returns the worst status in steps (fail > warn > pass >
+// skip), defaulting to pass for an empty list. It mirrors the storage
+// test's rollup so the dialog can render a single overall badge.
+func rollupStatus(steps []EnvTestStep) string {
+	worst := "pass"
+	for _, s := range steps {
+		switch s.Status {
+		case "fail":
+			return "fail"
+		case "warn":
+			worst = "warn"
+		case "skip":
+			// skip doesn't demote a passing overall status.
+		}
+	}
+	return worst
+}
+
+func (s *Service) testDockerConnection(ctx context.Context, id string, now string) *EnvTestResult {
+	result := &EnvTestResult{}
+
+	// Step 1: clear cached client so the test exercises a fresh
+	// connection (and picks up any TLS / socket changes from a
+	// reconfigured environment).
+	started := time.Now()
+	s.dockerPool.Remove(id)
+	appendStep(&result.Steps, "reset", "pass", "cleared cached client", started)
+
+	// Step 2: acquire a client through the pool. This is where TCP /
+	// TLS / SSH / agent handshake errors surface.
+	started = time.Now()
 	cli, err := s.dockerPool.Get(id)
 	if err != nil {
+		appendStep(&result.Steps, "connect", "fail", "failed to acquire Docker client: "+err.Error(), started)
 		slog.Error("environments: failed to connect to Docker", "error", err, "id", id)
-		return &TestResult{Success: false, Error: "failed to connect to Docker"}
+		result.Overall = "fail"
+		return result
 	}
+	appendStep(&result.Steps, "connect", "pass", "client acquired", started)
 
+	// Step 3: ping the daemon. cli's Ping calls /_ping which is the
+	// cheapest liveness probe.
+	started = time.Now()
 	ping, err := cli.Ping(ctx)
 	if err != nil {
+		appendStep(&result.Steps, "ping", "fail", "Docker /_ping failed: "+err.Error(), started)
 		slog.Error("environments: connection test failed", "error", err, "id", id)
-		return &TestResult{Success: false, Error: "connection test failed"}
+		result.Overall = "fail"
+		return result
 	}
+	appendStep(&result.Steps, "ping", "pass", "daemon responded to ping", started)
 
+	// Step 4: parse the version string from the Ping response. The
+	// Ping payload includes APIVersion (e.g. "1.45") but not the
+	// full server version. We try /info as a follow-up to get the
+	// human-readable version too; failure to do so is a warning,
+	// not a failure, because APIVersion is already informative.
+	started = time.Now()
 	version := ping.APIVersion
-	if _, err := s.db.Exec("UPDATE environments SET docker_version = ?, last_connected = ?, updated_at = ? WHERE id = ?",
-		version, now, now, id); err != nil {
-		slog.Error("environments: failed to update docker version", "error", err, "id", id)
+	if info, err := cli.Info(ctx); err == nil && info.ServerVersion != "" {
+		version = info.ServerVersion
+		appendStep(&result.Steps, "version", "pass", "server version: "+info.ServerVersion, started)
+	} else {
+		appendStep(&result.Steps, "version", "warn",
+			"API version only: "+ping.APIVersion+"; /info unavailable", started)
 	}
 
-	return &TestResult{Success: true, DockerVersion: &version}
+	// Step 5: persist the resolved version so the rest of the app
+	// (overview metrics, etc.) reads it without re-pinging.
+	started = time.Now()
+	if _, err := s.db.Exec(
+		"UPDATE environments SET docker_version = ?, last_connected = ?, updated_at = ? WHERE id = ?",
+		version, now, now, id,
+	); err != nil {
+		appendStep(&result.Steps, "persist", "fail", "database update failed: "+err.Error(), started)
+		slog.Error("environments: failed to update docker version", "error", err, "id", id)
+		result.Overall = rollupStatus(result.Steps)
+		return result
+	}
+	appendStep(&result.Steps, "persist", "pass", "stored docker_version + last_connected", started)
+
+	result.DockerVersion = &version
+	result.Overall = rollupStatus(result.Steps)
+	return result
 }
 
-func (s *Service) testK8sConnection(ctx context.Context, id string, now string) *TestResult {
-	s.k8sPool.Remove(id)
+func (s *Service) testK8sConnection(ctx context.Context, id string, now string) *EnvTestResult {
+	result := &EnvTestResult{}
 
+	started := time.Now()
+	s.k8sPool.Remove(id)
+	appendStep(&result.Steps, "reset", "pass", "cleared cached client", started)
+
+	started = time.Now()
 	version, err := s.k8sPool.Ping(ctx, id)
 	if err != nil {
+		appendStep(&result.Steps, "ping", "fail", "Kubernetes ping failed: "+err.Error(), started)
 		slog.Error("environments: failed to connect to Kubernetes", "error", err, "id", id)
-		return &TestResult{Success: false, Error: "failed to connect to Kubernetes cluster"}
+		result.Overall = "fail"
+		return result
 	}
+	appendStep(&result.Steps, "ping", "pass", "cluster responded to ping", started)
 
-	if _, err := s.db.Exec("UPDATE environments SET k8s_version = ?, last_connected = ?, updated_at = ? WHERE id = ?",
-		version, now, now, id); err != nil {
+	started = time.Now()
+	if _, err := s.db.Exec(
+		"UPDATE environments SET k8s_version = ?, last_connected = ?, updated_at = ? WHERE id = ?",
+		version, now, now, id,
+	); err != nil {
+		appendStep(&result.Steps, "persist", "fail", "database update failed: "+err.Error(), started)
 		slog.Error("environments: failed to update k8s version", "error", err, "id", id)
+		result.Overall = rollupStatus(result.Steps)
+		return result
 	}
+	appendStep(&result.Steps, "persist", "pass", "stored k8s_version + last_connected", started)
 
-	return &TestResult{Success: true, K8sVersion: &version}
+	result.K8sVersion = &version
+	result.Overall = rollupStatus(result.Steps)
+	return result
 }
 
 // DetectSocket auto-detects Docker and Podman sockets on the host.

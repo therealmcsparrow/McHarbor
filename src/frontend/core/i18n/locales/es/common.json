@@ -173,7 +173,8 @@
     "showing": "Mostrando {{from}} a {{to}} de {{total}}",
     "page": "Página {{current}} de {{total}}",
     "prev": "Anterior",
-    "next": "Próximo"
+    "next": "Próximo",
+    "selectAll": "Seleccionar todo"
   },
   "batch": {
     "selected": "{{count}} seleccionado",
@@ -759,7 +760,58 @@
     "mutationExportFailed": "Error al exportar el flujo de trabajo",
     "mutationImported": "Flujo de trabajo importado",
     "mutationImportFailed": "Error al importar el flujo de trabajo",
-    "export": "Exportar"
+    "export": "Exportar",
+    "defaultTransport": "Transporte predeterminado",
+    "useDefaultCommunicationChannel": "Usar canal de comunicación predeterminado",
+    "useDefaultEmailServer": "Usar servidor de correo predeterminado",
+    "useLocalWorkflowFiles": "Usar archivos de workflow locales",
+    "selectCommunicationChannel": "Seleccionar canal de comunicación",
+    "selectEmailServer": "Seleccionar servidor de correo",
+    "selectStorageLocation": "Seleccionar ubicación de almacenamiento",
+    "noCommunicationChannelsFound": "No se encontraron canales de comunicación",
+    "noEmailServersFound": "No se encontraron servidores de correo",
+    "noStorageLocationsFound": "No se encontraron ubicaciones de almacenamiento",
+    "resetZoom": "Restablecer zoom",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "showSensitiveField": "Mostrar campo sensible",
+    "hideSensitiveField": "Ocultar campo sensible",
+    "defaultPath": "Ruta predeterminada",
+    "primarySuccessPath": "Ruta de éxito principal",
+    "errorPath": "Ruta de error",
+    "switchCasePath": "Ruta de switch-case",
+    "conditionTruePath": "Ruta verdadera",
+    "conditionFalsePath": "Ruta falsa",
+    "extraConditionPath": "Ruta de condición extra",
+    "genericInputPath": "Ruta de entrada genérica",
+    "genericOutputPath": "Ruta de salida genérica",
+    "helpActionBehavior1": "Los nodos de acción realizan una sola operación (run, create, delete, etc.) y pasan su resultado al siguiente nodo a través del campo msg.payload.",
+    "helpActionBehavior2": "La mayoría de las acciones están tipadas (Container, Image, Network, ...) y un conector valida el esquema de entrada en tiempo de edición.",
+    "helpIntegrationBehavior1": "Los nodos de integración invocan a un servicio subyacente (correo electrónico, webhook, almacenamiento, ...) y exponen el resultado a través del mismo contrato msg.payload.",
+    "helpIntegrationBehavior2": "Si un nodo requiere credenciales (clave API, OAuth, ...), configùralas en su panel de configuración antes de cablearlo.",
+    "helpLogicBehavior1": "Los nodos lógicos ramifican el flujo en función de una comparación, switch o expresión condicional; cada rama se convierte en un puerto de salida.",
+    "helpLogicBehavior2": "Usa condiciones extra para expresar enrutamiento de n vías (solo se dispara una rama por ejecución).",
+    "helpTriggerBehavior1": "Los nodos trigger inician el workflow (webhook HTTP, programación, evento de contenedor, ...). Cada workflow tiene exactamente un nodo trigger.",
+    "helpTriggerBehavior2": "Los triggers HTTP exponen un token que los llamantes deben incluir en el encabezado X-McHarbor-Trigger-Token; el token rota cuando vuelves a guardar el trigger.",
+    "helpUtilityBehavior1": "Los nodos de utilidad transforman, retrasan o filtran la carga útil de msg entre dos nodos operacionales.",
+    "helpUtilityBehavior2": "Los retrasos usan el reloj del trigger; el rebote/enfriamiento son útiles cuando el trigger es basado en eventos.",
+    "fieldTypeCode": "Código",
+    "fieldTypeContainerSelect": "Selector de contenedor",
+    "fieldTypeCommunicationChannelSelect": "Selector de canal de comunicación",
+    "fieldTypeCron": "Expresión cron",
+    "fieldTypeEmailServerSelect": "Selector de servidor de correo",
+    "fieldTypeEnvironmentSelect": "Selector de entorno",
+    "fieldTypeExpression": "Expresión",
+    "fieldTypeJson": "JSON",
+    "fieldTypeKeyValue": "Clave/valor",
+    "fieldTypeLinkOutputSelect": "Selector de salida de enlace",
+    "fieldTypeMetricConditions": "Condiciones de métricas",
+    "fieldTypeNumber": "Número",
+    "fieldTypeSelect": "Seleccionar",
+    "fieldTypeText": "Texto",
+    "fieldTypeTextarea": "Área de texto",
+    "fieldTypeToggle": "Alternar",
+    "multiInputPath": "Ruta multi-entrada"
   },
   "store": {
     "title": "Almacenar",
@@ -781,7 +833,9 @@
     "widgetsCount_one": "widget {{count}}",
     "widgetsCount_other": "widgets {{count}}",
     "searchNodes": "Buscar nodos...",
-    "searchWidgets": "Buscar widgets..."
+    "searchWidgets": "Buscar widgets...",
+    "nodesCount": "Nodos ({{count}})",
+    "widgetsCount": "Widgets ({{count}})"
   },
   "appStore": {
     "title": "Aplicaciones",
@@ -984,7 +1038,16 @@
       "viewRelease": "Ver release",
       "openSettings": "Ajustes",
       "dismiss": "Cerrar"
-    }
+    },
+    "close": "Cerrar",
+    "remove": "Eliminar",
+    "profile": {
+      "account": {
+        "idpLockedDescription": "El nombre para mostrar y el correo electrónico son gestionados por su proveedor de identidad."
+      }
+    },
+    "expand": "Expandir",
+    "removeCondition": "Eliminar condición"
   },
   "settings": {
     "about": {
