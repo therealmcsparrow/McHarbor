@@ -6,6 +6,11 @@ All notable changes to McHarbor are documented in this file.
 
 _No unreleased changes yet._
 
+## [2.0.5] - 2026-07-20
+
+### Fixed
+- **Backup key installation failed with 500 errors when container auto-discovery fails.** The `CurrentMcHarborContainer` function in `core/docker/protection.go` uses system files and hostname to discover the running McHarbor container. In environments where these discovery methods fail (missing compose labels, non-standard container names, or non-Linux systems), container discovery fails and the backup-key install endpoint (`POST /api/settings/backup-key/install`) returns 500 errors. Added a fallback mechanism that uses the Docker API (`ContainerList`) to enumerate all containers and find McHarbor by its labels or image name, making the backup key installation flow resilient to container discovery failures across all environments.
+
 ## [2.0.4] - 2026-07-17
 
 ### Fixed

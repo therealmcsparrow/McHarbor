@@ -166,7 +166,8 @@ func CurrentMcHarborContainerCandidates() []string {
 // running McHarbor application container. It walks the candidates
 // returned by CurrentMcHarborContainerCandidates and returns the
 // first one that resolves to a container that passes
-// IsMcHarborContainer.
+// IsMcHarborContainer. If no candidates work, it falls back to
+// listing all containers to find McHarbor.
 func CurrentMcHarborContainer(ctx context.Context, cli *client.Client) (types.ContainerJSON, error) {
 	var lastErr error
 	for _, candidate := range CurrentMcHarborContainerCandidates() {
@@ -186,6 +187,35 @@ func CurrentMcHarborContainer(ctx context.Context, cli *client.Client) (types.Co
 		}
 		lastErr = fmt.Errorf("container %s is not mcharbor", candidate)
 	}
+
+	// Fallback: list all containers and find McHarbor by labels/image
+	// This works on Windows/Docker Desktop where /proc and /etc files don't exist
+	listCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+
+	containers, err := cli.ContainerList(listCtx, types.ContainerListOptions{All: true})
+	if err != nil {
+		if lastErr != nil {
+			return types.ContainerJSON{}, fmt.Errorf("%w; fallback container list: %w", lastErr, err)
+		}
+		return types.ContainerJSON{}, fmt.Errorf("container list fallback: %w", err)
+	}
+
+	for _, c := range containers {
+		inspectCtx, inspectCancel := context.WithTimeout(ctx, 10*time.Second)
+		current, err := cli.ContainerInspect(inspectCtx, c.ID)
+		inspectCancel()
+		if err != nil {
+			continue
+		}
+		if current.Config == nil {
+			continue
+		}
+		if IsMcHarborContainer([]string{current.Name}, current.Config.Image, current.Config.Labels) {
+			return current, nil
+		}
+	}
+
 	if lastErr != nil {
 		return types.ContainerJSON{}, lastErr
 	}
