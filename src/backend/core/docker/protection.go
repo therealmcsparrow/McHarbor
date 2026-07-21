@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 )
@@ -189,11 +190,12 @@ func CurrentMcHarborContainer(ctx context.Context, cli *client.Client) (types.Co
 	}
 
 	// Fallback: list all containers and find McHarbor by labels/image
-	// This works on Windows/Docker Desktop where /proc and /etc files don't exist
+	// This works on environments where /proc and /etc files don't exist or
+	// container auto-discovery via hostname/cgroup fails
 	listCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 
-	containers, err := cli.ContainerList(listCtx, types.ContainerListOptions{All: true})
+	containers, err := cli.ContainerList(listCtx, container.ListOptions{All: true})
 	if err != nil {
 		if lastErr != nil {
 			return types.ContainerJSON{}, fmt.Errorf("%w; fallback container list: %w", lastErr, err)
