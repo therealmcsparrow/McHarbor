@@ -913,7 +913,7 @@ func replacementContainerSpec(info types.ContainerJSON, req RecreateRequest, img
 		}
 		hc.PortBindings = portMap
 	}
-	if req.NetworkMode != nil {
+	if req.NetworkMode != nil && *req.NetworkMode != "" {
 		hc.NetworkMode = container.NetworkMode(*req.NetworkMode)
 	}
 	if req.Privileged != nil {

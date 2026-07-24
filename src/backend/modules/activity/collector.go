@@ -260,7 +260,7 @@ func (c *Collector) listenOnce(ctx context.Context, envID string) error {
 		case err := <-errCh:
 			return err
 		case event := <-eventsCh:
-			c.persistEvent(envID, event)
+			c.persistEvent(ctx, envID, event)
 		}
 	}
 }
@@ -346,12 +346,12 @@ func (c *Collector) fetchEventsBatch(ctx context.Context, envID string, since, u
 			if !ok {
 				return
 			}
-			c.persistEvent(envID, event)
+			c.persistEvent(ctx, envID, event)
 		}
 	}
 }
 
-func (c *Collector) persistEvent(envID string, event events.Message) {
+func (c *Collector) persistEvent(ctx context.Context, envID string, event events.Message) {
 	// Map the Docker event type to a lifecycle subject_type. The
 	// 'docker' daemon events are skipped — they're noisy and add no
 	// value to the lifecycle log.
@@ -400,7 +400,7 @@ func (c *Collector) persistEvent(envID string, event events.Message) {
 	// regardless of subject type. The legacy container_events
 	// table is kept in sync for the /activity page so historical
 	// reads continue to work.
-	if _, err := c.db.ExecContext(context.Background(), `
+	if _, err := c.db.ExecContext(ctx, `
 		INSERT INTO lifecycle_events
 			(id, environment_id, subject_type, subject_id, subject_name,
 			 event_type, action, state, severity, metadata, source, timestamp,

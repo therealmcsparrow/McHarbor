@@ -120,7 +120,7 @@ func moveProgressErrorMessage(err error) string {
 		return "The target agent must be updated to mcharbor-agent 1.3.3 or newer before moving container data."
 	}
 	if err != nil && strings.Contains(err.Error(), "does not support staged image loading") {
-		return err.Error()
+		return "The target agent does not support staged image loading. Update the target agent to a newer version."
 	}
 	if err != nil && strings.Contains(err.Error(), "image load timed out") {
 		return "The target Docker daemon took too long to load the image archive. Check target disk space and Docker daemon health, then retry."
@@ -215,6 +215,14 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 	}
 	result.ImageTransferred = true
 
+	originalImageRef := moveImageReference(info)
+	if originalImageRef != "" && originalImageRef != snapshotRef {
+		emitMoveProgress(emit, 4, "image", "Tagging snapshot with original image reference.", "progress")
+		if err := targetCli.ImageTag(opCtx, snapshotRef, originalImageRef); err != nil {
+			slog.Warn("containers: failed to tag transferred snapshot with original image reference", "source", snapshotRef, "target", originalImageRef, "error", err)
+		}
+	}
+
 	emitMoveProgress(emit, 5, "networks", "Preparing target networks.", "progress")
 	for _, networkPlan := range plan.Networks {
 		if networkPlan.Builtin || networkPlan.Exists {
@@ -249,7 +257,11 @@ func (s *Service) move(ctx context.Context, envID, id string, req MoveContainerR
 		}
 	}
 
-	cfg, hc, netConfig, err := replacementContainerSpec(info, RecreateRequest{}, snapshotRef)
+	creationImageRef := originalImageRef
+	if creationImageRef == "" {
+		creationImageRef = snapshotRef
+	}
+	cfg, hc, netConfig, err := replacementContainerSpec(info, RecreateRequest{}, creationImageRef)
 	if err != nil {
 		return MoveContainerResult{}, err
 	}

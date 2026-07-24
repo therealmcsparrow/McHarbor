@@ -266,7 +266,8 @@ export function WorkflowNode({
   return (
     <div
       className={cn(
-        "group absolute flex w-56 cursor-grab flex-col select-none rounded-lg border shadow-lg shadow-black/20 transition-shadow duration-300",
+        "group absolute flex w-56 cursor-grab flex-col select-none rounded-lg border shadow-lg transition-shadow duration-300",
+        ct.shadowNode,
         colors.border,
         executionRingClass,
         node.disabled && "opacity-40",

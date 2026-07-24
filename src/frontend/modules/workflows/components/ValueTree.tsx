@@ -5,6 +5,7 @@ import { useState } from "react";
 import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
 import { Button } from "@resources/components/ui/Button";
 import { ct } from "../canvas-theme";
+import { cn } from "@resources/utils/cn";
 
 type ValueTreeProps = {
   data: unknown;
@@ -123,7 +124,7 @@ function CollapsibleNode({
       </Button>
       {expanded && (
         <div
-          className={`border-l border-white/5 pl-2 space-y-0.5 ${depth === 0 ? "" : "ml-1.5"}`}
+          className={cn("border-l pl-2 space-y-0.5", ct.border5, depth === 0 ? "" : "ml-1.5")}
         >
           {children}
         </div>

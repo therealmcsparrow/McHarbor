@@ -414,7 +414,7 @@ func (h *Handler) handleAgentHostTerminalWS(w http.ResponseWriter, r *http.Reque
 	execID, outCh, errCh, err := h.startAgentHostTerminal(ctx, envID, t, cols, rows)
 	if err != nil {
 		h.app.Logger.Error("system: agent terminal start failed", "error", err)
-		writeWSError(conn, "failed to start host terminal on agent: "+err.Error())
+		writeWSError(conn, "failed to start host terminal on agent")
 		return
 	}
 
@@ -443,7 +443,8 @@ func (h *Handler) handleAgentHostTerminalWS(w http.ResponseWriter, r *http.Reque
 				}
 			case err := <-errCh:
 				if err != nil {
-					writeWSError(conn, err.Error())
+					h.app.Logger.Error("system: agent terminal error", "error", err)
+					writeWSError(conn, "host terminal error")
 				}
 				return
 			}

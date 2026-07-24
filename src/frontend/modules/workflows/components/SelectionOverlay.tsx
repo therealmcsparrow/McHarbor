@@ -2,6 +2,7 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import type { CanvasViewport } from '../types';
+import { ct } from '../canvas-theme';
 
 interface SelectionOverlayProps {
   rect: { startX: number; startY: number; endX: number; endY: number };
@@ -17,7 +18,7 @@ export function SelectionOverlay({ rect, viewport }: SelectionOverlayProps) {
       }}
     >
       <div
-        className="pointer-events-none absolute rounded-sm border border-blue-400/50 bg-blue-400/10"
+        className={`pointer-events-none absolute rounded-sm ${ct.selection}`}
         style={{
           left: Math.min(rect.startX, rect.endX),
           top: Math.min(rect.startY, rect.endY),

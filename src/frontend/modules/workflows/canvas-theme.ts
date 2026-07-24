@@ -21,9 +21,11 @@ export const ct = {
   text50: "text-foreground/50",
   text60: "text-foreground/60",
   text80: "text-foreground/80",
+  border5: "border-foreground/5",
   border30: "border-foreground/30",
   border60: "border-foreground/60",
   bg20: "bg-foreground/20",
+  shadowNode: "shadow-foreground/20",
 
   // --- Category A: Theme-aware surface colors ---
   // Canvas background, node bodies, input fields on canvas
@@ -41,4 +43,7 @@ export const ct = {
   toggleKnob: "bg-background",
   backdrop: "bg-background/40",
   tooltipBg: "bg-popover/95",
+  pickerBorder: "border-white",
+  pickerBorderHover: "hover:border-white/30",
+  selection: "border-blue-400/50 bg-blue-400/10",
 } as const;

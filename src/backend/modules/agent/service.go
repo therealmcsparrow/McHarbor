@@ -358,7 +358,6 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 			"targetTransferUrl", result.TargetTransferURL,
 			"error", err,
 		)
-		result.Error = err.Error()
 		return result, nil
 	}
 	result.ProbeURL = probeURL
@@ -414,7 +413,6 @@ func (s *Service) DirectTransferTest(ctx context.Context, req DirectTransferTest
 			"targetReportedDiagnostics", result.Diagnostic != nil,
 			"error", err,
 		)
-		result.Error = err.Error()
 		return result, nil
 	}
 

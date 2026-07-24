@@ -2,44 +2,37 @@
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { IconBell, IconClock, IconShieldCheck } from '@tabler/icons-react';
 import { Switch } from '@resources/components/ui/Switch';
 import { NumberInput } from '@resources/components/ui/NumberInput';
-import { api } from '@core/api/client';
 import {
   useSaveSelfUpdateSettings,
   useSelfUpdateSettings,
-  type NotificationChannel,
 } from '../hooks/useUpdates';
+import { useNotificationChannels } from '../hooks/useNotificationChannels';
 
 export function SelfUpdateSettingsCard() {
   const { t } = useTranslation('settings');
   const { data: settings, isFetching } = useSelfUpdateSettings();
   const save = useSaveSelfUpdateSettings();
 
-  const { data: channels = [] } = useQuery({
-    queryKey: ['notifications', 'channels'],
-    queryFn: () =>
-      api
-        .get<{ items: NotificationChannel[] }>('/notifications')
-        .then((r) => (r.data?.items ?? []).filter((c) => c.enabled))
-        .catch(() => [] as NotificationChannel[]),
-    staleTime: 60_000,
-  });
+  const { data: allChannels = [] } = useNotificationChannels();
+  const channels = allChannels.filter((c) => c.enabled);
 
   if (!settings) {
     return null;
   }
 
-  function update(patch: Partial<typeof settings>) {
-    save.mutate({ ...settings!, ...patch });
+  const current = settings;
+
+  function update(patch: Partial<typeof current>) {
+    save.mutate({ ...current, ...patch });
   }
 
   function toggleChannel(channelId: string) {
-    const next = settings!.channelIds.includes(channelId)
-      ? settings!.channelIds.filter((id) => id !== channelId)
-      : [...settings!.channelIds, channelId];
+    const next = current.channelIds.includes(channelId)
+      ? current.channelIds.filter((id) => id !== channelId)
+      : [...current.channelIds, channelId];
     update({ channelIds: next });
   }
 
@@ -115,17 +108,18 @@ export function SelfUpdateSettingsCard() {
                 return (
                   <label
                     key={c.id}
-                    className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-sm"
+                    className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2 text-sm"
                   >
-                    <input
-                      type="checkbox"
-                      className="size-4 accent-primary"
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-foreground truncate">{c.name}</div>
+                      <div className="text-xs text-muted-foreground">{c.channelType}</div>
+                    </div>
+                    <Switch
                       checked={checked}
-                      onChange={() => toggleChannel(c.id)}
+                      onCheckedChange={() => toggleChannel(c.id)}
                       disabled={isFetching || save.isPending || !settings.enabled}
+                      aria-label={c.name}
                     />
-                    <span className="flex-1 text-foreground">{c.name}</span>
-                    <span className="text-xs text-muted-foreground">{c.type}</span>
                   </label>
                 );
               })}

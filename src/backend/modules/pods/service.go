@@ -32,6 +32,9 @@ func (s *Service) List(ctx context.Context, envID, namespace string) ([]PodSumma
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	if namespace == "" {
 		namespace = ""
 	}
@@ -55,6 +58,9 @@ func (s *Service) Get(ctx context.Context, envID, namespace, name string) (*PodD
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	pod, err := cs.CoreV1().Pods(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("getting pod: %w", err)
@@ -70,6 +76,9 @@ func (s *Service) Delete(ctx context.Context, envID, namespace, name string) err
 		return fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	return cs.CoreV1().Pods(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 }
 
@@ -79,6 +88,9 @@ func (s *Service) Logs(ctx context.Context, envID, namespace, name, container st
 	if err != nil {
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	opts := &corev1.PodLogOptions{
 		Follow: false,

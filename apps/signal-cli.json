@@ -1,0 +1,25 @@
+{
+    "slug": "signal-cli",
+    "name": "Signal CLI",
+    "description": "Unofficial command-line client for Signal Messenger. Send and receive Signal messages programmatically from your McHarbor workflows.",
+    "category": "Communications",
+    "image": "asamk/signal-cli:latest",
+    "logo": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/signal.png",
+    "website": "https://github.com/AsamK/signal-cli",
+    "docsUrl": "https://github.com/AsamK/signal-cli#readme",
+    "ports": [],
+    "volumes": [
+        {
+            "host": "/var/lib/signal-cli",
+            "container": "/root/.local/share/signal-cli"
+        }
+    ],
+    "envVars": [
+        {
+            "key": "TZ",
+            "default": "UTC",
+            "description": "Timezone for the container"
+        }
+    ],
+    "version": "latest"
+}

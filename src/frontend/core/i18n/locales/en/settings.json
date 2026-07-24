@@ -989,7 +989,7 @@
         "intervalSuffix": "hours",
         "channelsLabel": "Notify these channels on a new release",
         "channelsHint": "Leave empty to only surface the in-app banner.",
-        "noChannels": "No enabled notification channels. Configure one under Settings → Notifications."
+        "noChannels": "No enabled notification channels. Configure one under Settings → Communications."
       }
     },
     "toast": {

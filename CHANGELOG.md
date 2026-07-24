@@ -6,6 +6,37 @@ All notable changes to McHarbor are documented in this file.
 
 _No unreleased changes yet._
 
+## [2.0.7] - 2026-07-25
+
+### Fixed
+- **Container update reset custom network to bridge.** `replacementContainerSpec` in `core/containers/service.go` overrode `HostConfig.NetworkMode` with the request value whenever `req.NetworkMode != nil`, even if the value was an empty string. An empty string was interpreted as "no network mode" by Docker, dropping the container onto the default `bridge` network. The check now ignores empty strings (`req.NetworkMode != nil && *req.NetworkMode != ""`), so updates that don't touch the network field preserve the original custom network.
+- **Container move replaced the image reference with a local snapshot.** Moving a container between agents or to/from the McHarbor server created the target container with the snapshot reference (`mcharbor-move-snapshot-...`) instead of the original external image (e.g. `nginx:latest`). After transferring the snapshot image, the move service now tags the snapshot with the original image reference on the target daemon and creates the container with that original reference, so the moved container keeps the correct image label.
+- **Self-update settings appeared to save but always reverted.** `Settings()` in `core/updates/self_update.go` declared `sql.NullString` variables and assigned `.String` but never set `.Valid = true`, so the null guards at the bottom of the function always fired and the defaults were returned on every read. Replaced the broken `sql.NullString` logic with explicit `foundInterval` / `foundEnabled` / `foundLastSeen` boolean flags so persisted values are actually returned.
+- **Self-update toggle saved but the UI flipped back immediately.** Same root cause as the previous fix — the `Settings` endpoint was returning `Enabled: true` and `IntervalHours: 24` no matter what the user toggled, so the toggle reset to its default state on the next render.
+- **Self-update page never listed configured notification channels.** `SelfUpdateSettingsCard` was calling `GET /notifications`, which does not exist — the real endpoint is `GET /communication-channels`. Switched the card to use the existing `useNotificationChannels()` hook so configured channels appear and can be toggled for self-update notifications. Also fixed the rendered field name (`c.type` → `c.channelType`) to match the `CommunicationChannel` type.
+- **`PUT /api/updates/settings` returned 500 on every save.** `upsertSetting` was using `ON CONFLICT(category, key) DO UPDATE`, but the `settings` table only has a `UNIQUE` constraint on `key` — SQLite rejected the upsert with `ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint`. Switched to `ON CONFLICT(key) DO UPDATE` (and added `category = excluded.category` to the update) so saves succeed and existing rows are replaced.
+
+### Changed
+- **Self-update notification channel selector is now a toggle, not a checkbox.** Replaced the native `<input type="checkbox">` in `SelfUpdateSettingsCard` with the existing `Switch` component, added `aria-label` on each row, and stacked the channel name + type on the left so the layout reads naturally with the toggle on the right.
+
+### Security
+- **`react-router` upgraded from `7.12.0` to `8.3.0` to clear the CSRF advisory** (`GHSA-qwww-vcr4-c8h2`). The npm-audit fix recommendation pointed at `7.11.0`, but that version has 12 other open advisories; `8.3.0` is the first patched release in the `8.x` line. `npm audit` now reports `0 vulnerabilities`. (Required `node >=22.22.0` — bundled Node bumped to `22.23.1` via `winget`.)
+- **Backend Go modules upgraded** (patch + minor): `k8s.io/{api,apimachinery,client-go}` to `v0.36.3`, `golang.org/x/{crypto,net,sync,sys,term,text,mod,tools}` to current, `modernc.org/sqlite` to `v1.54.0`, `github.com/go-openapi/swag` to `v0.27.3`, `github.com/go-sql-driver/mysql` to `v1.10.0`, and the rest of the `go.mod` tree via `go get -u ./...` + `go mod tidy`.
+- **Frontend npm dependencies upgraded** (patch + minor) via `npm update --legacy-peer-deps`: 86 packages changed across `@radix-ui/*`, `@tanstack/react-query`, `@tabler/icons-react`, `@tailwindcss/vite`, `react`, `react-dom`, `react-hook-form`, `react-i18next`, `recharts`, `tailwindcss`, `vite`, `eslint`, `prettier`, `typescript-eslint`, etc.
+
+### Notes
+- Docker image rebuilt with `docker compose build && docker compose up -d` and confirmed running.
+- `npx tsc -b` and `go build ./...` both pass clean.
+- `npm audit` reports `0 vulnerabilities`.
+
+## [2.0.6] - 2026-07-24
+
+### Added
+- **Signal CLI and Asra app definitions.** Added `signal-cli.json` (command-line Signal client) and `asra.json` (self-hosted Signal-compatible server) to the app catalog for one-click deployment from the McHarbor UI.
+
+### Fixed
+- **Notification channels hint pointed to wrong Settings tab.** The "No enabled notification channels" message in the About tab directed users to "Settings → Notifications", but the actual tab is "Settings → Communications". Updated the hint text in all locales to reference the correct path.
+
 ## [2.0.5] - 2026-07-20
 
 ### Fixed

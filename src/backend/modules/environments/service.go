@@ -643,7 +643,7 @@ func (s *Service) testDockerConnection(ctx context.Context, id string, now strin
 	started = time.Now()
 	cli, err := s.dockerPool.Get(id)
 	if err != nil {
-		appendStep(&result.Steps, "connect", "fail", "failed to acquire Docker client: "+err.Error(), started)
+		appendStep(&result.Steps, "connect", "fail", "failed to acquire Docker client", started)
 		slog.Error("environments: failed to connect to Docker", "error", err, "id", id)
 		result.Overall = "fail"
 		return result
@@ -655,7 +655,7 @@ func (s *Service) testDockerConnection(ctx context.Context, id string, now strin
 	started = time.Now()
 	ping, err := cli.Ping(ctx)
 	if err != nil {
-		appendStep(&result.Steps, "ping", "fail", "Docker /_ping failed: "+err.Error(), started)
+		appendStep(&result.Steps, "ping", "fail", "Docker /_ping failed", started)
 		slog.Error("environments: connection test failed", "error", err, "id", id)
 		result.Overall = "fail"
 		return result
@@ -684,7 +684,7 @@ func (s *Service) testDockerConnection(ctx context.Context, id string, now strin
 		"UPDATE environments SET docker_version = ?, last_connected = ?, updated_at = ? WHERE id = ?",
 		version, now, now, id,
 	); err != nil {
-		appendStep(&result.Steps, "persist", "fail", "database update failed: "+err.Error(), started)
+		appendStep(&result.Steps, "persist", "fail", "database update failed", started)
 		slog.Error("environments: failed to update docker version", "error", err, "id", id)
 		result.Overall = rollupStatus(result.Steps)
 		return result
@@ -706,7 +706,7 @@ func (s *Service) testK8sConnection(ctx context.Context, id string, now string) 
 	started = time.Now()
 	version, err := s.k8sPool.Ping(ctx, id)
 	if err != nil {
-		appendStep(&result.Steps, "ping", "fail", "Kubernetes ping failed: "+err.Error(), started)
+		appendStep(&result.Steps, "ping", "fail", "Kubernetes ping failed", started)
 		slog.Error("environments: failed to connect to Kubernetes", "error", err, "id", id)
 		result.Overall = "fail"
 		return result
@@ -718,7 +718,7 @@ func (s *Service) testK8sConnection(ctx context.Context, id string, now string) 
 		"UPDATE environments SET k8s_version = ?, last_connected = ?, updated_at = ? WHERE id = ?",
 		version, now, now, id,
 	); err != nil {
-		appendStep(&result.Steps, "persist", "fail", "database update failed: "+err.Error(), started)
+		appendStep(&result.Steps, "persist", "fail", "database update failed", started)
 		slog.Error("environments: failed to update k8s version", "error", err, "id", id)
 		result.Overall = rollupStatus(result.Steps)
 		return result

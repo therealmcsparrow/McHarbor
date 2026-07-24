@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import { Button } from '@resources/components/ui/Button';
 import { ValueTree } from './ValueTree';
+import { ct } from '../canvas-theme';
+import { cn } from '@resources/utils/cn';
 
 type TraceSectionProps = {
   label: string;
@@ -23,7 +25,7 @@ export function TraceSection({ label, badge, badgeColor = 'bg-blue-500/20 text-b
     (typeof data === 'object' && !Array.isArray(data) && Object.keys(data as Record<string, unknown>).length === 0);
 
   return (
-    <div className="border-t border-white/5">
+    <div className={cn("border-t", ct.border5)}>
       <Button
         variant="ghost"
         onClick={() => setExpanded(!expanded)}

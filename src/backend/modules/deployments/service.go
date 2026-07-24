@@ -32,6 +32,9 @@ func (s *Service) List(ctx context.Context, envID, namespace string) ([]Deployme
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	deps, err := cs.AppsV1().Deployments(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("listing deployments: %w", err)
@@ -51,6 +54,9 @@ func (s *Service) Get(ctx context.Context, envID, namespace, name string) (*Depl
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	dep, err := cs.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("getting deployment: %w", err)
@@ -66,6 +72,9 @@ func (s *Service) Delete(ctx context.Context, envID, namespace, name string) err
 		return fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	return cs.AppsV1().Deployments(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 }
 
@@ -75,6 +84,9 @@ func (s *Service) Scale(ctx context.Context, envID, namespace, name string, repl
 	if err != nil {
 		return fmt.Errorf("getting k8s client: %w", err)
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	scale, err := cs.AppsV1().Deployments(namespace).GetScale(ctx, name, metav1.GetOptions{})
 	if err != nil {
@@ -92,6 +104,9 @@ func (s *Service) Restart(ctx context.Context, envID, namespace, name string) er
 	if err != nil {
 		return fmt.Errorf("getting k8s client: %w", err)
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	patch := fmt.Sprintf(`{"spec":{"template":{"metadata":{"annotations":{"kubectl.kubernetes.io/restartedAt":"%s"}}}}}`,
 		time.Now().UTC().Format(time.RFC3339))

@@ -902,9 +902,9 @@ func (s *Service) ExecuteNode(ctx context.Context, node *CanvasNode, msg Msg, fl
 
 	// Trigger nodes
 	case "cron-trigger":
-		return s.executeCronTrigger(node)
+		return s.executeCronTrigger(ctx, node)
 	case "file-watch-trigger":
-		return s.executeFileWatchTrigger(node)
+		return s.executeFileWatchTrigger(ctx, node)
 
 	// Logic / Flow nodes
 	case "range":
@@ -3924,8 +3924,12 @@ func evaluateCondition(field, operator, value string, msg Msg) bool {
 // Trigger node implementations
 // ---------------------------------------------------------------------------
 
-func (s *Service) executeCronTrigger(node *CanvasNode) (string, Msg, error) {
-	time.Sleep(200 * time.Millisecond)
+func (s *Service) executeCronTrigger(ctx context.Context, node *CanvasNode) (string, Msg, error) {
+	select {
+	case <-ctx.Done():
+		return "", nil, ctx.Err()
+	case <-time.After(200 * time.Millisecond):
+	}
 	cron, _ := node.Config["cron"].(string)
 	tz, _ := node.Config["timezone"].(string)
 	if tz == "" {
@@ -3943,8 +3947,12 @@ func (s *Service) executeCronTrigger(node *CanvasNode) (string, Msg, error) {
 	return "output", out, nil
 }
 
-func (s *Service) executeFileWatchTrigger(node *CanvasNode) (string, Msg, error) {
-	time.Sleep(200 * time.Millisecond)
+func (s *Service) executeFileWatchTrigger(ctx context.Context, node *CanvasNode) (string, Msg, error) {
+	select {
+	case <-ctx.Done():
+		return "", nil, ctx.Err()
+	case <-time.After(200 * time.Millisecond):
+	}
 	watchPath, _ := node.Config["path"].(string)
 	eventTypes, _ := node.Config["event_types"].(string)
 	storageLocationID, _ := node.Config["storage_location_id"].(string)
@@ -3953,7 +3961,7 @@ func (s *Service) executeFileWatchTrigger(node *CanvasNode) (string, Msg, error)
 		"trigger":         "file-watch",
 		"path":            watchPath,
 		"eventTypes":      eventTypes,
-		"storageLocation": s.fileWatchStorageLocationPayload(context.Background(), storageLocationID),
+		"storageLocation": s.fileWatchStorageLocationPayload(ctx, storageLocationID),
 		"timestamp":       now.Format(time.RFC3339),
 	})
 	out["topic"] = "file-watch"
@@ -4992,7 +5000,7 @@ func (s *Service) executeSendConfiguredWebhook(ctx context.Context, node *Canvas
 	duration := int(time.Since(start).Milliseconds())
 	if err != nil {
 		s.logger.Error("workflows: configured webhook failed", "error", err, "webhookID", wh.ID)
-		if recErr := s.recordWebhookDelivery(wh.ID, "workflow", string(bodyBytes), 0, err.Error(), false, duration); recErr != nil {
+		if recErr := s.recordWebhookDelivery(wh.ID, "workflow", string(bodyBytes), 0, "request failed", false, duration); recErr != nil {
 			s.logger.Warn("workflows: recording webhook delivery failed", "error", recErr, "webhookID", wh.ID)
 		}
 		out := CloneMsg(msg)

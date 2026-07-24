@@ -32,6 +32,9 @@ func (s *Service) List(ctx context.Context, envID, namespace string) ([]K8sServi
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	svcs, err := cs.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("listing services: %w", err)
@@ -51,6 +54,9 @@ func (s *Service) Get(ctx context.Context, envID, namespace, name string) (*K8sS
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	svc, err := cs.CoreV1().Services(namespace).Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("getting service: %w", err)
@@ -66,6 +72,9 @@ func (s *Service) Delete(ctx context.Context, envID, namespace, name string) err
 	if err != nil {
 		return fmt.Errorf("getting k8s client: %w", err)
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	return cs.CoreV1().Services(namespace).Delete(ctx, name, metav1.DeleteOptions{})
 }

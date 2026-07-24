@@ -370,11 +370,11 @@ func (h *Handler) HandleRemoveExtended(w http.ResponseWriter, r *http.Request) {
 		for _, n := range orphanCandidates {
 			if err := h.svc.RemoveNetwork(r.Context(), envID, n.ID); err != nil {
 				h.app.Logger.Warn("remove network after container removal failed", "env", envID, "network", n.Name, "error", err)
-				result.NetworksFailed = append(result.NetworksFailed, FailedNetworkRemoval{
-					ID:     n.ID,
-					Name:   n.Name,
-					Reason: err.Error(),
-				})
+result.NetworksFailed = append(result.NetworksFailed, FailedNetworkRemoval{
+				ID:     n.ID,
+				Name:   n.Name,
+				Reason: "network removal failed",
+			})
 				continue
 			}
 			result.NetworksRemoved = append(result.NetworksRemoved, RemovedNetwork{ID: n.ID, Name: n.Name})

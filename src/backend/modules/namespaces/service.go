@@ -30,6 +30,9 @@ func (s *Service) List(ctx context.Context, envID string) ([]NamespaceSummary, e
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	nsList, err := cs.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("listing namespaces: %w", err)
@@ -54,6 +57,9 @@ func (s *Service) Get(ctx context.Context, envID, name string) (*NamespaceSummar
 	if err != nil {
 		return nil, fmt.Errorf("getting k8s client: %w", err)
 	}
+
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	ns, err := cs.CoreV1().Namespaces().Get(ctx, name, metav1.GetOptions{})
 	if err != nil {

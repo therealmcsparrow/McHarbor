@@ -139,13 +139,15 @@ func (c *SelfUpdateChecker) State() SelfUpdateState {
 func (c *SelfUpdateChecker) Settings(ctx context.Context) (SelfUpdateSettings, error) {
 	s := DefaultSelfUpdateSettings()
 
-	var interval, enabled, lastSeen sql.NullString
 	rows, err := c.db.QueryContext(ctx,
 		`SELECT key, value FROM settings WHERE category = ?`, selfUpdateCategory)
 	if err != nil {
 		return s, fmt.Errorf("loading self-update settings: %w", err)
 	}
 	defer rows.Close()
+	foundInterval := false
+	foundEnabled := false
+	foundLastSeen := false
 	for rows.Next() {
 		var key, value string
 		if err := rows.Scan(&key, &value); err != nil {
@@ -156,27 +158,27 @@ func (c *SelfUpdateChecker) Settings(ctx context.Context) (SelfUpdateSettings, e
 			if v, err := strconv.Atoi(value); err == nil {
 				s.IntervalHours = v
 			}
-			interval.String = value
+			foundInterval = true
 		case selfUpdateChannelsKey:
 			s.ChannelIDs = decodeStringList(value)
 		case selfUpdateLastSeenKey:
 			s.LastSeenVersion = value
-			lastSeen.String = value
+			foundLastSeen = true
 		case selfUpdateEnabledKey:
 			s.Enabled = value == "true"
-			enabled.String = value
+			foundEnabled = true
 		}
 	}
 	if err := rows.Err(); err != nil {
 		return s, fmt.Errorf("iterating self-update settings: %w", err)
 	}
-	if !interval.Valid {
+	if !foundInterval {
 		s.IntervalHours = 24
 	}
-	if !enabled.Valid {
+	if !foundEnabled {
 		s.Enabled = true
 	}
-	if !lastSeen.Valid {
+	if !foundLastSeen {
 		s.LastSeenVersion = ""
 	}
 	return s, nil
@@ -479,7 +481,7 @@ func upsertSetting(ctx context.Context, db *sql.DB, key, value string) error {
 	_, err := db.ExecContext(ctx,
 		`INSERT INTO settings (category, key, value, created_at, updated_at)
 		 VALUES (?, ?, ?, ?, ?)
-		 ON CONFLICT(category, key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+		 ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at, category = excluded.category`,
 		selfUpdateCategory, key, value, now, now)
 	if err != nil {
 		return fmt.Errorf("upserting self-update setting %s: %w", key, err)

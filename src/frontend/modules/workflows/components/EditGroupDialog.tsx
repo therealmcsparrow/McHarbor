@@ -75,8 +75,8 @@ export function EditGroupDialog({
               className={cn(
                 "size-6 rounded-md border-2 transition-all",
                 dialog.color === c
-                  ? "border-white scale-110"
-                  : "border-transparent hover:border-white/30",
+                  ? `${ct.pickerBorder} scale-110`
+                  : `border-transparent ${ct.pickerBorderHover}`,
               )}
               style={{ backgroundColor: c }}
             />

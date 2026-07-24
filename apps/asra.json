@@ -1,0 +1,47 @@
+{
+    "slug": "asra",
+    "name": "Asra",
+    "description": "Self-hosted Signal-compatible server implementation. Run your own Signal infrastructure for complete control over your messaging data.",
+    "category": "Communications",
+    "image": "asragrim/asra:latest",
+    "logo": "https://raw.githubusercontent.com/asragrim/asra/main/logo.png",
+    "website": "https://github.com/asragrim/asra",
+    "docsUrl": "https://github.com/asragrim/asra#readme",
+    "ports": [
+        {
+            "host": 8080,
+            "container": 8080,
+            "protocol": "tcp"
+        },
+        {
+            "host": 8443,
+            "container": 8443,
+            "protocol": "tcp"
+        }
+    ],
+    "volumes": [
+        {
+            "host": "/var/lib/asra",
+            "container": "/data"
+        }
+    ],
+    "envVars": [
+        {
+            "key": "SERVER_NAME",
+            "default": "",
+            "description": "Public domain name for your Asra server"
+        },
+        {
+            "key": "ADMIN_PHONE",
+            "default": "",
+            "description": "Admin phone number in E.164 format (e.g., +1234567890)",
+            "secret": true
+        },
+        {
+            "key": "TZ",
+            "default": "UTC",
+            "description": "Timezone for the container"
+        }
+    ],
+    "version": "latest"
+}
