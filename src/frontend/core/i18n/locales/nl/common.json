@@ -1068,5 +1068,170 @@
                                        "openSettings":  "Instellingen",
                                        "dismiss":  "Sluiten"
                                    }
+                    },
+    "wizard":  {
+                   "welcome":  {
+                                   "title":  "Welkom bij McHarbor",
+                                   "description":  "Jouw self-hosted containerbeheerplatform",
+                                   "body1":  "Welkom bij McHarbor â€” jouw self-hosted containerbeheerplatform.",
+                                   "body2":  "Deze snelle rondleiding stelt je eerste omgeving in, installeert een app en bouwt een dashboard.",
+                                   "body3":  "Duurt ongeveer 5 minuten. Je kunt elke stap overslaan en later terugkomen."
+                               },
+                   "environment":  {
+                                       "title":  "Voeg een omgeving toe",
+                                       "description":  "Verbind McHarbor met een Docker-host of Kubernetes-cluster",
+                                       "body1":  "Een omgeving is een Docker-host of Kubernetes-cluster die McHarbor beheert.",
+                                       "local":  "Lokaal: gebruik de Docker-socket van de host (meest gebruikelijk voor thuislabs).",
+                                       "agent":  "Externe agent: installeer mcharbor-agent op een externe host (werkt achter NAT).",
+                                       "kubernetes":  "Kubernetes: plak een kubeconfig of service-accounttoken.",
+                                       "cta":  "Voeg je eerste omgeving toe"
+                                   },
+                   "app":  {
+                               "title":  "Installeer een app",
+                               "description":  "Kies iets nuttigs uit de App Store",
+                               "body1":  "De App Store heeft 630+ apps met Ã©Ã©n klik â€” homepages, dashboards, databases en meer.",
+                               "recommended":  "Aanbevolen voor eerste installaties: Homepage (heimdall of homepage) â€” geeft je een mooi dashboard voor al je apps.",
+                               "cta":  "Bekijk de App Store"
+                           },
+                   "dashboard":  {
+                                     "title":  "Pas je dashboard aan",
+                                     "description":  "Voeg widgets toe om te zien wat ertoe doet",
+                                     "body1":  "Het dashboard toont live container-, host- en resourcemetingen. Voeg widgets toe via drag-and-drop.",
+                                     "widget1":  "Containerlijst â€” zie wat er draait en waar.",
+                                     "widget2":  "Hostinfo â€” CPU, RAM, schijf en Docker-versie.",
+                                     "widget3":  "Resourceoverzicht â€” totalen in Ã©Ã©n oogopslag voor alle omgevingen.",
+                                     "cta":  "Pas je dashboard aan"
+                                 },
+                   "notifications":  {
+                                         "title":  "Notificaties instellen (optioneel)",
+                                         "description":  "Krijg meldingen wanneer er iets misgaat",
+                                         "body1":  "McHarbor kan je waarschuwen wanneer containers stoppen, de schijf vol raakt of images updates hebben. Kies een kanaal:",
+                                         "slack":  "Slack, Discord, Teams â€” webhook-URL\u0027s",
+                                         "email":  "E-mail (SMTP)",
+                                         "telegram":  "Telegram, Gotify, Ntfy, Signal, WhatsApp",
+                                         "optional":  "Je kunt kanalen later configureren in Instellingen â†’ Communicatie.",
+                                         "cta":  "Notificaties instellen (optioneel)"
+                                     },
+                   "finish":  {
+                                  "title":  "Je bent klaar!",
+                                  "description":  "Welkom aan boord.",
+                                  "heading":  "Je bent klaar!",
+                                  "body1":  "McHarbor is klaar voor gebruik. Druk op ? om de sneltoetsen te zien, of klik op de helpknop rechtsboven aan een pagina."
+                              },
+                   "step":  "Stap {{current}} van {{total}}",
+                   "skip":  "Installatie overslaan",
+                   "restart":  "Installatie opnieuw uitvoeren"
+               },
+    "help":  {
+                 "title":  "Help",
+                 "description":  "Vind documentatie en snelle tips.",
+                 "open":  "Help openen",
+                 "relatedLinks":  "Gerelateerde links",
+                 "keyboardShortcuts":  "Sneltoetsen",
+                 "containers":  {
+                                    "title":  "Containers",
+                                    "description":  "Beheer draaiende, gestopte en gepauzeerde containers. Start, stop, herstart en bekijk logs. Maak nieuwe containers van images of draai stacks vanuit compose-bestanden."
+                                },
+                 "images":  {
+                                "title":  "Images",
+                                "description":  "Blader door lokale images, haal op uit registries, scan op kwetsbaarheden en verwijder ongebruikte lagen."
+                            },
+                 "volumes":  {
+                                 "title":  "Volumes",
+                                 "description":  "Persistente data-opslag. Blader, maak aan, verwijder en inspecteer. Bind-mounts koppelen hostmappen aan containers."
+                             },
+                 "networks":  {
+                                  "title":  "Netwerken",
+                                  "description":  "Containernetwerken. Maak aangepaste netwerken, koppel containers en configureer DNS."
+                              },
+                 "stacks":  {
+                                "title":  "Stacks",
+                                "description":  "Multi-containerimplementaties vanuit Ã©Ã©n compose-bestand. Pull, deploy, update en koppel containers aan stacks."
+                            },
+                 "environments":  {
+                                      "title":  "Omgevingen",
+                                      "description":  "Verbind McHarbor met lokale Docker, externe agents of Kubernetes-clusters. Elke omgeving wordt onafhankelijk beheerd."
+                                  },
+                 "appstore":  {
+                                  "title":  "App Store",
+                                  "description":  "Installeer 630+ apps met Ã©Ã©n klik. Blader per categorie, installeer met Ã©Ã©n klik, beheer installaties via het dashboard."
+                              },
+                 "workflows":  {
+                                   "title":  "Workflows",
+                                   "description":  "Bouw Node-RED-stijl automatiseringen. Trigger op Docker-events, schema\u0027s, bestandsbewakingen of webhooks. Voeg aangepaste JavaScript-nodes toe voor geavanceerde logica."
+                               },
+                 "git":  {
+                             "title":  "Git-repositories",
+                             "description":  "Koppel git-repositories voor stack-implementaties. Configureer authenticatie, sync-intervallen en per-branch beleid."
+                         },
+                 "gitops":  {
+                                "title":  "GitOps-pipelines",
+                                "description":  "Promoveer commits tussen dev, staging en productie. Configureer fases, goedkeuringspoorten en PR-preview-omgevingen."
+                            },
+                 "dashboard":  {
+                                   "title":  "Dashboard",
+                                   "description":  "Live statistieken voor containers, hosts en resources. Voeg widgets toe via drag-and-drop. Pas de lay-out per omgeving aan."
+                               },
+                 "settings":  {
+                                  "title":  "Instellingen",
+                                  "description":  "Applicatie-instellingen: taal, thema, notificaties, back-ups, agents, beveiliging en integraties."
+                              }
+             },
+    "shortcut":  {
+                     "commandPalette":  "Commando-palet",
+                     "globalSearch":  "Algemene zoekfunctie",
+                     "closeDialog":  "Dialoog sluiten",
+                     "group":  {
+                                   "navigation":  "Navigatie",
+                                   "actions":  "Acties",
+                                   "view":  "Weergave"
+                               },
+                     "cheatsheetTitle":  "Sneltoetsen",
+                     "cheatsheetDescription":  "Navigeer en handel snel met je toetsenbord."
+                 },
+    "bulk":  {
+                 "barLabel":  "Bulkacties",
+                 "selected":  "{{selectedCount}} van {{totalCount}} geselecteerd",
+                 "clear":  "Selectie wissen",
+                 "progress":  "{{done}} van {{total}} voltooid ({{success}} gelukt, {{failed}} mislukt, {{running}} bezig)"
+             },
+    "empty":  {
+                  "noResults":  "Geen resultaten gevonden",
+                  "noResultsFor":  "Geen resultaten voor \"{{searchTerm}}\".",
+                  "tryDifferentFilters":  "Probeer je filters of zoekterm aan te passen."
+              },
+    "whatsNew":  {
+                     "title":  "Wat is er nieuw in {{version}}",
+                     "description":  "Een korte rondleiding langs de nieuwste wijzigingen.",
+                     "dismiss":  "Sluiten",
+                     "gotIt":  "Begrepen",
+                     "2_0_7":  {
+                                   "firstRun":  {
+                                                    "title":  "Eerste-keer-wizard",
+                                                    "description":  "Een installatie van 5 minuten die je eerste omgeving toevoegt, een app installeert en notificaties configureert."
+                                                },
+                                   "help":  {
+                                                "title":  "Hulp in de app",
+                                                "description":  "Elke pagina heeft nu een helpknop met cheatsheet voor sneltoetsen."
+                                            },
+                                   "shortcuts":  {
+                                                     "title":  "Sneltoetsen",
+                                                     "description":  "Druk op ? voor de volledige cheatsheet, of gebruik g + toets om naar een pagina te springen."
+                                                 },
+                                   "skeletons":  {
+                                                     "title":  "Skeleton-laders",
+                                                     "description":  "Pagina\u0027s flitsen niet meer leeg tijdens het laden."
+                                                 },
+                                   "bulk":  {
+                                                "title":  "Bulkacties",
+                                                "description":  "Selecteer meerdere items en voer acties in batch uit met een live voortgangsdialoog."
+                                            }
+                               }
+                 },
+    "savedSearch":  {
+                        "save":  "Zoekopdracht opslaan",
+                        "saved":  "Opgeslagen",
+                        "apply":  "Zoekopdracht toepassen: {{name}}",
+                        "remove":  "Opgeslagen zoekopdracht verwijderen: {{name}}"
                     }
 }

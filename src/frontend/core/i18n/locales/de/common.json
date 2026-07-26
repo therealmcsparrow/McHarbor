@@ -1068,5 +1068,170 @@
                                        "openSettings":  "Einstellungen",
                                        "dismiss":  "SchlieÃŸen"
                                    }
+                    },
+    "wizard":  {
+                   "welcome":  {
+                                   "title":  "Willkommen bei McHarbor",
+                                   "description":  "Deine selbst gehostete Container-Verwaltungsplattform",
+                                   "body1":  "Willkommen bei McHarbor â€” deiner selbst gehosteten Container-Verwaltungsplattform.",
+                                   "body2":  "Diese SchnellfÃ¼hrung richtet deine erste Umgebung ein, installiert eine App und erstellt ein Dashboard.",
+                                   "body3":  "Dauert ungefÃ¤hr 5 Minuten. Du kannst jeden Schritt Ã¼berspringen und spÃ¤ter zurÃ¼ckkehren."
+                               },
+                   "environment":  {
+                                       "title":  "Umgebung hinzufÃ¼gen",
+                                       "description":  "Verbinde McHarbor mit einem Docker-Host oder Kubernetes-Cluster",
+                                       "body1":  "Eine Umgebung ist ein Docker-Host oder Kubernetes-Cluster, den McHarbor verwaltet.",
+                                       "local":  "Lokal: Verwende den Docker-Socket des Hosts (am hÃ¤ufigsten fÃ¼r Homelabs).",
+                                       "agent":  "Remote-Agent: Installiere mcharbor-agent auf einem Remote-Host (funktioniert hinter NAT).",
+                                       "kubernetes":  "Kubernetes: FÃ¼ge eine kubeconfig oder ein Service-Account-Token ein.",
+                                       "cta":  "Erste Umgebung hinzufÃ¼gen"
+                                   },
+                   "app":  {
+                               "title":  "App installieren",
+                               "description":  "WÃ¤hle etwas NÃ¼tzliches aus dem App Store",
+                               "body1":  "Der App Store hat 630+ Apps mit einem Klick â€” Homepages, Dashboards, Datenbanken und mehr.",
+                               "recommended":  "Empfohlen fÃ¼r die erste Installation: Homepage (heimdall oder homepage) â€” bietet dir ein schÃ¶nes Dashboard fÃ¼r alle deine Apps.",
+                               "cta":  "App Store durchsuchen"
+                           },
+                   "dashboard":  {
+                                     "title":  "Dashboard anpassen",
+                                     "description":  "FÃ¼ge Widgets hinzu, um zu sehen, was wichtig ist",
+                                     "body1":  "Das Dashboard zeigt Live-Container-, Host- und Ressourcenmetriken. FÃ¼ge Widgets per Drag-and-Drop hinzu.",
+                                     "widget1":  "Container-Liste â€” sieh, was lÃ¤uft und wo.",
+                                     "widget2":  "Host-Info â€” CPU, RAM, Festplatte und Docker-Version.",
+                                     "widget3":  "Ressourcen-Ãœbersicht â€” Gesamtsummen auf einen Blick Ã¼ber alle Umgebungen.",
+                                     "cta":  "Dashboard anpassen"
+                                 },
+                   "notifications":  {
+                                         "title":  "Benachrichtigungen einrichten (optional)",
+                                         "description":  "Erhalte Warnungen, wenn etwas schief geht",
+                                         "body1":  "McHarbor kann dich warnen, wenn Container stoppen, die Festplatte voll ist oder Images Updates haben. WÃ¤hle einen Kanal:",
+                                         "slack":  "Slack, Discord, Teams â€” Webhook-URLs",
+                                         "email":  "E-Mail (SMTP)",
+                                         "telegram":  "Telegram, Gotify, Ntfy, Signal, WhatsApp",
+                                         "optional":  "Du kannst KanÃ¤le spÃ¤ter in Einstellungen â†’ Kommunikation konfigurieren.",
+                                         "cta":  "Benachrichtigungen einrichten (optional)"
+                                     },
+                   "finish":  {
+                                  "title":  "Du bist startklar!",
+                                  "description":  "Willkommen an Bord.",
+                                  "heading":  "Du bist startklar!",
+                                  "body1":  "McHarbor ist einsatzbereit. DrÃ¼cke jederzeit ?, um die TastenkÃ¼rzel anzuzeigen, oder klicke oben rechts auf einer Seite auf die Hilfe-SchaltflÃ¤che."
+                              },
+                   "step":  "Schritt {{current}} von {{total}}",
+                   "skip":  "Einrichtung Ã¼berspringen",
+                   "restart":  "Einrichtung erneut ausfÃ¼hren"
+               },
+    "help":  {
+                 "title":  "Hilfe",
+                 "description":  "Dokumentation und schnelle Tipps finden.",
+                 "open":  "Hilfe Ã¶ffnen",
+                 "relatedLinks":  "Verwandte Links",
+                 "keyboardShortcuts":  "TastenkÃ¼rzel",
+                 "containers":  {
+                                    "title":  "Container",
+                                    "description":  "Verwalte laufende, gestoppte und pausierte Container. Starten, stoppen, neu starten und Logs anzeigen. Erstelle neue Container aus Images oder betreibe Stacks aus Compose-Dateien."
+                                },
+                 "images":  {
+                                "title":  "Images",
+                                "description":  "Durchsuche lokale Images, lade aus Registries, scanne auf Schwachstellen und rÃ¤ume ungenutzte Layer auf."
+                            },
+                 "volumes":  {
+                                 "title":  "Volumes",
+                                 "description":  "Persistente Datenspeicherung. Durchsuchen, erstellen, entfernen und inspizieren. Bind-Mounts binden Host-Verzeichnisse in Container ein."
+                             },
+                 "networks":  {
+                                  "title":  "Netzwerke",
+                                  "description":  "Container-Netzwerke. Erstelle benutzerdefinierte Netzwerke, verbinde Container und konfiguriere DNS."
+                              },
+                 "stacks":  {
+                                "title":  "Stacks",
+                                "description":  "Multi-Container-Bereitstellungen aus einer einzigen Compose-Datei. Pull, Deploy, Update und verknÃ¼pfe Container mit Stacks."
+                            },
+                 "environments":  {
+                                      "title":  "Umgebungen",
+                                      "description":  "Verbinde McHarbor mit lokalem Docker, Remote-Agenten oder Kubernetes-Clustern. Jede Umgebung wird unabhÃ¤ngig verwaltet."
+                                  },
+                 "appstore":  {
+                                  "title":  "App Store",
+                                  "description":  "Installiere 630+ Apps mit einem Klick. Durchsuche nach Kategorie, installiere mit einem Klick, verwalte Installationen Ã¼ber das Dashboard."
+                              },
+                 "workflows":  {
+                                   "title":  "Workflows",
+                                   "description":  "Baue Automatisierungen im Node-RED-Stil. AuslÃ¶ser durch Docker-Ereignisse, ZeitplÃ¤ne, DateiÃ¼berwachungen oder Webhooks. FÃ¼ge benutzerdefinierte JavaScript-Nodes fÃ¼r erweiterte Logik hinzu."
+                               },
+                 "git":  {
+                             "title":  "Git-Repositories",
+                             "description":  "VerknÃ¼pfe Git-Repositories fÃ¼r Stack-Bereitstellungen. Konfiguriere Authentifizierung, Sync-Intervalle und Per-Branch-Richtlinien."
+                         },
+                 "gitops":  {
+                                "title":  "GitOps-Pipelines",
+                                "description":  "BefÃ¶rdere Commits zwischen Dev, Staging und Produktion. Konfiguriere Stages, Genehmigungsgates und PR-Vorschauumgebungen."
+                            },
+                 "dashboard":  {
+                                   "title":  "Dashboard",
+                                   "description":  "Live-Metriken fÃ¼r Container, Hosts und Ressourcen. FÃ¼ge Widgets per Drag-and-Drop hinzu. Passe das Layout pro Umgebung an."
+                               },
+                 "settings":  {
+                                  "title":  "Einstellungen",
+                                  "description":  "App-Einstellungen: Sprache, Design, Benachrichtigungen, Backups, Agenten, Sicherheit und Integrationen."
+                              }
+             },
+    "shortcut":  {
+                     "commandPalette":  "Befehlspalette",
+                     "globalSearch":  "Globale Suche",
+                     "closeDialog":  "Dialog schlieÃŸen",
+                     "group":  {
+                                   "navigation":  "Navigation",
+                                   "actions":  "Aktionen",
+                                   "view":  "Ansicht"
+                               },
+                     "cheatsheetTitle":  "TastenkÃ¼rzel",
+                     "cheatsheetDescription":  "Navigiere und handle schnell mit deiner Tastatur."
+                 },
+    "bulk":  {
+                 "barLabel":  "Massenaktionen",
+                 "selected":  "{{selectedCount}} von {{totalCount}} ausgewÃ¤hlt",
+                 "clear":  "Auswahl lÃ¶schen",
+                 "progress":  "{{done}} von {{total}} abgeschlossen ({{success}} erfolgreich, {{failed}} fehlgeschlagen, {{running}} laufend)"
+             },
+    "empty":  {
+                  "noResults":  "Keine Ergebnisse gefunden",
+                  "noResultsFor":  "Keine Ergebnisse fÃ¼r \"{{searchTerm}}\".",
+                  "tryDifferentFilters":  "Versuche, deine Filter oder deinen Suchbegriff anzupassen."
+              },
+    "whatsNew":  {
+                     "title":  "Was ist neu in {{version}}",
+                     "description":  "Eine kurze Ãœbersicht Ã¼ber die neuesten Ã„nderungen.",
+                     "dismiss":  "SchlieÃŸen",
+                     "gotIt":  "Verstanden",
+                     "2_0_7":  {
+                                   "firstRun":  {
+                                                    "title":  "Erstmaliges Setup",
+                                                    "description":  "Ein 5-Minuten-Setup, das deine erste Umgebung hinzufÃ¼gt, eine App installiert und Benachrichtigungen konfiguriert."
+                                                },
+                                   "help":  {
+                                                "title":  "In-App-Hilfe",
+                                                "description":  "Jede Seite hat jetzt eine Hilfe-SchaltflÃ¤che mit TastenkÃ¼rzel-Ãœbersicht."
+                                            },
+                                   "shortcuts":  {
+                                                     "title":  "TastenkÃ¼rzel",
+                                                     "description":  "DrÃ¼cke ?, um die vollstÃ¤ndige Ãœbersicht anzuzeigen, oder nutze g + Taste, um zu einer Seite zu springen."
+                                                 },
+                                   "skeletons":  {
+                                                     "title":  "Skeleton-Lader",
+                                                     "description":  "Seiten flackern nicht mehr leer wÃ¤hrend des Ladens."
+                                                 },
+                                   "bulk":  {
+                                                "title":  "Massenaktionen",
+                                                "description":  "WÃ¤hle mehrere Elemente aus und fÃ¼hre Aktionen stapelweise mit einem Live-Fortschrittsdialog aus."
+                                            }
+                               }
+                 },
+    "savedSearch":  {
+                        "save":  "Suche speichern",
+                        "saved":  "Gespeichert",
+                        "apply":  "Suche anwenden: {{name}}",
+                        "remove":  "Gespeicherte Suche entfernen: {{name}}"
                     }
 }

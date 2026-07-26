@@ -1068,5 +1068,170 @@
                                        "openSettings":  "ParamÃ¨tres",
                                        "dismiss":  "Fermer"
                                    }
+                    },
+    "wizard":  {
+                   "welcome":  {
+                                   "title":  "Bienvenue dans McHarbor",
+                                   "description":  "Votre plateforme auto-hÃ©bergÃ©e de gestion de conteneurs",
+                                   "body1":  "Bienvenue dans McHarbor â€” votre plateforme auto-hÃ©bergÃ©e de gestion de conteneurs.",
+                                   "body2":  "Ce guide rapide configurera votre premier environnement, installera une application et construira un tableau de bord.",
+                                   "body3":  "Prend environ 5 minutes. Vous pouvez ignorer n\u0027importe quelle Ã©tape et y revenir plus tard."
+                               },
+                   "environment":  {
+                                       "title":  "Ajouter un environnement",
+                                       "description":  "Connectez McHarbor Ã  un hÃ´te Docker ou Ã  un cluster Kubernetes",
+                                       "body1":  "Un environnement est un hÃ´te Docker ou un cluster Kubernetes que McHarbor gÃ¨re.",
+                                       "local":  "Local : utilisez la socket Docker de l\u0027hÃ´te (le plus courant pour les homelabs).",
+                                       "agent":  "Agent distant : installez mcharbor-agent sur un hÃ´te distant (fonctionne derriÃ¨re le NAT).",
+                                       "kubernetes":  "Kubernetes : collez un kubeconfig ou un jeton de compte de service.",
+                                       "cta":  "Ajouter votre premier environnement"
+                                   },
+                   "app":  {
+                               "title":  "Installer une application",
+                               "description":  "Choisissez quelque chose d\u0027utile dans l\u0027App Store",
+                               "body1":  "L\u0027App Store propose plus de 630 applications en un clic â€” pages d\u0027accueil, tableaux de bord, bases de donnÃ©es et plus encore.",
+                               "recommended":  "RecommandÃ© pour les premiÃ¨res installations : Homepage (heimdall ou homepage) â€” vous offre un beau tableau de bord pour toutes vos applications.",
+                               "cta":  "Parcourir l\u0027App Store"
+                           },
+                   "dashboard":  {
+                                     "title":  "Personnalisez votre tableau de bord",
+                                     "description":  "Ajoutez des widgets pour voir ce qui compte",
+                                     "body1":  "Le tableau de bord affiche les mÃ©triques en direct des conteneurs, hÃ´tes et ressources. Ajoutez des widgets par glisser-dÃ©poser.",
+                                     "widget1":  "Liste des conteneurs â€” voyez ce qui tourne et oÃ¹.",
+                                     "widget2":  "Informations sur l\u0027hÃ´te â€” CPU, RAM, disque et version Docker.",
+                                     "widget3":  "RÃ©sumÃ© des ressources â€” totaux en un coup d\u0027Å“il sur tous les environnements.",
+                                     "cta":  "Personnaliser le tableau de bord"
+                                 },
+                   "notifications":  {
+                                         "title":  "Configurer les notifications (facultatif)",
+                                         "description":  "Recevez des alertes quand quelque chose va mal",
+                                         "body1":  "McHarbor peut vous avertir lorsque des conteneurs s\u0027arrÃªtent, que le disque se remplit ou que des images ont des mises Ã  jour. Choisissez un canal :",
+                                         "slack":  "Slack, Discord, Teams â€” URLs de webhook",
+                                         "email":  "E-mail (SMTP)",
+                                         "telegram":  "Telegram, Gotify, Ntfy, Signal, WhatsApp",
+                                         "optional":  "Vous pouvez configurer les canaux plus tard dans ParamÃ¨tres â†’ Communications.",
+                                         "cta":  "Configurer les notifications (facultatif)"
+                                     },
+                   "finish":  {
+                                  "title":  "Tout est prÃªt !",
+                                  "description":  "Bienvenue Ã  bord.",
+                                  "heading":  "Tout est prÃªt !",
+                                  "body1":  "McHarbor est prÃªt Ã  l\u0027emploi. Appuyez sur ? Ã  tout moment pour voir les raccourcis clavier, ou cliquez sur le bouton d\u0027aide en haut Ã  droite de n\u0027importe quelle page."
+                              },
+                   "step":  "Ã‰tape {{current}} sur {{total}}",
+                   "skip":  "Ignorer la configuration",
+                   "restart":  "Relancer la configuration"
+               },
+    "help":  {
+                 "title":  "Aide",
+                 "description":  "Trouvez de la documentation et des conseils rapides.",
+                 "open":  "Ouvrir l\u0027aide",
+                 "relatedLinks":  "Liens associÃ©s",
+                 "keyboardShortcuts":  "Raccourcis clavier",
+                 "containers":  {
+                                    "title":  "Conteneurs",
+                                    "description":  "GÃ©rez les conteneurs en cours d\u0027exÃ©cution, arrÃªtÃ©s et en pause. DÃ©marrez, arrÃªtez, redÃ©marrez et consultez les journaux. CrÃ©ez de nouveaux conteneurs Ã  partir d\u0027images ou exÃ©cutez des stacks Ã  partir de fichiers compose."
+                                },
+                 "images":  {
+                                "title":  "Images",
+                                "description":  "Parcourez les images locales, tirez des registres, scannez les vulnÃ©rabilitÃ©s et nettoyez les couches inutilisÃ©es."
+                            },
+                 "volumes":  {
+                                 "title":  "Volumes",
+                                 "description":  "Stockage persistant des donnÃ©es. Parcourez, crÃ©ez, supprimez et inspectez. Les bind mounts mappent les rÃ©pertoires de l\u0027hÃ´te dans les conteneurs."
+                             },
+                 "networks":  {
+                                  "title":  "RÃ©seaux",
+                                  "description":  "RÃ©seau de conteneurs. CrÃ©ez des rÃ©seaux personnalisÃ©s, attachez des conteneurs et configurez le DNS."
+                              },
+                 "stacks":  {
+                                "title":  "Stacks",
+                                "description":  "DÃ©ploiements multi-conteneurs Ã  partir d\u0027un seul fichier compose. Tirez, dÃ©ployez, mettez Ã  jour et liez les conteneurs aux stacks."
+                            },
+                 "environments":  {
+                                      "title":  "Environnements",
+                                      "description":  "Connectez McHarbor Ã  Docker local, Ã  des agents distants ou Ã  des clusters Kubernetes. Chaque environnement est gÃ©rÃ© indÃ©pendamment."
+                                  },
+                 "appstore":  {
+                                  "title":  "App Store",
+                                  "description":  "Installez plus de 630 applications en un clic. Parcourez par catÃ©gorie, installez en un clic, gÃ©rez les installations depuis le tableau de bord."
+                              },
+                 "workflows":  {
+                                   "title":  "Workflows",
+                                   "description":  "Construisez des automatisations de style Node-RED. DÃ©clenchez sur des Ã©vÃ©nements Docker, des planifications, des surveillances de fichiers ou des webhooks. Ajoutez des nÅ“uds JavaScript personnalisÃ©s pour une logique avancÃ©e."
+                               },
+                 "git":  {
+                             "title":  "DÃ©pÃ´ts Git",
+                             "description":  "Liez des dÃ©pÃ´ts Git pour les dÃ©ploiements de stacks. Configurez l\u0027authentification, les intervalles de synchronisation et les politiques par branche."
+                         },
+                 "gitops":  {
+                                "title":  "Pipelines GitOps",
+                                "description":  "Promouvez les commits entre dev, staging et production. Configurez les Ã©tapes, les approbations et les environnements d\u0027aperÃ§u de PR."
+                            },
+                 "dashboard":  {
+                                   "title":  "Tableau de bord",
+                                   "description":  "MÃ©triques en direct des conteneurs, hÃ´tes et ressources. Ajoutez des widgets par glisser-dÃ©poser. Personnalisez la mise en page par environnement."
+                               },
+                 "settings":  {
+                                  "title":  "ParamÃ¨tres",
+                                  "description":  "ParamÃ¨tres de l\u0027application : langue, thÃ¨me, notifications, sauvegardes, agents, sÃ©curitÃ© et intÃ©grations."
+                              }
+             },
+    "shortcut":  {
+                     "commandPalette":  "Palette de commandes",
+                     "globalSearch":  "Recherche globale",
+                     "closeDialog":  "Fermer la boÃ®te de dialogue",
+                     "group":  {
+                                   "navigation":  "Navigation",
+                                   "actions":  "Actions",
+                                   "view":  "Vue"
+                               },
+                     "cheatsheetTitle":  "Raccourcis clavier",
+                     "cheatsheetDescription":  "Naviguez et agissez rapidement avec votre clavier."
+                 },
+    "bulk":  {
+                 "barLabel":  "Actions en lot",
+                 "selected":  "{{selectedCount}} sur {{totalCount}} sÃ©lectionnÃ©s",
+                 "clear":  "Effacer la sÃ©lection",
+                 "progress":  "{{done}} sur {{total}} terminÃ©s ({{success}} rÃ©ussis, {{failed}} Ã©chouÃ©s, {{running}} en cours)"
+             },
+    "empty":  {
+                  "noResults":  "Aucun rÃ©sultat trouvÃ©",
+                  "noResultsFor":  "Aucun rÃ©sultat pour \"{{searchTerm}}\".",
+                  "tryDifferentFilters":  "Essayez d\u0027ajuster vos filtres ou votre terme de recherche."
+              },
+    "whatsNew":  {
+                     "title":  "NouveautÃ©s de la {{version}}",
+                     "description":  "Une visite rapide des derniers changements.",
+                     "dismiss":  "Ignorer",
+                     "gotIt":  "Compris",
+                     "2_0_7":  {
+                                   "firstRun":  {
+                                                    "title":  "Assistant de premier dÃ©marrage",
+                                                    "description":  "Une configuration de 5 minutes qui ajoute votre premier environnement, installe une application et configure les notifications."
+                                                },
+                                   "help":  {
+                                                "title":  "Aide dans l\u0027application",
+                                                "description":  "Chaque page a dÃ©sormais un bouton d\u0027aide avec un aide-mÃ©moire des raccourcis clavier."
+                                            },
+                                   "shortcuts":  {
+                                                     "title":  "Raccourcis clavier",
+                                                     "description":  "Appuyez sur ? pour voir l\u0027aide-mÃ©moire complet, ou utilisez g + touche pour accÃ©der Ã  n\u0027importe quelle page."
+                                                 },
+                                   "skeletons":  {
+                                                     "title":  "Squelettes de chargement",
+                                                     "description":  "Les pages ne clignotent plus vides pendant le chargement."
+                                                 },
+                                   "bulk":  {
+                                                "title":  "Actions en lot",
+                                                "description":  "SÃ©lectionnez plusieurs Ã©lÃ©ments et exÃ©cutez des actions par lot avec un dialogue de progression en direct."
+                                            }
+                               }
+                 },
+    "savedSearch":  {
+                        "save":  "Enregistrer la recherche",
+                        "saved":  "EnregistrÃ©e",
+                        "apply":  "Appliquer la recherche : {{name}}",
+                        "remove":  "Supprimer la recherche enregistrÃ©e : {{name}}"
                     }
 }

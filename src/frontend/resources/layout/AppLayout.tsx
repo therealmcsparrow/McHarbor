@@ -1,6 +1,7 @@
 // Copyright (c) 2026 McSparrow. All rights reserved.
 // McHarbor is licensed under the McHarbor License. See LICENSE for details.
 
+import { useState } from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
@@ -9,8 +10,14 @@ import { useAuth } from '@core/auth/useAuth';
 import { useHeaderSlot } from '@resources/stores/headerSlot';
 import { useDockerEvents } from '@resources/hooks/useDockerEvents';
 import { useDockerDiskUsageNotifications } from '@resources/hooks/useDockerDiskUsageNotifications';
+import { useGlobalShortcuts } from '@resources/hooks/useShortcuts';
 import { Spinner } from '@resources/components/ui/Spinner';
 import { UpdateCheckBanner } from '@resources/components/UpdateCheckBanner';
+import { FirstRunWizard } from '@resources/components/FirstRunWizard';
+import { ShortcutsCheatsheet } from '@resources/components/ShortcutsCheatsheet';
+import { WhatsNewOverlay } from '@resources/components/WhatsNewOverlay';
+
+const APP_VERSION = '2.0.7';
 
 export function AppLayout() {
   const { isAuthenticated, isLoading, needsSetup } = useAuth();
@@ -18,6 +25,12 @@ export function AppLayout() {
   const { pathname } = useLocation();
   useDockerEvents();
   useDockerDiskUsageNotifications();
+
+  const [cheatsheetOpen, setCheatsheetOpen] = useState(false);
+  useGlobalShortcuts({
+    onRefresh: () => window.location.reload(),
+    onShowShortcuts: () => setCheatsheetOpen((v) => !v),
+  });
 
   // Pages render a flex-col layout that owns its own scrolling so
   // the table area (not the whole page) scrolls when the row
@@ -66,6 +79,9 @@ export function AppLayout() {
         </main>
         <Footer />
       </div>
+      <FirstRunWizard />
+      <ShortcutsCheatsheet open={cheatsheetOpen} onOpenChange={setCheatsheetOpen} />
+      <WhatsNewOverlay version={APP_VERSION} />
     </div>
   );
 }

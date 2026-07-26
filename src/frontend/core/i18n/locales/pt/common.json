@@ -1068,5 +1068,170 @@
                                        "openSettings":  "DefiniÃ§Ãµes",
                                        "dismiss":  "Fechar"
                                    }
+                    },
+    "wizard":  {
+                   "welcome":  {
+                                   "title":  "Bem-vindo ao McHarbor",
+                                   "description":  "Sua plataforma de gerenciamento de contÃªineres auto-hospedada",
+                                   "body1":  "Bem-vindo ao McHarbor â€” sua plataforma de gerenciamento de contÃªineres auto-hospedada.",
+                                   "body2":  "Este guia rÃ¡pido configurarÃ¡ seu primeiro ambiente, instalarÃ¡ um aplicativo e criarÃ¡ um painel.",
+                                   "body3":  "Leva cerca de 5 minutos. VocÃª pode pular qualquer etapa e voltar mais tarde."
+                               },
+                   "environment":  {
+                                       "title":  "Adicionar um ambiente",
+                                       "description":  "Conecte o McHarbor a um host Docker ou cluster Kubernetes",
+                                       "body1":  "Um ambiente Ã© um host Docker ou cluster Kubernetes que o McHarbor gerencia.",
+                                       "local":  "Local: use o socket Docker do host (mais comum para homelabs).",
+                                       "agent":  "Agente remoto: instale o mcharbor-agent em um host remoto (funciona atrÃ¡s de NAT).",
+                                       "kubernetes":  "Kubernetes: cole um kubeconfig ou token de conta de serviÃ§o.",
+                                       "cta":  "Adicionar seu primeiro ambiente"
+                                   },
+                   "app":  {
+                               "title":  "Instalar um aplicativo",
+                               "description":  "Escolha algo Ãºtil na App Store",
+                               "body1":  "A App Store tem mais de 630 aplicativos com um clique â€” pÃ¡ginas iniciais, painÃ©is, bancos de dados e muito mais.",
+                               "recommended":  "Recomendado para primeiras instalaÃ§Ãµes: Homepage (heimdall ou homepage) â€” oferece um painel bonito para todos os seus aplicativos.",
+                               "cta":  "Explorar a App Store"
+                           },
+                   "dashboard":  {
+                                     "title":  "Personalize seu painel",
+                                     "description":  "Adicione widgets para ver o que importa",
+                                     "body1":  "O painel mostra mÃ©tricas ao vivo de contÃªineres, hosts e recursos. Adicione widgets por arrastar e soltar.",
+                                     "widget1":  "Lista de contÃªineres â€” veja o que estÃ¡ em execuÃ§Ã£o e onde.",
+                                     "widget2":  "InformaÃ§Ãµes do host â€” CPU, RAM, disco e versÃ£o do Docker.",
+                                     "widget3":  "Resumo de recursos â€” totais em um relance em todos os ambientes.",
+                                     "cta":  "Personalizar o painel"
+                                 },
+                   "notifications":  {
+                                         "title":  "Configurar notificaÃ§Ãµes (opcional)",
+                                         "description":  "Receba alertas quando algo der errado",
+                                         "body1":  "O McHarbor pode alertÃ¡-lo quando contÃªineres param, o disco enche ou imagens tÃªm atualizaÃ§Ãµes. Escolha um canal:",
+                                         "slack":  "Slack, Discord, Teams â€” URLs de webhook",
+                                         "email":  "E-mail (SMTP)",
+                                         "telegram":  "Telegram, Gotify, Ntfy, Signal, WhatsApp",
+                                         "optional":  "VocÃª pode configurar canais mais tarde em ConfiguraÃ§Ãµes â†’ ComunicaÃ§Ãµes.",
+                                         "cta":  "Configurar notificaÃ§Ãµes (opcional)"
+                                     },
+                   "finish":  {
+                                  "title":  "Tudo pronto!",
+                                  "description":  "Bem-vindo a bordo.",
+                                  "heading":  "Tudo pronto!",
+                                  "body1":  "O McHarbor estÃ¡ pronto para uso. Pressione ? a qualquer momento para ver os atalhos de teclado, ou clique no botÃ£o de ajuda no canto superior direito de qualquer pÃ¡gina."
+                              },
+                   "step":  "Passo {{current}} de {{total}}",
+                   "skip":  "Pular configuraÃ§Ã£o",
+                   "restart":  "Executar configuraÃ§Ã£o novamente"
+               },
+    "help":  {
+                 "title":  "Ajuda",
+                 "description":  "Encontre documentaÃ§Ã£o e dicas rÃ¡pidas.",
+                 "open":  "Abrir ajuda",
+                 "relatedLinks":  "Links relacionados",
+                 "keyboardShortcuts":  "Atalhos de teclado",
+                 "containers":  {
+                                    "title":  "ContÃªineres",
+                                    "description":  "Gerencie contÃªineres em execuÃ§Ã£o, parados e em pausa. Inicie, pare, reinicie e visualize logs. Crie novos contÃªineres a partir de imagens ou execute stacks a partir de arquivos compose."
+                                },
+                 "images":  {
+                                "title":  "Imagens",
+                                "description":  "Navegue por imagens locais, puxe de registros, verifique vulnerabilidades e limpe camadas nÃ£o utilizadas."
+                            },
+                 "volumes":  {
+                                 "title":  "Volumes",
+                                 "description":  "Armazenamento de dados persistente. Navegue, crie, remova e inspecione. Os bind mounts mapeiam diretÃ³rios do host em contÃªineres."
+                             },
+                 "networks":  {
+                                  "title":  "Redes",
+                                  "description":  "Redes de contÃªineres. Crie redes personalizadas, anexe contÃªineres e configure DNS."
+                              },
+                 "stacks":  {
+                                "title":  "Stacks",
+                                "description":  "ImplantaÃ§Ãµes de vÃ¡rios contÃªineres a partir de um Ãºnico arquivo compose. Puxe, implante, atualize e vincule contÃªineres a stacks."
+                            },
+                 "environments":  {
+                                      "title":  "Ambientes",
+                                      "description":  "Conecte o McHarbor a Docker local, agentes remotos ou clusters Kubernetes. Cada ambiente Ã© gerenciada de forma independente."
+                                  },
+                 "appstore":  {
+                                  "title":  "App Store",
+                                  "description":  "Instale mais de 630 aplicativos com um clique. Navegue por categoria, instale com um clique, gerencie instalaÃ§Ãµes pelo painel."
+                              },
+                 "workflows":  {
+                                   "title":  "Workflows",
+                                   "description":  "Construa automaÃ§Ãµes no estilo Node-RED. Acione em eventos Docker, agendamentos, monitoramentos de arquivos ou webhooks. Adicione nÃ³s JavaScript personalizados para lÃ³gica avanÃ§ada."
+                               },
+                 "git":  {
+                             "title":  "RepositÃ³rios Git",
+                             "description":  "Vincule repositÃ³rios Git para implantaÃ§Ãµes de stacks. Configure autenticaÃ§Ã£o, intervalos de sincronizaÃ§Ã£o e polÃ­ticas por branch."
+                         },
+                 "gitops":  {
+                                "title":  "Pipelines do GitOps",
+                                "description":  "Promova commits entre dev, staging e produÃ§Ã£o. Configure estÃ¡gios, aprovaÃ§Ãµes e ambientes de prÃ©-visualizaÃ§Ã£o de PR."
+                            },
+                 "dashboard":  {
+                                   "title":  "Painel",
+                                   "description":  "MÃ©tricas ao vivo de contÃªineres, hosts e recursos. Adicione widgets por arrastar e soltar. Personalize o layout por ambiente."
+                               },
+                 "settings":  {
+                                  "title":  "ConfiguraÃ§Ãµes",
+                                  "description":  "ConfiguraÃ§Ãµes do aplicativo: idioma, tema, notificaÃ§Ãµes, backups, agentes, seguranÃ§a e integraÃ§Ãµes."
+                              }
+             },
+    "shortcut":  {
+                     "commandPalette":  "Paleta de comandos",
+                     "globalSearch":  "Pesquisa global",
+                     "closeDialog":  "Fechar diÃ¡logo",
+                     "group":  {
+                                   "navigation":  "NavegaÃ§Ã£o",
+                                   "actions":  "AÃ§Ãµes",
+                                   "view":  "VisualizaÃ§Ã£o"
+                               },
+                     "cheatsheetTitle":  "Atalhos de teclado",
+                     "cheatsheetDescription":  "Navegue e aja rapidamente com seu teclado."
+                 },
+    "bulk":  {
+                 "barLabel":  "AÃ§Ãµes em lote",
+                 "selected":  "{{selectedCount}} de {{totalCount}} selecionados",
+                 "clear":  "Limpar seleÃ§Ã£o",
+                 "progress":  "{{done}} de {{total}} concluÃ­dos ({{success}} bem-sucedidos, {{failed}} falhados, {{running}} em andamento)"
+             },
+    "empty":  {
+                  "noResults":  "Nenhum resultado encontrado",
+                  "noResultsFor":  "Nenhum resultado para \"{{searchTerm}}\".",
+                  "tryDifferentFilters":  "Tente ajustar seus filtros ou termo de pesquisa."
+              },
+    "whatsNew":  {
+                     "title":  "O que hÃ¡ de novo em {{version}}",
+                     "description":  "Um passeio rÃ¡pido pelas Ãºltimas mudanÃ§as.",
+                     "dismiss":  "Dispensar",
+                     "gotIt":  "Entendi",
+                     "2_0_7":  {
+                                   "firstRun":  {
+                                                    "title":  "Assistente de primeiro uso",
+                                                    "description":  "Uma configuraÃ§Ã£o de 5 minutos que adiciona seu primeiro ambiente, instala um aplicativo e configura notificaÃ§Ãµes."
+                                                },
+                                   "help":  {
+                                                "title":  "Ajuda no aplicativo",
+                                                "description":  "Cada pÃ¡gina agora tem um botÃ£o de ajuda com uma folha de referÃªncias de atalhos de teclado."
+                                            },
+                                   "shortcuts":  {
+                                                     "title":  "Atalhos de teclado",
+                                                     "description":  "Pressione ? para ver a folha de referÃªncias completa, ou use g + tecla para pular para qualquer pÃ¡gina."
+                                                 },
+                                   "skeletons":  {
+                                                     "title":  "Esqueletos de carregamento",
+                                                     "description":  "As pÃ¡ginas nÃ£o piscam mais em branco durante o carregamento."
+                                                 },
+                                   "bulk":  {
+                                                "title":  "AÃ§Ãµes em lote",
+                                                "description":  "Selecione vÃ¡rios itens e execute aÃ§Ãµes em lote com um diÃ¡logo de progresso ao vivo."
+                                            }
+                               }
+                 },
+    "savedSearch":  {
+                        "save":  "Salvar pesquisa",
+                        "saved":  "Salva",
+                        "apply":  "Aplicar pesquisa: {{name}}",
+                        "remove":  "Remover pesquisa salva: {{name}}"
                     }
 }

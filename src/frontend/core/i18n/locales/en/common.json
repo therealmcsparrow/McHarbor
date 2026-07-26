@@ -1071,5 +1071,170 @@
                                    }
                     },
     "close":  "Close",
-    "remove":  "Remove"
+    "remove":  "Remove",
+    "wizard":  {
+                   "welcome":  {
+                                   "title":  "Welcome to McHarbor",
+                                   "description":  "Your self-hosted container management platform",
+                                   "body1":  "Welcome to McHarbor â€” your self-hosted container management platform.",
+                                   "body2":  "This quick walkthrough will set up your first environment, install an app, and build a dashboard.",
+                                   "body3":  "Takes about 5 minutes. You can skip any step and come back later."
+                               },
+                   "environment":  {
+                                       "title":  "Add an environment",
+                                       "description":  "Connect McHarbor to a Docker host or Kubernetes cluster",
+                                       "body1":  "An environment is a Docker host or Kubernetes cluster McHarbor manages.",
+                                       "local":  "Local: use the host Docker socket (most common for homelabs).",
+                                       "agent":  "Remote agent: install mcharbor-agent on a remote host (works behind NAT).",
+                                       "kubernetes":  "Kubernetes: paste a kubeconfig or service account token.",
+                                       "cta":  "Add your first environment"
+                                   },
+                   "app":  {
+                               "title":  "Install an app",
+                               "description":  "Pick something useful from the App Store",
+                               "body1":  "The App Store has 630+ one-click apps â€” homepages, dashboards, databases, and more.",
+                               "recommended":  "Recommended for first installs: Homepage (heimdall or homepage) â€” gives you a beautiful dashboard for all your apps.",
+                               "cta":  "Browse the App Store"
+                           },
+                   "dashboard":  {
+                                     "title":  "Customize your dashboard",
+                                     "description":  "Add widgets to see what matters",
+                                     "body1":  "The dashboard shows live container, host, and resource metrics. Add widgets by drag-and-drop.",
+                                     "widget1":  "Container List â€” see what is running and where.",
+                                     "widget2":  "Host Info â€” CPU, RAM, disk, and Docker version.",
+                                     "widget3":  "Resource Summary â€” at-a-glance totals across all environments.",
+                                     "cta":  "Customize your dashboard"
+                                 },
+                   "notifications":  {
+                                         "title":  "Set up notifications (optional)",
+                                         "description":  "Get alerts when things go wrong",
+                                         "body1":  "McHarbor can alert you when containers stop, disk fills up, or images have updates. Pick a channel:",
+                                         "slack":  "Slack, Discord, Teams â€” webhook URLs",
+                                         "email":  "Email (SMTP)",
+                                         "telegram":  "Telegram, Gotify, Ntfy, Signal, WhatsApp",
+                                         "optional":  "You can configure channels later in Settings â†’ Communications.",
+                                         "cta":  "Set up notifications (optional)"
+                                     },
+                   "finish":  {
+                                  "title":  "You\u0027re all set!",
+                                  "description":  "Welcome aboard.",
+                                  "heading":  "You\u0027re all set!",
+                                  "body1":  "McHarbor is ready to use. Press ? any time to see keyboard shortcuts, or click the help button in the top right of any page."
+                              },
+                   "step":  "Step {{current}} of {{total}}",
+                   "skip":  "Skip setup",
+                   "restart":  "Run setup again"
+               },
+    "help":  {
+                 "title":  "Help",
+                 "description":  "Find documentation and quick tips.",
+                 "open":  "Open help",
+                 "relatedLinks":  "Related links",
+                 "keyboardShortcuts":  "Keyboard shortcuts",
+                 "containers":  {
+                                    "title":  "Containers",
+                                    "description":  "Manage running, stopped, and paused containers. Start, stop, restart, and view logs. Create new containers from images or run stacks from compose files."
+                                },
+                 "images":  {
+                                "title":  "Images",
+                                "description":  "Browse local images, pull from registries, scan for vulnerabilities, and prune unused layers."
+                            },
+                 "volumes":  {
+                                 "title":  "Volumes",
+                                 "description":  "Persistent data storage. Browse, create, remove, and inspect. Bind mounts map host directories into containers."
+                             },
+                 "networks":  {
+                                  "title":  "Networks",
+                                  "description":  "Container networking. Create custom networks, attach containers, and configure DNS."
+                              },
+                 "stacks":  {
+                                "title":  "Stacks",
+                                "description":  "Multi-container deployments from a single compose file. Pull, deploy, update, and link containers to stacks."
+                            },
+                 "environments":  {
+                                      "title":  "Environments",
+                                      "description":  "Connect McHarbor to local Docker, remote agents, or Kubernetes clusters. Each environment is managed independently."
+                                  },
+                 "appstore":  {
+                                  "title":  "App Store",
+                                  "description":  "One-click install 630+ apps. Browse by category, install with a single click, manage installations from the dashboard."
+                              },
+                 "workflows":  {
+                                   "title":  "Workflows",
+                                   "description":  "Build Node-RED-style automations. Trigger on Docker events, schedules, file watches, or webhooks. Add custom JavaScript nodes for advanced logic."
+                               },
+                 "git":  {
+                             "title":  "Git Repositories",
+                             "description":  "Link git repositories for stack deployments. Configure authentication, sync intervals, and per-branch policies."
+                         },
+                 "gitops":  {
+                                "title":  "GitOps Pipelines",
+                                "description":  "Promote commits across dev, staging, and production environments. Configure stages, approval gates, and PR preview environments."
+                            },
+                 "dashboard":  {
+                                   "title":  "Dashboard",
+                                   "description":  "Live metrics for containers, hosts, and resources. Add widgets via drag-and-drop. Customize layout per environment."
+                               },
+                 "settings":  {
+                                  "title":  "Settings",
+                                  "description":  "Application settings: language, theme, notifications, backups, agents, security, and integrations."
+                              }
+             },
+    "shortcut":  {
+                     "commandPalette":  "Command palette",
+                     "globalSearch":  "Global search",
+                     "closeDialog":  "Close dialog",
+                     "group":  {
+                                   "navigation":  "Navigation",
+                                   "actions":  "Actions",
+                                   "view":  "View"
+                               },
+                     "cheatsheetTitle":  "Keyboard shortcuts",
+                     "cheatsheetDescription":  "Quickly navigate and act using your keyboard."
+                 },
+    "bulk":  {
+                 "barLabel":  "Bulk actions",
+                 "selected":  "{{selectedCount}} of {{totalCount}} selected",
+                 "clear":  "Clear selection",
+                 "progress":  "{{done}} of {{total}} complete ({{success}} succeeded, {{failed}} failed, {{running}} running)"
+             },
+    "empty":  {
+                  "noResults":  "No results found",
+                  "noResultsFor":  "No results match \"{{searchTerm}}\".",
+                  "tryDifferentFilters":  "Try adjusting your filters or search term."
+              },
+    "whatsNew":  {
+                     "title":  "What\u0027s new in {{version}}",
+                     "description":  "A quick tour of the latest changes.",
+                     "dismiss":  "Dismiss",
+                     "gotIt":  "Got it",
+                     "2_0_7":  {
+                                   "firstRun":  {
+                                                    "title":  "First-run wizard",
+                                                    "description":  "A 5-minute setup that adds your first environment, installs an app, and configures notifications."
+                                                },
+                                   "help":  {
+                                                "title":  "In-app help",
+                                                "description":  "Every page now has a help button with keyboard shortcut cheatsheet."
+                                            },
+                                   "shortcuts":  {
+                                                     "title":  "Keyboard shortcuts",
+                                                     "description":  "Press ? to see the full cheatsheet, or use g + key to jump to any page."
+                                                 },
+                                   "skeletons":  {
+                                                     "title":  "Skeleton loaders",
+                                                     "description":  "Pages no longer flash blank content while loading."
+                                                 },
+                                   "bulk":  {
+                                                "title":  "Bulk operations",
+                                                "description":  "Select multiple items and run actions in batch with a live progress dialog."
+                                            }
+                               }
+                 },
+    "savedSearch":  {
+                        "save":  "Save search",
+                        "saved":  "Saved",
+                        "apply":  "Apply search: {{name}}",
+                        "remove":  "Remove saved search: {{name}}"
+                    }
 }
