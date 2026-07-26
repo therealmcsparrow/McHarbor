@@ -88,6 +88,7 @@ import (
 	"github.com/therealmcsparrow/mcharbor/modules/blueprints"
 	customnodes "github.com/therealmcsparrow/mcharbor/modules/custom_nodes"
 	"github.com/therealmcsparrow/mcharbor/modules/git"
+	"github.com/therealmcsparrow/mcharbor/modules/gitops"
 	"github.com/therealmcsparrow/mcharbor/modules/notifications"
 	"github.com/therealmcsparrow/mcharbor/modules/openapi"
 	"github.com/therealmcsparrow/mcharbor/modules/plugins"
@@ -338,6 +339,7 @@ func main() {
 	autoheal.Mount(app)
 	blueprints.Mount(app)
 	git.Mount(app)
+	gitops.Mount(app)
 	webhooks.Mount(app)
 	backup_log.Mount(app)        
 	reconciler.Mount(app)

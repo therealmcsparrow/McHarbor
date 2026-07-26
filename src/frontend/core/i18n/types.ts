@@ -15,6 +15,7 @@ import kubernetes from './locales/en/kubernetes.json';
 import terminal from './locales/en/terminal.json';
 import security from './locales/en/security.json';
 import docker from './locales/en/docker.json';
+import gitops from './locales/en/gitops.json';
 
 export type StaticLocaleResources = {
   common: typeof common;
@@ -31,4 +32,5 @@ export type StaticLocaleResources = {
   terminal: typeof terminal;
   security: typeof security;
   docker: typeof docker;
+  gitops: typeof gitops;
 };

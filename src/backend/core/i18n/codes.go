@@ -261,6 +261,30 @@ const (
 	ErrGitUrlRequired  MsgCode = "err.git.url_required"
 )
 
+// --- GitOps ---
+const (
+	ErrGitOpsPipelineNotFound    MsgCode = "err.gitops.pipeline_not_found"
+	ErrGitOpsStageNotFound       MsgCode = "err.gitops.stage_not_found"
+	ErrGitOpsApprovalNotFound    MsgCode = "err.gitops.approval_not_found"
+	ErrGitOpsPreviewNotFound     MsgCode = "err.gitops.preview_not_found"
+	ErrGitOpsListFailed          MsgCode = "err.gitops.list_failed"
+	ErrGitOpsCreateFailed        MsgCode = "err.gitops.create_failed"
+	ErrGitOpsUpdateFailed        MsgCode = "err.gitops.update_failed"
+	ErrGitOpsRemoveFailed        MsgCode = "err.gitops.remove_failed"
+	ErrGitOpsPromoteFailed       MsgCode = "err.gitops.promote_failed"
+	ErrGitOpsApproveFailed       MsgCode = "err.gitops.approve_failed"
+	ErrGitOpsRejectFailed        MsgCode = "err.gitops.reject_failed"
+	ErrGitOpsPreviewFailed       MsgCode = "err.gitops.preview_failed"
+	ErrGitOpsWebhookFailed       MsgCode = "err.gitops.webhook_failed"
+	ErrGitOpsNameRequired        MsgCode = "err.gitops.name_required"
+	ErrGitOpsRepoMissing         MsgCode = "err.gitops.repo_missing"
+	ErrGitOpsStageOrderInvalid   MsgCode = "err.gitops.stage_order_invalid"
+	ErrGitOpsTargetEnvRequired   MsgCode = "err.gitops.target_env_required"
+	ErrGitOpsApprovalExpired     MsgCode = "err.gitops.approval_expired"
+	ErrGitOpsNoCommitDetected    MsgCode = "err.gitops.no_commit_detected"
+	ErrGitOpsWebhookSignatureBad MsgCode = "err.gitops.webhook_signature_bad"
+)
+
 // --- Webhooks ---
 const (
 	ErrWebhookNotFound     MsgCode = "err.webhook.not_found"

@@ -48,6 +48,7 @@ const EnvironmentsPage = lazy(() => import('@modules/environments/pages/Environm
 const EnvironmentDetailPage = lazy(() => import('@modules/environments/pages/EnvironmentDetailPage'));
 const BlueprintsPage = lazy(() => import('@modules/blueprints/pages/BlueprintsPage'));
 const GitPage = lazy(() => import('@modules/git/pages/GitPage'));
+const GitOpsPage = lazy(() => import('@modules/gitops/pages/GitOpsPage').then((m) => ({ default: m.GitOpsPage })));
 const ReconcilerPage = lazy(() => import('@modules/reconciler/pages/ReconcilerPage'));
 const ActivityPage = lazy(() => import('@modules/activity/pages/ActivityPage'));
 const LifecycleLogPage = lazy(() => import('@modules/lifecycle/pages/LifecycleLogPage'));
@@ -122,6 +123,7 @@ const routes: RouteObject[] = [
       { path: 'environments/:id', element: <SuspenseWrapper><EnvironmentDetailPage /></SuspenseWrapper> },
       { path: 'blueprints', element: <SuspenseWrapper><BlueprintsPage /></SuspenseWrapper> },
       { path: 'git', element: <SuspenseWrapper><GitPage /></SuspenseWrapper> },
+      { path: 'gitops', element: <SuspenseWrapper><GitOpsPage /></SuspenseWrapper> },
       { path: 'reconciler', element: <SuspenseWrapper><ReconcilerPage /></SuspenseWrapper> },
       { path: 'activity', element: <SuspenseWrapper><ActivityPage /></SuspenseWrapper> },
       { path: 'lifecycle', element: <SuspenseWrapper><LifecycleLogPage /></SuspenseWrapper> },

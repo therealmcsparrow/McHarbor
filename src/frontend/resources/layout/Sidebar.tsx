@@ -67,6 +67,7 @@ const dockerItems: NavItem[] = [
   { to: '/store', labelKey: 'nav.store', icon: IconApps },
   { to: '/blueprints', labelKey: 'nav.blueprints', icon: IconBook },
   { to: '/git', labelKey: 'nav.git', icon: IconGitBranch },
+  { to: '/gitops', labelKey: 'nav.gitops', icon: IconRocket },
 ];
 
 const k8sItems: NavItem[] = [
@@ -87,6 +88,7 @@ const commonAfter: NavItem[] = [
   { to: '/store', labelKey: 'nav.store', icon: IconApps },
   { to: '/blueprints', labelKey: 'nav.blueprints', icon: IconBook },
   { to: '/git', labelKey: 'nav.git', icon: IconGitBranch },
+  { to: '/gitops', labelKey: 'nav.gitops', icon: IconRocket },
 ];
 
 function SidebarLink({
