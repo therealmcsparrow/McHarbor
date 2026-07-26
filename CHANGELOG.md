@@ -6,6 +6,27 @@ All notable changes to McHarbor are documented in this file.
 
 _No unreleased changes yet._
 
+## [2.0.8] - 2026-07-26
+
+### Added
+- **First-run wizard.** New `FirstRunWizard` component (`resources/components/FirstRunWizard.tsx`) walks new operators through a 5-minute setup: welcome, add an environment, install an app, customize the dashboard, optionally configure notifications, and finish. State is persisted in `localStorage` via a new `onboarding` Zustand store so it doesn't re-show on every visit. Operators can skip any step or restart from Settings.
+- **In-app help system.** New `HelpButton` component (`resources/components/HelpButton.tsx`) renders a context-aware "?" button on every page. The per-route help registry maps `/containers`, `/images`, `/volumes`, `/networks`, `/stacks`, `/environments`, `/appstore`, `/workflows`, `/git`, `/gitops`, `/dashboard`, and `/settings` to topic descriptions. The help dialog also includes the keyboard-shortcut cheatsheet.
+- **Keyboard shortcuts.** New `useShortcuts` hook and `useGlobalShortcuts` helper (`resources/hooks/useShortcuts.ts`) drive a navigation map: `g d` → Dashboard, `g c/o` → Containers, `g i` → Images, `g v` → Volumes, `g n` → Networks, `g s` → Stacks, `g e` → Environments, `g a` → App Store, `g w` → Workflows, `g g` → GitOps, `g t` → Git, `g l` → Logs, `g r` → Refresh, `?` → Cheatsheet, `Esc` → Close dialog. Shortcuts are disabled inside inputs except for the global palette and escape.
+- **Shortcuts cheatsheet.** New `ShortcutsCheatsheet` dialog (`resources/components/ShortcutsCheatsheet.tsx`) lists every shortcut grouped by Navigation / Actions / View. Triggered by `?` or from the help dialog.
+- **Skeleton loaders.** New `Skeleton`, `CardSkeleton`, `TableSkeleton`, `ChartSkeleton`, and `WidgetSkeleton` components in `resources/components/ui/Skeleton.tsx` replace blank spinners with shimmer placeholders that match the eventual layout. Reduces CLS and improves perceived performance on slower networks.
+- **Empty-state component with illustrations.** New `EmptyState`, `InlineEmpty`, and `NoResults` components in `resources/components/ui/EmptyState.tsx` plus 6 inline SVG illustrations in `resources/components/Illustrations.tsx` (containers, images, networks, stacks, environments, search). Use across list pages where the data is empty or filtered to nothing.
+- **Bulk operations UI.** New `BulkActionBar`, `BulkProgressDialog`, `useBatchProgress`, and `runBatch` helpers in `resources/components/BulkOperations.tsx`. Operators select rows in a table, the bar appears at the top with the selection count and available actions, and the progress dialog shows per-item success / failure status with concurrent execution.
+- **Toasts with action buttons.** New `useActionToasts` hook (`resources/hooks/useActionToasts.tsx`) wraps `sonner` with `success`, `error`, `info`, and `undoable` variants that take an optional action button. Replace existing "View" / "Undo" / "Refresh" / "Open" toasts throughout the app.
+- **What's New overlay.** New `WhatsNewOverlay` component (`resources/components/WhatsNewOverlay.tsx`) shows a "What's new in X.Y.Z" dialog the first time a user visits after a version bump. The release list is keyed by version in code, and the "last seen version" is persisted in `localStorage`.
+- **Breadcrumbs and favorites on every page.** `PageHeader` now accepts an optional `breadcrumbs` array and a `favoritePath`. Breadcrumbs render at the top of the page; the favorite star toggles the page in/out of the `navigation` store and the sidebar reads from it to show a "Favorites" section.
+- **Saved searches.** New `savedSearches` Zustand store with persistence, plus `SavedSearchChips` and `SaveSearchButton` components. Operators can name and re-apply their filter combinations from any list page.
+- **Recents and favorites stores.** New `navigation` Zustand store tracks the last 10 visited pages (shown in the sidebar) and a list of starred favorites.
+- **Dashboard templates.** New `modules/dashboard/templates.ts` defines 5 templates — Homelab, DevOps, Production, Monitoring, and Starter — that operators can apply in one click to populate a dashboard with a curated set of widgets.
+
+### Changed
+- **AppLayout wires the new overlays.** The FirstRunWizard, ShortcutsCheatsheet, and WhatsNewOverlay are all mounted at the AppLayout level so they appear across the app without per-page work.
+- **PageHeader supports recents tracking.** Pass a `trackRecent` prop and the page's path gets added to the recents store automatically.
+
 ## [2.0.7] - 2026-07-25
 
 ### Fixed
