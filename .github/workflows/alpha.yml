@@ -1,0 +1,179 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+name: Alpha
+
+# CI for the `alpha` branch.
+# Builds and verifies on every push/PR. Publishes an `alpha` image
+# tag and a SHA-pinned image for promotion to beta.
+on:
+  push:
+    branches:
+      - alpha
+  pull_request:
+    branches:
+      - alpha
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: alpha-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Read versions
+        id: versions
+        shell: bash
+        run: |
+          app_version="$(tr -d '[:space:]' < VERSION)"
+          alpha_sha="${GITHUB_SHA::7}"
+          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
+          echo "alpha_sha=$alpha_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Verify Go build
+        working-directory: src/backend
+        run: go build ./...
+
+      - name: Verify Go vet
+        working-directory: src/backend
+        run: go vet ./...
+
+      - name: Verify Agent build
+        working-directory: src/agent
+        run: go build ./...
+
+      - name: Install npm dependencies
+        working-directory: src/frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Verify TypeScript build
+        working-directory: src/frontend
+        run: npx tsc -b
+
+      - name: Verify frontend build
+        working-directory: src/frontend
+        run: npm run build
+
+      - name: Verify version lockstep
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(tr -d '[:space:]' < VERSION)"
+          agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
+          frontend_version="$(sed -n 's/.*"version": "\(.*\)".*/\1/p' src/frontend/package.json | head -n1)"
+          if [[ "$agent_version" != "$version" || "$frontend_version" != "$version" ]]; then
+            echo "::error::Version drift detected. VERSION=$version, agent=$agent_version, frontend=$frontend_version."
+            exit 1
+          fi
+          echo "All version sources match: $version"
+
+  publish-alpha-image:
+    name: Publish alpha image
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read versions
+        id: versions
+        shell: bash
+        run: |
+          app_version="$(tr -d '[:space:]' < VERSION)"
+          alpha_sha="${GITHUB_SHA::7}"
+          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
+          echo "alpha_sha=$alpha_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push alpha image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mcharbor:alpha
+            ghcr.io/${{ github.repository_owner }}/mcharbor:alpha-${{ steps.versions.outputs.alpha_sha }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.versions.outputs.app_version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.ref=alpha
+
+  publish-alpha-agent:
+    name: Publish alpha agent
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read agent version
+        id: version
+        shell: bash
+        run: |
+          agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
+          alpha_sha="${GITHUB_SHA::7}"
+          echo "agent_version=$agent_version" >> "$GITHUB_OUTPUT"
+          echo "alpha_sha=$alpha_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push alpha agent
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile.agent
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mcharbor-agent:alpha
+            ghcr.io/${{ github.repository_owner }}/mcharbor-agent:alpha-${{ steps.version.outputs.alpha_sha }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.version.outputs.agent_version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.ref=alpha

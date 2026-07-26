@@ -1,0 +1,169 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+name: Dev
+
+# CI for the `dev` branch.
+# Fast inner-loop. Every push runs the lightweight checks
+# (go vet, tsc, build) and publishes a `:dev` image for the
+# maintainer to pull into a local cluster. No version checks,
+# no changelog gate, no deploy — that's what the next stages
+# in the chain are for.
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
+concurrency:
+  group: dev-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Read versions
+        id: versions
+        shell: bash
+        run: |
+          app_version="$(tr -d '[:space:]' < VERSION)"
+          dev_sha="${GITHUB_SHA::7}"
+          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
+          echo "dev_sha=$dev_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Go vet
+        working-directory: src/backend
+        run: go vet ./...
+
+      - name: Go build
+        working-directory: src/backend
+        run: go build ./...
+
+      - name: Agent build
+        working-directory: src/agent
+        run: go build ./...
+
+      - name: Install npm dependencies
+        working-directory: src/frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: TypeScript check
+        working-directory: src/frontend
+        run: npx tsc -b
+
+      - name: Frontend build
+        working-directory: src/frontend
+        run: npm run build
+
+  publish-dev-image:
+    name: Publish dev image
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read versions
+        id: versions
+        shell: bash
+        run: |
+          app_version="$(tr -d '[:space:]' < VERSION)"
+          dev_sha="${GITHUB_SHA::7}"
+          echo "app_version=$app_version" >> "$GITHUB_OUTPUT"
+          echo "dev_sha=$dev_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push dev image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mcharbor:dev
+            ghcr.io/${{ github.repository_owner }}/mcharbor:dev-${{ steps.versions.outputs.dev_sha }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.versions.outputs.app_version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.ref=dev
+
+  publish-dev-agent:
+    name: Publish dev agent
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read agent version
+        id: version
+        shell: bash
+        run: |
+          agent_version="$(sed -n 's/.*const agentVersion = "\(.*\)".*/\1/p' src/agent/agent.go | head -n1)"
+          dev_sha="${GITHUB_SHA::7}"
+          echo "agent_version=$agent_version" >> "$GITHUB_OUTPUT"
+          echo "dev_sha=$dev_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_PAT || secrets.GITHUB_TOKEN }}
+
+      - name: Build and push dev agent
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile.agent
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mcharbor-agent:dev
+            ghcr.io/${{ github.repository_owner }}/mcharbor-agent:dev-${{ steps.version.outputs.dev_sha }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.version.outputs.agent_version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.ref=dev

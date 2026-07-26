@@ -70,3 +70,4 @@ backuplocal.md
 .tools/insert_backup_i18n.py
 .tools/insert_lifecycle_i18n.py
 .tools/nest_lifecycle_i18n.py
+.documentation/development/environment-pipeline.md

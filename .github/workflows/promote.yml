@@ -1,0 +1,176 @@
+# Copyright (c) 2026 McSparrow. All rights reserved.
+# McHarbor is licensed under the McHarbor License. See LICENSE for details.
+name: Promote
+
+# Manual promotion workflow.
+# Moves a specific commit from a source environment branch to the
+# next environment branch. The job opens a PR (rather than force-
+# pushing) so the promotion is reviewable and the audit trail lives
+# in git history.
+#
+# Usage:
+#   1. Go to Actions -> Promote
+#   2. Click "Run workflow"
+#   3. Choose:
+#        source = dev|test|alpha|beta|release
+#        sha     = the commit SHA to promote (defaults to HEAD of source)
+#   4. The workflow opens a PR from the source branch's commit to
+#      the next branch in the chain.
+#
+# Chain:
+#   dev     -> test
+#   test    -> alpha
+#   alpha   -> beta
+#   beta    -> release
+#   release -> main  (production; also creates a vX.Y.Z tag)
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Source environment branch"
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - alpha
+          - beta
+          - release
+      sha:
+        description: "Commit SHA to promote (leave empty for HEAD of source)"
+        required: false
+        type: string
+        default: ""
+      dry_run:
+        description: "If true, only print what would be done"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    name: Promote ${{ inputs.source }} -> next
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve next branch
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          declare -A NEXT=( [dev]=test [test]=alpha [alpha]=beta [beta]=release [release]=main )
+          target="${NEXT[${{ inputs.source }}]}"
+          if [[ -z "$target" ]]; then
+            echo "::error::Unknown source branch '${{ inputs.source }}'. Choose one of: dev, test, alpha, beta, release."
+            exit 1
+          fi
+          echo "source=${{ inputs.source }}" >> "$GITHUB_OUTPUT"
+          echo "target=${target}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve commit SHA
+        id: sha
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${{ inputs.sha }}" ]]; then
+            sha="${{ inputs.sha }}"
+          else
+            sha="$(git rev-parse origin/${{ inputs.source }})"
+          fi
+          # Verify the SHA exists on the source branch
+          if ! git cat-file -e "${sha}^{commit" 2>/dev/null; then
+            echo "::error::Commit ${sha} not found in repository."
+            exit 1
+          fi
+          short="${sha::7}"
+          echo "sha=${sha}" >> "$GITHUB_OUTPUT"
+          echo "short=${short}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate release notes present
+        if: inputs.source == 'release' && inputs.sha == ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha="${{ steps.sha.outputs.sha }}"
+          # Find the most recent CHANGELOG heading and verify it has content.
+          latest="$(awk '/^## \[/ {print; exit}' CHANGELOG.md || true)"
+          if [[ -z "$latest" ]]; then
+            echo "::error::No CHANGELOG entry found. Add a '## [version] - date' entry before promoting to main."
+            exit 1
+          fi
+          echo "Latest CHANGELOG heading: $latest"
+
+      - name: Checkout source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.sha.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Create promotion branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          short="${{ steps.sha.outputs.short }}"
+          target="${{ steps.resolve.outputs.target }}"
+          promotion_branch="promote/${{ inputs.source }}-to-${target}/${short}"
+          git checkout -b "$promotion_branch"
+          echo "promotion_branch=${promotion_branch}" >> "$GITHUB_OUTPUT"
+
+      - name: Push promotion branch
+        if: inputs.dry_run != true
+        shell: bash
+        run: |
+          git push origin "promote/${{ inputs.source }}-to-${{ steps.resolve.outputs.target }}/${{ steps.sha.outputs.short }}"
+
+      - name: Open promotion PR
+        if: inputs.dry_run != true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const source = '${{ inputs.source }}';
+            const target = '${{ steps.resolve.outputs.target }}';
+            const sha = '${{ steps.sha.outputs.short }}';
+            const isMain = target === 'main';
+            const head = `promote/${source}-to-${target}/${sha}`;
+            const base = target;
+            const tag = isMain ? `${sha} -> main (production release)` : `${source} -> ${target}`;
+            const title = `Promote ${tag}`;
+            const body = [
+              '## Environment promotion',
+              '',
+              `- **Source:** \`${source}\``,
+              `- **Target:** \`${target}\``,
+              `- **Commit:** \`${sha}\``,
+              isMain ? `- **Note:** Merging this PR publishes the production image and triggers the \`Publish Images\` workflow. The release will also be tagged \`v${process.env.VERSION || '<version>'}\` on merge.` : '',
+              '',
+              '### Checklist',
+              '- [ ] CHANGELOG entry exists for this version',
+              '- [ ] All CI checks pass on the source commit',
+              isMain ? '- [ ] Smoke test on `release` branch complete' : '- [ ] Smoke test on the source environment complete',
+            ].filter(Boolean).join('\n');
+            await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              head,
+              base,
+              body,
+              maintainer_can_modify: true,
+            });
+            core.info(`Opened PR: ${title}`);
+
+      - name: Dry-run summary
+        if: inputs.dry_run == true
+        shell: bash
+        run: |
+          echo "### Promotion plan (dry run)"
+          echo ""
+          echo "- Source:    ${{ inputs.source }}"
+          echo "- Target:    ${{ steps.resolve.outputs.target }}"
+          echo "- Commit:    ${{ steps.sha.outputs.short }}"
+          echo "- Branch:    promote/${{ inputs.source }}-to-${{ steps.resolve.outputs.target }}/${{ steps.sha.outputs.short }}"
+          echo ""
+          echo "No changes pushed. Re-run with dry_run=false to apply."

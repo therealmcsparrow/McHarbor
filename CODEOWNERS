@@ -1,0 +1,54 @@
+# CODEOWNERS for the McHarbor environment pipeline
+# Each environment branch has a designated owner group that must
+# approve changes touching that branch. Pull requests are auto-
+# assigned to the matching reviewers.
+#
+# Format: <pattern> <owner1> <owner2> ...
+# Globbing rules: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for everything else
+*                                                  @therealmcsparrow/maintainers
+
+# Production — extra review
+/main/                                             @therealmcsparrow/maintainers @therealmcsparrow/security
+/CHANGELOG.md                                     @therealmcsparrow/maintainers
+/VERSION                                           @therealmcsparrow/maintainers
+/docker/                                           @therealmcsparrow/maintainers
+
+# Release branch — promotion approvals
+/release/                                          @therealmcsparrow/maintainers
+
+# Beta branch — paid-pilot regression soak
+/beta/                                             @therealmcsparrow/beta-testers
+
+# Alpha branch — early access
+/alpha/                                            @therealmcsparrow/alpha-testers
+
+# Test branch — QA
+/test/                                             @therealmcsparrow/qa
+
+# Dev branch — inner loop
+/dev/                                              @therealmcsparrow/maintainers
+
+# Backend Go code
+/src/backend/                                     @therealmcsparrow/backend-maintainers
+
+# Agent code
+/src/agent/                                       @therealmcsparrow/backend-maintainers
+
+# Frontend code
+/src/frontend/                                    @therealmcsparrow/frontend-maintainers
+
+# Infrastructure / CI
+/.github/                                          @therealmcsparrow/maintainers
+/docker-compose*.yml                              @therealmcsparrow/maintainers
+/cluster-and-shared-archives.md                  @therealmcsparrow/maintainers
+
+# Database migrations
+/src/backend/core/db/migrations/                  @therealmcsparrow/backend-maintainers
+
+# Workflow nodes (custom code executed on the server)
+/nodes/                                            @therealmcsparrow/frontend-maintainers
+
+# Dashboard widgets
+/widgets/                                         @therealmcsparrow/frontend-maintainers
